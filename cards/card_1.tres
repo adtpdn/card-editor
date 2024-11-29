@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CardResource" load_steps=3 format=3 uid="uid://cvry1cplarixt"]
+
+[ext_resource type="Texture2D" uid="uid://nlcqdbo5pp0y" path="res://addons/card_deck_builder/assets/large_card_0.png" id="1_2ts22"]
+[ext_resource type="Script" path="res://addons/card_deck_builder/card_resources.gd" id="2_4new8"]
+
+[resource]
+script = ExtResource("2_4new8")
+card_name = "Action Card 4"
+card_type = 1
+cost_to_draw = 1
+effect1 = ""
+effect2 = ""
+card_image = ExtResource("1_2ts22")

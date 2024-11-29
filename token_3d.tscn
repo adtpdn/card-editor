@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://dfjq1voh17um3"]
+
+[ext_resource type="Script" path="res://token_3d.gd" id="1_18jwr"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_bpimy"]
+radial_segments = 8
+
+[node name="Token3D" type="Node3D"]
+script = ExtResource("1_18jwr")
+
+[node name="TokenMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.4, 0, 0, 0, 0.15, 0, 0, 0, 0.4, 0, 0.104121, 0)
+mesh = SubResource("CylinderMesh_bpimy")

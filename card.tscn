@@ -1,0 +1,98 @@
+[gd_scene load_steps=5 format=3 uid="uid://6o8faujafei5"]
+
+[ext_resource type="Script" path="res://card.gd" id="1_4sblk"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5cuqc"]
+bg_color = Color(0.469645, 0.211248, 0.0426612, 1)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(0.970424, 0.604054, 0.483844, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+shadow_size = 5
+shadow_offset = Vector2(4, 4)
+
+[sub_resource type="LabelSettings" id="LabelSettings_blxak"]
+font_size = 14
+shadow_size = 3
+shadow_color = Color(0, 0, 0, 0.6)
+
+[sub_resource type="LabelSettings" id="LabelSettings_small"]
+font_size = 12
+shadow_color = Color(0, 0, 0, 0.6)
+
+[node name="Card" type="Panel"]
+custom_minimum_size = Vector2(100, 140)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1052.0
+offset_bottom = -508.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(50, 140)
+theme_override_styles/panel = SubResource("StyleBoxFlat_5cuqc")
+script = ExtResource("1_4sblk")
+
+[node name="Image" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 140.0
+grow_horizontal = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 70.0
+offset_bottom = 93.0
+grow_horizontal = 2
+text = "No Card Data"
+label_settings = SubResource("LabelSettings_blxak")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CostLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = -45.0
+offset_right = 95.0
+offset_bottom = -30.0
+grow_vertical = 0
+label_settings = SubResource("LabelSettings_small")
+vertical_alignment = 1
+
+[node name="Effect1Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = -30.0
+offset_right = 95.0
+offset_bottom = -15.0
+grow_vertical = 0
+label_settings = SubResource("LabelSettings_small")
+vertical_alignment = 1
+
+[node name="Effect2Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = -15.0
+offset_right = 95.0
+grow_vertical = 0
+label_settings = SubResource("LabelSettings_small")
+vertical_alignment = 1
