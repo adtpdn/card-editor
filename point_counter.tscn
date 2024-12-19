@@ -1,0 +1,72 @@
+[gd_scene load_steps=2 format=3 uid="uid://c3143lgob3rqa"]
+
+[ext_resource type="Script" path="res://point_counter.gd" id="1_q8ijy"]
+
+[node name="PointCounter" type="Node3D"]
+script = ExtResource("1_q8ijy")
+
+[node name="TriangleStack" type="Node3D" parent="."]
+
+[node name="SquareStack" type="Node3D" parent="."]
+
+[node name="CircleStack" type="Node3D" parent="."]
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 163.0
+grow_vertical = 2
+size_flags_horizontal = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI"]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 200.0
+grow_vertical = 2
+
+[node name="TriangleButtons" type="HBoxContainer" parent="UI/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="UI/VBoxContainer/TriangleButtons"]
+layout_mode = 2
+text = "Triangle"
+
+[node name="PlusButton" type="Button" parent="UI/VBoxContainer/TriangleButtons"]
+layout_mode = 2
+text = "PlusButton"
+
+[node name="MinusButton" type="Button" parent="UI/VBoxContainer/TriangleButtons"]
+layout_mode = 2
+text = "MinusButton"
+
+[node name="SquareButtons" type="HBoxContainer" parent="UI/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="UI/VBoxContainer/SquareButtons"]
+layout_mode = 2
+text = "Square  "
+
+[node name="PlusButton" type="Button" parent="UI/VBoxContainer/SquareButtons"]
+layout_mode = 2
+text = "PlusButton"
+
+[node name="MinusButton" type="Button" parent="UI/VBoxContainer/SquareButtons"]
+layout_mode = 2
+text = "MinusButton"
+
+[node name="RectangleButtons" type="HBoxContainer" parent="UI/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="UI/VBoxContainer/RectangleButtons"]
+layout_mode = 2
+text = "Circle     "
+
+[node name="PlusButton" type="Button" parent="UI/VBoxContainer/RectangleButtons"]
+layout_mode = 2
+text = "PlusButton"
+
+[node name="MinusButton" type="Button" parent="UI/VBoxContainer/RectangleButtons"]
+layout_mode = 2
+text = "MinusButton"

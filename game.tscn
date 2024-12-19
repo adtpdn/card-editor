@@ -1,21 +1,16 @@
-[gd_scene load_steps=28 format=3 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=23 format=3 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" path="res://game.gd" id="1_0rb8f"]
 [ext_resource type="Script" path="res://hand.gd" id="2_drdp6"]
 [ext_resource type="Script" path="res://token_manager.gd" id="2_njql7"]
 [ext_resource type="Curve" uid="uid://dtskme7prx4g5" path="res://hand_y_curve.tres" id="3_jwe8m"]
 [ext_resource type="Curve" uid="uid://dwkwcluylhkq0" path="res://hand_rotation_curve.tres" id="4_lbysu"]
-[ext_resource type="Script" path="res://addons/card_deck_builder/deck_builder.gd" id="5_g0tgd"]
-[ext_resource type="Script" path="res://addons/card_deck_builder/card_resources.gd" id="6_d2jrq"]
-[ext_resource type="Resource" uid="uid://cn60o0dc7ue11" path="res://cards/card_0.tres" id="7_mra50"]
-[ext_resource type="Resource" uid="uid://cvry1cplarixt" path="res://cards/card_1.tres" id="8_ctog7"]
-[ext_resource type="Resource" uid="uid://df5l41ny8k4lm" path="res://cards/card_2.tres" id="9_bcpdd"]
+[ext_resource type="Script" path="res://card_resource.gd" id="6_w411x"]
+[ext_resource type="PackedScene" uid="uid://3blq6hslbv2" path="res://dice_manager.tscn" id="7_p3vul"]
 [ext_resource type="Shape3D" uid="uid://gjjokcof6ivg" path="res://cards/card_3d_collision.tres" id="11_1ew6f"]
+[ext_resource type="Script" path="res://point_counter.gd" id="11_beb7m"]
 [ext_resource type="Script" path="res://deck_location.gd" id="12_8ltkn"]
-[ext_resource type="Texture2D" uid="uid://dn3ii177j6oj8" path="res://addons/card_deck_builder/assets/large_card_1.png" id="13_afsud"]
 [ext_resource type="Script" path="res://planting_location.gd" id="13_u747q"]
-[ext_resource type="Texture2D" uid="uid://nlcqdbo5pp0y" path="res://addons/card_deck_builder/assets/large_card_0.png" id="14_nuccq"]
-[ext_resource type="Texture2D" uid="uid://bvewwbcebmstd" path="res://addons/card_deck_builder/assets/large_card_2.png" id="15_t4p3d"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cu6c3"]
 albedo_color = Color(0.42, 0.42, 0.42, 1)
@@ -24,77 +19,69 @@ albedo_color = Color(0.42, 0.42, 0.42, 1)
 material = SubResource("StandardMaterial3D_cu6c3")
 radial_segments = 8
 
-[sub_resource type="Resource" id="Resource_euag2"]
-script = ExtResource("6_d2jrq")
-card_name = "Action Card 1"
+[sub_resource type="Resource" id="Resource_4lx16"]
+script = ExtResource("6_w411x")
+card_name = "New Card"
 card_type = 0
 cost_to_draw = 1
 effect1 = ""
 effect2 = ""
-card_image = ExtResource("13_afsud")
 
-[sub_resource type="Resource" id="Resource_jio7m"]
-script = ExtResource("6_d2jrq")
-card_name = "Action Card 2"
+[sub_resource type="Resource" id="Resource_y7hxr"]
+script = ExtResource("6_w411x")
+card_name = "New Card"
 card_type = 0
 cost_to_draw = 1
 effect1 = ""
 effect2 = ""
-card_image = ExtResource("14_nuccq")
 
-[sub_resource type="Resource" id="Resource_eg6ce"]
-script = ExtResource("6_d2jrq")
-card_name = "Action Card 3"
+[sub_resource type="Resource" id="Resource_5835r"]
+script = ExtResource("6_w411x")
+card_name = "New Card"
 card_type = 0
 cost_to_draw = 1
 effect1 = ""
 effect2 = ""
-card_image = ExtResource("14_nuccq")
 
-[sub_resource type="Resource" id="Resource_2uoxn"]
-script = ExtResource("6_d2jrq")
-card_name = "Action Card 4"
+[sub_resource type="Resource" id="Resource_xjjx3"]
+script = ExtResource("6_w411x")
+card_name = "New Card"
 card_type = 0
 cost_to_draw = 1
 effect1 = ""
 effect2 = ""
-card_image = ExtResource("14_nuccq")
 
-[sub_resource type="Resource" id="Resource_q5mer"]
-script = ExtResource("6_d2jrq")
-card_name = "Area Card 1"
+[sub_resource type="Resource" id="Resource_lnaii"]
+script = ExtResource("6_w411x")
+card_name = "New Card"
 card_type = 1
 cost_to_draw = 1
 effect1 = ""
 effect2 = ""
-card_image = ExtResource("15_t4p3d")
 
-[sub_resource type="Resource" id="Resource_veyfc"]
-script = ExtResource("6_d2jrq")
-card_name = "Area Card 2"
+[sub_resource type="Resource" id="Resource_bc4bn"]
+script = ExtResource("6_w411x")
+card_name = "New Card"
 card_type = 1
 cost_to_draw = 1
 effect1 = ""
 effect2 = ""
-card_image = ExtResource("13_afsud")
 
-[sub_resource type="Resource" id="Resource_ku0cj"]
-script = ExtResource("6_d2jrq")
-card_name = "Area Card 3"
+[sub_resource type="Resource" id="Resource_2sqg2"]
+script = ExtResource("6_w411x")
+card_name = "New Card"
 card_type = 1
 cost_to_draw = 1
 effect1 = ""
 effect2 = ""
-card_image = ExtResource("14_nuccq")
 
-[sub_resource type="Resource" id="Resource_qge80"]
-script = ExtResource("6_d2jrq")
-card_name = "Area Card 4"
+[sub_resource type="Resource" id="Resource_788mm"]
+script = ExtResource("6_w411x")
+card_name = "New Card"
 card_type = 1
 cost_to_draw = 1
 effect1 = ""
 effect2 = ""
-card_image = ExtResource("14_nuccq")
 
 [sub_resource type="BoxMesh" id="BoxMesh_nfgrx"]
 
@@ -103,11 +90,6 @@ script = ExtResource("1_0rb8f")
 
 [node name="TokenManager" type="Node" parent="."]
 script = ExtResource("2_njql7")
-
-[node name="DeckBuilder" type="Node" parent="."]
-script = ExtResource("5_g0tgd")
-deck = Array[ExtResource("6_d2jrq")]([ExtResource("7_mra50"), ExtResource("8_ctog7"), ExtResource("9_bcpdd"), ExtResource("7_mra50"), ExtResource("8_ctog7"), ExtResource("9_bcpdd"), ExtResource("7_mra50"), ExtResource("8_ctog7"), ExtResource("9_bcpdd"), ExtResource("7_mra50"), ExtResource("8_ctog7"), ExtResource("9_bcpdd")])
-cards = null
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 17, 0.8)
@@ -128,12 +110,12 @@ mesh = SubResource("CylinderMesh_yl3nv")
 script = ExtResource("12_8ltkn")
 deck_name = "Action Cards"
 revealed = true
-deck = Array[ExtResource("6_d2jrq")]([SubResource("Resource_euag2"), SubResource("Resource_jio7m"), SubResource("Resource_eg6ce"), SubResource("Resource_2uoxn")])
+initial_cards = Array[ExtResource("6_w411x")]([SubResource("Resource_4lx16"), SubResource("Resource_y7hxr"), SubResource("Resource_5835r"), SubResource("Resource_xjjx3")])
 
 [node name="AreaDeck" type="Node3D" parent="DeckLocations"]
 script = ExtResource("12_8ltkn")
 deck_name = "Area Cards"
-deck = Array[ExtResource("6_d2jrq")]([SubResource("Resource_q5mer"), SubResource("Resource_veyfc"), SubResource("Resource_ku0cj"), SubResource("Resource_qge80")])
+initial_cards = Array[ExtResource("6_w411x")]([SubResource("Resource_lnaii"), SubResource("Resource_bc4bn"), SubResource("Resource_2sqg2"), SubResource("Resource_788mm")])
 
 [node name="TokenPlacements" type="Node3D" parent="."]
 
@@ -311,6 +293,9 @@ shape = ExtResource("11_1ew6f")
 transform = Transform3D(1, 0, 7.45058e-09, 0, 0.03, 0, 0, 0, 1, -0.00149435, 0, 0.100052)
 mesh = SubResource("BoxMesh_nfgrx")
 
+[node name="DiceManager" parent="." instance=ExtResource("7_p3vul")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0.51, 0)
+
 [node name="DrawActionButton" type="Button" parent="."]
 offset_left = 43.0
 offset_top = 36.0
@@ -441,6 +426,31 @@ text = "TokenButton3"
 layout_mode = 2
 text = "TokenButton4"
 
+[node name="RollDiceButton" type="Button" parent="UI"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -51.0
+offset_top = 183.0
+offset_right = 51.0
+offset_bottom = 214.0
+grow_horizontal = 2
+text = "Roll Dice"
+
+[node name="RollResultLabel" type="Label" parent="UI"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -51.0
+offset_top = 226.0
+offset_right = 51.0
+offset_bottom = 249.0
+grow_horizontal = 2
+text = "DICE LABEL"
+horizontal_alignment = 1
+
 [node name="HandAreas" type="Control" parent="."]
 clip_contents = true
 layout_mode = 3
@@ -475,7 +485,80 @@ rotation_curve = ExtResource("4_lbysu")
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 5, 0)
 sky_mode = 1
 
+[node name="PointCounter" type="Node3D" parent="."]
+script = ExtResource("11_beb7m")
+
+[node name="TriangleStack" type="Node3D" parent="PointCounter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.482201, 0, 0)
+
+[node name="SquareStack" type="Node3D" parent="PointCounter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.656615, 0, 0)
+
+[node name="CircleStack" type="Node3D" parent="PointCounter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.78999)
+
+[node name="UI" type="Control" parent="PointCounter"]
+layout_mode = 3
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 163.0
+grow_vertical = 2
+size_flags_horizontal = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PointCounter/UI"]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 200.0
+grow_vertical = 2
+
+[node name="TriangleButtons" type="HBoxContainer" parent="PointCounter/UI/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PointCounter/UI/VBoxContainer/TriangleButtons"]
+layout_mode = 2
+text = "Triangle"
+
+[node name="PlusButton" type="Button" parent="PointCounter/UI/VBoxContainer/TriangleButtons"]
+layout_mode = 2
+text = "PlusButton"
+
+[node name="MinusButton" type="Button" parent="PointCounter/UI/VBoxContainer/TriangleButtons"]
+layout_mode = 2
+text = "MinusButton"
+
+[node name="SquareButtons" type="HBoxContainer" parent="PointCounter/UI/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="PointCounter/UI/VBoxContainer/SquareButtons"]
+layout_mode = 2
+text = "Square  "
+
+[node name="PlusButton" type="Button" parent="PointCounter/UI/VBoxContainer/SquareButtons"]
+layout_mode = 2
+text = "PlusButton"
+
+[node name="MinusButton" type="Button" parent="PointCounter/UI/VBoxContainer/SquareButtons"]
+layout_mode = 2
+text = "MinusButton"
+
+[node name="RectangleButtons" type="HBoxContainer" parent="PointCounter/UI/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="PointCounter/UI/VBoxContainer/RectangleButtons"]
+layout_mode = 2
+text = "Circle     "
+
+[node name="PlusButton" type="Button" parent="PointCounter/UI/VBoxContainer/RectangleButtons"]
+layout_mode = 2
+text = "PlusButton"
+
+[node name="MinusButton" type="Button" parent="PointCounter/UI/VBoxContainer/RectangleButtons"]
+layout_mode = 2
+text = "MinusButton"
+
 [connection signal="pressed" from="DrawActionButton" to="." method="_on_draw_action_button_pressed"]
 [connection signal="pressed" from="DrawAreaButton" to="." method="_on_draw_area_button_pressed"]
 [connection signal="pressed" from="ResetButton" to="." method="_on_reset_button_pressed"]
 [connection signal="pressed" from="DiscardCardButton" to="." method="_on_discard_card_button_pressed"]
+[connection signal="button_down" from="UI/RollDiceButton" to="." method="_on_roll_dice_pressed"]

@@ -6,6 +6,10 @@ extends Node
 @onready var action_area = $PlantingLocations/ActionArea
 @onready var area_zone = $PlantingLocations/AreaZone
 
+# Dice Dependencies
+@onready var dice_manager: Node3D = $DiceManager
+@onready var roll_result_label = $UI/RollResultLabel
+
 var multiplayer_peer = ENetMultiplayerPeer.new()
 const PORT = 9999
 const ADDRESS = "127.0.0.1"
@@ -98,6 +102,9 @@ func _ready() -> void:
 	player_hand.set_interaction_enabled(false)
 	$UI/EndTurnButton.disabled = true
 	
+	# Dice Manager Initiated
+	dice_manager.roll_completed.connect(_on_dice_roll_completed)
+	
 	# Camera setup
 	var camera = $Camera3D
 	
@@ -122,7 +129,6 @@ func _on_host_pressed():
 		distribute_initial_hand()
 		setup_player(host_id)
 		start_game()
-
 
 func _on_join_pressed():
 	var error = multiplayer_peer.create_client("localhost", PORT)
@@ -566,36 +572,6 @@ func sync_player_tokens(tokens: Array):
 	token_manager.set_player_tokens(player_id, tokens)
 	update_token_ui(tokens)
 
-#func update_token_ui(tokens: Array):
-	#print("Starting UI update with tokens: ", tokens)
-	#
-	## Clear existing token display
-	#print("Clearing existing token display")
-	#for child in $UI/TokenContainer.get_children():
-		#child.queue_free()
-	#
-	## Create visual representation of available tokens
-	#print("Creating new token buttons")
-	#for i in range(tokens.size()):
-		#var token_data = tokens[i]
-		#
-		## Create button
-		#var button = Button.new()
-		#var biome_name = TokenManager.BiomeType.keys()[token_data.biome]
-		#button.text = "Token %d (%s)" % [i + 1, biome_name]
-		#button.custom_minimum_size = Vector2(120, 40)
-		#button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		#
-		## Connect the button signal
-		#button.pressed.connect(_on_token_selected.bind(i))
-		#print("Created button ", i + 1, " for biome ", biome_name)
-		#
-		## Add button to container
-		#$UI/TokenContainer.add_child(button)
-	#
-	## Force layout update
-	#$UI/TokenContainer.queue_sort()
-	#print("Finished updating token UI. Total buttons: ", $UI/TokenContainer.get_child_count())
 func update_token_ui(tokens: Array):
 	print("Starting UI update with tokens: ", tokens)
 	
@@ -937,3 +913,20 @@ func add_player(player_id):
 @rpc("any_peer", "call_local")
 func remove_player(player_id):
 	players.erase(player_id)
+
+# Dice Events
+
+func _on_roll_dice_pressed():
+	if multiplayer.is_server():
+		var result = randi_range(1, 6)
+		dice_manager.rpc("sync_roll", result, multiplayer.get_unique_id())
+	else:
+		dice_manager.rpc_id(1, "request_roll")
+		
+func _on_dice_roll_completed(result: int, player_id: int, face_name: String):
+	var player_text = "You" if player_id == multiplayer.get_unique_id() else "Player " + str(player_id)
+	roll_result_label.text = player_text + " rolled: " + face_name
+	
+	# Optional: Add some styling based on the face
+	var color = dice_manager.FACE_COLORS[result]
+	roll_result_label.modulate = color
