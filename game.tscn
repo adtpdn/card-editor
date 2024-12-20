@@ -101,7 +101,6 @@ mesh = SubResource("CylinderMesh_yl3nv")
 
 [node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
 transform = Transform3D(11, 0, -9.61651e-07, 0, -0.08, 0, 9.61651e-07, 0, 11, 0, -0.20056, 0)
-visible = false
 mesh = SubResource("CylinderMesh_yl3nv")
 
 [node name="DeckLocations" type="Node3D" parent="."]
