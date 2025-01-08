@@ -8,6 +8,7 @@ extends Node
 
 # Dice Dependencies
 @onready var dice_manager: Node3D = $DiceManager
+@onready var point_counter = $PointCounter
 @onready var roll_result_label = $UI/RollResultLabel
 
 var multiplayer_peer = ENetMultiplayerPeer.new()
@@ -113,6 +114,16 @@ func _ready() -> void:
 	
 	set_multiplayer_authority(1)
 
+	if point_counter:
+		point_counter.sync_id = 1  # Give authority to the server
+		if multiplayer.is_server():
+			# Initial sync of points
+			point_counter.rpc("sync_point_values", 
+				point_counter.triangle_points,
+				point_counter.square_points,
+				point_counter.circle_points
+			)
+
 func _on_host_pressed():
 	var error = multiplayer_peer.create_server(PORT)
 	if error == OK:
@@ -137,12 +148,13 @@ func _on_join_pressed():
 		$UI/Menu.visible = false
 		multiplayer.multiplayer_peer = multiplayer_peer
 	else:
-		print("Failed to create client: ", error)
+		pass
+		#print("Failed to create client: ", error)
 
 func _on_peer_connected(new_peer_id):
 	if multiplayer.is_server():
 		await get_tree().create_timer(0.1).timeout
-		print("New peer connected: ", new_peer_id)
+		#print("New peer connected: ", new_peer_id)
 		players.append(new_peer_id)
 		
 		# Initialize new player's tokens
@@ -154,7 +166,7 @@ func _on_peer_connected(new_peer_id):
 		# Sync tokens to the new client
 		var player_tokens = token_manager.get_player_tokens(new_peer_id)
 		rpc_id(new_peer_id, "sync_player_tokens", player_tokens)
-		print("Sent initial tokens to client: ", player_tokens)
+		#print("Sent initial tokens to client: ", player_tokens)
 		
 		# Initialize new player's hand tracking
 		player_hands[new_peer_id] = []
@@ -182,7 +194,7 @@ func _on_peer_disconnected(peer_id):
 	if peer_id == null or peer_id == 0:  # Check for both null and invalid ID
 		return
 		
-	print("Peer disconnected: ", peer_id)
+	#print("Peer disconnected: ", peer_id)
 	if players.has(peer_id):
 		players.erase(peer_id)
 	
@@ -195,7 +207,7 @@ func _on_peer_disconnected(peer_id):
 
 @rpc("any_peer", "call_local")
 func sync_existing_tokens(tokens_data: Array):
-	print("Syncing existing tokens: ", tokens_data.size())
+	#print("Syncing existing tokens: ", tokens_data.size())
 	
 	# Clear existing tokens first
 	for token in $Tokens.get_children():
@@ -213,7 +225,7 @@ func sync_existing_tokens(tokens_data: Array):
 			placement.set_occupied(true)
 
 func sync_existing_game_state(new_peer_id: int):
-	print("Syncing game state for new client: ", new_peer_id)
+	#print("Syncing game state for new client: ", new_peer_id)
 	
 	# Sync tokens
 	var tokens_data = []
@@ -234,7 +246,7 @@ func sync_existing_game_state(new_peer_id: int):
 
 @rpc("any_peer", "call_local")
 func receive_game_state(tokens_data: Array, occupied_locations: Array):
-	print("Receiving game state")
+	#print("Receiving game state")
 	
 	# Clear existing tokens
 	for token in $Tokens.get_children():
@@ -257,7 +269,7 @@ func distribute_initial_hand():
 	if !multiplayer.is_server():
 		return
 		
-	print("Distributing initial hand for host")
+	#print("Distributing initial hand for host")
 	var host_id = multiplayer.get_unique_id()
 	
 	# Clear hand first
@@ -277,7 +289,7 @@ func distribute_initial_hand_to_client(peer_id: int):
 	if !multiplayer.is_server():
 		return
 		
-	print("Distributing initial hand to client: ", peer_id)
+	#print("Distributing initial hand to client: ", peer_id)
 	
 	# Draw random cards for this client
 	var cards_data = []
@@ -287,30 +299,31 @@ func distribute_initial_hand_to_client(peer_id: int):
 		var card = action_deck.draw_card()
 		if card:
 			cards_data.append(card.to_dictionary())
-			print("Drew action card: ", card.card_name)
+			#print("Drew action card: ", card.card_name)
 	
 	# Draw 2 area cards
 	for i in range(2):
 		var card = area_deck.draw_card()
 		if card:
 			cards_data.append(card.to_dictionary())
-			print("Drew area card: ", card.card_name)
+			#print("Drew area card: ", card.card_name)
 	
 	if cards_data.size() > 0:
-		print("Sending ", cards_data.size(), " cards to client ", peer_id)
+		#print("Sending ", cards_data.size(), " cards to client ", peer_id)
 		rpc_id(peer_id, "receive_initial_hand", cards_data)
 	else:
-		print("No cards to send to client!")
+		pass
+		#print("No cards to send to client!")
 
 func distribute_initial_tokens_to_client(peer_id: int):
 	if !multiplayer.is_server():
 		return
 		
-	print("Distributing initial tokens to client: ", peer_id)
+	#print("Distributing initial tokens to client: ", peer_id)
 	token_manager.initialize_player_tokens(peer_id)
 	var tokens = token_manager.get_player_tokens(peer_id)
 	rpc_id(peer_id, "sync_player_tokens", tokens)
-	print("Sent initial tokens to client: ", tokens)
+	#print("Sent initial tokens to client: ", tokens)
 
 func draw_random_initial_cards() -> Array:
 	var cards = []
@@ -331,11 +344,11 @@ func draw_random_initial_cards() -> Array:
 
 @rpc("any_peer", "call_local")
 func receive_initial_hand(cards_data: Array):
-	print("Receiving initial hand, is server: ", multiplayer.is_server())
+	#print("Receiving initial hand, is server: ", multiplayer.is_server())
 	if multiplayer.is_server():
 		return
 	
-	print("Processing ", cards_data.size(), " cards for client")
+	#print("Processing ", cards_data.size(), " cards for client")
 	
 	# Clear existing hand
 	player_hand.cards.clear()
@@ -345,11 +358,11 @@ func receive_initial_hand(cards_data: Array):
 	for card_data in cards_data:
 		var card_resource = CardResource.new()
 		card_resource.from_dictionary(card_data)
-		print("Processing card: ", card_resource.card_name)
+		#print("Processing card: ", card_resource.card_name)
 		player_hand.draw(card_resource)
-		print("Current hand size: ", player_hand.card_resources.size())
+		#print("Current hand size: ", player_hand.card_resources.size())
 	
-	print("Finished receiving initial hand, total cards: ", player_hand.get_card_count())
+	#print("Finished receiving initial hand, total cards: ", player_hand.get_card_count())
 
 @rpc("any_peer")
 func request_initial_cards():
@@ -358,7 +371,7 @@ func request_initial_cards():
 
 @rpc("any_peer", "call_local")
 func sync_game_state(current_players: Array, is_game_started: bool, current_placed_cards: Array) -> void:
-	print("Syncing game state. Is server: ", multiplayer.is_server())
+	#print("Syncing game state. Is server: ", multiplayer.is_server())
 	players = current_players
 	game_started = is_game_started
 	
@@ -370,7 +383,7 @@ func sync_game_state(current_players: Array, is_game_started: bool, current_plac
 	
 	# If this is a client, request initial cards
 	if not multiplayer.is_server():
-		print("Requesting initial cards as client")
+		#print("Requesting initial cards as client")
 		rpc_id(1, "request_initial_cards")
 
 func setup_token_placements():
@@ -418,9 +431,10 @@ func setup_token_placements():
 			placements_per_biome[biome] += 1
 	
 	# Debug print final counts
-	for biome in placements_per_biome.keys():
-		print("Total placements for biome ", TokenManager.BiomeType.keys()[biome], 
-			  ": ", placements_per_biome[biome])
+	#for biome in placements_per_biome.keys():
+		#
+		#print("Total placements for biome ", TokenManager.BiomeType.keys()[biome], 
+			  #": ", placements_per_biome[biome])
 
 func _generate_slice_positions(radius: float, start_angle: float, end_angle: float) -> Array:
 	var positions = []
@@ -536,7 +550,7 @@ func setup_biome_borders():
 			borders_node.add_child(mesh_instance)
 
 func setup_player(player_id: int) -> void:
-	print("Setting up player: ", player_id)
+	#print("Setting up player: ", player_id)
 	if player_id == multiplayer.get_unique_id():
 		# Enable interaction for the local player
 		player_hand.set_interaction_enabled(true)
@@ -567,13 +581,13 @@ func unhighlight_all_token_placements():
 
 @rpc("authority", "reliable")
 func sync_player_tokens(tokens: Array):
-	print("Received token sync from server")
+	#print("Received token sync from server")
 	var player_id = multiplayer.get_unique_id()
 	token_manager.set_player_tokens(player_id, tokens)
 	update_token_ui(tokens)
 
 func update_token_ui(tokens: Array):
-	print("Starting UI update with tokens: ", tokens)
+	#print("Starting UI update with tokens: ", tokens)
 	
 	# Get all token buttons
 	var token_buttons = $UI/TokenContainer.get_children()
@@ -587,7 +601,7 @@ func update_token_ui(tokens: Array):
 	# Update buttons based on available tokens
 	for i in range(tokens.size()):
 		if i >= token_buttons.size():
-			print("Warning: More tokens than available buttons!")
+			#print("Warning: More tokens than available buttons!")
 			break
 			
 		var token_data = tokens[i]
@@ -600,12 +614,12 @@ func update_token_ui(tokens: Array):
 		
 		# Connect the button signal with a unique callable for each button
 		button.pressed.connect(func(): _on_token_selected(i))
-		print("Updated button ", i + 1, " for biome ", biome_name)
+		#print("Updated button ", i + 1, " for biome ", biome_name)
 	
-	print("Finished updating token UI. Active buttons: ", tokens.size())
+	#print("Finished updating token UI. Active buttons: ", tokens.size())
 
 func _on_token_selected(token_index: int):
-	print("Token selected: ", token_index)
+	#print("Token selected: ", token_index)
 	var tokens = token_manager.get_player_tokens(multiplayer.get_unique_id())
 	
 	if token_index >= 0 and token_index < tokens.size():
@@ -625,47 +639,50 @@ func request_token_placement(token_index: int, position: Vector3):
 	if !multiplayer.is_server():
 		return
 		
-	print("Server received placement request from client")
+	#print("Server received placement request from client")
 	var player_id = multiplayer.get_remote_sender_id()
 	var player_tokens = token_manager.get_player_tokens(player_id)
 	
-	# Debug prints
-	print("Player ID: ", player_id)
-	print("Token index: ", token_index)
-	print("Available tokens: ", player_tokens)
+	# Debug #prints
+	#print("Player ID: ", player_id)
+	#print("Token index: ", token_index)
+	#print("Available tokens: ", player_tokens)
 	
 	if token_index >= 0 and token_index < player_tokens.size():
 		var token_data = player_tokens[token_index]
 		var placement = get_token_placement_at_position(position)
 		
-		# Debug prints
-		print("Token data: ", token_data)
-		print("Found placement: ", placement != null)
+		# Debug #prints
+		#print("Token data: ", token_data)
+		#print("Found placement: ", placement != null)
 		if placement:
-			print("Placement occupied: ", placement.is_occupied)
-			print("Placement biome: ", placement.accepted_biome)
+			pass
+			#print("Placement occupied: ", placement.is_occupied)
+			#print("Placement biome: ", placement.accepted_biome)
 		
 		if placement and !placement.is_occupied and placement.accepted_biome == token_data.biome:
-			print("Server validating placement - OK")
+			#print("Server validating placement - OK")
 			sync_token_placement.rpc(player_id, token_data, position)
 			token_manager.remove_token(player_id, token_index)
 			rpc_id(player_id, "sync_player_tokens", token_manager.get_player_tokens(player_id))
 		else:
-			print("Invalid placement!")
+			pass
+			#print("Invalid placement!")
 	else:
-		print("Invalid token index!")
+		pass
+		#print("Invalid token index!")
 
 func get_token_placement_at_position(pos: Vector3) -> Node:
 	for placement in $TokenPlacements.get_children():
 		if placement.global_position.distance_to(pos) < 0.1:
-			print("Found token placement at ", pos)
+			#print("Found token placement at ", pos)
 			return placement
-	print("No token placement found at ", pos)
+	#print("No token placement found at ", pos)
 	return null
 
 @rpc("any_peer", "call_local")
 func sync_token_placement(player_id: int, token_data: Dictionary, position: Vector3):
-	print("Syncing token placement for player ", player_id, " at position ", position)
+	#print("Syncing token placement for player ", player_id, " at position ", position)
 	
 	var token = token_manager.token_scene.instantiate()
 	$Tokens.add_child(token)
@@ -696,7 +713,7 @@ func count_cards_by_type(type: int) -> int:
 	return count
 
 func _on_card_placed(card: CardResource, slot_index: int, location_name: String) -> void:
-	print("Card placed event received for location: ", location_name)
+	#print("Card placed event received for location: ", location_name)
 	var current_player = multiplayer.get_unique_id()
 	
 	if multiplayer.is_server():
@@ -719,8 +736,12 @@ func start_game():
 	if multiplayer.is_server():
 		game_started = true
 		current_turn_index = 0
-		rpc("sync_game_start", players)
-		set_current_turn(players[current_turn_index])
+		if players.size() > 0:  # Make sure we have players before starting
+			rpc("sync_game_start", players)
+			set_current_turn(players[current_turn_index])
+		else:
+			pass
+			#print("No players available to start game")
 
 @rpc("call_local")
 func sync_game_start(current_players):
@@ -728,18 +749,59 @@ func sync_game_start(current_players):
 	game_started = true
 
 func next_turn():
-	if multiplayer.is_server():
+	if !multiplayer.is_server():
+		return
+		
+	if players.size() > 0:
 		current_turn_index = (current_turn_index + 1) % players.size()
-		rpc("set_current_turn", players[current_turn_index])
+		var next_player = players[current_turn_index]
+		#print("Next turn: Player ", next_player)
+		
+		# Sync turn to all clients
+		rpc("set_current_turn", next_player)
+		
+		# Force sync point counter state
+		if point_counter:
+			point_counter.rpc("sync_point_values", 
+				point_counter.triangle_points,
+				point_counter.square_points,
+				point_counter.circle_points
+			)
+	else:
+		pass
+		#print("No players available for next turn")
 
 @rpc("any_peer", "call_local")
 func set_current_turn(player_id):
+	if !is_instance_valid(point_counter):
+		return
+		
+	#print("Setting turn for player: ", player_id, " (local id: ", multiplayer.get_unique_id(), ")")
+	
 	if player_id == multiplayer.get_unique_id():
+		#print("Enabling controls for local player")
 		player_hand.set_interaction_enabled(true)
 		$UI/EndTurnButton.disabled = false
+		if point_counter:
+			point_counter.set_buttons_enabled(true)
+			# Force point counter update
+			point_counter.update_all_stacks()
 	else:
+		#print("Disabling controls for non-local player")
 		player_hand.set_interaction_enabled(false)
 		$UI/EndTurnButton.disabled = true
+		if point_counter:
+			point_counter.set_buttons_enabled(false)
+			# Force point counter update
+			point_counter.update_all_stacks()
+
+func is_valid_turn_index() -> bool:
+	return current_turn_index >= 0 and current_turn_index < players.size()
+
+func get_current_player_id() -> int:
+	if is_valid_turn_index():
+		return players[current_turn_index]
+	return -1
 
 func enable_player_turn():
 	player_hand.set_interaction_enabled(true)
@@ -749,15 +811,32 @@ func disable_player_turn():
 	player_hand.set_interaction_enabled(false)
 	$UI/EndTurnButton.disabled = true
 
+
 func _on_end_turn_pressed():
 	if multiplayer.is_server():
+		# Disable current player's controls immediately
+		player_hand.set_interaction_enabled(false)
+		$UI/EndTurnButton.disabled = true
+		if point_counter:
+			point_counter.set_buttons_enabled(false)
+		
 		next_turn()
 	else:
+		# Client requests turn end
+		player_hand.set_interaction_enabled(false)
+		$UI/EndTurnButton.disabled = true
+		if point_counter:
+			point_counter.set_buttons_enabled(false)
+			
 		rpc_id(1, "request_next_turn")
 
 @rpc("any_peer")
 func request_next_turn():
-	if multiplayer.is_server():
+	if !multiplayer.is_server():
+		return
+		
+	var requesting_player = multiplayer.get_remote_sender_id()
+	if requesting_player == players[current_turn_index]:
 		next_turn()
 
 func _on_reset_button_pressed() -> void:
@@ -773,7 +852,7 @@ func remove_card_from_player_hand(player_id: int, card_index: int) -> void:
 		
 	if card_index >= 0 and card_index < player_hands[player_id].size():
 		player_hands[player_id].remove_at(card_index)
-		print("Removed card at index ", card_index, " from player ", player_id, "'s hand")
+		#print("Removed card at index ", card_index, " from player ", player_id, "'s hand")
 
 
 func _on_discard_card_button_pressed() -> void:
@@ -806,7 +885,7 @@ func sync_draw_card(card_data: Dictionary) -> void:
 	if multiplayer.is_server():
 		return
 		
-	print("Receiving card data: ", card_data)
+	#print("Receiving card data: ", card_data)
 	var card_resource = CardResource.new()
 	card_resource.from_dictionary(card_data)
 	player_hand.draw(card_resource)
@@ -815,6 +894,7 @@ func sync_draw_card(card_data: Dictionary) -> void:
 func request_draw_card(is_action: bool):
 	if multiplayer.is_server():
 		var requesting_peer = multiplayer.get_remote_sender_id()
+		print("Request Card from player_id :", requesting_peer)
 		var current_count = count_cards_by_type_for_player(
 			requesting_peer,
 			CardResource.CardType.ACTION if is_action else CardResource.CardType.AREA
@@ -844,7 +924,7 @@ func count_cards_by_type_for_player(player_id: int, type: int) -> int:
 @rpc("any_peer")
 func request_card_placement(card_data: Dictionary, slot_index: int, location_name: String, player_id: int) -> void:
 	if multiplayer.is_server():
-		print("Server received card placement request from player: ", player_id)
+		#print("Server received card placement request from player: ", player_id)
 		rpc("sync_card_played", card_data, slot_index, location_name, player_id)
 
 func _on_draw_action_button_pressed():
@@ -852,7 +932,7 @@ func _on_draw_action_button_pressed():
 	var current_count = count_cards_by_type(CardResource.CardType.ACTION)
 	
 	if current_count >= MAX_ACTION_CARDS:
-		print("Cannot draw more action cards: limit reached")
+		#print("Cannot draw more action cards: limit reached")
 		return
 		
 	if multiplayer.is_server():
@@ -868,7 +948,7 @@ func _on_draw_action_button_pressed():
 
 func _on_draw_area_button_pressed():
 	if count_cards_by_type(CardResource.CardType.AREA) >= MAX_AREA_CARDS:
-		print("Cannot draw more area cards: limit reached")
+		#print("Cannot draw more area cards: limit reached")
 		return
 		
 	if multiplayer.is_server():
@@ -888,7 +968,7 @@ func _setup_area_picking(node: Node) -> void:
 
 @rpc("any_peer", "call_local")
 func sync_card_played(card_data: Dictionary, slot_index: int, location_name: String, player_id: int) -> void:
-	print("Syncing card played by player: ", player_id, " in location: ", location_name)
+	#print("Syncing card played by player: ", player_id, " in location: ", location_name)
 	
 	# Find the correct location node
 	var locations = {
@@ -902,13 +982,15 @@ func sync_card_played(card_data: Dictionary, slot_index: int, location_name: Str
 		card_resource.from_dictionary(card_data)
 		location.plant_card(card_resource, slot_index)
 	else:
-		print("Error: Could not find location: ", location_name)
-		print("Available locations: ", locations.keys())
+		pass
+		#print("Error: Could not find location: ", location_name)
+		#print("Available locations: ", locations.keys())
 
 @rpc("any_peer", "call_local")
 func add_player(player_id):
 	if not players.has(player_id):
 		players.append(player_id)
+	#print(player_id)
 
 @rpc("any_peer", "call_local")
 func remove_player(player_id):
@@ -930,3 +1012,106 @@ func _on_dice_roll_completed(result: int, player_id: int, face_name: String):
 	# Optional: Add some styling based on the face
 	var color = dice_manager.FACE_COLORS[result]
 	roll_result_label.modulate = color
+
+# Point Counters
+
+@rpc("any_peer")
+func request_point_adjustment(region: String, delta: int):
+	if !multiplayer.is_server():
+		return
+		
+	var current_player_id = multiplayer.get_remote_sender_id()
+	
+	# If this is the server (host) making the request, use its ID
+	if current_player_id == 0:  # Server's RPC calls have sender ID 0
+		current_player_id = multiplayer.get_unique_id()
+	
+	# Debug #print
+	#print("Request from player: ", current_player_id)
+	#print("Current turn player: ", players[current_turn_index])
+	
+	# Check if players array is valid and current_turn_index is within bounds
+	if !is_valid_player_turn(current_player_id):
+		#print("Invalid turn or player")
+		return
+	
+	# Validate points before adjustment
+	var current_points = point_counter.get_points(region)
+	
+	if delta > 0 and current_points < 10:
+		adjust_points_increase(region)
+	elif delta < 0 and current_points > 0:
+		adjust_points_decrease(region)
+	
+	# Sync the points to all clients
+	point_counter.rpc("sync_point_values", 
+		point_counter.triangle_points,
+		point_counter.square_points,
+		point_counter.circle_points
+	)
+	
+
+# Add this helper function to check if it's a valid player's turn
+
+func is_valid_player_turn(player_id: int) -> bool:
+	if players.is_empty():
+		return false
+	if current_turn_index < 0 or current_turn_index >= players.size():
+		return false
+	
+	# Debug print
+	print("Checking turn validity - Player ID: ", player_id, " Current turn player: ", players[current_turn_index])
+	
+	# Handle both server and client validations
+	if multiplayer.is_server() and player_id == multiplayer.get_unique_id():
+		return true
+	return players[current_turn_index] == player_id
+
+func adjust_points_increase(region: String):
+	if !point_counter:
+		return
+		
+	var points_to_remove = 1
+	
+	# Remove points from other regions
+	if region != "triangle" and point_counter.triangle_points > 0:
+		point_counter.set_points("triangle", point_counter.triangle_points - 1)
+		points_to_remove -= 1
+	if points_to_remove > 0 and region != "square" and point_counter.square_points > 0:
+		point_counter.set_points("square", point_counter.square_points - 1)
+		points_to_remove -= 1
+	if points_to_remove > 0 and region != "circle" and point_counter.circle_points > 0:
+		point_counter.set_points("circle", point_counter.circle_points - 1)
+	
+	# Add point to selected region
+	point_counter.set_points(region, point_counter.get_points(region) + 1)
+
+func adjust_points_decrease(region: String):
+	if !point_counter:
+		return
+		
+	var points_to_add = 1
+	
+	# Add points to other regions
+	if region != "triangle":
+		point_counter.set_points("triangle", point_counter.triangle_points + 1)
+		points_to_add -= 1
+	if points_to_add > 0 and region != "square":
+		point_counter.set_points("square", point_counter.square_points + 1)
+		points_to_add -= 1
+	if points_to_add > 0 and region != "circle":
+		point_counter.set_points("circle", point_counter.circle_points + 1)
+	
+	# Remove point from selected region
+	point_counter.set_points(region, point_counter.get_points(region) - 1)
+
+
+@rpc("authority", "call_local")
+func sync_points():
+	if !point_counter:
+		return
+	point_counter.rpc("sync_point_values", 
+		point_counter.triangle_points,
+		point_counter.square_points,
+		point_counter.circle_points
+	)

@@ -16,10 +16,10 @@ var token_scene = preload("res://token_3d.tscn")
 
 
 func initialize_player_tokens(player_id: int):
-	print("Starting token initialization for player: ", player_id)
+	#print("Starting token initialization for player: ", player_id)
 	
 	if player_tokens.has(player_id):
-		print("Player ", player_id, " already has tokens: ", player_tokens[player_id])
+		#print("Player ", player_id, " already has tokens: ", player_tokens[player_id])
 		return
 		
 	player_tokens[player_id] = []
@@ -28,12 +28,12 @@ func initialize_player_tokens(player_id: int):
 	# Initialize counters for each biome
 	for biome in BiomeType.values():
 		tokens_per_biome[biome] = 0
-		print("Initialized counter for biome ", BiomeType.keys()[biome])
+		#print("Initialized counter for biome ", BiomeType.keys()[biome])
 	
 	# First pass: ensure at least one token of each biome
 	for biome in BiomeType.values():
 		if player_tokens[player_id].size() >= TOKENS_PER_PLAYER:
-			print("Reached max tokens during first pass")
+			#print("Reached max tokens during first pass")
 			break
 			
 		var token_data = {
@@ -42,7 +42,7 @@ func initialize_player_tokens(player_id: int):
 		}
 		player_tokens[player_id].append(token_data)
 		tokens_per_biome[biome] += 1
-		print("First pass: Added token of biome ", BiomeType.keys()[biome], " for player ", player_id)
+		#print("First pass: Added token of biome ", BiomeType.keys()[biome], " for player ", player_id)
 	
 	# Second pass: fill remaining slots while respecting MAX_TOKENS_PER_BIOME
 	while player_tokens[player_id].size() < TOKENS_PER_PLAYER:
@@ -52,7 +52,7 @@ func initialize_player_tokens(player_id: int):
 				available_biomes.append(biome)
 		
 		if available_biomes.is_empty():
-			print("No more available biomes for additional tokens")
+			#print("No more available biomes for additional tokens")
 			break
 			
 		var selected_biome = available_biomes[randi() % available_biomes.size()]
@@ -62,15 +62,16 @@ func initialize_player_tokens(player_id: int):
 		}
 		player_tokens[player_id].append(token_data)
 		tokens_per_biome[selected_biome] += 1
-		print("Second pass: Added token of biome ", BiomeType.keys()[selected_biome], " for player ", player_id)
+		#print("Second pass: Added token of biome ", BiomeType.keys()[selected_biome], " for player ", player_id)
 	
 	# Final debug output
-	print("Finished initializing tokens for player ", player_id)
-	print("Final token distribution:")
+	#print("Finished initializing tokens for player ", player_id)
+	#print("Final token distribution:")
 	for biome in tokens_per_biome.keys():
-		print("- Biome ", BiomeType.keys()[biome], ": ", tokens_per_biome[biome], " tokens")
-	print("Total tokens: ", player_tokens[player_id].size())
-	print("Token details: ", player_tokens[player_id])
+		pass
+		#print("- Biome ", BiomeType.keys()[biome], ": ", tokens_per_biome[biome], " tokens")
+	#print("Total tokens: ", player_tokens[player_id].size())
+	#print("Token details: ", player_tokens[player_id])
 
 func can_place_token(player_id: int, token_index: int, biome_type: BiomeType = -1) -> bool:
 	if not player_tokens.has(player_id) or token_index >= player_tokens[player_id].size():
@@ -83,15 +84,15 @@ func can_place_token(player_id: int, token_index: int, biome_type: BiomeType = -
 	return true
 
 func remove_token(player_id: int, token_index: int):
-	print("Removing token ", token_index, " from player ", player_id)
+	#print("Removing token ", token_index, " from player ", player_id)
 	if player_tokens.has(player_id) and token_index >= 0 and token_index < player_tokens[player_id].size():
 		player_tokens[player_id].remove_at(token_index)
-		print("Updated tokens for player ", player_id, ": ", player_tokens[player_id])
+		#print("Updated tokens for player ", player_id, ": ", player_tokens[player_id])
 		return true
 	return false
 
 func set_player_tokens(player_id: int, tokens: Array):
-	print("Setting tokens for player ", player_id, ": ", tokens)
+	#print("Setting tokens for player ", player_id, ": ", tokens)
 	player_tokens[player_id] = tokens
 
 func get_player_tokens(player_id: int) -> Array:

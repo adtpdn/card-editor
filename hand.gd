@@ -44,24 +44,24 @@ var player_id: int = -1
 
 func _ready():
 	player_id = multiplayer.get_unique_id()
-	print("Hand initialized for player: ", player_id)
+	#print("Hand initialized for player: ", player_id)
 
 func set_interaction_enabled(enabled: bool):
 	can_interact = enabled
 	for card in cards:
 		card.set_process_input(enabled)
 		card.modulate.a = 1.0 if enabled else 0.5
-	print("Interaction ", "enabled" if enabled else "disabled", " for player ", player_id)
+	#print("Interaction ", "enabled" if enabled else "disabled", " for player ", player_id)
 
 func can_accept_card(card: CardResource) -> bool:
 	return true
 
 func draw(card_resource: CardResource) -> void:
 	if not card_resource:
-		print("Error: Trying to draw null card resource")
+		#print("Error: Trying to draw null card resource")
 		return
 	
-	print("Drawing card for player ", player_id, ": ", card_resource.card_name)
+	#print("Drawing card for player ", player_id, ": ", card_resource.card_name)
 	card_resources.append(card_resource)
 	_update_cards()
 
@@ -71,7 +71,7 @@ func clear_hand() -> void:
 		if child is Card:
 			child.queue_free()
 	cards.clear()
-	print("Cleared hand for player ", player_id)
+	#print("Cleared hand for player ", player_id)
 
 func discard() -> void:
 	if not card_resources.is_empty():
@@ -79,8 +79,8 @@ func discard() -> void:
 	_update_cards()
 
 func _update_cards() -> void:
-	print("Updating cards for player ", player_id)
-	print("Card resources count: ", card_resources.size())
+	#print("Updating cards for player ", player_id)
+	#print("Card resources count: ", card_resources.size())
 	
 	# Clear existing cards
 	for child in get_children():
@@ -123,7 +123,7 @@ func _update_cards() -> void:
 		if not can_interact:
 			card.modulate.a = 0.5
 	
-	print("Updated ", card_count, " cards for player ", player_id)
+	#print("Updated ", card_count, " cards for player ", player_id)
 
 
 func apply_card_visual_style(card: Card) -> void:

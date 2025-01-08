@@ -6,8 +6,8 @@ enum BlockType { TRIANGLE, SQUARE, CIRCLE }
 @export var block_type: BlockType = BlockType.SQUARE
 var mesh_instance: MeshInstance3D
 
-const BLOCK_SIZE = 0.5  # Width and depth
-const BLOCK_HEIGHT = 0.2  # Height for all blocks
+const BLOCK_SIZE = 2  # Width and depth
+const BLOCK_HEIGHT = 0.4  # Height for all blocks
 
 func _ready():
 	create_mesh()

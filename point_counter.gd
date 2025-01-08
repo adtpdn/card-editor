@@ -17,24 +17,28 @@ const STACK_SPACING = 2.0  # Distance between stacks
 @onready var square_stack = $SquareStack
 @onready var circle_stack = $CircleStack
 
+# Add multiplayer variables
+var current_turn_player_id: int = 1
+
+@export var sync_id := 1:
+	set(id):
+		sync_id = id
+		# Give authority to the server
+		set_multiplayer_authority(1)
+
+@rpc("authority", "call_local")
+func sync_point_values(t_points: int, s_points: int, c_points: int):
+	#print("Syncing points - Triangle: ", t_points, " Square: ", s_points, " Circle: ", c_points)
+	triangle_points = t_points
+	square_points = s_points
+	circle_points = c_points
+	# Force update the visual stacks
+	call_deferred("update_all_stacks")
+
 func _ready():
-	
-	# Connect Button Signal
-	# Triangle
-	$UI/VBoxContainer/TriangleButtons/PlusButton.pressed.connect(
-		func(): adjust_points("triangle", 1))
-	$UI/VBoxContainer/TriangleButtons/MinusButton.pressed.connect(
-		func(): adjust_points("triangle", -1))
-	# Square
-	$UI/VBoxContainer/SquareButtons/PlusButton.pressed.connect(
-		func(): adjust_points("square", 1))
-	$UI/VBoxContainer/SquareButtons/MinusButton.pressed.connect(
-		func(): adjust_points("square", -1))
-	# Circle
-	$UI/VBoxContainer/RectangleButtons/PlusButton.pressed.connect(
-		func(): adjust_points("circle", 1))
-	$UI/VBoxContainer/RectangleButtons/MinusButton.pressed.connect(
-		func(): adjust_points("circle", -1))
+	connect_signals()
+	# Set up multiplayer authority
+	set_multiplayer_authority(1)
 	
 	# Position the stacks with equal spacing
 	triangle_stack.position = Vector3(-STACK_SPACING, 0, 0)
@@ -45,6 +49,24 @@ func _ready():
 	create_stack_labels()
 	
 	update_all_stacks()
+
+func connect_signals():
+	$UI/VBoxContainer/TriangleButtons/PlusButton.pressed.connect(
+		func(): on_button_pressed("triangle", 1))
+	$UI/VBoxContainer/TriangleButtons/MinusButton.pressed.connect(
+		func(): on_button_pressed("triangle", -1))
+	$UI/VBoxContainer/SquareButtons/PlusButton.pressed.connect(
+		func(): on_button_pressed("square", 1))
+	$UI/VBoxContainer/SquareButtons/MinusButton.pressed.connect(
+		func(): on_button_pressed("square", -1))
+	$UI/VBoxContainer/RectangleButtons/PlusButton.pressed.connect(
+		func(): on_button_pressed("circle", 1))
+	$UI/VBoxContainer/RectangleButtons/MinusButton.pressed.connect(
+		func(): on_button_pressed("circle", -1))
+
+func on_button_pressed(region: String, delta: int):
+	if get_parent().has_method("request_point_adjustment"):
+		get_parent().request_point_adjustment(region, delta)
 
 func create_block(type: String) -> Node3D:
 	var block = block_scene.instantiate()
@@ -77,14 +99,27 @@ func highlight_stack(stack: Node3D, enabled: bool):
 			block.set_highlighted(enabled)
 
 func update_all_stacks():
+	# Clear existing blocks first
+	for child in triangle_stack.get_children():
+		if not (child is Label3D):  # Don't remove the label
+			child.queue_free()
+	for child in square_stack.get_children():
+		if not (child is Label3D):
+			child.queue_free()
+	for child in circle_stack.get_children():
+		if not (child is Label3D):
+			child.queue_free()
+	
+	# Create new blocks
 	update_stack(triangle_stack, triangle_points, "triangle")
 	update_stack(square_stack, square_points, "square")
 	update_stack(circle_stack, circle_points, "circle")
 
 func update_stack(stack_node: Node3D, points: int, type: String):
-	# Clear existing blocks
+	# Only remove blocks, not labels
 	for child in stack_node.get_children():
-		child.queue_free()
+		if not (child is Label3D):
+			child.queue_free()
 	
 	# Create new blocks
 	for i in range(points):
@@ -93,6 +128,9 @@ func update_stack(stack_node: Node3D, points: int, type: String):
 		block.position.y = i * (BLOCK_HEIGHT + BLOCK_SPACING)
 
 func adjust_points(region: String, delta: int):
+	if !multiplayer.is_server():
+		return
+		
 	var current_points
 	match region:
 		"triangle":
@@ -102,9 +140,8 @@ func adjust_points(region: String, delta: int):
 		"circle":
 			current_points = circle_points
 	
-	if delta > 0 and current_points < 10:  # Maximum 10 points per region
+	if delta > 0 and current_points < 10:
 		var points_to_remove = delta
-		# Remove points from other regions
 		if region != "triangle" and triangle_points > 0:
 			triangle_points -= 1
 			points_to_remove -= 1
@@ -114,7 +151,6 @@ func adjust_points(region: String, delta: int):
 		if points_to_remove > 0 and region != "circle" and circle_points > 0:
 			circle_points -= 1
 		
-		# Add point to selected region
 		match region:
 			"triangle":
 				triangle_points += 1
@@ -123,9 +159,8 @@ func adjust_points(region: String, delta: int):
 			"circle":
 				circle_points += 1
 	
-	elif delta < 0 and current_points > 0:  # Minimum 0 points per region
+	elif delta < 0 and current_points > 0:
 		var points_to_add = -delta
-		# Add points to other regions
 		if region != "triangle":
 			triangle_points += 1
 			points_to_add -= 1
@@ -135,7 +170,6 @@ func adjust_points(region: String, delta: int):
 		if points_to_add > 0 and region != "circle":
 			circle_points += 1
 		
-		# Remove point from selected region
 		match region:
 			"triangle":
 				triangle_points -= 1
@@ -145,3 +179,44 @@ func adjust_points(region: String, delta: int):
 				circle_points -= 1
 	
 	update_all_stacks()
+
+# Add this function to validate points before setting
+func validate_points(value: int) -> int:
+	return clampi(value, 0, 10)  # Clamp between 0 and 10
+
+func set_points(region: String, value: int):
+	value = validate_points(value)
+	match region:
+		"triangle":
+			triangle_points = value
+		"square":
+			square_points = value
+		"circle":
+			circle_points = value
+	update_all_stacks()
+
+func get_points(region: String) -> int:
+	match region:
+		"triangle":
+			return triangle_points
+		"square":
+			return square_points
+		"circle":
+			return circle_points
+	return 0
+
+func set_buttons_enabled(enabled: bool):
+	#print("Setting buttons enabled: ", enabled)
+	var buttons = [
+		$UI/VBoxContainer/TriangleButtons/PlusButton,
+		$UI/VBoxContainer/TriangleButtons/MinusButton,
+		$UI/VBoxContainer/SquareButtons/PlusButton,
+		$UI/VBoxContainer/SquareButtons/MinusButton,
+		$UI/VBoxContainer/RectangleButtons/PlusButton,
+		$UI/VBoxContainer/RectangleButtons/MinusButton
+	]
+	
+	for button in buttons:
+		if is_instance_valid(button):
+			button.disabled = !enabled
+			#print("Button ", button.name, " disabled: ", !enabled)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=29 format=3 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" path="res://game.gd" id="1_0rb8f"]
 [ext_resource type="Script" path="res://hand.gd" id="2_drdp6"]
@@ -51,6 +51,30 @@ cost_to_draw = 1
 effect1 = ""
 effect2 = ""
 
+[sub_resource type="Resource" id="Resource_qc3ij"]
+script = ExtResource("6_w411x")
+card_name = "New Card"
+card_type = 0
+cost_to_draw = 1
+effect1 = ""
+effect2 = ""
+
+[sub_resource type="Resource" id="Resource_o3mn0"]
+script = ExtResource("6_w411x")
+card_name = "New Card"
+card_type = 0
+cost_to_draw = 1
+effect1 = ""
+effect2 = ""
+
+[sub_resource type="Resource" id="Resource_a0ern"]
+script = ExtResource("6_w411x")
+card_name = "New Card"
+card_type = 0
+cost_to_draw = 1
+effect1 = ""
+effect2 = ""
+
 [sub_resource type="Resource" id="Resource_lnaii"]
 script = ExtResource("6_w411x")
 card_name = "New Card"
@@ -76,6 +100,30 @@ effect1 = ""
 effect2 = ""
 
 [sub_resource type="Resource" id="Resource_788mm"]
+script = ExtResource("6_w411x")
+card_name = "New Card"
+card_type = 1
+cost_to_draw = 1
+effect1 = ""
+effect2 = ""
+
+[sub_resource type="Resource" id="Resource_34ioq"]
+script = ExtResource("6_w411x")
+card_name = "New Card"
+card_type = 1
+cost_to_draw = 1
+effect1 = ""
+effect2 = ""
+
+[sub_resource type="Resource" id="Resource_lwa1b"]
+script = ExtResource("6_w411x")
+card_name = "New Card"
+card_type = 1
+cost_to_draw = 1
+effect1 = ""
+effect2 = ""
+
+[sub_resource type="Resource" id="Resource_7gyo5"]
 script = ExtResource("6_w411x")
 card_name = "New Card"
 card_type = 1
@@ -109,12 +157,12 @@ mesh = SubResource("CylinderMesh_yl3nv")
 script = ExtResource("12_8ltkn")
 deck_name = "Action Cards"
 revealed = true
-initial_cards = Array[ExtResource("6_w411x")]([SubResource("Resource_4lx16"), SubResource("Resource_y7hxr"), SubResource("Resource_5835r"), SubResource("Resource_xjjx3")])
+initial_cards = Array[ExtResource("6_w411x")]([SubResource("Resource_4lx16"), SubResource("Resource_y7hxr"), SubResource("Resource_5835r"), SubResource("Resource_xjjx3"), SubResource("Resource_qc3ij"), SubResource("Resource_o3mn0"), SubResource("Resource_a0ern")])
 
 [node name="AreaDeck" type="Node3D" parent="DeckLocations"]
 script = ExtResource("12_8ltkn")
 deck_name = "Area Cards"
-initial_cards = Array[ExtResource("6_w411x")]([SubResource("Resource_lnaii"), SubResource("Resource_bc4bn"), SubResource("Resource_2sqg2"), SubResource("Resource_788mm")])
+initial_cards = Array[ExtResource("6_w411x")]([SubResource("Resource_lnaii"), SubResource("Resource_bc4bn"), SubResource("Resource_2sqg2"), SubResource("Resource_788mm"), SubResource("Resource_34ioq"), SubResource("Resource_lwa1b"), SubResource("Resource_7gyo5")])
 
 [node name="TokenPlacements" type="Node3D" parent="."]
 
@@ -293,21 +341,7 @@ transform = Transform3D(1, 0, 7.45058e-09, 0, 0.03, 0, 0, 0, 1, -0.00149435, 0, 
 mesh = SubResource("BoxMesh_nfgrx")
 
 [node name="DiceManager" parent="." instance=ExtResource("7_p3vul")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0.51, 0)
-
-[node name="DrawActionButton" type="Button" parent="."]
-offset_left = 43.0
-offset_top = 36.0
-offset_right = 186.0
-offset_bottom = 67.0
-text = "Draw Action Card"
-
-[node name="DrawAreaButton" type="Button" parent="."]
-offset_left = 43.0
-offset_top = 81.0
-offset_right = 173.0
-offset_bottom = 112.0
-text = "Draw Area Card"
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.87374, 0.51, 2.80558)
 
 [node name="ResetButton" type="Button" parent="."]
 anchors_preset = 5
@@ -480,11 +514,26 @@ script = ExtResource("2_drdp6")
 hand_curve = ExtResource("3_jwe8m")
 rotation_curve = ExtResource("4_lbysu")
 
+[node name="DrawActionButton" type="Button" parent="."]
+offset_left = 17.0
+offset_top = 319.0
+offset_right = 160.0
+offset_bottom = 350.0
+text = "Draw Action Card"
+
+[node name="DrawAreaButton" type="Button" parent="."]
+offset_left = 17.0
+offset_top = 364.0
+offset_right = 147.0
+offset_bottom = 395.0
+text = "Draw Area Card"
+
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 5, 0)
 sky_mode = 1
 
 [node name="PointCounter" type="Node3D" parent="."]
+transform = Transform3D(-0.00947704, 0, 0.999955, 0, 1, 0, -0.999955, 0, -0.00947704, -6.88334, 0, 0.0452511)
 script = ExtResource("11_beb7m")
 
 [node name="TriangleStack" type="Node3D" parent="PointCounter"]
@@ -500,15 +549,17 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.78999)
 layout_mode = 3
 anchors_preset = 9
 anchor_bottom = 1.0
-offset_right = 163.0
+offset_right = 279.0
+offset_bottom = -544.0
 grow_vertical = 2
 size_flags_horizontal = 4
 
 [node name="VBoxContainer" type="VBoxContainer" parent="PointCounter/UI"]
 layout_mode = 1
-anchors_preset = 9
+anchors_preset = 15
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = 200.0
+grow_horizontal = 2
 grow_vertical = 2
 
 [node name="TriangleButtons" type="HBoxContainer" parent="PointCounter/UI/VBoxContainer"]
@@ -556,8 +607,8 @@ text = "PlusButton"
 layout_mode = 2
 text = "MinusButton"
 
-[connection signal="pressed" from="DrawActionButton" to="." method="_on_draw_action_button_pressed"]
-[connection signal="pressed" from="DrawAreaButton" to="." method="_on_draw_area_button_pressed"]
 [connection signal="pressed" from="ResetButton" to="." method="_on_reset_button_pressed"]
 [connection signal="pressed" from="DiscardCardButton" to="." method="_on_discard_card_button_pressed"]
 [connection signal="button_down" from="UI/RollDiceButton" to="." method="_on_roll_dice_pressed"]
+[connection signal="pressed" from="DrawActionButton" to="." method="_on_draw_action_button_pressed"]
+[connection signal="pressed" from="DrawAreaButton" to="." method="_on_draw_area_button_pressed"]
