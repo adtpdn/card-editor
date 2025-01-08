@@ -571,11 +571,11 @@ text = "Triangle"
 
 [node name="PlusButton" type="Button" parent="PointCounter/UI/VBoxContainer/TriangleButtons"]
 layout_mode = 2
-text = "PlusButton"
+text = " + "
 
 [node name="MinusButton" type="Button" parent="PointCounter/UI/VBoxContainer/TriangleButtons"]
 layout_mode = 2
-text = "MinusButton"
+text = " - "
 
 [node name="SquareButtons" type="HBoxContainer" parent="PointCounter/UI/VBoxContainer"]
 layout_mode = 2
@@ -586,11 +586,11 @@ text = "Square  "
 
 [node name="PlusButton" type="Button" parent="PointCounter/UI/VBoxContainer/SquareButtons"]
 layout_mode = 2
-text = "PlusButton"
+text = " + "
 
 [node name="MinusButton" type="Button" parent="PointCounter/UI/VBoxContainer/SquareButtons"]
 layout_mode = 2
-text = "MinusButton"
+text = " - "
 
 [node name="RectangleButtons" type="HBoxContainer" parent="PointCounter/UI/VBoxContainer"]
 layout_mode = 2
@@ -601,11 +601,11 @@ text = "Circle     "
 
 [node name="PlusButton" type="Button" parent="PointCounter/UI/VBoxContainer/RectangleButtons"]
 layout_mode = 2
-text = "PlusButton"
+text = " + "
 
 [node name="MinusButton" type="Button" parent="PointCounter/UI/VBoxContainer/RectangleButtons"]
 layout_mode = 2
-text = "MinusButton"
+text = " - "
 
 [connection signal="pressed" from="ResetButton" to="." method="_on_reset_button_pressed"]
 [connection signal="pressed" from="DiscardCardButton" to="." method="_on_discard_card_button_pressed"]

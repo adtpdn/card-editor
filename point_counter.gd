@@ -26,12 +26,23 @@ var current_turn_player_id: int = 1
 		# Give authority to the server
 		set_multiplayer_authority(1)
 
-@rpc("authority", "call_local")
+func request_point_change(region: String, delta: int):
+	if multiplayer.is_server():
+		get_parent().process_point_adjustment(region, delta, multiplayer.get_unique_id())
+	else:
+		get_parent().rpc_id(1, "request_point_adjustment", region, delta)
+
+@rpc("any_peer", "call_local")
 func sync_point_values(t_points: int, s_points: int, c_points: int):
-	#print("Syncing points - Triangle: ", t_points, " Square: ", s_points, " Circle: ", c_points)
+	print("Syncing Points - Player: ", multiplayer.get_unique_id(), 
+		  " Triangle: ", t_points, 
+		  " Square: ", s_points, 
+		  " Circle: ", c_points)
+	
 	triangle_points = t_points
 	square_points = s_points
 	circle_points = c_points
+	
 	# Force update the visual stacks
 	call_deferred("update_all_stacks")
 
@@ -51,6 +62,22 @@ func _ready():
 	update_all_stacks()
 
 func connect_signals():
+	# Clear any existing connections first
+	var buttons = [
+		$UI/VBoxContainer/TriangleButtons/PlusButton,
+		$UI/VBoxContainer/TriangleButtons/MinusButton,
+		$UI/VBoxContainer/SquareButtons/PlusButton,
+		$UI/VBoxContainer/SquareButtons/MinusButton,
+		$UI/VBoxContainer/RectangleButtons/PlusButton,
+		$UI/VBoxContainer/RectangleButtons/MinusButton
+	]
+	
+	# Disconnect all existing connections safely
+	for button in buttons:
+		if button.pressed.is_connected(on_button_pressed):
+			button.pressed.disconnect(on_button_pressed)
+	
+	# Reconnect with lambda functions
 	$UI/VBoxContainer/TriangleButtons/PlusButton.pressed.connect(
 		func(): on_button_pressed("triangle", 1))
 	$UI/VBoxContainer/TriangleButtons/MinusButton.pressed.connect(
@@ -65,8 +92,13 @@ func connect_signals():
 		func(): on_button_pressed("circle", -1))
 
 func on_button_pressed(region: String, delta: int):
-	if get_parent().has_method("request_point_adjustment"):
-		get_parent().request_point_adjustment(region, delta)
+	print("On Button Pressed - Player: ", multiplayer.get_unique_id(), 
+		  " Region: ", region, " Delta: ", delta)
+	
+	var game_node = get_parent()
+	if game_node and game_node.has_method("request_point_adjustment"):
+		print("Requesting point adjustment from player: ", multiplayer.get_unique_id())
+		game_node.request_point_adjustment(region, delta)
 
 func create_block(type: String) -> Node3D:
 	var block = block_scene.instantiate()
@@ -206,7 +238,6 @@ func get_points(region: String) -> int:
 	return 0
 
 func set_buttons_enabled(enabled: bool):
-	#print("Setting buttons enabled: ", enabled)
 	var buttons = [
 		$UI/VBoxContainer/TriangleButtons/PlusButton,
 		$UI/VBoxContainer/TriangleButtons/MinusButton,
@@ -218,5 +249,9 @@ func set_buttons_enabled(enabled: bool):
 	
 	for button in buttons:
 		if is_instance_valid(button):
+			# Safely disable buttons
 			button.disabled = !enabled
-			#print("Button ", button.name, " disabled: ", !enabled)
+	
+	# Reconnect signals when enabling
+	if enabled:
+		connect_signals()
