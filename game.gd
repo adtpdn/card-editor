@@ -26,6 +26,10 @@ const MAX_AREA_CARDS = 2
 
 var selected_token_index = -1
 
+# Coldown for clicking point button
+var last_point_adjustment_time = 0.0
+const POINT_ADJUSTMENT_COOLDOWN = 0.25  # 250ms cooldown
+
 var deck: Array[CardResource] = []
 # Add this structure to track placed cards
 var placed_cards = []  # Array of dictionaries containing placement info
@@ -115,6 +119,7 @@ func _ready() -> void:
 	set_multiplayer_authority(1)
 
 	if point_counter:
+		point_counter.set_buttons_enabled(false)
 		point_counter.sync_id = 1  # Give authority to the server
 		if multiplayer.is_server():
 			# Initial sync of points
@@ -550,7 +555,7 @@ func setup_biome_borders():
 			borders_node.add_child(mesh_instance)
 
 func setup_player(player_id: int) -> void:
-	print("Setting up player: ", player_id)
+	#print("Setting up player: ", player_id)
 	if player_id == multiplayer.get_unique_id():
 		# Enable interaction for the local player
 		player_hand.set_interaction_enabled(true)
@@ -897,7 +902,7 @@ func sync_draw_card(card_data: Dictionary) -> void:
 func request_draw_card(is_action: bool):
 	if multiplayer.is_server():
 		var requesting_peer = multiplayer.get_remote_sender_id()
-		print("Request Card from player_id :", requesting_peer)
+		#print("Request Card from player_id :", requesting_peer)
 		var current_count = count_cards_by_type_for_player(
 			requesting_peer,
 			CardResource.CardType.ACTION if is_action else CardResource.CardType.AREA
@@ -1018,27 +1023,34 @@ func _on_dice_roll_completed(result: int, player_id: int, face_name: String):
 
 # Point Counters
 
-@rpc("authority", "reliable")
-func server_adjust_points(region: String, delta: int):
-	var requesting_player = multiplayer.get_remote_sender_id()
-	
-	print("Server Adjusting Points - Player: ", requesting_player, 
-		  " Region: ", region, " Delta: ", delta)
-	
-	# Validate turn
-	if is_valid_player_turn(requesting_player):
-		point_counter.adjust_points(region, delta)
-		# Sync points to all clients
-		point_counter.rpc("sync_point_values", 
-			point_counter.triangle_points,
-			point_counter.square_points,
-			point_counter.circle_points
-		)
-	else:
-		print("Invalid turn for point adjustment!")
+#@rpc("authority", "reliable")
+#func server_adjust_points(region: String, delta: int):
+	#var requesting_player = multiplayer.get_remote_sender_id()
+	#
+	#print("Server Adjusting Points - Player: ", requesting_player, 
+		  #" Region: ", region, " Delta: ", delta)
+	#
+	## Validate turn
+	#if is_valid_player_turn(requesting_player):
+		#point_counter.adjust_points(region, delta)
+		## Sync points to all clients
+		#point_counter.rpc("sync_point_values", 
+			#point_counter.triangle_points,
+			#point_counter.square_points,
+			#point_counter.circle_points
+		#)
+	#else:
+		#print("Invalid turn for point adjustment!")
 
 @rpc("any_peer")
 func request_point_adjustment(region: String, delta: int):
+	# Add cooldown check
+	var current_time = Time.get_ticks_msec() / 1000.0
+	if current_time - last_point_adjustment_time < POINT_ADJUSTMENT_COOLDOWN:
+		return
+	
+	last_point_adjustment_time = current_time
+	
 	var requesting_player = multiplayer.get_remote_sender_id()
 	
 	# If this is the server making the request locally, use the server's actual ID
@@ -1056,10 +1068,13 @@ func process_point_adjustment(region: String, delta: int, requesting_player: int
 	if !multiplayer.is_server():
 		return
 		
-	print("Processing point adjustment for player: ", requesting_player)
+	#print("Processing point adjustment for player: ", requesting_player)
 	
 	# Validate turn
 	if is_valid_player_turn(requesting_player):
+		# Clamp delta to ensure only +1/-1
+		delta = clamp(delta, -1, 1)
+		
 		# Perform the adjustment
 		if delta > 0 and point_counter.get_points(region) < 10:
 			adjust_points_increase(region)
@@ -1072,9 +1087,8 @@ func process_point_adjustment(region: String, delta: int, requesting_player: int
 			point_counter.square_points,
 			point_counter.circle_points
 		)
-	else:
-		print("Invalid turn for point adjustment! Requesting Player: ", 
-			  requesting_player, " Current Turn: ", players[current_turn_index])
+	#else:
+		#print("Invalid turn for point adjustment!")
 
 # Add this helper function to check if it's a valid player's turn
 
@@ -1089,13 +1103,14 @@ func is_valid_player_turn(player_id: int) -> bool:
 	# Explicit turn validation
 	var is_valid = players[current_turn_index] == player_id
 	
-	print("Turn Validation - Current Turn Player: ", 
-		  players[current_turn_index], 
-		  " Requesting Player: ", player_id, 
-		  " Valid: ", is_valid)
+	#print("Turn Validation - Current Turn Player: ", 
+		  #players[current_turn_index], 
+		  #" Requesting Player: ", player_id, 
+		  #" Valid: ", is_valid)
 	
 	return is_valid
 
+# Helper functions for point adjustments
 func adjust_points_increase(region: String):
 	if !point_counter:
 		return

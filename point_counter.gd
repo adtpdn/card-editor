@@ -20,6 +20,9 @@ const STACK_SPACING = 2.0  # Distance between stacks
 # Add multiplayer variables
 var current_turn_player_id: int = 1
 
+var last_button_press_time = 0.0
+const BUTTON_PRESS_COOLDOWN = 0.25  # 250ms cooldown
+
 @export var sync_id := 1:
 	set(id):
 		sync_id = id
@@ -34,10 +37,10 @@ func request_point_change(region: String, delta: int):
 
 @rpc("any_peer", "call_local")
 func sync_point_values(t_points: int, s_points: int, c_points: int):
-	print("Syncing Points - Player: ", multiplayer.get_unique_id(), 
-		  " Triangle: ", t_points, 
-		  " Square: ", s_points, 
-		  " Circle: ", c_points)
+	#print("Syncing Points - Player: ", multiplayer.get_unique_id(), 
+		  #" Triangle: ", t_points, 
+		  #" Square: ", s_points, 
+		  #" Circle: ", c_points)
 	
 	triangle_points = t_points
 	square_points = s_points
@@ -92,13 +95,29 @@ func connect_signals():
 		func(): on_button_pressed("circle", -1))
 
 func on_button_pressed(region: String, delta: int):
-	print("On Button Pressed - Player: ", multiplayer.get_unique_id(), 
-		  " Region: ", region, " Delta: ", delta)
+	#print("On Button Pressed - Player: ", multiplayer.get_unique_id(), 
+		  #" Region: ", region, " Delta: ", delta)
 	
 	var game_node = get_parent()
 	if game_node and game_node.has_method("request_point_adjustment"):
-		print("Requesting point adjustment from player: ", multiplayer.get_unique_id())
+		#print("Requesting point adjustment from player: ", multiplayer.get_unique_id())
 		game_node.request_point_adjustment(region, delta)
+
+func _on_increase_button_pressed(region: String):
+	var current_time = Time.get_ticks_msec() / 1000.0
+	if current_time - last_button_press_time < BUTTON_PRESS_COOLDOWN:
+		return
+		
+	last_button_press_time = current_time
+	get_parent().request_point_adjustment(region, 1)
+
+func _on_decrease_button_pressed(region: String):
+	var current_time = Time.get_ticks_msec() / 1000.0
+	if current_time - last_button_press_time < BUTTON_PRESS_COOLDOWN:
+		return
+		
+	last_button_press_time = current_time
+	get_parent().request_point_adjustment(region, -1)
 
 func create_block(type: String) -> Node3D:
 	var block = block_scene.instantiate()
