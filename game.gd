@@ -141,6 +141,11 @@ func _on_host_pressed():
 		# Initialize host's hand tracking
 		player_hands[host_id] = []
 		
+		# Initialize host's tokens
+		token_manager.initialize_player_tokens(host_id)
+		var tokens = token_manager.get_player_tokens(host_id)
+		update_token_ui(tokens)
+		
 		# Distribute initial hand to host
 		distribute_initial_hand()
 		setup_player(host_id)
@@ -209,6 +214,41 @@ func _on_peer_disconnected(peer_id):
 	
 	if multiplayer.is_server():
 		rpc("remove_player", peer_id)
+
+func _unhandled_input(event):
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if selected_token_index != -1:  # If we have a token selected
+			# Get mouse position in 3D space
+			var camera = get_node("Camera3D")
+			var from = camera.project_ray_origin(event.position)
+			var to = from + camera.project_ray_normal(event.position) * 1000
+			
+			var space_state = get_tree().get_root().get_world_3d().direct_space_state
+			var query = PhysicsRayQueryParameters3D.create(from, to)
+			var result = space_state.intersect_ray(query)
+			
+			if result:
+				var placement = get_token_placement_at_position(result.position)
+				if placement:
+					var player_id = multiplayer.get_unique_id()
+					var tokens = token_manager.get_player_tokens(player_id)
+					var token_data = tokens[selected_token_index]
+					
+					if placement.accepted_biome == token_data.biome && !placement.is_occupied:
+						if multiplayer.is_server():
+							# Server directly places token
+							sync_token_placement.rpc(player_id, token_data, placement.global_position)
+							token_manager.remove_token(player_id, selected_token_index)
+							# Update UI
+							var updated_tokens = token_manager.get_player_tokens(player_id)
+							update_token_ui(updated_tokens)
+						else:
+							# Client requests placement
+							rpc_id(1, "request_token_placement", selected_token_index, placement.global_position)
+						
+						# Reset selection state
+						selected_token_index = -1
+						unhighlight_all_token_placements()
 
 @rpc("any_peer", "call_local")
 func sync_existing_tokens(tokens_data: Array):
@@ -560,8 +600,13 @@ func setup_player(player_id: int) -> void:
 		# Enable interaction for the local player
 		player_hand.set_interaction_enabled(true)
 		player_hand.player_id = player_id
+		# Initialize tokens for this player
+		if multiplayer.is_server():
+			token_manager.initialize_player_tokens(player_id)
+			var tokens = token_manager.get_player_tokens(player_id)
+			update_token_ui(tokens)
 	
-	# Token initialization
+	# Token initialization for clients
 	if multiplayer.is_server():
 		token_manager.initialize_player_tokens(player_id)
 		# Use rpc_id instead of rpc when sending to a specific player
@@ -589,27 +634,27 @@ func unhighlight_all_token_placements():
 
 @rpc("authority", "reliable")
 func sync_player_tokens(tokens: Array):
-	#print("Received token sync from server")
+	#print("Received token sync - Player ID: ", multiplayer.get_unique_id())
 	var player_id = multiplayer.get_unique_id()
 	token_manager.set_player_tokens(player_id, tokens)
 	update_token_ui(tokens)
 
 func update_token_ui(tokens: Array):
-	#print("Starting UI update with tokens: ", tokens)
+	print("Updating token UI for player: ", multiplayer.get_unique_id(), " with tokens: ", tokens)
 	
 	# Get all token buttons
 	var token_buttons = $UI/TokenContainer.get_children()
 	
-	# Hide all buttons initially and disconnect any existing signals
+	# First disconnect all existing signals
 	for button in token_buttons:
 		button.visible = false
-		if button.pressed.is_connected(_on_token_selected):
+		if button.has_signal("pressed") and button.is_connected("pressed", _on_token_selected):
 			button.pressed.disconnect(_on_token_selected)
 	
 	# Update buttons based on available tokens
 	for i in range(tokens.size()):
 		if i >= token_buttons.size():
-			#print("Warning: More tokens than available buttons!")
+			print("Warning: More tokens than available buttons!")
 			break
 			
 		var token_data = tokens[i]
@@ -620,15 +665,16 @@ func update_token_ui(tokens: Array):
 		button.text = "Token %d (%s)" % [i + 1, biome_name]
 		button.visible = true
 		
-		# Connect the button signal with a unique callable for each button
-		button.pressed.connect(func(): _on_token_selected(i))
-		#print("Updated button ", i + 1, " for biome ", biome_name)
-	
-	#print("Finished updating token UI. Active buttons: ", tokens.size())
+		# Create a new callable for each button
+		var button_index = i  # Create a local copy of the index
+		button.pressed.connect(func(): _on_token_selected(button_index))
+		
+	print("Token UI updated - Number of visible buttons: ", tokens.size())
 
 func _on_token_selected(token_index: int):
-	#print("Token selected: ", token_index)
-	var tokens = token_manager.get_player_tokens(multiplayer.get_unique_id())
+	print("Token selected: ", token_index, " by player: ", multiplayer.get_unique_id())
+	var player_id = multiplayer.get_unique_id()
+	var tokens = token_manager.get_player_tokens(player_id)
 	
 	if token_index >= 0 and token_index < tokens.size():
 		selected_token_index = token_index
@@ -638,6 +684,7 @@ func _on_token_selected(token_index: int):
 		for placement in $TokenPlacements.get_children():
 			var should_highlight = placement.accepted_biome == token_data.biome && !placement.is_occupied
 			placement.set_highlight(should_highlight)
+		print("Valid placement locations highlighted")
 	else:
 		selected_token_index = -1
 		unhighlight_all_token_placements()
@@ -647,38 +694,17 @@ func request_token_placement(token_index: int, position: Vector3):
 	if !multiplayer.is_server():
 		return
 		
-	#print("Server received placement request from client")
 	var player_id = multiplayer.get_remote_sender_id()
 	var player_tokens = token_manager.get_player_tokens(player_id)
-	
-	# Debug #prints
-	#print("Player ID: ", player_id)
-	#print("Token index: ", token_index)
-	#print("Available tokens: ", player_tokens)
 	
 	if token_index >= 0 and token_index < player_tokens.size():
 		var token_data = player_tokens[token_index]
 		var placement = get_token_placement_at_position(position)
 		
-		# Debug #prints
-		#print("Token data: ", token_data)
-		#print("Found placement: ", placement != null)
-		if placement:
-			pass
-			#print("Placement occupied: ", placement.is_occupied)
-			#print("Placement biome: ", placement.accepted_biome)
-		
 		if placement and !placement.is_occupied and placement.accepted_biome == token_data.biome:
-			#print("Server validating placement - OK")
 			sync_token_placement.rpc(player_id, token_data, position)
 			token_manager.remove_token(player_id, token_index)
 			rpc_id(player_id, "sync_player_tokens", token_manager.get_player_tokens(player_id))
-		else:
-			pass
-			#print("Invalid placement!")
-	else:
-		pass
-		#print("Invalid token index!")
 
 func get_token_placement_at_position(pos: Vector3) -> Node:
 	for placement in $TokenPlacements.get_children():
@@ -690,8 +716,6 @@ func get_token_placement_at_position(pos: Vector3) -> Node:
 
 @rpc("any_peer", "call_local")
 func sync_token_placement(player_id: int, token_data: Dictionary, position: Vector3):
-	#print("Syncing token placement for player ", player_id, " at position ", position)
-	
 	var token = token_manager.token_scene.instantiate()
 	$Tokens.add_child(token)
 	token.set_token_data(token_data.biome, token_data.type)
