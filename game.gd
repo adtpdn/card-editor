@@ -775,31 +775,36 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 		# Get latest token data for the current player
 		var tokens = token_manager.get_player_tokens(local_id)
 		
-		# Keep buttons enabled for available tokens
-		var token_buttons = $UI/TokenContainer.get_children()
-		for button in token_buttons:
-			button.visible = true
-			var biome_index = token_buttons.find(button)
+		# # Keep buttons enabled for available tokens
+		# var token_buttons = $UI/TokenContainer.get_children()
+		# for button in token_buttons:
+		# 	button.visible = true
+		# 	var biome_index = token_buttons.find(button)
 			
-			# Check if there are still tokens available for this biome
-			var has_tokens = tokens.any(func(t): return int(t.biome) == biome_index)
+		# 	# Check if there are still tokens available for this biome
+		# 	var has_tokens = tokens.any(func(t): return int(t.biome) == biome_index)
 			
-			button.disabled = !has_tokens
-			button.modulate = Color(1, 1, 1, 1) if has_tokens else Color(0.5, 0.5, 0.5, 0.5)
+		# 	button.disabled = !has_tokens
+		# 	button.modulate = Color(1, 1, 1, 1) if has_tokens else Color(0.5, 0.5, 0.5, 0.5)
 			
-			# Reconnect signal if needed
-			if has_tokens and !button.pressed.is_connected(_on_token_selected.bind(biome_index)):
-				button.pressed.connect(func(): _on_token_selected(biome_index))
+		# 	# Reconnect signal if needed
+		# 	if has_tokens and !button.pressed.is_connected(_on_token_selected.bind(biome_index)):
+		# 		button.pressed.connect(func(): _on_token_selected(biome_index))
 
+# Add new function to reset token buttons
 func reset_token_buttons():
 	var token_buttons = $UI/TokenContainer.get_children()
 	for button in token_buttons:
+		# Disconnect any existing signals
+		if button.pressed.is_connected(_on_token_selected):
+			button.pressed.disconnect(_on_token_selected)
+		# Reset button state
 		button.button_pressed = false
 		button.disabled = true
 		button.visible = true
 		button.modulate = Color(0.5, 0.5, 0.5, 0.5)
-	current_selected_button = null
 
+# Modify the token selection function
 func _on_token_selected(token_index: int):
 	if !is_valid_player_turn(multiplayer.get_unique_id()):
 		selected_token_index = -1
@@ -812,33 +817,22 @@ func _on_token_selected(token_index: int):
 	
 	last_token_selection_time = current_time
 	
-	var token_buttons = $UI/TokenContainer.get_children()
-	var new_button = token_buttons[token_index]
-	
-	# If clicking the same button, deselect it
+	# If selecting the same token, deselect it
 	if selected_token_index == token_index:
 		selected_token_index = -1
 		unhighlight_all_token_placements()
 		reset_token_buttons()
-		current_selected_button = null
+		var tokens = token_manager.get_player_tokens(multiplayer.get_unique_id())
+		update_token_ui(tokens)
 		return
 	
-	# Unselect previous button if exists
-	if current_selected_button:
-		current_selected_button.button_pressed = false
-		current_selected_button.modulate = Color(1, 1, 1, 1)
-	
-	# Select new button
-	current_selected_button = new_button
+	# Reset previous selection
+	reset_token_buttons()
 	selected_token_index = token_index
-	new_button.button_pressed = true
-	new_button.modulate = Color(1.2, 1.2, 0.8, 1) # Highlight color
-	
-	# Update placement highlights for new selection
-	unhighlight_all_token_placements()
 	var tokens = token_manager.get_player_tokens(multiplayer.get_unique_id())
-	var valid_placements = 0
 	
+	# Highlight valid placement locations
+	var valid_placements = 0
 	for placement in $TokenPlacements.get_children():
 		var placement_biome = int(placement.accepted_biome)
 		var selected_biome = int(token_index)
@@ -846,8 +840,11 @@ func _on_token_selected(token_index: int):
 		if placement_biome == selected_biome && !placement.is_occupied:
 			placement.set_highlight(true)
 			valid_placements += 1
+	
+	# Update UI to show selection
+	update_token_ui(tokens)
 
-# Token placement request from client
+# Modify the request_token_placement function
 @rpc("any_peer")
 func request_token_placement(token_index: int, position: Vector3):
 	if !multiplayer.is_server():
@@ -855,20 +852,13 @@ func request_token_placement(token_index: int, position: Vector3):
 		
 	var player_id = multiplayer.get_remote_sender_id()
 	
-	# Add cooldown check for server-side validation
+	# Validate placement timing and turn
 	var current_time = Time.get_ticks_msec() / 1000.0
 	if current_time - last_token_placement_time < TOKEN_PLACEMENT_COOLDOWN:
-		print("Server token placement cooldown active")
 		rpc_id(player_id, "notify_invalid_placement")
 		return
 	
-	print("\n=== Token Placement Request ===")
-	print("Player ID: ", player_id)
-	print("Current turn player: ", players[current_turn_index])
-	
-	# Use the same turn validation as point system
 	if !is_valid_player_turn(player_id):
-		print("Token placement rejected: not player's turn")
 		rpc_id(player_id, "notify_invalid_placement")
 		return
 	
@@ -878,13 +868,7 @@ func request_token_placement(token_index: int, position: Vector3):
 		var token_data = player_tokens[token_index]
 		var placement = get_token_placement_at_position(position)
 		
-		print("Token biome: ", TokenManager.BiomeType.keys()[token_data.biome])
-		if placement:
-			print("Placement biome: ", TokenManager.BiomeType.keys()[placement.accepted_biome])
-		
 		if placement and !placement.is_occupied and placement.accepted_biome == token_data.biome:
-			print("Placement valid - processing token placement")
-			
 			# Update cooldown time
 			last_token_placement_time = current_time
 			
@@ -894,15 +878,15 @@ func request_token_placement(token_index: int, position: Vector3):
 			# Sync the placement to all clients
 			rpc("sync_token_placement", player_id, token_data, position)
 			
-			# Update tokens for all players
+			# Update tokens for each player separately
 			for pid in players:
-				var updated_tokens = token_manager.get_player_tokens(pid)
-				rpc_id(pid, "sync_player_tokens", updated_tokens)
-		else:
-			print("Invalid placement - biome mismatch or location occupied")
-			rpc_id(player_id, "notify_invalid_placement")
-
-
+				if pid != player_id:  # Skip the player who placed the token
+					var updated_tokens = token_manager.get_player_tokens(pid)
+					rpc_id(pid, "sync_player_tokens", updated_tokens)
+					
+			# Update the placing player's tokens separately
+			var updated_tokens = token_manager.get_player_tokens(player_id)
+			rpc_id(player_id, "sync_player_tokens", updated_tokens)
 # Add notification for invalid placement
 @rpc("authority", "reliable")
 func notify_invalid_placement():
