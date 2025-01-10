@@ -25,6 +25,7 @@ const MAX_ACTION_CARDS = 2
 const MAX_AREA_CARDS = 2
 
 var selected_token_index = -1
+var current_selected_button: Button = null
 
 # Coldown for clicking point button
 var last_point_adjustment_time = 0.0
@@ -790,20 +791,15 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 			if has_tokens and !button.pressed.is_connected(_on_token_selected.bind(biome_index)):
 				button.pressed.connect(func(): _on_token_selected(biome_index))
 
-# Add new function to reset token buttons
 func reset_token_buttons():
 	var token_buttons = $UI/TokenContainer.get_children()
 	for button in token_buttons:
-		# Disconnect any existing signals
-		if button.pressed.is_connected(_on_token_selected):
-			button.pressed.disconnect(_on_token_selected)
-		# Reset button state
 		button.button_pressed = false
 		button.disabled = true
 		button.visible = true
 		button.modulate = Color(0.5, 0.5, 0.5, 0.5)
+	current_selected_button = null
 
-# Modify the token selection function
 func _on_token_selected(token_index: int):
 	if !is_valid_player_turn(multiplayer.get_unique_id()):
 		selected_token_index = -1
@@ -816,22 +812,33 @@ func _on_token_selected(token_index: int):
 	
 	last_token_selection_time = current_time
 	
-	# If selecting the same token, deselect it
+	var token_buttons = $UI/TokenContainer.get_children()
+	var new_button = token_buttons[token_index]
+	
+	# If clicking the same button, deselect it
 	if selected_token_index == token_index:
 		selected_token_index = -1
 		unhighlight_all_token_placements()
 		reset_token_buttons()
-		var tokens = token_manager.get_player_tokens(multiplayer.get_unique_id())
-		update_token_ui(tokens)
+		current_selected_button = null
 		return
 	
-	# Reset previous selection
-	reset_token_buttons()
-	selected_token_index = token_index
-	var tokens = token_manager.get_player_tokens(multiplayer.get_unique_id())
+	# Unselect previous button if exists
+	if current_selected_button:
+		current_selected_button.button_pressed = false
+		current_selected_button.modulate = Color(1, 1, 1, 1)
 	
-	# Highlight valid placement locations
+	# Select new button
+	current_selected_button = new_button
+	selected_token_index = token_index
+	new_button.button_pressed = true
+	new_button.modulate = Color(1.2, 1.2, 0.8, 1) # Highlight color
+	
+	# Update placement highlights for new selection
+	unhighlight_all_token_placements()
+	var tokens = token_manager.get_player_tokens(multiplayer.get_unique_id())
 	var valid_placements = 0
+	
 	for placement in $TokenPlacements.get_children():
 		var placement_biome = int(placement.accepted_biome)
 		var selected_biome = int(token_index)
@@ -839,9 +846,6 @@ func _on_token_selected(token_index: int):
 		if placement_biome == selected_biome && !placement.is_occupied:
 			placement.set_highlight(true)
 			valid_placements += 1
-	
-	# Update UI to show selection
-	update_token_ui(tokens)
 
 # Token placement request from client
 @rpc("any_peer")
