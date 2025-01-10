@@ -684,122 +684,164 @@ func unhighlight_all_token_placements():
 	for placement in $TokenPlacements.get_children():
 		placement.set_highlight(false)
 
-@rpc("authority", "reliable")
-func sync_player_tokens(tokens: Array):
-	var player_id = multiplayer.get_unique_id()
-	print("\n=== Syncing Player Tokens ===")
-	print("Player ID: ", player_id)
-	print("Received tokens: ", tokens)
-	
-	token_manager.set_player_tokens(player_id, tokens)
-	update_token_ui(tokens)
-	
-	print("=== End Player Token Sync ===\n")
-
-
 func update_token_ui(tokens: Array):
 	var player_id = multiplayer.get_unique_id()
 	var current_player = players[current_turn_index] if current_turn_index >= 0 and current_turn_index < players.size() else -1
 	var is_my_turn = current_player == player_id
 	
-	print("\n=== Token UI Update Debug ===")
-	print("Player ID: ", player_id)
-	print("Current turn index: ", current_turn_index)
-	print("Current turn player: ", current_player)
-	print("Is my turn: ", is_my_turn)
-	print("Available tokens: ", tokens)
-	
 	# Get all token buttons
 	var token_buttons = $UI/TokenContainer.get_children()
 	
-	# Track used biomes
-	var used_biomes = []
-	for token in $Tokens.get_children():
-		if token.owner_id == player_id:
-			used_biomes.append(token.biome_type)
-	print("Used biomes: ", used_biomes)
+	# Only proceed if it's player's turn
+	if !is_my_turn:
+		reset_token_buttons()
+		return
 	
-	# First reset all buttons
-	for button in token_buttons:
-		if button.has_signal("pressed") and button.is_connected("pressed", _on_token_selected):
-			button.pressed.disconnect(_on_token_selected)
-		button.disabled = true
-		button.modulate = Color(0.5, 0.5, 0.5, 0.5)
+	# Create a map of available tokens by biome
+	var available_tokens = {}
+	for token in tokens:
+		var biome = int(token.biome)
+		if !available_tokens.has(biome):
+			available_tokens[biome] = 0
+		available_tokens[biome] += 1
 	
-	# Now update buttons for ALL biomes
+	# Update buttons based on available tokens
 	for biome in TokenManager.BiomeType.values():
-		var biome_name = TokenManager.BiomeType.keys()[biome]
 		var button_index = biome
-		
 		if button_index < token_buttons.size():
 			var button = token_buttons[button_index]
-			var is_used = biome in used_biomes
-			var is_available = tokens.any(func(token): return token.biome == biome)
+			var biome_int = int(biome)
 			
-			# Always show the button
+			button.text = "Token (%s)" % TokenManager.BiomeType.keys()[biome]
 			button.visible = true
-			button.text = "Token (%s)" % biome_name
 			
-			print("Button ", biome_name, ": Used=", is_used, ", Available=", is_available, ", MyTurn=", is_my_turn)
-			
-			# Enable button only if: not used, available, and it's player's turn
-			if !is_used and is_available and is_my_turn:
+			# Enable button if tokens are available for this biome
+			if available_tokens.has(biome_int) and available_tokens[biome_int] > 0:
 				button.disabled = false
 				button.modulate = Color(1, 1, 1, 1)
-				# Connect signal with the biome value
-				button.pressed.connect(func(): _on_token_selected(biome))
-				print("Enabled button for biome: ", biome_name)
+				
+				# Only connect signal if not already connected
+				if !button.pressed.is_connected(_on_token_selected.bind(biome_int)):
+					button.pressed.connect(func(): _on_token_selected(biome_int))
+				
+				# Highlight if this biome is currently selected
+				if selected_token_index == biome_int:
+					button.modulate = Color(1.2, 1.2, 0.8, 1)
 			else:
 				button.disabled = true
 				button.modulate = Color(0.5, 0.5, 0.5, 0.5)
-				print("Disabled button for biome: ", biome_name)
 
+@rpc("authority", "reliable")
+func sync_player_tokens(tokens: Array):
+	var player_id = multiplayer.get_unique_id()
+	token_manager.set_player_tokens(player_id, tokens)
+	
+	# Only update UI if received tokens are for the current player
+	var current_player = players[current_turn_index] if current_turn_index >= 0 and current_turn_index < players.size() else -1
+	if player_id == current_player:
+		update_token_ui(tokens)
 
+@rpc("any_peer", "call_local")
+func sync_token_placement(player_id: int, token_data: Dictionary, position: Vector3):
+	var placement = get_token_placement_at_position(position)
+	if !placement:
+		return
+	
+	# Explicitly convert to int for comparison
+	var placement_biome = int(placement.accepted_biome)
+	var token_biome = int(token_data.biome)
+	
+	# Verify placement is valid
+	if placement.is_occupied or placement_biome != token_biome:
+		return
+	
+	# Create and place the token
+	var token = token_manager.token_scene.instantiate()
+	$Tokens.add_child(token)
+	token.set_token_data(token_data.biome, token_data.type, player_id)
+	token.global_position = position
+	
+	# Mark placement as occupied
+	placement.set_occupied(true)
+	
+	# Reset selection state but maintain button enablement
+	selected_token_index = -1
+	unhighlight_all_token_placements()
+	
+	# Update UI for the current player regardless of host/client status
+	var local_id = multiplayer.get_unique_id()
+	if local_id == players[current_turn_index]:
+		# Get latest token data for the current player
+		var tokens = token_manager.get_player_tokens(local_id)
+		
+		# Keep buttons enabled for available tokens
+		var token_buttons = $UI/TokenContainer.get_children()
+		for button in token_buttons:
+			button.visible = true
+			var biome_index = token_buttons.find(button)
+			
+			# Check if there are still tokens available for this biome
+			var has_tokens = tokens.any(func(t): return int(t.biome) == biome_index)
+			
+			button.disabled = !has_tokens
+			button.modulate = Color(1, 1, 1, 1) if has_tokens else Color(0.5, 0.5, 0.5, 0.5)
+			
+			# Reconnect signal if needed
+			if has_tokens and !button.pressed.is_connected(_on_token_selected.bind(biome_index)):
+				button.pressed.connect(func(): _on_token_selected(biome_index))
+
+# Add new function to reset token buttons
+func reset_token_buttons():
+	var token_buttons = $UI/TokenContainer.get_children()
+	for button in token_buttons:
+		# Disconnect any existing signals
+		if button.pressed.is_connected(_on_token_selected):
+			button.pressed.disconnect(_on_token_selected)
+		# Reset button state
+		button.button_pressed = false
+		button.disabled = true
+		button.visible = true
+		button.modulate = Color(0.5, 0.5, 0.5, 0.5)
+
+# Modify the token selection function
 func _on_token_selected(token_index: int):
-	# If already selected, ignore
-	if selected_token_index == token_index:
+	if !is_valid_player_turn(multiplayer.get_unique_id()):
+		selected_token_index = -1
+		reset_token_buttons()
 		return
 		
-	# Add cooldown check
 	var current_time = Time.get_ticks_msec() / 1000.0
 	if current_time - last_token_selection_time < TOKEN_PLACEMENT_COOLDOWN:
 		return
 	
 	last_token_selection_time = current_time
 	
-	# First unhighlight all placements
-	unhighlight_all_token_placements()
+	# If selecting the same token, deselect it
+	if selected_token_index == token_index:
+		selected_token_index = -1
+		unhighlight_all_token_placements()
+		reset_token_buttons()
+		var tokens = token_manager.get_player_tokens(multiplayer.get_unique_id())
+		update_token_ui(tokens)
+		return
 	
-	print("\n=== Token Selected ===")
-	print("Player ID: ", multiplayer.get_unique_id())
-	print("Selected token index: ", token_index)
-	print("Selected biome type: ", TokenManager.BiomeType.keys()[token_index])
-	
+	# Reset previous selection
+	reset_token_buttons()
 	selected_token_index = token_index
 	var tokens = token_manager.get_player_tokens(multiplayer.get_unique_id())
-	
-	# Debug print all placement biomes
-	for placement in $TokenPlacements.get_children():
-		print("Placement at position ", placement.global_position, " accepts biome: ", 
-			  TokenManager.BiomeType.keys()[placement.accepted_biome])
 	
 	# Highlight valid placement locations
 	var valid_placements = 0
 	for placement in $TokenPlacements.get_children():
-		# Explicitly convert to int for comparison
 		var placement_biome = int(placement.accepted_biome)
 		var selected_biome = int(token_index)
-		
-		print("Comparing - Placement biome: ", placement_biome, " Selected biome: ", selected_biome)
 		
 		if placement_biome == selected_biome && !placement.is_occupied:
 			placement.set_highlight(true)
 			valid_placements += 1
-			print("Valid placement found at ", placement.global_position)
 	
-	print("Found ", valid_placements, " valid placement locations")
-	print("=== End Token Selection ===\n")
-
+	# Update UI to show selection
+	update_token_ui(tokens)
 
 # Token placement request from client
 @rpc("any_peer")
@@ -873,51 +915,6 @@ func get_token_placement_at_position(pos: Vector3) -> Node:
 			return placement
 	#print("No token placement found at ", pos)
 	return null
-
-@rpc("any_peer", "call_local")
-func sync_token_placement(player_id: int, token_data: Dictionary, position: Vector3):
-	print("\n=== Syncing Token Placement ===")
-	print("Player ID: ", player_id)
-	print("Token biome: ", TokenManager.BiomeType.keys()[token_data.biome])
-	print("Position: ", position)
-	
-	var placement = get_token_placement_at_position(position)
-	if !placement:
-		print("No valid placement found at position")
-		return
-	
-	# Explicitly convert to int for comparison
-	var placement_biome = int(placement.accepted_biome)
-	var token_biome = int(token_data.biome)
-	
-	print("Placement accepts biome: ", TokenManager.BiomeType.keys()[placement_biome])
-	
-	# Verify placement is valid
-	if placement.is_occupied:
-		print("Placement location is occupied")
-		return
-		
-	if placement_biome != token_biome:
-		print("Biome mismatch - Placement: ", placement_biome, " Token: ", token_biome)
-		return
-	
-	# Create and place the token
-	var token = token_manager.token_scene.instantiate()
-	$Tokens.add_child(token)
-	token.set_token_data(token_data.biome, token_data.type, player_id)
-	token.global_position = position
-	
-	# Mark placement as occupied
-	placement.set_occupied(true)
-	print("Token placed successfully")
-	
-	# Update UI for the player who placed the token
-	var local_id = multiplayer.get_unique_id()
-	if local_id == player_id:
-		var tokens = token_manager.get_player_tokens(local_id)
-		update_token_ui(tokens)
-	
-	print("=== End Token Placement Sync ===\n")
 
 func can_draw_card(card_type: int) -> bool:
 	var current_count = count_cards_by_type(card_type)
@@ -1010,45 +1007,33 @@ func set_current_turn(player_id):
 		return
 	
 	var local_id = multiplayer.get_unique_id()
-	print("\n=== Setting Turn ===")
-	print("Turn given to player: ", player_id)
-	print("Local player ID: ", local_id)
-	print("Current turn index: ", current_turn_index)
-	print("Players array: ", players)
-	
-	# Update local turn state first
-	if multiplayer.is_server():
-		current_turn_index = players.find(player_id)
-	else:
-		# Clients should update their turn index to match the server
-		current_turn_index = players.find(player_id)
-	
+	current_turn_index = players.find(player_id)
+	selected_token_index = -1  # Reset selection
+	unhighlight_all_token_placements()
+
 	if player_id == local_id:
-		print("Enabling controls for local player")
-		# Enable controls
+		# print("Enabling controls for local player")
 		player_hand.set_interaction_enabled(true)
 		$UI/EndTurnButton.disabled = false
 		if point_counter:
 			point_counter.set_buttons_enabled(true)
 			point_counter.update_all_stacks()
-		
-		# Update token UI with current tokens
 		var tokens = token_manager.get_player_tokens(local_id)
 		update_token_ui(tokens)
 	else:
-		print("Disabling controls for non-local player")
-		# Disable controls
+		# print("Disabling controls for non-local player")
 		player_hand.set_interaction_enabled(false)
 		$UI/EndTurnButton.disabled = true
 		if point_counter:
 			point_counter.set_buttons_enabled(false)
 			point_counter.update_all_stacks()
+		reset_token_buttons()
 		
 		# Update token UI to disable buttons
 		var tokens = token_manager.get_player_tokens(local_id)
 		update_token_ui(tokens)
 	
-	print("=== Turn Set Complete ===\n")
+	# print("=== Turn Set Complete ===\n")
 
 func is_valid_turn_index() -> bool:
 	return current_turn_index >= 0 and current_turn_index < players.size()
