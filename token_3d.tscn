@@ -11,7 +11,7 @@ radial_segments = 8
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_20hyu"]
 
-[node name="Token3D" type="Node3D"]
+[node name="Token3D_1" type="Node3D"]
 script = ExtResource("1_18jwr")
 
 [node name="TokenMesh" type="MeshInstance3D" parent="."]

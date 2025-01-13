@@ -12,7 +12,7 @@ radial_segments = 6
 height = 0.3
 radius = 0.4
 
-[node name="TokenPlacementLocation" type="Node3D"]
+[node name="TokenPlacementLocation_1" type="Node3D"]
 script = ExtResource("1_ktdd8")
 
 [node name="MarkerMesh" type="MeshInstance3D" parent="."]

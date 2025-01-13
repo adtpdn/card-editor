@@ -314,7 +314,7 @@ func sync_existing_tokens(tokens_data: Array):
 	# Recreate tokens from data
 	for token_info in tokens_data:
 		var token = token_manager.token_scene.instantiate()
-		$Tokens.add_child(token)
+		$Tokens.add_child(token,true)
 		token.set_token_data(token_info.biome, token_info.type)
 		token.global_position = token_info.position
 		
@@ -353,7 +353,7 @@ func receive_game_state(tokens_data: Array, occupied_locations: Array):
 	# Recreate tokens
 	for token_info in tokens_data:
 		var token = token_manager.token_scene.instantiate()
-		$Tokens.add_child(token)
+		$Tokens.add_child(token,true)
 		token.set_token_data(token_info.biome, token_info.type)
 		token.global_position = token_info.position
 	
@@ -524,7 +524,7 @@ func setup_token_placements():
 		for pos in positions:
 			var token_placement = token_placement_scene.instantiate()
 			token_placement.accepted_biome = biome
-			$TokenPlacements.add_child(token_placement)
+			$TokenPlacements.add_child(token_placement,true)
 			token_placement.global_position = pos
 			placements_per_biome[biome] += 1
 	
@@ -692,10 +692,19 @@ func update_token_ui(tokens: Array):
 	
 	# Get all token buttons
 	var token_buttons = $UI/TokenContainer.get_children()
+	print("Updating token UI - Player: ", player_id, " Is my turn: ", is_my_turn)
+	
+	# Reset all buttons first
+	for button in token_buttons:
+		button.visible = true
+		button.disabled = true
+		button.modulate = Color(0.5, 0.5, 0.5, 0.5)
+		# Disconnect any existing signals
+		if button.pressed.is_connected(_on_token_selected):
+			button.pressed.disconnect(_on_token_selected)
 	
 	# Only proceed if it's player's turn
 	if !is_my_turn:
-		reset_token_buttons()
 		return
 	
 	# Create a map of available tokens by biome
@@ -706,6 +715,8 @@ func update_token_ui(tokens: Array):
 			available_tokens[biome] = 0
 		available_tokens[biome] += 1
 	
+	print("Available tokens: ", available_tokens)
+	
 	# Update buttons based on available tokens
 	for biome in TokenManager.BiomeType.values():
 		var button_index = biome
@@ -714,14 +725,13 @@ func update_token_ui(tokens: Array):
 			var biome_int = int(biome)
 			
 			button.text = "Token (%s)" % TokenManager.BiomeType.keys()[biome]
-			button.visible = true
 			
 			# Enable button if tokens are available for this biome
 			if available_tokens.has(biome_int) and available_tokens[biome_int] > 0:
 				button.disabled = false
 				button.modulate = Color(1, 1, 1, 1)
 				
-				# Only connect signal if not already connected
+				# Connect signal for enabled buttons
 				if !button.pressed.is_connected(_on_token_selected.bind(biome_int)):
 					button.pressed.connect(func(): _on_token_selected(biome_int))
 				
@@ -755,7 +765,7 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	
 	# Create and place the token
 	var token = token_manager.token_scene.instantiate()
-	$Tokens.add_child(token)
+	$Tokens.add_child(token,true)
 	token.set_token_data(token_data.biome, token_data.type, player_id)
 	token.global_position = position
 	
@@ -1006,29 +1016,28 @@ func set_current_turn(player_id):
 	selected_token_index = -1  # Reset selection
 	unhighlight_all_token_placements()
 
+	print("Setting turn for player: ", player_id, " (local: ", local_id, ")")
+
 	if player_id == local_id:
-		# print("Enabling controls for local player")
+		# Enable controls for local player
 		player_hand.set_interaction_enabled(true)
 		$UI/EndTurnButton.disabled = false
 		if point_counter:
 			point_counter.set_buttons_enabled(true)
 			point_counter.update_all_stacks()
+		
+		# Force update token UI with fresh token data
 		var tokens = token_manager.get_player_tokens(local_id)
+		print("Available tokens for player ", local_id, ": ", tokens)
 		update_token_ui(tokens)
 	else:
-		# print("Disabling controls for non-local player")
+		# Disable controls for non-local player
 		player_hand.set_interaction_enabled(false)
 		$UI/EndTurnButton.disabled = true
 		if point_counter:
 			point_counter.set_buttons_enabled(false)
 			point_counter.update_all_stacks()
 		reset_token_buttons()
-		
-		# Update token UI to disable buttons
-		var tokens = token_manager.get_player_tokens(local_id)
-		update_token_ui(tokens)
-	
-	# print("=== Turn Set Complete ===\n")
 
 func is_valid_turn_index() -> bool:
 	return current_turn_index >= 0 and current_turn_index < players.size()

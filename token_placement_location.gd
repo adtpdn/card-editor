@@ -126,7 +126,7 @@ func place_token(player_id: int, token_data: Dictionary):
 	
 	# Create and place the token
 	var token = game.token_manager.token_scene.instantiate()
-	game.get_node("Tokens").add_child(token)
+	game.get_node("Tokens").add_child(token, true)
 	token.set_token_data(token_data.biome, token_data.type)
 	token.global_position = global_position
 	
