@@ -1,39 +1,30 @@
 extends Node
 
-@onready var player_hand = $HandAreas/PlayerHand
-@onready var action_deck = $DeckLocations/ActionDeck
-@onready var area_deck = $DeckLocations/AreaDeck
-@onready var action_area = $PlantingLocations/ActionArea
-@onready var area_zone = $PlantingLocations/AreaZone
-
-# Dice Dependencies
-@onready var dice_manager: Node3D = $DiceManager
-@onready var point_counter = $PointCounter
-@onready var roll_result_label = $UI/RollResultLabel
-
+# Multiplayer Dependencies
 var multiplayer_peer = ENetMultiplayerPeer.new()
 const PORT = 9999
 const ADDRESS = "127.0.0.1"
 
+# Multiplayer variables
 var connected_peer_ids = []
 var current_turn_index = 0
 var players = []
 var game_started = false
 var max_players = 2
 
+# Card System Dependencies
+@onready var player_hand = $HandAreas/PlayerHand
+@onready var action_deck = $DeckLocations/ActionDeck
+@onready var area_deck = $DeckLocations/AreaDeck
+@onready var action_area = $PlantingLocations/ActionArea
+@onready var area_zone = $PlantingLocations/AreaZone
+
 const MAX_ACTION_CARDS = 2
 const MAX_AREA_CARDS = 2
 
-var selected_token_index = -1
-var current_selected_button: Button = null
-
-# Coldown for clicking point button
-var last_point_adjustment_time = 0.0
-const POINT_ADJUSTMENT_COOLDOWN = 0.25  # 250ms cooldown
-
-var deck: Array[CardResource] = []
-# Add this structure to track placed cards
+var deck: Array[CardResource] = [] # Structure to track placed cards
 var placed_cards = []  # Array of dictionaries containing placement info
+var player_hands = {}
 
 const INITIAL_HAND_SIZE = {
 	"action": 2,  # Adjust these numbers as needed
@@ -46,7 +37,12 @@ const CARD_TYPES = {
 	"AREA": 1
 }
 
-# Class variables
+# Token System Dependencies
+@onready var token_manager: TokenManager = $TokenManager
+var selected_token_index = -1
+var current_selected_button: Button = null
+
+# Biome System Dependencies
 var radius = 4.0  # Radius of the octagon
 var borders_node: Node3D
 var biome_assignments = {
@@ -68,8 +64,18 @@ const TOKEN_PLACEMENT_COOLDOWN = 0.5  # 500ms cooldown
 var last_token_selection_time = 0.0
 var last_token_placement_time = 0.0
 
-var player_hands = {}  # Dictionary to store hands for each player ID
-@onready var token_manager: TokenManager = $TokenManager
+# Point System Dependencies
+var last_point_adjustment_time = 0.0
+const POINT_ADJUSTMENT_COOLDOWN = 0.25  # 250ms cooldown
+
+# Dice Dependencies
+@onready var dice_manager: Node3D = $DiceManager
+@onready var point_counter = $PointCounter
+@onready var roll_result_label = $UI/RollResultLabel
+
+# ################################
+# ---   On Ready Initiation    ---
+# ################################
 
 func _ready() -> void:
 	# Create the borders node first
@@ -89,7 +95,9 @@ func _ready() -> void:
 	
 	# Set up the hand
 	player_hand = $HandAreas/PlayerHand
-	
+	player_hand.set_interaction_enabled(false)
+	# Token Manager Initiated
+
 	token_manager = TokenManager.new()
 	add_child(token_manager)
 	
@@ -108,8 +116,7 @@ func _ready() -> void:
 	multiplayer_peer.peer_connected.connect(_on_peer_connected)
 	multiplayer_peer.peer_disconnected.connect(_on_peer_disconnected)
 
-	# Initial state
-	player_hand.set_interaction_enabled(false)
+	# Turn off the end turn button
 	$UI/EndTurnButton.disabled = true
 	
 	# Dice Manager Initiated
@@ -118,13 +125,14 @@ func _ready() -> void:
 	# Camera setup
 	var camera = $Camera3D
 	
+	# Set up area picking
 	_setup_area_picking(action_area)
 	_setup_area_picking(area_zone)
 	
+	# Multiplayer setup
 	set_multiplayer_authority(1)
 	
 	# Point Counter
-	
 	if point_counter:
 		point_counter.set_buttons_enabled(false)
 		point_counter.sync_id = 1  # Give authority to the server
@@ -136,11 +144,15 @@ func _ready() -> void:
 				point_counter.circle_points
 			)
 	
-	# Initially disable all token buttons
+	# Token Buttons disabled by default
 	var token_buttons = $UI/TokenContainer.get_children()
 	for button in token_buttons:
 		button.disabled = true
 		button.visible = false
+
+# ################################
+# ---    Host/Client Logic     ---
+# ################################
 
 func _on_host_pressed():
 	var error = multiplayer_peer.create_server(PORT)
@@ -174,6 +186,8 @@ func _on_join_pressed():
 		pass
 		#print("Failed to create client: ", error)
 
+# ---
+
 func _on_peer_connected(new_peer_id):
 	if multiplayer.is_server():
 		await get_tree().create_timer(0.1).timeout
@@ -193,7 +207,6 @@ func _on_peer_connected(new_peer_id):
 		
 		# Initialize new player's hand tracking
 		player_hands[new_peer_id] = []
-		
 		
 		# Sync existing tokens
 		var tokens_data = []
@@ -228,6 +241,10 @@ func _on_peer_disconnected(peer_id):
 	if multiplayer.is_server():
 		rpc("remove_player", peer_id)
 
+# ################################
+# --- Control / Input Handling ---
+# ################################
+
 func _unhandled_input(event):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if selected_token_index != -1:
@@ -256,9 +273,6 @@ func _unhandled_input(event):
 			if result:
 				var placement = get_token_placement_at_position(result.position)
 				if placement:
-					#print("\n=== Attempting Token Placement ===")
-					#print("Selected biome: ", TokenManager.BiomeType.keys()[selected_token_index])
-					#print("Placement accepts biome: ", TokenManager.BiomeType.keys()[placement.accepted_biome])
 					
 					# Explicitly convert to int for comparison
 					var placement_biome = int(placement.accepted_biome)
@@ -303,6 +317,10 @@ func _unhandled_input(event):
 						print("Invalid placement - Biome mismatch or location occupied")
 						print("Placement biome: ", placement_biome, " Selected biome: ", selected_biome)
 
+# ################################
+# ---   Token Logic Handling   ---
+# ################################
+
 @rpc("any_peer", "call_local")
 func sync_existing_tokens(tokens_data: Array):
 	#print("Syncing existing tokens: ", tokens_data.size())
@@ -323,8 +341,6 @@ func sync_existing_tokens(tokens_data: Array):
 			placement.set_occupied(true)
 
 func sync_existing_game_state(new_peer_id: int):
-	#print("Syncing game state for new client: ", new_peer_id)
-	
 	# Sync tokens
 	var tokens_data = []
 	for token in $Tokens.get_children():
@@ -363,56 +379,6 @@ func receive_game_state(tokens_data: Array, occupied_locations: Array):
 		if placement:
 			placement.set_occupied(true)
 
-func distribute_initial_hand():
-	if !multiplayer.is_server():
-		return
-		
-	#print("Distributing initial hand for host")
-	var host_id = multiplayer.get_unique_id()
-	
-	# Clear hand first
-	player_hand.cards.clear()
-	player_hand.card_resources.clear()
-	player_hands[host_id].clear()
-	
-	# Draw random cards for host
-	var host_cards = draw_random_initial_cards()
-	player_hands[host_id] = host_cards.duplicate()
-	
-	# Update host's visual hand
-	for card in host_cards:
-		player_hand.draw(card)
-
-func distribute_initial_hand_to_client(peer_id: int):
-	if !multiplayer.is_server():
-		return
-		
-	#print("Distributing initial hand to client: ", peer_id)
-	
-	# Draw random cards for this client
-	var cards_data = []
-	
-	# Draw 2 action cards
-	for i in range(2):
-		var card = action_deck.draw_card()
-		if card:
-			cards_data.append(card.to_dictionary())
-			#print("Drew action card: ", card.card_name)
-	
-	# Draw 2 area cards
-	for i in range(2):
-		var card = area_deck.draw_card()
-		if card:
-			cards_data.append(card.to_dictionary())
-			#print("Drew area card: ", card.card_name)
-	
-	if cards_data.size() > 0:
-		#print("Sending ", cards_data.size(), " cards to client ", peer_id)
-		rpc_id(peer_id, "receive_initial_hand", cards_data)
-	else:
-		pass
-		#print("No cards to send to client!")
-
 func distribute_initial_tokens_to_client(peer_id: int):
 	if !multiplayer.is_server():
 		return
@@ -422,67 +388,6 @@ func distribute_initial_tokens_to_client(peer_id: int):
 	var tokens = token_manager.get_player_tokens(peer_id)
 	rpc_id(peer_id, "sync_player_tokens", tokens)
 	#print("Sent initial tokens to client: ", tokens)
-
-func draw_random_initial_cards() -> Array:
-	var cards = []
-	
-	# Draw 2 action cards
-	for i in range(2):
-		var card = action_deck.draw_card()
-		if card:
-			cards.append(card)
-	
-	# Draw 2 area cards
-	for i in range(2):
-		var card = area_deck.draw_card()
-		if card:
-			cards.append(card)
-	
-	return cards
-
-@rpc("any_peer", "call_local")
-func receive_initial_hand(cards_data: Array):
-	#print("Receiving initial hand, is server: ", multiplayer.is_server())
-	if multiplayer.is_server():
-		return
-	
-	#print("Processing ", cards_data.size(), " cards for client")
-	
-	# Clear existing hand
-	player_hand.cards.clear()
-	player_hand.card_resources.clear()
-	
-	# Process received cards
-	for card_data in cards_data:
-		var card_resource = CardResource.new()
-		card_resource.from_dictionary(card_data)
-		#print("Processing card: ", card_resource.card_name)
-		player_hand.draw(card_resource)
-		#print("Current hand size: ", player_hand.card_resources.size())
-	
-	#print("Finished receiving initial hand, total cards: ", player_hand.get_card_count())
-
-@rpc("any_peer")
-func request_initial_cards():
-	if multiplayer.is_server():
-		distribute_initial_hand_to_client(multiplayer.get_remote_sender_id())
-
-@rpc("any_peer", "call_local")
-func sync_game_state(current_players: Array, is_game_started: bool, current_placed_cards: Array) -> void:
-	#print("Syncing game state. Is server: ", multiplayer.is_server())
-	players = current_players
-	game_started = is_game_started
-	
-	# Replay all placed cards
-	for placement in current_placed_cards:
-		# Make sure placement contains player_id, if not, use a default
-		var player_id = placement.get("player_id", 1)  # Use server ID as default if not specified
-		sync_card_played(placement.card_data, placement.slot_index, placement.location_name, player_id)
-	
-	# If this is a client, request initial cards
-	if not multiplayer.is_server():
-		#print("Requesting initial cards as client")
-		rpc_id(1, "request_initial_cards")
 
 func setup_token_placements():
 	
@@ -533,6 +438,8 @@ func setup_token_placements():
 		#
 		#print("Total placements for biome ", TokenManager.BiomeType.keys()[biome], 
 			  #": ", placements_per_biome[biome])
+
+# Token - Slice Position Generation
 
 func _generate_slice_positions(radius: float, start_angle: float, end_angle: float) -> Array:
 	var positions = []
@@ -598,6 +505,8 @@ func _generate_slice_positions(radius: float, start_angle: float, end_angle: flo
 	positions.sort_custom(func(a, b): return a.length() < b.length())
 	return positions.slice(0, min(positions.size(), TokenManager.MAX_TOKENS_PER_BIOME))
 
+# Token - Biome Border Generation
+
 func setup_biome_borders():
 	var material = StandardMaterial3D.new()
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -647,6 +556,8 @@ func setup_biome_borders():
 			# Add to the borders node
 			borders_node.add_child(mesh_instance)
 
+# Token - Setup Player
+
 func setup_player(player_id: int) -> void:
 	#print("Setting up player: ", player_id)
 	if player_id == multiplayer.get_unique_id():
@@ -665,6 +576,8 @@ func setup_player(player_id: int) -> void:
 		# Use rpc_id instead of rpc when sending to a specific player
 		if player_id != multiplayer.get_unique_id():
 			rpc_id(player_id, "sync_player_tokens", token_manager.get_player_tokens(player_id))
+
+# Token - Events
 
 func _on_token_placed(token: Node3D, placement_location: Node3D):
 	if multiplayer.is_server():
@@ -739,15 +652,138 @@ func update_token_ui(tokens: Array):
 				if selected_token_index == biome_int:
 					button.modulate = Color(1.2, 1.2, 0.8, 1)
 
+# ################################
+# ---   Card Logic Handling    ---
+# ################################
+
+func distribute_initial_hand():
+	if !multiplayer.is_server():
+		return
+		
+	#print("Distributing initial hand for host")
+	var host_id = multiplayer.get_unique_id()
+	
+	# Clear hand first
+	player_hand.cards.clear()
+	player_hand.card_resources.clear()
+	player_hands[host_id].clear()
+	
+	# Draw random cards for host
+	var host_cards = draw_random_initial_cards()
+	player_hands[host_id] = host_cards.duplicate()
+	
+	# Update host's visual hand
+	for card in host_cards:
+		player_hand.draw(card)
+
+func distribute_initial_hand_to_client(peer_id: int):
+	if !multiplayer.is_server():
+		return
+		
+	#print("Distributing initial hand to client: ", peer_id)
+	
+	# Draw random cards for this client
+	var cards_data = []
+	
+	# Draw 2 action cards
+	for i in range(2):
+		var card = action_deck.draw_card()
+		if card:
+			cards_data.append(card.to_dictionary())
+			#print("Drew action card: ", card.card_name)
+	
+	# Draw 2 area cards
+	for i in range(2):
+		var card = area_deck.draw_card()
+		if card:
+			cards_data.append(card.to_dictionary())
+			#print("Drew area card: ", card.card_name)
+	
+	if cards_data.size() > 0:
+		#print("Sending ", cards_data.size(), " cards to client ", peer_id)
+		rpc_id(peer_id, "receive_initial_hand", cards_data)
+	else:
+		pass
+		#print("No cards to send to client!")
+
+func draw_random_initial_cards() -> Array:
+	var cards = []
+	
+	# Draw 2 action cards
+	for i in range(2):
+		var card = action_deck.draw_card()
+		if card:
+			cards.append(card)
+	
+	# Draw 2 area cards
+	for i in range(2):
+		var card = area_deck.draw_card()
+		if card:
+			cards.append(card)
+	
+	return cards
+
+@rpc("any_peer", "call_local")
+func receive_initial_hand(cards_data: Array):
+	#print("Receiving initial hand, is server: ", multiplayer.is_server())
+	if multiplayer.is_server():
+		return
+	
+	#print("Processing ", cards_data.size(), " cards for client")
+	
+	# Clear existing hand
+	player_hand.cards.clear()
+	player_hand.card_resources.clear()
+	
+	# Process received cards
+	for card_data in cards_data:
+		var card_resource = CardResource.new()
+		card_resource.from_dictionary(card_data)
+		#print("Processing card: ", card_resource.card_name)
+		player_hand.draw(card_resource)
+		#print("Current hand size: ", player_hand.card_resources.size())
+	
+	#print("Finished receiving initial hand, total cards: ", player_hand.get_card_count())
+
+@rpc("any_peer")
+func request_initial_cards():
+	if multiplayer.is_server():
+		distribute_initial_hand_to_client(multiplayer.get_remote_sender_id())
+
+@rpc("any_peer", "call_local")
+func sync_game_state(current_players: Array, is_game_started: bool, current_placed_cards: Array) -> void:
+	#print("Syncing game state. Is server: ", multiplayer.is_server())
+	players = current_players
+	game_started = is_game_started
+	
+	# Replay all placed cards
+	for placement in current_placed_cards:
+		# Make sure placement contains player_id, if not, use a default
+		var player_id = placement.get("player_id", 1)  # Use server ID as default if not specified
+		sync_card_played(placement.card_data, placement.slot_index, placement.location_name, player_id)
+	
+	# If this is a client, request initial cards
+	if not multiplayer.is_server():
+		#print("Requesting initial cards as client")
+		rpc_id(1, "request_initial_cards")
+
+func remove_card_from_player_hand(player_id: int, card_index: int) -> void:
+	if !player_hands.has(player_id):
+		return
+		
+	if card_index >= 0 and card_index < player_hands[player_id].size():
+		player_hands[player_id].remove_at(card_index)
+		#print("Removed card at index ", card_index, " from player ", player_id, "'s hand")
+
+
 @rpc("authority", "reliable")
 func sync_player_tokens(tokens: Array):
 	var player_id = multiplayer.get_unique_id()
 	token_manager.set_player_tokens(player_id, tokens)
 	
-	# Only update UI if received tokens are for the current player
-	var current_player = players[current_turn_index] if current_turn_index >= 0 and current_turn_index < players.size() else -1
-	if player_id == current_player:
-		update_token_ui(tokens)
+	print("Syncing tokens for player: ", player_id, " Tokens: ", tokens)
+	# Force UI update regardless of turn
+	update_token_ui(tokens)
 
 @rpc("any_peer", "call_local")
 func sync_token_placement(player_id: int, token_data: Dictionary, position: Vector3):
@@ -781,22 +817,6 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	if local_id == players[current_turn_index]:
 		# Get latest token data for the current player
 		var tokens = token_manager.get_player_tokens(local_id)
-		
-		# # Keep buttons enabled for available tokens
-		# var token_buttons = $UI/TokenContainer.get_children()
-		# for button in token_buttons:
-		# 	button.visible = true
-		# 	var biome_index = token_buttons.find(button)
-			
-		# 	# Check if there are still tokens available for this biome
-		# 	var has_tokens = tokens.any(func(t): return int(t.biome) == biome_index)
-			
-		# 	button.disabled = !has_tokens
-		# 	button.modulate = Color(1, 1, 1, 1) if has_tokens else Color(0.5, 0.5, 0.5, 0.5)
-			
-		# 	# Reconnect signal if needed
-		# 	if has_tokens and !button.pressed.is_connected(_on_token_selected.bind(biome_index)):
-		# 		button.pressed.connect(func(): _on_token_selected(biome_index))
 
 # Add new function to reset token buttons
 func reset_token_buttons():
@@ -993,8 +1013,17 @@ func next_turn():
 		var next_player = players[current_turn_index]
 		print("Next player: ", next_player)
 		
-		# Sync turn to all clients
+		# Initialize tokens for next player before setting turn
+		token_manager.initialize_player_tokens(next_player, true)
+		var tokens = token_manager.get_player_tokens(next_player)
+		
+		# Sync turn and tokens to all clients
 		rpc("set_current_turn", next_player)
+		if next_player != multiplayer.get_unique_id():
+			rpc_id(next_player, "sync_player_tokens", tokens)
+		else:
+			# Direct update for host
+			sync_player_tokens(tokens)
 		
 		# Force sync point counter state
 		if point_counter:
@@ -1026,10 +1055,9 @@ func set_current_turn(player_id):
 			point_counter.set_buttons_enabled(true)
 			point_counter.update_all_stacks()
 		
-		# Force update token UI with fresh token data
-		var tokens = token_manager.get_player_tokens(local_id)
-		print("Available tokens for player ", local_id, ": ", tokens)
-		update_token_ui(tokens)
+		# Force token refresh only for client
+		if !multiplayer.is_server():
+			rpc_id(1, "request_token_refresh")
 	else:
 		# Disable controls for non-local player
 		player_hand.set_interaction_enabled(false)
@@ -1054,7 +1082,6 @@ func enable_player_turn():
 func disable_player_turn():
 	player_hand.set_interaction_enabled(false)
 	$UI/EndTurnButton.disabled = true
-
 
 func _on_end_turn_pressed():
 	if multiplayer.is_server():
@@ -1095,15 +1122,6 @@ func _on_reset_button_pressed() -> void:
 @rpc("any_peer", "call_local")
 func sync_discard_card():
 	player_hand.discard()
-
-func remove_card_from_player_hand(player_id: int, card_index: int) -> void:
-	if !player_hands.has(player_id):
-		return
-		
-	if card_index >= 0 and card_index < player_hands[player_id].size():
-		player_hands[player_id].remove_at(card_index)
-		#print("Removed card at index ", card_index, " from player ", player_id, "'s hand")
-
 
 func _on_discard_card_button_pressed() -> void:
 	if multiplayer.is_server():
@@ -1218,8 +1236,6 @@ func _setup_area_picking(node: Node) -> void:
 
 @rpc("any_peer", "call_local")
 func sync_card_played(card_data: Dictionary, slot_index: int, location_name: String, player_id: int) -> void:
-	#print("Syncing card played by player: ", player_id, " in location: ", location_name)
-	
 	# Find the correct location node
 	var locations = {
 		"Action Area": action_area,
@@ -1246,7 +1262,9 @@ func add_player(player_id):
 func remove_player(player_id):
 	players.erase(player_id)
 
-# Dice Events
+# ################################
+# ---   Dice Logic Handling    ---
+# ################################
 
 func _on_roll_dice_pressed():
 	if multiplayer.is_server():
@@ -1263,26 +1281,9 @@ func _on_dice_roll_completed(result: int, player_id: int, face_name: String):
 	var color = dice_manager.FACE_COLORS[result]
 	roll_result_label.modulate = color
 
-# Point Counters
-
-#@rpc("authority", "reliable")
-#func server_adjust_points(region: String, delta: int):
-	#var requesting_player = multiplayer.get_remote_sender_id()
-	#
-	#print("Server Adjusting Points - Player: ", requesting_player, 
-		  #" Region: ", region, " Delta: ", delta)
-	#
-	## Validate turn
-	#if is_valid_player_turn(requesting_player):
-		#point_counter.adjust_points(region, delta)
-		## Sync points to all clients
-		#point_counter.rpc("sync_point_values", 
-			#point_counter.triangle_points,
-			#point_counter.square_points,
-			#point_counter.circle_points
-		#)
-	#else:
-		#print("Invalid turn for point adjustment!")
+# ################################
+# ---  Point Counter Handling  ---
+# ################################
 
 @rpc("any_peer")
 func request_point_adjustment(region: String, delta: int):
@@ -1386,7 +1387,6 @@ func adjust_points_decrease(region: String):
 	
 	# Remove point from selected region
 	point_counter.set_points(region, point_counter.get_points(region) - 1)
-
 
 @rpc("authority", "call_local")
 func sync_points():

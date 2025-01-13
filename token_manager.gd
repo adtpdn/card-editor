@@ -15,25 +15,30 @@ signal token_placed(player_id: int, biome: BiomeType, token_type: TokenType, loc
 var token_scene = preload("res://token_3d.tscn")
 
 
-func initialize_player_tokens(player_id: int):
-	#print("Starting token initialization for player: ", player_id)
-	
-	if player_tokens.has(player_id):
-		#print("Player ", player_id, " already has tokens: ", player_tokens[player_id])
+func initialize_player_tokens(player_id: int, force_refresh: bool = false):
+	# Allow force refresh of tokens if needed
+	if player_tokens.has(player_id) and !force_refresh:
 		return
 		
 	player_tokens[player_id] = []
 	var tokens_per_biome = {}
 	
-	# Initialize counters for each biome
+	# Get tokens already on board for this player
+	var placed_tokens = get_placed_tokens_for_player(player_id)
+	
+	# Initialize counters for each biome, considering placed tokens
 	for biome in BiomeType.values():
 		tokens_per_biome[biome] = 0
-		#print("Initialized counter for biome ", BiomeType.keys()[biome])
+		for token in placed_tokens:
+			if token.biome_type == biome:
+				tokens_per_biome[biome] += 1
 	
-	# First pass: ensure at least one token of each biome
+	# First pass: ensure at least one token of each biome if not maxed out
 	for biome in BiomeType.values():
+		if tokens_per_biome[biome] >= MAX_TOKENS_PER_BIOME:
+			continue
+			
 		if player_tokens[player_id].size() >= TOKENS_PER_PLAYER:
-			#print("Reached max tokens during first pass")
 			break
 			
 		var token_data = {
@@ -42,9 +47,8 @@ func initialize_player_tokens(player_id: int):
 		}
 		player_tokens[player_id].append(token_data)
 		tokens_per_biome[biome] += 1
-		#print("First pass: Added token of biome ", BiomeType.keys()[biome], " for player ", player_id)
 	
-	# Second pass: fill remaining slots while respecting MAX_TOKENS_PER_BIOME
+	# Second pass: fill remaining slots
 	while player_tokens[player_id].size() < TOKENS_PER_PLAYER:
 		var available_biomes = []
 		for biome in BiomeType.values():
@@ -52,7 +56,6 @@ func initialize_player_tokens(player_id: int):
 				available_biomes.append(biome)
 		
 		if available_biomes.is_empty():
-			#print("No more available biomes for additional tokens")
 			break
 			
 		var selected_biome = available_biomes[randi() % available_biomes.size()]
@@ -62,16 +65,20 @@ func initialize_player_tokens(player_id: int):
 		}
 		player_tokens[player_id].append(token_data)
 		tokens_per_biome[selected_biome] += 1
-		#print("Second pass: Added token of biome ", BiomeType.keys()[selected_biome], " for player ", player_id)
+
+func get_placed_tokens_for_player(player_id: int) -> Array:
+	var game = get_tree().get_root().get_node("Game")
+	if !game:
+		return []
+		
+	var placed_tokens = []
+	var tokens_node = game.get_node("Tokens")
+	if tokens_node:
+		for token in tokens_node.get_children():
+			if token.owner_id == player_id:
+				placed_tokens.append(token)
 	
-	# Final debug output
-	#print("Finished initializing tokens for player ", player_id)
-	#print("Final token distribution:")
-	for biome in tokens_per_biome.keys():
-		pass
-		#print("- Biome ", BiomeType.keys()[biome], ": ", tokens_per_biome[biome], " tokens")
-	#print("Total tokens: ", player_tokens[player_id].size())
-	#print("Token details: ", player_tokens[player_id])
+	return placed_tokens
 
 func can_place_token(player_id: int, token_index: int, biome_type: BiomeType = -1) -> bool:
 	if not player_tokens.has(player_id) or token_index >= player_tokens[player_id].size():
