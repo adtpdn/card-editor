@@ -1220,9 +1220,14 @@ func set_current_turn(player_id):
 			point_counter.set_buttons_enabled(true)
 			point_counter.update_all_stacks()
 		
-		# Force token refresh only for client
+		# Force token refresh
 		if !multiplayer.is_server():
 			rpc_id(1, "request_token_refresh")
+		else:
+			# Direct refresh for host
+			token_manager.initialize_player_tokens(local_id, true)
+			var tokens = token_manager.get_player_tokens(local_id)
+			sync_player_tokens(tokens)
 	else:
 		# Disable controls for non-local player
 		player_hand.set_interaction_enabled(false)
@@ -1441,3 +1446,11 @@ func sync_points():
 		point_counter.square_points,
 		point_counter.circle_points
 	)
+
+@rpc("any_peer")
+func request_token_refresh():
+	if multiplayer.is_server():
+		var requesting_player = multiplayer.get_remote_sender_id()
+		token_manager.initialize_player_tokens(requesting_player, true)
+		var tokens = token_manager.get_player_tokens(requesting_player)
+		rpc_id(requesting_player, "sync_player_tokens", tokens)
