@@ -87,13 +87,15 @@ func remove_token(player_id: int, token_index: int):
 	#print("Removing token ", token_index, " from player ", player_id)
 	if player_tokens.has(player_id) and token_index >= 0 and token_index < player_tokens[player_id].size():
 		player_tokens[player_id].remove_at(token_index)
-		#print("Updated tokens for player ", player_id, ": ", player_tokens[player_id])
 		return true
 	return false
 
 func set_player_tokens(player_id: int, tokens: Array):
-	#print("Setting tokens for player ", player_id, ": ", tokens)
-	player_tokens[player_id] = tokens
+	if tokens == null:
+		tokens = []
+	player_tokens[player_id] = tokens.duplicate()
 
 func get_player_tokens(player_id: int) -> Array:
-	return player_tokens.get(player_id, [])
+	if !player_tokens.has(player_id):
+		player_tokens[player_id] = []
+	return player_tokens[player_id].duplicate()

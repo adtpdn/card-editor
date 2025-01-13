@@ -42,30 +42,35 @@ func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: 
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var game = get_node("/root/Game")
 		
-		if game and !is_occupied and game.selected_token_index >= 0:
-			var player_id = multiplayer.get_unique_id()
-			var player_tokens = game.token_manager.get_player_tokens(player_id)
+		if !game or is_occupied or game.selected_token_index < 0:
+			return
 			
-			if game.selected_token_index < player_tokens.size():
-				var token_data = player_tokens[game.selected_token_index]
-				
-				# Explicit type conversion for comparison
-				var token_biome = int(token_data.biome)
-				var placement_biome = int(accepted_biome)
-				
-				if token_biome == placement_biome:
-					if multiplayer.is_server():
-						game.sync_token_placement.rpc(
-							player_id,
-							token_data,
-							global_position
-						)
-						game.token_manager.remove_token(player_id, game.selected_token_index)
-					else:
-						game.request_token_placement.rpc_id(1, game.selected_token_index, global_position)
-					
-					game.selected_token_index = -1
-					game.unhighlight_all_token_placements()
+		var player_id = multiplayer.get_unique_id()
+		if !game.is_valid_player_turn(player_id):
+			return
+			
+		var player_tokens = game.token_manager.get_player_tokens(player_id)
+		
+		# Find matching token for the selected biome
+		var matching_token_index = -1
+		for i in range(player_tokens.size()):
+			if int(player_tokens[i].biome) == int(accepted_biome):
+				matching_token_index = i
+				break
+		
+		if matching_token_index >= 0:
+			if multiplayer.is_server():
+				game.sync_token_placement.rpc(
+					player_id,
+					player_tokens[matching_token_index],
+					global_position
+				)
+				game.token_manager.remove_token(player_id, matching_token_index)
+			else:
+				game.request_token_placement.rpc_id(1, matching_token_index, global_position)
+			
+			game.selected_token_index = -1
+			game.unhighlight_all_token_placements()
 
 func set_highlight(enabled: bool):
 	if is_occupied:  # Never highlight if occupied

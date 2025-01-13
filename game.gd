@@ -256,9 +256,9 @@ func _unhandled_input(event):
 			if result:
 				var placement = get_token_placement_at_position(result.position)
 				if placement:
-					print("\n=== Attempting Token Placement ===")
-					print("Selected biome: ", TokenManager.BiomeType.keys()[selected_token_index])
-					print("Placement accepts biome: ", TokenManager.BiomeType.keys()[placement.accepted_biome])
+					#print("\n=== Attempting Token Placement ===")
+					#print("Selected biome: ", TokenManager.BiomeType.keys()[selected_token_index])
+					#print("Placement accepts biome: ", TokenManager.BiomeType.keys()[placement.accepted_biome])
 					
 					# Explicitly convert to int for comparison
 					var placement_biome = int(placement.accepted_biome)
@@ -728,9 +728,6 @@ func update_token_ui(tokens: Array):
 				# Highlight if this biome is currently selected
 				if selected_token_index == biome_int:
 					button.modulate = Color(1.2, 1.2, 0.8, 1)
-			else:
-				button.disabled = true
-				button.modulate = Color(0.5, 0.5, 0.5, 0.5)
 
 @rpc("authority", "reliable")
 func sync_player_tokens(tokens: Array):
@@ -875,18 +872,28 @@ func request_token_placement(token_index: int, position: Vector3):
 			# Update server's token manager
 			token_manager.remove_token(player_id, token_index)
 			
-			# Sync the placement to all clients
+			 # Important: Sync the placement to ALL clients including the requester
 			rpc("sync_token_placement", player_id, token_data, position)
 			
-			# Update tokens for each player separately
+			# Update tokens for all players
 			for pid in players:
-				if pid != player_id:  # Skip the player who placed the token
-					var updated_tokens = token_manager.get_player_tokens(pid)
-					rpc_id(pid, "sync_player_tokens", updated_tokens)
-					
-			# Update the placing player's tokens separately
-			var updated_tokens = token_manager.get_player_tokens(player_id)
-			rpc_id(player_id, "sync_player_tokens", updated_tokens)
+				var updated_tokens = token_manager.get_player_tokens(pid)
+				rpc_id(pid, "sync_player_tokens", updated_tokens)
+
+# Add new helper function
+func update_all_players_tokens():
+	if !multiplayer.is_server():
+		return
+		
+	for pid in players:
+		var updated_tokens = token_manager.get_player_tokens(pid)
+		if pid == multiplayer.get_unique_id():
+			# Update server's UI directly
+			update_token_ui(updated_tokens)
+		else:
+			# Update clients
+			rpc_id(pid, "sync_player_tokens", updated_tokens)
+
 # Add notification for invalid placement
 @rpc("authority", "reliable")
 func notify_invalid_placement():
