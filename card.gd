@@ -62,6 +62,9 @@ func set_selected(value: bool) -> void:
 func _gui_input(event):
 	if event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			var hand = get_parent()
+			if !hand.can_interact:  # Check if hand interaction is enabled
+				return
 			selected = !selected
 			if selected:
 				modulate = Color(1.2, 1.2, 1.2)  # Highlight selected card

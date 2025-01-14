@@ -15,6 +15,7 @@ var card_resources: Array[CardResource] = []
 var card_scene: PackedScene = preload("res://card.tscn")
 var selected_card: Card = null
 var can_interact = false
+var selected = false  # Add this at the top with other variables
 
 # Visual settings for different card types
 const TYPE_SETTINGS = {
@@ -46,12 +47,27 @@ func _ready():
 	player_id = multiplayer.get_unique_id()
 	#print("Hand initialized for player: ", player_id)
 
+func _gui_input(event):
+	if event is InputEventMouseButton:
+		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			if !can_interact:  # Don't process input if interaction is disabled
+				return
+				
+			for card in cards:
+				if card.selected:
+					card.selected = false
+					card.modulate = Color(1, 1, 1)
+			selected = !selected
+
 func set_interaction_enabled(enabled: bool):
 	can_interact = enabled
 	for card in cards:
-		card.set_process_input(enabled)
-		card.modulate.a = 1.0 if enabled else 0.5
-	#print("Interaction ", "enabled" if enabled else "disabled", " for player ", player_id)
+		card.set_process_input(enabled)  # This disables the card's input processing
+		card.modulate.a = 1.0 if enabled else 0.5  # Visual feedback
+		if !enabled:
+			card.selected = false  # Deselect cards when disabling interaction
+			card.modulate = Color(1, 1, 1, 0.5)
+			selected = false
 
 func can_accept_card(card: CardResource) -> bool:
 	return true
@@ -138,6 +154,8 @@ func apply_card_visual_style(card: Card) -> void:
 		card.modulate = settings["highlight_color"]
 
 func get_selected_card() -> Card:
+	if !can_interact:  # Don't return selected card if interaction is disabled
+		return null
 	for card in cards:
 		if card.selected:
 			return card
@@ -193,6 +211,8 @@ func get_card_at_index(index: int) -> Card:
 	return null
 
 func clear_selection() -> void:
+	if !can_interact:  # Don't allow clearing selection if interaction is disabled
+		return
 	for card in cards:
 		card.selected = false
 		card.modulate = Color(1, 1, 1)

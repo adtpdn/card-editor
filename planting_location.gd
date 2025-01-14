@@ -57,8 +57,10 @@ func _input(event):
 	if event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			if selected_marker:
-				var hand = get_node("/root/Game/HandAreas/PlayerHand")
-				if hand:
+				var game = get_node("/root/Game")
+				var hand = game.get_node("HandAreas/PlayerHand")
+				# Check if it's player's turn before allowing placement
+				if hand and game.is_valid_player_turn(multiplayer.get_unique_id()):
 					var selected_card = hand.get_selected_card()
 					if selected_card and can_accept_card(selected_card.card_resource):
 						var index = slots.find(selected_marker)
@@ -68,7 +70,8 @@ func _input(event):
 							hand.remove_card(selected_card)
 
 func plant_card(card_resource: CardResource, slot_index: int) -> void:
-	if slot_index < 0 or slot_index >= slots.size():
+	var game = get_node("/root/Game")
+	if !game or slot_index < 0 or slot_index >= slots.size():
 		print("Invalid slot index: ", slot_index)
 		return
 		
@@ -94,8 +97,12 @@ func plant_card(card_resource: CardResource, slot_index: int) -> void:
 @rpc("any_peer")
 func request_plant_card(card_data: Dictionary, slot_index: int, location_name: String):
 	if multiplayer.is_server():
-		# Server validates and broadcasts the card placement
-		rpc("sync_plant_card", card_data, slot_index)
+		var game = get_node("/root/Game")
+		var requesting_player = multiplayer.get_remote_sender_id()
+		
+		# Validate it's the player's turn
+		if game.is_valid_player_turn(requesting_player):
+			rpc("sync_plant_card", card_data, slot_index)
 
 @rpc("any_peer", "call_local")
 func sync_plant_card(card_data: Dictionary, slot_index: int):

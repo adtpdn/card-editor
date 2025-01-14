@@ -982,9 +982,15 @@ func count_cards_by_type_for_player(player_id: int, type: int) -> int:
 
 @rpc("any_peer")
 func request_card_placement(card_data: Dictionary, slot_index: int, location_name: String, player_id: int) -> void:
-	if multiplayer.is_server():
-		#print("Server received card placement request from player: ", player_id)
-		rpc("sync_card_played", card_data, slot_index, location_name, player_id)
+	if !multiplayer.is_server():
+		return
+		
+	# Validate it's the player's turn
+	if !is_valid_player_turn(player_id):
+		return
+		
+	#print("Server received card placement request from player: ", player_id)
+	rpc("sync_card_played", card_data, slot_index, location_name, player_id)
 
 # ╭──────────────────────────────╮
 # |  Card - Draw                 |
@@ -1002,8 +1008,16 @@ func sync_draw_card(card_data: Dictionary) -> void:
 
 @rpc("any_peer")
 func request_draw_card(is_action: bool):
+
+	if !multiplayer.is_server():
+		return
+
 	if multiplayer.is_server():
+		# Request card draw from server
 		var requesting_peer = multiplayer.get_remote_sender_id()
+		# Add turn validation
+		if !is_valid_player_turn(requesting_peer):
+			return
 		#print("Request Card from player_id :", requesting_peer)
 		var current_count = count_cards_by_type_for_player(
 			requesting_peer,
@@ -1220,6 +1234,10 @@ func set_current_turn(player_id):
 			point_counter.set_buttons_enabled(true)
 			point_counter.update_all_stacks()
 		
+		# Enable/disable draw buttons based on turn
+		$DrawActionButton.disabled = false
+		$DrawAreaButton.disabled = false
+
 		# Force token refresh
 		if !multiplayer.is_server():
 			rpc_id(1, "request_token_refresh")
@@ -1228,6 +1246,9 @@ func set_current_turn(player_id):
 			token_manager.initialize_player_tokens(local_id, true)
 			var tokens = token_manager.get_player_tokens(local_id)
 			sync_player_tokens(tokens)
+		
+		# Enable card interactions
+		player_hand.set_interaction_enabled(true)
 	else:
 		# Disable controls for non-local player
 		player_hand.set_interaction_enabled(false)
@@ -1236,6 +1257,13 @@ func set_current_turn(player_id):
 			point_counter.set_buttons_enabled(false)
 			point_counter.update_all_stacks()
 		reset_token_buttons()
+
+		# Disable draw buttons when not player's turn
+		$DrawActionButton.disabled = true
+		$DrawAreaButton.disabled = true
+		
+		# Disable card interactions
+		player_hand.set_interaction_enabled(false)
 
 func is_valid_turn_index() -> bool:
 	return current_turn_index >= 0 and current_turn_index < players.size()
@@ -1267,6 +1295,7 @@ func request_next_turn():
 	
 	print("=== Turn Change Request Complete ===\n")
 
+# sync the dice, and card
 func next_turn():
 	if !multiplayer.is_server():
 		return
@@ -1399,6 +1428,7 @@ func process_point_adjustment(region: String, delta: int, requesting_player: int
 		#print("Invalid turn for point adjustment!")
 
 # Helper functions for point adjustments
+# need to change, player should have choice to remove points from any region
 func adjust_points_increase(region: String):
 	if !point_counter:
 		return
