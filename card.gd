@@ -34,8 +34,8 @@ func update_card_display() -> void:
 			cost_label.text = "Cost: " + str(card_resource.cost_to_draw)
 			effect1_label.text = card_resource.effect1
 			effect2_label.text = card_resource.effect2
-			if card_resource.card_image:
-				image.texture = card_resource.card_image
+			if card_resource.image_path != "":
+				image.texture = load(card_resource.image_path)
 			
 			# Show all card elements
 			label.visible = true

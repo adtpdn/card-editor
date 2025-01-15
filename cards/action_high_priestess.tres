@@ -1,6 +1,5 @@
-[gd_resource type="Resource" script_class="CardResource" load_steps=3 format=3 uid="uid://qefl3yobjvbs"]
+[gd_resource type="Resource" script_class="CardResource" load_steps=2 format=3 uid="uid://qefl3yobjvbs"]
 
-[ext_resource type="Texture2D" uid="uid://bc1oovtk6ubfp" path="res://assets/cards/2D/tile002.png" id="1_cskkb"]
 [ext_resource type="Script" path="res://card_resource.gd" id="2_5s15r"]
 
 [resource]
@@ -10,6 +9,6 @@ card_type = 0
 cost_to_draw = 1
 effect1 = ""
 effect2 = ""
-card_image = ExtResource("1_cskkb")
 revealed = true
 tex3D_path = "res://assets/cards/action_card_03.png"
+image_path = "res://assets/cards/2D/tile002.png"

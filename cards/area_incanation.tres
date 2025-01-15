@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CardResource" load_steps=2 format=3 uid="uid://dntcc2bvwlv3r"]
+
+[ext_resource type="Script" path="res://card_resource.gd" id="1_hlp0r"]
+
+[resource]
+script = ExtResource("1_hlp0r")
+card_name = "Incanation"
+card_type = 1
+cost_to_draw = 1
+effect1 = ""
+effect2 = ""
+revealed = true
+tex3D_path = "res://assets/cards/area_card_04.png"
+image_path = "res://assets/cards/2D/tile041.png"

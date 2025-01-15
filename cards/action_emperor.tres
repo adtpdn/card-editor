@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CardResource" load_steps=2 format=3 uid="uid://0r5wpa5dfhhm"]
+
+[ext_resource type="Script" path="res://card_resource.gd" id="1_lwb30"]
+
+[resource]
+script = ExtResource("1_lwb30")
+card_name = "Emperor"
+card_type = 0
+cost_to_draw = 1
+effect1 = ""
+effect2 = ""
+revealed = true
+tex3D_path = "res://assets/cards/action_card_04.png"
+image_path = "res://assets/cards/2D/tile004.png"

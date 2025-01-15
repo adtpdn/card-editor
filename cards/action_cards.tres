@@ -1,12 +1,12 @@
-[gd_resource type="Resource" script_class="DeckResource" load_steps=6 format=3 uid="uid://jby5l2ek6uel"]
+[gd_resource type="Resource" script_class="DeckResource" load_steps=7 format=3 uid="uid://jby5l2ek6uel"]
 
 [ext_resource type="Script" path="res://card_resource.gd" id="1_kdq4i"]
 [ext_resource type="Resource" uid="uid://dhf8f1v1nt20h" path="res://cards/action_fool.tres" id="2_6l1gm"]
 [ext_resource type="Script" path="res://deck_resource.gd" id="2_prun6"]
 [ext_resource type="Resource" uid="uid://bfk8a4nbc4wd2" path="res://cards/action_magician.tres" id="3_mwdvh"]
 [ext_resource type="Resource" uid="uid://qefl3yobjvbs" path="res://cards/action_high_priestess.tres" id="4_2nv6f"]
+[ext_resource type="Resource" uid="uid://0r5wpa5dfhhm" path="res://cards/action_emperor.tres" id="5_st80b"]
 
 [resource]
 script = ExtResource("2_prun6")
-deck_name = "Action Cards"
-cards = Array[ExtResource("1_kdq4i")]([ExtResource("2_6l1gm"), ExtResource("3_mwdvh"), ExtResource("4_2nv6f"), null, null, null, null, null, null, null, null, null])
+cards = Array[ExtResource("1_kdq4i")]([ExtResource("2_6l1gm"), ExtResource("3_mwdvh"), ExtResource("4_2nv6f"), ExtResource("5_st80b")])
