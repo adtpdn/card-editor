@@ -11,6 +11,9 @@ func remove_card(index: int):
 	if index >= 0 and index < cards.size():
 		cards.remove_at(index)
 
+func get_cards() -> Array[CardResource]:
+	return cards
+
 func shuffle():
 	cards.shuffle()
 

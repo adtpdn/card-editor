@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardResource" load_steps=3 format=3 uid="uid://dhf8f1v1nt20h"]
+
+[ext_resource type="Texture2D" uid="uid://bvyer3vgmd0by" path="res://assets/cards/2D/tile000.png" id="1_s6f21"]
+[ext_resource type="Script" path="res://card_resource.gd" id="2_bykq3"]
+
+[resource]
+script = ExtResource("2_bykq3")
+card_name = "Fool"
+card_type = 0
+cost_to_draw = 1
+effect1 = ""
+effect2 = ""
+card_image = ExtResource("1_s6f21")
+revealed = true
+tex3D_path = "res://assets/cards/action_card_01.png"

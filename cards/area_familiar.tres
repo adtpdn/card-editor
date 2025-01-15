@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardResource" load_steps=3 format=3 uid="uid://8b8d7o3633n4"]
+
+[ext_resource type="Texture2D" uid="uid://cixolxmvo7ckj" path="res://assets/cards/2D/tile040.png" id="1_6ates"]
+[ext_resource type="Script" path="res://card_resource.gd" id="2_wcrva"]
+
+[resource]
+script = ExtResource("2_wcrva")
+card_name = "Familiar"
+card_type = 1
+cost_to_draw = 1
+effect1 = ""
+effect2 = ""
+card_image = ExtResource("1_6ates")
+revealed = true
+tex3D_path = "res://assets/cards/area_card_03.png"

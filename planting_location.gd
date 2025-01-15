@@ -49,7 +49,7 @@ func create_marker_material(highlighted: bool) -> StandardMaterial3D:
 			highlight_color = Color(0.2, 0.2, 1.0, 0.5)  # Blue for area
 		material.albedo_color = highlight_color
 	else:
-		material.albedo_color = Color(1.0, 1.0, 1.0, 0.2)
+		material.albedo_color = Color(1.0, 1.0, 1.0, 0.05)
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	return material
 
@@ -78,6 +78,8 @@ func plant_card(card_resource: CardResource, slot_index: int) -> void:
 	var slot = slots[slot_index]
 	print("Planting card in slot: ", slot.name, " at location: ", location_name)
 	
+	card_resource.revealed = false
+	
 	var card_instance = Card3DScene.instantiate()
 	add_child(card_instance)
 	card_instance.set_card_data(card_resource)
@@ -89,7 +91,7 @@ func plant_card(card_resource: CardResource, slot_index: int) -> void:
 	card_instance.global_position = position
 	planted_cards[slot.name].append(card_instance)
 	
-	card_instance.rotation.x = -PI/2
+	card_instance.rotation.x = PI
 	card_instance.rotation.y = slot.rotation.y
 	
 	update_stack_visuals(slot)
@@ -115,6 +117,9 @@ func sync_plant_card(card_data: Dictionary, slot_index: int):
 	var slot = slots[slot_index]
 	var card_instance = Card3DScene.instantiate()
 	add_child(card_instance)
+	
+	# Ensure card is unrevealed when planted
+	card_resource.revealed = false
 	
 	# Set card data
 	card_instance.set_card_data(card_resource)

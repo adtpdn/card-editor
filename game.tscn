@@ -1,11 +1,13 @@
-[gd_scene load_steps=29 format=3 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=18 format=3 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" path="res://game.gd" id="1_0rb8f"]
 [ext_resource type="Script" path="res://hand.gd" id="2_drdp6"]
 [ext_resource type="Script" path="res://token_manager.gd" id="2_njql7"]
 [ext_resource type="Curve" uid="uid://dtskme7prx4g5" path="res://hand_y_curve.tres" id="3_jwe8m"]
 [ext_resource type="Curve" uid="uid://dwkwcluylhkq0" path="res://hand_rotation_curve.tres" id="4_lbysu"]
-[ext_resource type="Script" path="res://card_resource.gd" id="6_w411x"]
+[ext_resource type="Resource" uid="uid://jby5l2ek6uel" path="res://cards/action_cards.tres" id="4_tg8ug"]
+[ext_resource type="Resource" uid="uid://dvmue13fxi5od" path="res://cards/area_cards.tres" id="5_ti4wn"]
+[ext_resource type="Material" uid="uid://l6qa3myb6cds" path="res://assets/transparent_material.tres" id="7_l1bdx"]
 [ext_resource type="PackedScene" uid="uid://3blq6hslbv2" path="res://dice_manager.tscn" id="7_p3vul"]
 [ext_resource type="Shape3D" uid="uid://gjjokcof6ivg" path="res://cards/card_3d_collision.tres" id="11_1ew6f"]
 [ext_resource type="Script" path="res://point_counter.gd" id="11_beb7m"]
@@ -19,119 +21,9 @@ albedo_color = Color(0.42, 0.42, 0.42, 1)
 material = SubResource("StandardMaterial3D_cu6c3")
 radial_segments = 8
 
-[sub_resource type="Resource" id="Resource_4lx16"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 0
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_y7hxr"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 0
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_5835r"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 0
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_xjjx3"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 0
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_qc3ij"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 0
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_o3mn0"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 0
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_a0ern"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 0
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_lnaii"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 1
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_bc4bn"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 1
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_2sqg2"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 1
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_788mm"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 1
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_34ioq"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 1
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_lwa1b"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 1
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_7gyo5"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 1
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
 [sub_resource type="BoxMesh" id="BoxMesh_nfgrx"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nhupc"]
 
 [node name="Game" type="Node"]
 script = ExtResource("1_0rb8f")
@@ -140,8 +32,9 @@ script = ExtResource("1_0rb8f")
 script = ExtResource("2_njql7")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 17, 0.8)
-fov = 55.0
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 25, 0.5)
+fov = 35.0
+size = 14.966
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(8, 0, 0, 0, -0.05, 0, 0, 0, 8, 0, -0.0680389, 0)
@@ -155,14 +48,13 @@ mesh = SubResource("CylinderMesh_yl3nv")
 
 [node name="ActionDeck" type="Node3D" parent="DeckLocations"]
 script = ExtResource("12_8ltkn")
+deck_resource = ExtResource("4_tg8ug")
 deck_name = "Action Cards"
-revealed = true
-initial_cards = Array[ExtResource("6_w411x")]([SubResource("Resource_4lx16"), SubResource("Resource_y7hxr"), SubResource("Resource_5835r"), SubResource("Resource_xjjx3"), SubResource("Resource_qc3ij"), SubResource("Resource_o3mn0"), SubResource("Resource_a0ern")])
 
 [node name="AreaDeck" type="Node3D" parent="DeckLocations"]
 script = ExtResource("12_8ltkn")
+deck_resource = ExtResource("5_ti4wn")
 deck_name = "Area Cards"
-initial_cards = Array[ExtResource("6_w411x")]([SubResource("Resource_lnaii"), SubResource("Resource_bc4bn"), SubResource("Resource_2sqg2"), SubResource("Resource_788mm"), SubResource("Resource_34ioq"), SubResource("Resource_lwa1b"), SubResource("Resource_7gyo5")])
 
 [node name="TokenPlacements" type="Node3D" parent="."]
 
@@ -173,7 +65,7 @@ initial_cards = Array[ExtResource("6_w411x")]([SubResource("Resource_lnaii"), Su
 [node name="ActionArea" type="Node3D" parent="PlantingLocations"]
 script = ExtResource("13_u747q")
 location_name = "Action Area"
-accepted_card_types = PackedInt32Array()
+accepted_card_types = PackedInt32Array(0)
 
 [node name="Markers" type="Node3D" parent="PlantingLocations/ActionArea"]
 
@@ -187,8 +79,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.694153, 0)
 shape = ExtResource("11_1ew6f")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/ActionArea/Markers/Marker3D1"]
-transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, -0.22395, 0)
 mesh = SubResource("BoxMesh_nfgrx")
+surface_material_override/0 = SubResource("StandardMaterial3D_nhupc")
 
 [node name="Marker3D2" type="Marker3D" parent="PlantingLocations/ActionArea/Markers"]
 transform = Transform3D(0.8, 0, 0, 0, 1, 0, 0, 0, 1, -4.74961, 0, 4.74273)
@@ -196,28 +89,28 @@ transform = Transform3D(0.8, 0, 0, 0, 1, 0, 0, 0, 1, -4.74961, 0, 4.74273)
 [node name="Area3D" type="Area3D" parent="PlantingLocations/ActionArea/Markers/Marker3D2"]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="PlantingLocations/ActionArea/Markers/Marker3D2/Area3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.694153, 0)
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0.694153, 0)
 shape = ExtResource("11_1ew6f")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/ActionArea/Markers/Marker3D2"]
-transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(1.2, 0, 0, 0, 0.03, 0, 0, 0, 1.35, 0, -0.22395, 0)
 mesh = SubResource("BoxMesh_nfgrx")
 
 [node name="Marker3D3" type="Marker3D" parent="PlantingLocations/ActionArea/Markers"]
-transform = Transform3D(-0.8, 0, -1.50996e-07, 0, 1, 0, 1.20797e-07, 0, -1, 4.76042, 0, 4.77095)
+transform = Transform3D(0.8, 0, 0, 0, 1, 0, 0, 0, 1, 4.76195, 0, 4.7783)
 
 [node name="Area3D" type="Area3D" parent="PlantingLocations/ActionArea/Markers/Marker3D3"]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="PlantingLocations/ActionArea/Markers/Marker3D3/Area3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.694153, 0)
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0.694153, 0)
 shape = ExtResource("11_1ew6f")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/ActionArea/Markers/Marker3D3"]
-transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, -0.22395, 0)
 mesh = SubResource("BoxMesh_nfgrx")
 
 [node name="Marker3D4" type="Marker3D" parent="PlantingLocations/ActionArea/Markers"]
-transform = Transform3D(-0.8, 0, 1.50996e-07, 0, 1, 0, -1.20797e-07, 0, -1, 4.7322, 0, -4.73908)
+transform = Transform3D(0.8, 0, 0, 0, 1, 0, 0, 0, 1, 4.73001, 0, -4.74074)
 
 [node name="Area3D" type="Area3D" parent="PlantingLocations/ActionArea/Markers/Marker3D4"]
 
@@ -226,13 +119,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.694153, 0)
 shape = ExtResource("11_1ew6f")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/ActionArea/Markers/Marker3D4"]
-transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, -0.22395, 0)
 mesh = SubResource("BoxMesh_nfgrx")
 
 [node name="AreaZone" type="Node3D" parent="PlantingLocations"]
 script = ExtResource("13_u747q")
 location_name = "Area Zone"
-accepted_card_types = PackedInt32Array()
+accepted_card_types = PackedInt32Array(1)
 
 [node name="Markers" type="Node3D" parent="PlantingLocations/AreaZone"]
 
@@ -248,6 +141,7 @@ shape = ExtResource("11_1ew6f")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/AreaZone/Markers/Marker3D1"]
 transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("BoxMesh_nfgrx")
+surface_material_override/0 = ExtResource("7_l1bdx")
 
 [node name="Marker3D2" type="Marker3D" parent="PlantingLocations/AreaZone/Markers"]
 transform = Transform3D(1.17219, 0, 0.920505, 0, 1, 0, -2.76151, 0, 0.390731, 4.48468, 0, 1.83773)
@@ -261,6 +155,7 @@ shape = ExtResource("11_1ew6f")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/AreaZone/Markers/Marker3D2"]
 transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("BoxMesh_nfgrx")
+surface_material_override/0 = ExtResource("7_l1bdx")
 
 [node name="Marker3D3" type="Marker3D" parent="PlantingLocations/AreaZone/Markers"]
 transform = Transform3D(-1.22021, 0, 0.913545, 0, 1, 0, -2.74064, 0, -0.406736, 4.44849, 0, -1.95696)
@@ -274,6 +169,7 @@ shape = ExtResource("11_1ew6f")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/AreaZone/Markers/Marker3D3"]
 transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("BoxMesh_nfgrx")
+surface_material_override/0 = ExtResource("7_l1bdx")
 
 [node name="Marker3D4" type="Marker3D" parent="PlantingLocations/AreaZone/Markers"]
 transform = Transform3D(-2.74064, 0, 0.406737, 0, 1, 0, -1.22021, 0, -0.913545, 1.93455, 0, -4.42867)
@@ -287,6 +183,7 @@ shape = ExtResource("11_1ew6f")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/AreaZone/Markers/Marker3D4"]
 transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("BoxMesh_nfgrx")
+surface_material_override/0 = ExtResource("7_l1bdx")
 
 [node name="Marker3D5" type="Marker3D" parent="PlantingLocations/AreaZone/Markers"]
 transform = Transform3D(-2.74064, 0, -0.406737, 0, 1, 0, 1.22021, 0, -0.913545, -1.91722, 0, -4.46535)
@@ -300,6 +197,7 @@ shape = ExtResource("11_1ew6f")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/AreaZone/Markers/Marker3D5"]
 transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("BoxMesh_nfgrx")
+surface_material_override/0 = ExtResource("7_l1bdx")
 
 [node name="Marker3D6" type="Marker3D" parent="PlantingLocations/AreaZone/Markers"]
 transform = Transform3D(-1.22021, 0, -0.913545, 0, 1, 0, 2.74064, 0, -0.406737, -4.47219, 0, -1.95396)
@@ -313,6 +211,7 @@ shape = ExtResource("11_1ew6f")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/AreaZone/Markers/Marker3D6"]
 transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("BoxMesh_nfgrx")
+surface_material_override/0 = ExtResource("7_l1bdx")
 
 [node name="Marker3D7" type="Marker3D" parent="PlantingLocations/AreaZone/Markers"]
 transform = Transform3D(1.22021, 0, -0.913545, 0, 1, 0, 2.74064, 0, 0.406737, -4.46118, 0, 1.8317)
@@ -326,11 +225,13 @@ shape = ExtResource("11_1ew6f")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/AreaZone/Markers/Marker3D7"]
 transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("BoxMesh_nfgrx")
+surface_material_override/0 = ExtResource("7_l1bdx")
 
 [node name="Marker3D8" type="Marker3D" parent="PlantingLocations/AreaZone/Markers"]
-transform = Transform3D(2.74064, 0, -0.406737, 0, 1, 0, 1.22021, 0, 0.913545, -1.83282, 0, 4.38246)
+transform = Transform3D(2.74064, 0, -0.406737, 0, 1, 0, 1.22021, 0, 0.913545, -1.83975, 0, 4.39802)
 
 [node name="Area3D" type="Area3D" parent="PlantingLocations/AreaZone/Markers/Marker3D8"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.56114e-09, 0, 0.0994369)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="PlantingLocations/AreaZone/Markers/Marker3D8/Area3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.694153, 0)
@@ -339,6 +240,7 @@ shape = ExtResource("11_1ew6f")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/AreaZone/Markers/Marker3D8"]
 transform = Transform3D(1, 0, 7.45058e-09, 0, 0.03, 0, 0, 0, 1, -0.00149435, 0, 0.100052)
 mesh = SubResource("BoxMesh_nfgrx")
+surface_material_override/0 = ExtResource("7_l1bdx")
 
 [node name="DiceManager" parent="." instance=ExtResource("7_p3vul")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.87374, 0.51, 2.80558)
@@ -556,11 +458,10 @@ size_flags_horizontal = 4
 
 [node name="VBoxContainer" type="VBoxContainer" parent="PointCounter/UI"]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+offset_left = 27.0
+offset_top = 22.0
+offset_right = 147.0
+offset_bottom = 123.0
 
 [node name="TriangleButtons" type="HBoxContainer" parent="PointCounter/UI/VBoxContainer"]
 layout_mode = 2

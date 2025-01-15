@@ -77,6 +77,7 @@ func draw(card_resource: CardResource) -> void:
 		#print("Error: Trying to draw null card resource")
 		return
 	
+	#card_resource.revealed = true
 	#print("Drawing card for player ", player_id, ": ", card_resource.card_name)
 	card_resources.append(card_resource)
 	_update_cards()

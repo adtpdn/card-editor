@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardResource" load_steps=3 format=3 uid="uid://5keaj8ghqsnp"]
+
+[ext_resource type="Texture2D" uid="uid://cnma1o5olfk4j" path="res://assets/cards/2D/tile039.png" id="1_foq1t"]
+[ext_resource type="Script" path="res://card_resource.gd" id="2_nxggu"]
+
+[resource]
+script = ExtResource("2_nxggu")
+card_name = "Blackhole"
+card_type = 1
+cost_to_draw = 1
+effect1 = ""
+effect2 = ""
+card_image = ExtResource("1_foq1t")
+revealed = true
+tex3D_path = "res://assets/cards/area_card_02.png"
