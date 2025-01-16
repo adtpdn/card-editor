@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DeckResource" load_steps=7 format=3 uid="uid://dvmue13fxi5od"]
+[gd_resource type="Resource" script_class="DeckResource" load_steps=11 format=3 uid="uid://dvmue13fxi5od"]
 
 [ext_resource type="Script" path="res://card_resource.gd" id="1_jshdv"]
 [ext_resource type="Resource" uid="uid://5keaj8ghqsnp" path="res://cards/area_blackhole.tres" id="2_b2aqi"]
@@ -6,7 +6,11 @@
 [ext_resource type="Resource" uid="uid://8b8d7o3633n4" path="res://cards/area_familiar.tres" id="3_0rxd8"]
 [ext_resource type="Resource" uid="uid://dfmcgimtxtw0i" path="res://cards/area_grim.tres" id="4_uxlx5"]
 [ext_resource type="Resource" uid="uid://dntcc2bvwlv3r" path="res://cards/area_incanation.tres" id="5_1wf0w"]
+[ext_resource type="Resource" uid="uid://dpf71ymktur3r" path="res://cards/area_talisman.tres" id="6_hd856"]
+[ext_resource type="Resource" uid="uid://c6yd56skupua0" path="res://cards/area_aura.tres" id="7_fnhk5"]
+[ext_resource type="Resource" uid="uid://dqh2s3m464jjr" path="res://cards/area_wraith.tres" id="8_camqk"]
+[ext_resource type="Resource" uid="uid://brk31d4omftas" path="res://cards/area_sigil.tres" id="9_nhlaf"]
 
 [resource]
 script = ExtResource("2_xo8od")
-cards = Array[ExtResource("1_jshdv")]([ExtResource("2_b2aqi"), ExtResource("3_0rxd8"), ExtResource("4_uxlx5"), ExtResource("5_1wf0w"), null, null, null])
+cards = Array[ExtResource("1_jshdv")]([ExtResource("2_b2aqi"), ExtResource("3_0rxd8"), ExtResource("4_uxlx5"), ExtResource("5_1wf0w"), ExtResource("6_hd856"), ExtResource("7_fnhk5"), ExtResource("8_camqk"), ExtResource("9_nhlaf")])

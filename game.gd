@@ -915,8 +915,7 @@ func receive_initial_hand(cards_data: Array):
 	#print("Receiving initial hand, is server: ", multiplayer.is_server())
 	if multiplayer.is_server():
 		return
-	
-	#print("Processing ", cards_data.size(), " cards for client")
+
 	
 	# Clear existing hand
 	player_hand.cards.clear()
@@ -926,11 +925,7 @@ func receive_initial_hand(cards_data: Array):
 	for card_data in cards_data:
 		var card_resource = CardResource.new()
 		card_resource.from_dictionary(card_data)
-		#print("Processing card: ", card_resource.card_name)
 		player_hand.draw(card_resource)
-		#print("Current hand size: ", player_hand.card_resources.size())
-	
-	#print("Finished receiving initial hand, total cards: ", player_hand.get_card_count())
 
 @rpc("any_peer")
 func request_initial_cards():

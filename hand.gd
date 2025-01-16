@@ -74,11 +74,7 @@ func can_accept_card(card: CardResource) -> bool:
 
 func draw(card_resource: CardResource) -> void:
 	if not card_resource:
-		#print("Error: Trying to draw null card resource")
 		return
-	
-	#card_resource.revealed = true
-	#print("Drawing card for player ", player_id, ": ", card_resource.card_name)
 	card_resources.append(card_resource)
 	_update_cards()
 
@@ -88,7 +84,6 @@ func clear_hand() -> void:
 		if child is Card:
 			child.queue_free()
 	cards.clear()
-	#print("Cleared hand for player ", player_id)
 
 func discard() -> void:
 	if not card_resources.is_empty():
@@ -181,17 +176,13 @@ func remove_card(card: Card) -> void:
 			rpc_id(1, "notify_card_removed", index, multiplayer.get_unique_id())
 
 @rpc("any_peer")
-func notify_card_removed(index: int, player_id: int):
+func notify_card_removed(index: int, _player_id: int):
 	if multiplayer.is_server():
 		# Update server's tracking of player hands
 		var game_node = get_node("/root/Game")
 		if game_node:
-			game_node.remove_card_from_player_hand(player_id, index)
+			game_node.remove_card_from_player_hand(_player_id, index)
 
-@rpc("any_peer")
-func request_remove_card(index: int):
-	if multiplayer.is_server():
-		rpc("sync_remove_card", index)
 
 @rpc("any_peer", "call_local")
 func sync_remove_card(index: int):
@@ -201,10 +192,6 @@ func sync_remove_card(index: int):
 			cards.remove_at(index)
 		card_resources.remove_at(index)
 		_update_cards()
-
-# Helper functions for card management
-func get_card_count() -> int:
-	return card_resources.size()  # Use card_resources instead of cards array
 
 func get_card_at_index(index: int) -> Card:
 	if index >= 0 and index < cards.size():
