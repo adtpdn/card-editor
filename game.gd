@@ -16,7 +16,9 @@ var connected_peer_ids = []
 var current_turn_index = 0
 var players = []
 var game_started = false
-var max_players = 2
+var max_players = 4  # Maximum players allowed
+var player_hands = {}  # Store each player's hand data
+var player_slots = []  # Track occupied player slots
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Card System Dependencies
@@ -33,7 +35,6 @@ const MAX_AREA_CARDS = 2
 
 var deck: Array[CardResource] = [] # Structure to track placed cards
 var placed_cards = []  # Array of dictionaries containing placement info
-var player_hands = {}
 
 const INITIAL_HAND_SIZE = {
 	"action": 2,  # Adjust these numbers as needed
@@ -45,6 +46,9 @@ const CARD_TYPES = {
 	"ACTION": 0,
 	"AREA": 1
 }
+
+const INITIAL_ACTION_CARDS = 2
+const INITIAL_AREA_CARDS = 2
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Token System Dependencies
@@ -171,6 +175,10 @@ func _ready() -> void:
 		button.disabled = true
 		button.visible = false
 
+	# Initialize player slots
+	player_slots.resize(max_players)
+	player_slots.fill(false)
+
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---    Host/Client Logic     ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
@@ -205,44 +213,40 @@ func _on_join_pressed():
 		multiplayer.multiplayer_peer = multiplayer_peer
 	else:
 		pass
-		#print("Failed to create client: ", error)
+	print_hand_debug()
 
 func _on_peer_connected(new_peer_id):
 	if multiplayer.is_server():
 		await get_tree().create_timer(0.1).timeout
-		#print("New peer connected: ", new_peer_id)
+		
+		# Check if game is full
+		if players.size() >= max_players:
+			# Disconnect the player if game is full
+			multiplayer_peer.disconnect_peer(new_peer_id)
+			return
+			
+		print("New peer connected: ", new_peer_id)
 		players.append(new_peer_id)
-		
-		# Initialize new player's tokens
-		token_manager.initialize_player_tokens(new_peer_id)
-		
-		# Sync game state
-		sync_existing_game_state(new_peer_id)
-		
-		# Sync tokens to the new client
-		var player_tokens = token_manager.get_player_tokens(new_peer_id)
-		rpc_id(new_peer_id, "sync_player_tokens", player_tokens)
-		#print("Sent initial tokens to client: ", player_tokens)
 		
 		# Initialize new player's hand tracking
 		player_hands[new_peer_id] = []
 		
-		# Sync existing tokens
-		var tokens_data = []
-		for token in $Tokens.get_children():
-			tokens_data.append({
-				"biome": token.biome_type,
-				"type": token.token_type,
-				"position": token.global_position
-			})
-		
-		# First sync game state and tokens
+		# Find first available slot
+		var slot_index = player_slots.find(false)
+		if slot_index != -1:
+			player_slots[slot_index] = true
+			
+		# Sync game state to new player
 		rpc_id(new_peer_id, "sync_game_state", players, game_started, placed_cards)
-		rpc_id(new_peer_id, "sync_existing_tokens", tokens_data)
 		
-		# Then distribute cards to new client
-		distribute_initial_hand_to_client(new_peer_id)
-		distribute_initial_tokens_to_client(new_peer_id)
+		# Initialize player's tokens and hand
+		if game_started:
+			distribute_initial_hand_to_client(new_peer_id)
+		
+		token_manager.initialize_player_tokens(new_peer_id)
+		var player_tokens = token_manager.get_player_tokens(new_peer_id)
+		rpc_id(new_peer_id, "sync_player_tokens", player_tokens)
+		
 		setup_player(new_peer_id)
 
 func _on_peer_disconnected(peer_id):
@@ -251,6 +255,9 @@ func _on_peer_disconnected(peer_id):
 		
 	#print("Peer disconnected: ", peer_id)
 	if players.has(peer_id):
+		var slot_index = players.find(peer_id)
+		if slot_index != -1:
+			player_slots[slot_index] = false
 		players.erase(peer_id)
 	
 	# Clean up disconnected player's hand
@@ -847,7 +854,6 @@ func distribute_initial_hand():
 	if !multiplayer.is_server():
 		return
 		
-	#print("Distributing initial hand for host")
 	var host_id = multiplayer.get_unique_id()
 	
 	# Clear hand first
@@ -855,98 +861,130 @@ func distribute_initial_hand():
 	player_hand.card_resources.clear()
 	player_hands[host_id].clear()
 	
-	# Draw random cards for host
-	var host_cards = draw_random_initial_cards()
-	player_hands[host_id] = host_cards.duplicate()
+	# Draw initial cards with validation
+	for i in range(INITIAL_ACTION_CARDS):
+		var card = action_deck.draw_card()
+		if !card:  # If deck is empty, reset it
+			action_deck.reset_deck()
+			card = action_deck.draw_card()
+		if card:
+			player_hands[host_id].append(card)
+			player_hand.draw(card)
 	
-	# Update host's visual hand
-	for card in host_cards:
-		player_hand.draw(card)
+	for i in range(INITIAL_AREA_CARDS):
+		var card = area_deck.draw_card()
+		if !card:  # If deck is empty, reset it
+			area_deck.reset_deck()
+			card = area_deck.draw_card()
+		if card:
+			player_hands[host_id].append(card)
+			player_hand.draw(card)
 
 func distribute_initial_hand_to_client(peer_id: int):
 	if !multiplayer.is_server():
 		return
-		
-	#print("Distributing initial hand to client: ", peer_id)
 	
-	# Draw random cards for this client
-	var cards_data = []
-	
-	# Draw 2 action cards
-	for i in range(2):
-		var card = action_deck.draw_card()
-		if card:
-			cards_data.append(card.to_dictionary())
-			#print("Drew action card: ", card.card_name)
-	
-	# Draw 2 area cards
-	for i in range(2):
-		var card = area_deck.draw_card()
-		if card:
-			cards_data.append(card.to_dictionary())
-			#print("Drew area card: ", card.card_name)
-	
-	if cards_data.size() > 0:
-		#print("Sending ", cards_data.size(), " cards to client ", peer_id)
-		rpc_id(peer_id, "receive_initial_hand", cards_data)
+	# Clear any existing hand data first
+	if player_hands.has(peer_id):
+		player_hands[peer_id].clear()
 	else:
-		pass
-		#print("No cards to send to client!")
-
-func draw_random_initial_cards() -> Array:
-	var cards = []
+		player_hands[peer_id] = []
 	
-	# Draw 2 action cards
-	for i in range(2):
+	var cards_data = []
+	var action_count = 0
+	var area_count = 0
+	
+	# Draw initial action cards
+	while action_count < INITIAL_ACTION_CARDS:
 		var card = action_deck.draw_card()
 		if card:
-			cards.append(card)
+			if !is_card_duplicate(cards_data, card):
+				player_hands[peer_id].append(card)
+				cards_data.append(card.to_dictionary())
+				action_count += 1
 	
-	# Draw 2 area cards
-	for i in range(2):
+	# Draw initial area cards
+	while area_count < INITIAL_AREA_CARDS:
 		var card = area_deck.draw_card()
 		if card:
-			cards.append(card)
+			if !is_card_duplicate(cards_data, card):
+				player_hands[peer_id].append(card)
+				cards_data.append(card.to_dictionary())
+				area_count += 1
 	
-	return cards
+	# Send cards to client only if we have the correct number
+	if cards_data.size() == (INITIAL_ACTION_CARDS + INITIAL_AREA_CARDS):
+		print("Sending initial hand to client ", peer_id, ": ", cards_data.size(), " cards")
+		rpc_id(peer_id, "receive_initial_hand", cards_data)
+
+func is_card_duplicate(cards_data: Array, new_card: CardResource) -> bool:
+	for card_data in cards_data:
+		if card_data.card_name == new_card.card_name and \
+		   card_data.card_type == new_card.card_type:
+			return true
+	return false
+
+func print_hand_debug():
+	var player_id = multiplayer.get_unique_id()
+	print("\n=== Hand Debug ===")
+	print("Player ID: ", player_id)
+	print("Cards in hand: ", player_hand.get_card_count())
+	print("Card resources: ", player_hand.card_resources.size())
+	print("=================\n")
 
 @rpc("any_peer", "call_local")
 func receive_initial_hand(cards_data: Array):
-	#print("Receiving initial hand, is server: ", multiplayer.is_server())
 	if multiplayer.is_server():
 		return
-
 	
-	# Clear existing hand
-	player_hand.cards.clear()
-	player_hand.card_resources.clear()
+	# Clear existing hand completely first
+	player_hand.clear_hand()
 	
-	# Process received cards
+	var action_count = 0
+	var area_count = 0
+	
+	# Process received cards with type limits
 	for card_data in cards_data:
+		if action_count >= INITIAL_ACTION_CARDS and area_count >= INITIAL_AREA_CARDS:
+			break
+			
 		var card_resource = CardResource.new()
 		card_resource.from_dictionary(card_data)
-		player_hand.draw(card_resource)
+		
+		# Check card type limits
+		if card_resource.card_type == CardResource.CardType.ACTION:
+			if action_count < INITIAL_ACTION_CARDS:
+				player_hand.draw(card_resource)
+				action_count += 1
+		else:  # AREA type
+			if area_count < INITIAL_AREA_CARDS:
+				player_hand.draw(card_resource)
+				area_count += 1
+	
+	print("Received initial hand: ", player_hand.card_resources.size(), " cards")
+	print("Action cards: ", action_count, ", Area cards: ", area_count)
 
 @rpc("any_peer")
 func request_initial_cards():
+	
 	if multiplayer.is_server():
 		distribute_initial_hand_to_client(multiplayer.get_remote_sender_id())
 
 @rpc("any_peer", "call_local")
 func sync_game_state(current_players: Array, is_game_started: bool, current_placed_cards: Array) -> void:
-	#print("Syncing game state. Is server: ", multiplayer.is_server())
 	players = current_players
 	game_started = is_game_started
 	
 	# Replay all placed cards
 	for placement in current_placed_cards:
-		# Make sure placement contains player_id, if not, use a default
-		var player_id = placement.get("player_id", 1)  # Use server ID as default if not specified
+		var player_id = placement.get("player_id", 1)
 		sync_card_played(placement.card_data, placement.slot_index, placement.location_name, player_id)
 	
-	# If this is a client, request initial cards
-	if not multiplayer.is_server():
-		#print("Requesting initial cards as client")
+	# Only request initial cards if this client has NO existing hand data
+	if not multiplayer.is_server() and (
+		!player_hands.has(multiplayer.get_unique_id()) or 
+		player_hands[multiplayer.get_unique_id()].is_empty()
+	):
 		rpc_id(1, "request_initial_cards")
 
 func remove_card_from_player_hand(player_id: int, card_index: int) -> void:
@@ -995,7 +1033,10 @@ func request_card_placement(card_data: Dictionary, slot_index: int, location_nam
 func sync_draw_card(card_data: Dictionary) -> void:
 	if multiplayer.is_server():
 		return
-		
+	# Prevent duplicate draws
+	for existing_card in player_hand.card_resources:
+		if existing_card.card_name == card_data.card_name:
+			return
 	#print("Receiving card data: ", card_data)
 	var card_resource = CardResource.new()
 	card_resource.from_dictionary(card_data)
@@ -1074,6 +1115,31 @@ func sync_card_played(card_data: Dictionary, slot_index: int, location_name: Str
 # ╭──────────────────────────────╮
 # |  Card - Events               |
 # ╰──────────────────────────────╯
+
+func validate_hand_sync(peer_id: int) -> bool:
+	if !player_hands.has(peer_id):
+		return false
+		
+	if multiplayer.is_server():
+		# Server validation
+		var server_cards = player_hands[peer_id].size()
+		return server_cards == (INITIAL_ACTION_CARDS + INITIAL_AREA_CARDS)
+	else:
+		# Client validation
+		var client_cards = player_hand.card_resources.size()
+		return client_cards == (INITIAL_ACTION_CARDS + INITIAL_AREA_CARDS)
+
+@rpc("any_peer")
+func request_hand_resync():
+	if !multiplayer.is_server():
+		return
+		
+	var requesting_peer = multiplayer.get_remote_sender_id()
+	if player_hands.has(requesting_peer):
+		var cards_data = []
+		for card in player_hands[requesting_peer]:
+			cards_data.append(card.to_dictionary())
+		rpc_id(requesting_peer, "receive_initial_hand", cards_data)
 
 func _on_action_card_drawn(card: CardResource):
 	if not card:
@@ -1199,9 +1265,9 @@ func is_valid_player_turn(player_id: int) -> bool:
 		return false
 	
 	var is_valid = players[current_turn_index] == player_id
-	print("Turn Validation - Current Player: ", players[current_turn_index], 
-		  " Requesting Player: ", player_id, 
-		  " Valid: ", is_valid)
+	
+	if !validate_hand_sync(multiplayer.get_unique_id()):
+		rpc_id(1, "request_hand_resync")
 	
 	return is_valid
 

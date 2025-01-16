@@ -7,6 +7,7 @@ signal card_drawn(card_resource: CardResource)
 @export var deck_resource: DeckResource
 @export var deck_name: String = ""
 var deck: Deck
+var drawn_cards: Array[CardResource] = []
 
 func _ready():
 	deck = Deck.new()
@@ -17,11 +18,14 @@ func _ready():
 
 func draw_card() -> CardResource:
 	if deck.is_empty():
-		#print("Deck is empty: ", deck_name)
-		return null
+		reset_deck()  # Automatically reset when empty
+		if deck.is_empty():  # If still empty after reset
+			return null
+	
 	var card = deck.draw_card()
-	#print("Drew card: ", card.card_name, " from ", deck_name)
-	emit_signal("card_drawn", card)
+	if card:
+		drawn_cards.append(card)
+		emit_signal("card_drawn", card)
 	return card
 
 func peek_top_card() -> CardResource:
@@ -30,9 +34,11 @@ func peek_top_card() -> CardResource:
 	return deck.cards[0]
 
 func reset_deck():
-	#print("Resetting deck: ", deck_name)
 	deck = Deck.new()
-	for card in deck_resource.cards:
-		deck.add_card(card)
+	if deck_resource:
+		for card in deck_resource.cards:
+			# Only add cards that haven't been drawn or were discarded
+			if !drawn_cards.has(card):
+				deck.add_card(card)
 	deck.shuffle()
-	#print("Deck size after reset: ", deck.cards.size())
+	drawn_cards.clear()

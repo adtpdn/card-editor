@@ -75,15 +75,39 @@ func can_accept_card(card: CardResource) -> bool:
 func draw(card_resource: CardResource) -> void:
 	if not card_resource:
 		return
+		
+	# Strict duplicate checking
+	for existing_card in card_resources:
+		if existing_card.card_name == card_resource.card_name and \
+		   existing_card.card_type == card_resource.card_type:
+			print("Duplicate card detected, skipping: ", card_resource.card_name)
+			return
+	
+	# Check if we're exceeding max cards for this type
+	var type_count = 0
+	for card in card_resources:
+		if card.card_type == card_resource.card_type:
+			type_count += 1
+	
+	# Get max cards for this type
+	var max_cards = 2  # Default to 2 for both types
+	
+	if type_count >= max_cards:
+		print("Max cards of type ", card_resource.card_type, " reached")
+		return
+		
 	card_resources.append(card_resource)
 	_update_cards()
+	print("Drew card: ", card_resource.card_name, " Total cards: ", card_resources.size())
 
 func clear_hand() -> void:
 	card_resources.clear()
+	# Queue free any existing card nodes
 	for child in get_children():
 		if child is Card:
 			child.queue_free()
 	cards.clear()
+	#print("Hand cleared")
 
 func discard() -> void:
 	if not card_resources.is_empty():
@@ -207,6 +231,10 @@ func clear_selection() -> void:
 
 func is_hand_empty() -> bool:
 	return cards.is_empty()
+
+
+func get_card_count() -> int:
+	return card_resources.size()
 
 # Visual feedback functions
 func highlight_playable_cards(valid_types: Array) -> void:
