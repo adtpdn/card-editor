@@ -1054,13 +1054,13 @@ func request_card_placement(card_data: Dictionary, slot_index: int, location_nam
 
 @rpc("any_peer", "call_local")
 func sync_draw_card(card_data: Dictionary) -> void:
-	# Only process if it's meant for this client
-	var local_id = multiplayer.get_unique_id()
+	# Only process if it's meant for the current player's turn
 	var current_player = players[current_turn_index]
+	var local_id = multiplayer.get_unique_id()
 	
 	if local_id != current_player:
 		return
-		
+	
 	# Prevent duplicate draws
 	for existing_card in player_hand.card_resources:
 		if existing_card.card_name == card_data.card_name:
@@ -1079,6 +1079,7 @@ func request_draw_card(is_action: bool):
 	
 	# Validate turn ownership
 	if players[current_turn_index] != requesting_peer:
+		print("Not your turn to draw!")
 		return
 	
 	var current_count = count_cards_by_type_for_player(
@@ -1092,17 +1093,6 @@ func request_draw_card(is_action: bool):
 		
 	var deck = action_deck if is_action else area_deck
 	var card = deck.draw_card()
-	
-	# Check if card is already in player's hand
-	if card and player_hands.has(requesting_peer):
-		for existing_card in player_hands[requesting_peer]:
-			if existing_card.card_name == card.card_name and \
-			   existing_card.card_type == card.card_type:
-				# Put card back and try again
-				deck.deck.add_card(card)
-				deck.deck.shuffle()
-				card = deck.draw_card()
-				break
 	
 	if card:
 		# Add to server's tracking
@@ -1250,10 +1240,14 @@ func _on_discard_card_button_pressed() -> void:
 
 func _on_draw_action_button_pressed():
 	var player_id = multiplayer.get_unique_id()
-	var current_count = count_cards_by_type(CardResource.CardType.ACTION)
 	
+	# Check if it's the player's turn
+	if !is_valid_player_turn(player_id):
+		print("Not your turn to draw!")
+		return
+	
+	var current_count = count_cards_by_type(CardResource.CardType.ACTION)
 	if current_count >= MAX_ACTION_CARDS:
-		#print("Cannot draw more action cards: limit reached")
 		return
 		
 	if multiplayer.is_server():
@@ -1261,21 +1255,36 @@ func _on_draw_action_button_pressed():
 		if card:
 			# Add to server's tracking
 			player_hands[player_id].append(card)
-			rpc("sync_draw_card", card.to_dictionary())
-			# Update local hand
-			player_hand.draw(card)
+			# Only sync to the current player
+			rpc_id(player_id, "sync_draw_card", card.to_dictionary())
+			# Update local hand if server is the current player
+			if player_id == multiplayer.get_unique_id():
+				player_hand.draw(card)
 	else:
 		rpc_id(1, "request_draw_card", true)
 
 func _on_draw_area_button_pressed():
-	if count_cards_by_type(CardResource.CardType.AREA) >= MAX_AREA_CARDS:
-		#print("Cannot draw more area cards: limit reached")
+	var player_id = multiplayer.get_unique_id()
+	
+	# Check if it's the player's turn
+	if !is_valid_player_turn(player_id):
+		print("Not your turn to draw!")
+		return
+	
+	var current_count = count_cards_by_type(CardResource.CardType.AREA)
+	if current_count >= MAX_AREA_CARDS:
 		return
 		
 	if multiplayer.is_server():
 		var card = area_deck.draw_card()
 		if card:
-			rpc("sync_draw_card", card.to_dictionary())
+			# Add to server's tracking
+			player_hands[player_id].append(card)
+			# Only sync to the current player
+			rpc_id(player_id, "sync_draw_card", card.to_dictionary())
+			# Update local hand if server is the current player
+			if player_id == multiplayer.get_unique_id():
+				player_hand.draw(card)
 	else:
 		rpc_id(1, "request_draw_card", false)
 
