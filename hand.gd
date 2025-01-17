@@ -8,6 +8,8 @@ extends ColorRect
 @export var y_min := 50
 @export var y_max := -50
 
+@onready var game = get_node("/root/Game")
+
 # Single array to hold all cards
 var cards: Array[Card] = []
 var card_resources: Array[CardResource] = []
@@ -76,21 +78,15 @@ func draw(card_resource: CardResource) -> void:
 	if not card_resource:
 		return
 		
-	# Strict duplicate checking
+	# Strict duplicate checking with multiple conditions
 	for existing_card in card_resources:
-		if existing_card.card_name == card_resource.card_name and \
-		   existing_card.card_type == card_resource.card_type:
+		if is_duplicate_card(existing_card, card_resource):
 			print("Duplicate card detected, skipping: ", card_resource.card_name)
 			return
 	
 	# Check if we're exceeding max cards for this type
-	var type_count = 0
-	for card in card_resources:
-		if card.card_type == card_resource.card_type:
-			type_count += 1
-	
-	# Get max cards for this type
-	var max_cards = 2  # Default to 2 for both types
+	var type_count = game.count_cards_by_type(card_resource.card_type)
+	var max_cards = game.MAX_ACTION_CARDS if card_resource.card_type == CardResource.CardType.ACTION else game.MAX_AREA_CARDS
 	
 	if type_count >= max_cards:
 		print("Max cards of type ", card_resource.card_type, " reached")
@@ -99,6 +95,12 @@ func draw(card_resource: CardResource) -> void:
 	card_resources.append(card_resource)
 	_update_cards()
 	print("Drew card: ", card_resource.card_name, " Total cards: ", card_resources.size())
+
+func is_duplicate_card(card1: CardResource, card2: CardResource) -> bool:
+	# Check multiple properties to ensure true duplication
+	return card1.card_name == card2.card_name and \
+		   card1.card_type == card2.card_type and \
+		   card1.cost_to_draw == card2.cost_to_draw
 
 func clear_hand() -> void:
 	card_resources.clear()
@@ -187,26 +189,34 @@ func remove_card(card: Card) -> void:
 	
 	var index = cards.find(card)
 	if index != -1:
-		# Remove locally only
+		# Remove card instance
 		if index < cards.size():
 			cards[index].queue_free()
 			cards.remove_at(index)
+		
+		# Remove card resource
 		if index < card_resources.size():
+			var removed_resource = card_resources[index]
 			card_resources.remove_at(index)
+		
+		# Update visual state
 		_update_cards()
 		
-		# Notify server about card removal
+		# Clear selection
+		clear_selection()
+		
+		# Notify server about removal
 		if !multiplayer.is_server():
 			rpc_id(1, "notify_card_removed", index, multiplayer.get_unique_id())
 
 @rpc("any_peer")
-func notify_card_removed(index: int, _player_id: int):
+func notify_card_removed(index: int, player_id: int):
 	if multiplayer.is_server():
-		# Update server's tracking of player hands
 		var game_node = get_node("/root/Game")
 		if game_node:
-			game_node.remove_card_from_player_hand(_player_id, index)
-
+			game_node.remove_card_from_player_hand(player_id, index)
+			# Sync removal to all clients to prevent duplicates
+			game_node.rpc("sync_remove_card", index, player_id)
 
 @rpc("any_peer", "call_local")
 func sync_remove_card(index: int):

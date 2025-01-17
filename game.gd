@@ -861,24 +861,41 @@ func distribute_initial_hand():
 	player_hand.card_resources.clear()
 	player_hands[host_id].clear()
 	
+	# Track drawn cards to prevent duplicates
+	var drawn_cards = []
+	
 	# Draw initial cards with validation
 	for i in range(INITIAL_ACTION_CARDS):
 		var card = action_deck.draw_card()
-		if !card:  # If deck is empty, reset it
-			action_deck.reset_deck()
+		while card and is_card_in_array(card, drawn_cards):
+			action_deck.cards.append(card)  # Put the card back
+			action_deck.shuffle()
 			card = action_deck.draw_card()
+		
 		if card:
+			drawn_cards.append(card)
 			player_hands[host_id].append(card)
 			player_hand.draw(card)
 	
 	for i in range(INITIAL_AREA_CARDS):
 		var card = area_deck.draw_card()
-		if !card:  # If deck is empty, reset it
-			area_deck.reset_deck()
+		while card and is_card_in_array(card, drawn_cards):
+			area_deck.cards.append(card)  # Put the card back
+			area_deck.shuffle()
 			card = area_deck.draw_card()
+			
 		if card:
+			drawn_cards.append(card)
 			player_hands[host_id].append(card)
 			player_hand.draw(card)
+
+func is_card_in_array(card: CardResource, array: Array) -> bool:
+	for existing_card in array:
+		if existing_card.card_name == card.card_name and \
+		   existing_card.card_type == card.card_type and \
+		   existing_card.cost_to_draw == card.cost_to_draw:
+			return true
+	return false
 
 func distribute_initial_hand_to_client(peer_id: int):
 	if !multiplayer.is_server():
@@ -1022,7 +1039,13 @@ func request_card_placement(card_data: Dictionary, slot_index: int, location_nam
 	if !is_valid_player_turn(player_id):
 		return
 		
-	#print("Server received card placement request from player: ", player_id)
+	var card_resource = CardResource.new()
+	card_resource.from_dictionary(card_data)
+	
+	# Remove card from server's tracking of player's hand
+	remove_card_from_hand(player_id, card_resource)
+	
+	# Broadcast placement to all clients
 	rpc("sync_card_played", card_data, slot_index, location_name, player_id)
 
 # ╭──────────────────────────────╮
@@ -1031,45 +1054,61 @@ func request_card_placement(card_data: Dictionary, slot_index: int, location_nam
 
 @rpc("any_peer", "call_local")
 func sync_draw_card(card_data: Dictionary) -> void:
-	if multiplayer.is_server():
+	# Only process if it's meant for this client
+	var local_id = multiplayer.get_unique_id()
+	var current_player = players[current_turn_index]
+	
+	if local_id != current_player:
 		return
+		
 	# Prevent duplicate draws
 	for existing_card in player_hand.card_resources:
 		if existing_card.card_name == card_data.card_name:
 			return
-	#print("Receiving card data: ", card_data)
+	
 	var card_resource = CardResource.new()
 	card_resource.from_dictionary(card_data)
 	player_hand.draw(card_resource)
 
 @rpc("any_peer")
 func request_draw_card(is_action: bool):
-
 	if !multiplayer.is_server():
 		return
 
-	if multiplayer.is_server():
-		# Request card draw from server
-		var requesting_peer = multiplayer.get_remote_sender_id()
-		# Add turn validation
-		if !is_valid_player_turn(requesting_peer):
-			return
-		#print("Request Card from player_id :", requesting_peer)
-		var current_count = count_cards_by_type_for_player(
-			requesting_peer,
-			CardResource.CardType.ACTION if is_action else CardResource.CardType.AREA
-		)
-		var max_count = MAX_ACTION_CARDS if is_action else MAX_AREA_CARDS
+	var requesting_peer = multiplayer.get_remote_sender_id()
+	
+	# Validate turn ownership
+	if players[current_turn_index] != requesting_peer:
+		return
+	
+	var current_count = count_cards_by_type_for_player(
+		requesting_peer,
+		CardResource.CardType.ACTION if is_action else CardResource.CardType.AREA
+	)
+	
+	var max_count = MAX_ACTION_CARDS if is_action else MAX_AREA_CARDS
+	if current_count >= max_count:
+		return
 		
-		if current_count >= max_count:
-			return
-			
-		var card = action_deck.draw_card() if is_action else area_deck.draw_card()
-		if card:
-			# Add to server's tracking
-			player_hands[requesting_peer].append(card)
-			# Send to specific client
-			rpc_id(requesting_peer, "sync_draw_card", card.to_dictionary())
+	var deck = action_deck if is_action else area_deck
+	var card = deck.draw_card()
+	
+	# Check if card is already in player's hand
+	if card and player_hands.has(requesting_peer):
+		for existing_card in player_hands[requesting_peer]:
+			if existing_card.card_name == card.card_name and \
+			   existing_card.card_type == card.card_type:
+				# Put card back and try again
+				deck.deck.add_card(card)
+				deck.deck.shuffle()
+				card = deck.draw_card()
+				break
+	
+	if card:
+		# Add to server's tracking
+		player_hands[requesting_peer].append(card)
+		# Send only to the requesting player
+		rpc_id(requesting_peer, "sync_draw_card", card.to_dictionary())
 
 func can_draw_card(card_type: int) -> bool:
 	var current_count = count_cards_by_type(card_type)
@@ -1112,9 +1151,57 @@ func sync_card_played(card_data: Dictionary, slot_index: int, location_name: Str
 	else:
 		pass
 
-# ╭──────────────────────────────╮
-# |  Card - Events               |
-# ╰──────────────────────────────╯
+func _on_card_placed(card: CardResource, slot_index: int, location_name: String) -> void:
+	var current_player = multiplayer.get_unique_id()
+	
+	if !is_valid_player_turn(current_player):
+		return
+	
+	if multiplayer.is_server():
+		# Store the card placement
+		var placement_data = {
+			"card_data": card.to_dictionary(),
+			"slot_index": slot_index,
+			"location_name": location_name,
+			"player_id": current_player
+		}
+		placed_cards.append(placement_data)
+		
+		# Remove card from server's hand tracking
+		remove_card_from_hand(current_player, card)
+		
+		# Broadcast placement to all clients
+		rpc("sync_card_played", card.to_dictionary(), slot_index, location_name, current_player)
+	else:
+		# Client requests server to validate placement
+		rpc_id(1, "request_card_placement", card.to_dictionary(), slot_index, location_name, current_player)
+
+@rpc("any_peer", "call_local")
+func sync_remove_played_card(card_data: Dictionary, player_id: int):
+	# Only process if this is for the local player
+	if player_id == multiplayer.get_unique_id():
+		var card_resource = CardResource.new()
+		card_resource.from_dictionary(card_data)
+		remove_local_card(card_resource)
+
+func remove_local_card(card: CardResource):
+	
+	for i in range(player_hand.card_resources.size()):
+		var existing = player_hand.card_resources[i]
+		if existing.card_name == card.card_name and existing.card_type == card.card_type:
+			player_hand.card_resources.remove_at(i)
+			break
+	player_hand._update_cards()
+
+func remove_card_from_hand(player_id: int, card: CardResource) -> void:
+	if !player_hands.has(player_id):
+		return
+		
+	var hand = player_hands[player_id]
+	for i in range(hand.size()):
+		if hand[i].card_name == card.card_name and hand[i].card_type == card.card_type:
+			hand.remove_at(i)
+			break
 
 func validate_hand_sync(peer_id: int) -> bool:
 	if !player_hands.has(peer_id):
@@ -1154,26 +1241,6 @@ func _on_area_card_drawn(card: CardResource):
 		
 	if multiplayer.is_server() and game_started:
 		rpc("sync_draw_card", card.to_dictionary())
-
-func _on_card_placed(card: CardResource, slot_index: int, location_name: String) -> void:
-	#print("Card placed event received for location: ", location_name)
-	var current_player = multiplayer.get_unique_id()
-	
-	if multiplayer.is_server():
-		# Store the card placement
-		var placement_data = {
-			"card_data": card.to_dictionary(),
-			"slot_index": slot_index,
-			"location_name": location_name,
-			"player_id": current_player
-		}
-		placed_cards.append(placement_data)
-		
-		# Broadcast to all clients
-		rpc("sync_card_played", card.to_dictionary(), slot_index, location_name, current_player)
-	else:
-		# Client requests server to validate placement
-		rpc_id(1, "request_card_placement", card.to_dictionary(), slot_index, location_name, current_player)
 
 func _on_discard_card_button_pressed() -> void:
 	if multiplayer.is_server():
@@ -1545,3 +1612,17 @@ func request_token_refresh():
 		token_manager.initialize_player_tokens(requesting_player, true)
 		var tokens = token_manager.get_player_tokens(requesting_player)
 		rpc_id(requesting_player, "sync_player_tokens", tokens)
+
+# Card handling section
+@rpc("any_peer", "call_local")
+func sync_remove_card(index: int, player_id: int):
+	# Only process if this is for the local player
+	if player_id == multiplayer.get_unique_id():
+		if player_hand and index >= 0 and index < player_hand.card_resources.size():
+			player_hand.card_resources.remove_at(index)
+			player_hand._update_cards()
+		
+		# Update server's tracking if we are the server
+		if multiplayer.is_server() and player_hands.has(player_id):
+			if index >= 0 and index < player_hands[player_id].size():
+				player_hands[player_id].remove_at(index)
