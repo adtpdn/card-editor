@@ -66,8 +66,9 @@ func _input(event):
 						var index = slots.find(selected_marker)
 						if index != -1:
 							print("Attempting to place card in ", location_name, " at index ", index)
-							card_placed.emit(selected_card.card_resource, index, location_name)
+							# Remove the card from hand before emitting the signal
 							hand.remove_card(selected_card)
+							card_placed.emit(selected_card.card_resource, index, location_name)
 
 func plant_card(card_resource: CardResource, slot_index: int) -> void:
 	var game = get_node("/root/Game")
@@ -93,7 +94,8 @@ func plant_card(card_resource: CardResource, slot_index: int) -> void:
 	
 	card_instance.rotation.x = PI
 	card_instance.rotation.y = slot.rotation.y
-	
+
+	# Update the visual stack
 	update_stack_visuals(slot)
 
 @rpc("any_peer")

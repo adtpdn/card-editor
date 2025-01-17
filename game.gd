@@ -1333,10 +1333,23 @@ func is_valid_player_turn(player_id: int) -> bool:
 	
 	var is_valid = players[current_turn_index] == player_id
 	
+	# Handle hand resync without RPC if we're the server
 	if !validate_hand_sync(multiplayer.get_unique_id()):
-		rpc_id(1, "request_hand_resync")
+		if multiplayer.is_server():
+			resync_hand_locally()
+		else:
+			rpc_id(1, "request_hand_resync")
 	
 	return is_valid
+
+func resync_hand_locally() -> void:
+	if multiplayer.is_server():
+		var host_id = multiplayer.get_unique_id()
+		if player_hands.has(host_id):
+			var cards_data = []
+			for card in player_hands[host_id]:
+				cards_data.append(card.to_dictionary())
+			receive_initial_hand(cards_data)
 
 # ╭──────────────────────────────╮
 # |  Turn Manager - Current Turn |
