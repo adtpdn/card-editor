@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://dfjq1voh17um3"]
+[gd_scene load_steps=7 format=3 uid="uid://dfjq1voh17um3"]
 
 [ext_resource type="Script" path="res://token_3d.gd" id="1_18jwr"]
+[ext_resource type="ArrayMesh" uid="uid://dob7ax1gebls3" path="res://assets/meshes/cylinder_mesh.tres" id="2_vobhr"]
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_bpimy"]
 radial_segments = 8
@@ -23,3 +24,18 @@ surface_material_override/0 = SubResource("StandardMaterial3D_jqqdb")
 transform = Transform3D(0.5, 0, 0, 0, 0.1, 0, 0, 0, 0.5, 0, 0.104121, 0)
 mesh = SubResource("CylinderMesh_tg52t")
 surface_material_override/0 = SubResource("StandardMaterial3D_20hyu")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.1, 0, 0, 0, 0.2, 0, 0, 0, 0.1, 0, 0.111739, 0)
+mesh = ExtResource("2_vobhr")
+skeleton = NodePath("")
+
+[node name="ValueLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.628184, 0)
+visible = false
+billboard = 1
+modulate = Color(1, 1, 1, 0.588235)
+outline_modulate = Color(0, 0, 0, 0.588235)
+text = "01"
+font_size = 26
+outline_size = 18
