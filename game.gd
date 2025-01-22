@@ -298,50 +298,41 @@ func _unhandled_input(event):
 			
 			if result:
 				var placement = get_token_placement_at_position(result.position)
-				if placement:
+				if placement and !placement.is_occupied:
+					var tokens = token_manager.get_player_tokens(player_id)
 					
-					# Explicitly convert to int for comparison
-					var placement_biome = int(placement.accepted_biome)
-					var selected_biome = int(selected_token_index)
+					# Find token data for selected biome
+					var token_data = null
+					var token_index = -1
+					for i in range(tokens.size()):
+						if tokens[i].biome == selected_token_index:
+							token_data = tokens[i]
+							token_index = i
+							break
 					
-					if placement_biome == selected_biome && !placement.is_occupied:
-						var tokens = token_manager.get_player_tokens(player_id)
+					if token_data:
+						print("Found matching token data for biome")
+						# Update cooldown time
+						last_token_placement_time = current_time
 						
-						# Find token data for selected biome
-						var token_data = null
-						var token_index = -1
-						for i in range(tokens.size()):
-							if tokens[i].biome == selected_token_index:
-								token_data = tokens[i]
-								token_index = i
-								break
-						
-						if token_data:
-							print("Found matching token data for biome")
-							# Update cooldown time
-							last_token_placement_time = current_time
+						if multiplayer.is_server():
+							# Server directly places token
+							token_manager.remove_token(player_id, token_index)
+							sync_token_placement(player_id, token_data, placement.global_position)
 							
-							if multiplayer.is_server():
-								# Server directly places token
-								token_manager.remove_token(player_id, token_index)
-								sync_token_placement.rpc(player_id, token_data, placement.global_position)
-								
-								# Update UI for all players
-								for pid in players:
-									var updated_tokens = token_manager.get_player_tokens(pid)
-									rpc_id(pid, "sync_player_tokens", updated_tokens)
-							else:
-								# Client requests placement
-								rpc_id(1, "request_token_placement", token_index, placement.global_position)
-							
-							# Reset selection state
-							selected_token_index = -1
-							unhighlight_all_token_placements()
+							# Update UI for all players
+							for pid in players:
+								var updated_tokens = token_manager.get_player_tokens(pid)
+								rpc_id(pid, "sync_player_tokens", updated_tokens)
 						else:
-							print("No matching token data found")
+							# Client requests placement
+							rpc_id(1, "request_token_placement", token_index, placement.global_position)
+						
+						# Reset selection state
+						selected_token_index = -1
+						unhighlight_all_token_placements()
 					else:
-						print("Invalid placement - Biome mismatch or location occupied")
-						print("Placement biome: ", placement_biome, " Selected biome: ", selected_biome)
+						print("No matching token data found")
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---   Token Logic Handling   ---
@@ -624,18 +615,19 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	if !placement:
 		return
 	
-	# Explicitly convert to int for comparison
-	var placement_biome = int(placement.accepted_biome)
-	var token_biome = int(token_data.biome)
-	
-	# Verify placement is valid
-	if placement.is_occupied or placement_biome != token_biome:
+	# Remove biome type check, only check if occupied
+	if placement.is_occupied:
 		return
 	
 	# Create and place the token
 	var token = token_manager.token_scene.instantiate()
-	$Tokens.add_child(token,true)
-	token.set_token_data(token_data.biome, token_data.type, player_id)
+	$Tokens.add_child(token, true)
+	
+	# Convert types explicitly
+	var biome_type = int(token_data.biome) if token_data.has("biome") else 0
+	var token_type = int(token_data.type) if token_data.has("type") else 0
+	
+	token.set_token_data(biome_type, token_type, player_id)
 	token.global_position = position
 	
 	# Mark placement as occupied
@@ -650,6 +642,7 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	if local_id == players[current_turn_index]:
 		# Get latest token data for the current player
 		var tokens = token_manager.get_player_tokens(local_id)
+		update_token_ui(tokens)
 
 func reset_token_buttons():
 	var token_buttons = $UI/TokenContainer.get_children()
@@ -669,15 +662,19 @@ func request_token_placement(token_index: int, position: Vector3):
 		return
 		
 	var player_id = multiplayer.get_remote_sender_id()
+	if player_id == 0:  # If this is a local server request
+		player_id = multiplayer.get_unique_id()
 	
 	# Validate placement timing and turn
 	var current_time = Time.get_ticks_msec() / 1000.0
 	if current_time - last_token_placement_time < TOKEN_PLACEMENT_COOLDOWN:
-		rpc_id(player_id, "notify_invalid_placement")
+		if player_id != multiplayer.get_unique_id():
+			rpc_id(player_id, "notify_invalid_placement")
 		return
 	
 	if !is_valid_player_turn(player_id):
-		rpc_id(player_id, "notify_invalid_placement")
+		if player_id != multiplayer.get_unique_id():
+			rpc_id(player_id, "notify_invalid_placement")
 		return
 	
 	var player_tokens = token_manager.get_player_tokens(player_id)
@@ -686,14 +683,15 @@ func request_token_placement(token_index: int, position: Vector3):
 		var token_data = player_tokens[token_index]
 		var placement = get_token_placement_at_position(position)
 		
-		if placement and !placement.is_occupied and placement.accepted_biome == token_data.biome:
+		# Only check if placement is occupied
+		if placement and !placement.is_occupied:
 			# Update cooldown time
 			last_token_placement_time = current_time
 			
 			# Update server's token manager
 			token_manager.remove_token(player_id, token_index)
 			
-			 # Important: Sync the placement to ALL clients including the requester
+			# Important: Sync the placement to ALL clients including the requester
 			rpc("sync_token_placement", player_id, token_data, position)
 			
 			# Update tokens for all players
@@ -829,13 +827,10 @@ func _on_token_selected(token_index: int):
 	selected_token_index = token_index
 	var tokens = token_manager.get_player_tokens(multiplayer.get_unique_id())
 	
-	# Highlight valid placement locations
+	# Highlight all unoccupied placement locations
 	var valid_placements = 0
 	for placement in $TokenPlacements.get_children():
-		var placement_biome = int(placement.accepted_biome)
-		var selected_biome = int(token_index)
-		
-		if placement_biome == selected_biome && !placement.is_occupied:
+		if !placement.is_occupied:
 			placement.set_highlight(true)
 			valid_placements += 1
 	

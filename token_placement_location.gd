@@ -51,26 +51,19 @@ func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: 
 			
 		var player_tokens = game.token_manager.get_player_tokens(player_id)
 		
-		# Find matching token for the selected biome
+		# Find any token matching the selected index
 		var matching_token_index = -1
 		for i in range(player_tokens.size()):
-			if int(player_tokens[i].biome) == int(accepted_biome):
+			if int(player_tokens[i].biome) == game.selected_token_index:
 				matching_token_index = i
 				break
 		
 		if matching_token_index >= 0:
+			# Send placement request to server
 			if multiplayer.is_server():
-				game.sync_token_placement.rpc(
-					player_id,
-					player_tokens[matching_token_index],
-					global_position
-				)
-				game.token_manager.remove_token(player_id, matching_token_index)
+				game.request_token_placement(matching_token_index, global_position)
 			else:
-				game.request_token_placement.rpc_id(1, matching_token_index, global_position)
-			
-			game.selected_token_index = -1
-			game.unhighlight_all_token_placements()
+				game.rpc_id(1, "request_token_placement", matching_token_index, global_position)
 
 func set_highlight(enabled: bool):
 	if is_occupied:  # Never highlight if occupied
@@ -119,7 +112,7 @@ func update_marker_appearance():
 	marker_mesh.material_override = material
 
 func can_place_token(token_biome: BiomeType) -> bool:
-	return !is_occupied && token_biome == accepted_biome  # Check if not occupied and biome matches
+	return !is_occupied  # Only check if not occupied
 
 func place_token(player_id: int, token_data: Dictionary):
 	var game = get_node("/root/Game")
