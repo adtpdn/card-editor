@@ -42,19 +42,23 @@ func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: 
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var game = get_node("/root/Game")
 		
-		if !game or is_occupied or game.selected_token_index < 0:
+		if !game or is_occupied:
 			return
 			
 		var player_id = multiplayer.get_unique_id()
 		if !game.is_valid_player_turn(player_id):
 			return
 			
+		if game.selected_token_biome == -1 or game.selected_token_type == -1:
+			return
+			
 		var player_tokens = game.token_manager.get_player_tokens(player_id)
 		
-		# Find any token matching the selected index
+		# Find matching token
 		var matching_token_index = -1
 		for i in range(player_tokens.size()):
-			if int(player_tokens[i].biome) == game.selected_token_index:
+			if player_tokens[i].biome == game.selected_token_biome and \
+			   player_tokens[i].type == game.selected_token_type:
 				matching_token_index = i
 				break
 		

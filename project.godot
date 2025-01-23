@@ -10,6 +10,13 @@ config_version=5
 
 [application]
 
-config/name="Card Editor"
+config/name="Botanimagic"
+config/version="0.0.1"
+run/main_scene="res://game.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://thumb.png"
+
+[rendering]
+
+renderer/rendering_method="mobile"
+textures/vram_compression/import_etc2_astc=true

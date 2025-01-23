@@ -3,11 +3,11 @@ class_name TokenManager
 extends Node
 
 enum BiomeType {FOREST, DESERT, MOUNTAIN, WATER}
-enum TokenType {TYPE1, TYPE2, TYPE3}
+enum TokenType {TRIANGLE, SQUARE, CIRCLE}
 
 var player_tokens = {}
-const TOKENS_PER_PLAYER = 4
-const MAX_TOKENS_PER_BIOME = 8  # Adjust this value as needed
+const TOKENS_PER_PLAYER = 12  # Change from 4 to 12 tokens per player
+const MAX_TOKENS_PER_BIOME = 12  # Adjust max tokens per biome
 
 signal token_placed(player_id: int, biome: BiomeType, token_type: TokenType, location: Vector3)
 
@@ -21,50 +21,36 @@ func initialize_player_tokens(player_id: int, force_refresh: bool = false):
 		return
 		
 	player_tokens[player_id] = []
-	var tokens_per_biome = {}
+	var token_counts = {}
 	
-	# Get tokens already on board for this player
-	var placed_tokens = get_placed_tokens_for_player(player_id)
-	
-	# Initialize counters for each biome, considering placed tokens
+	# Initialize count tracking for each biome-type combination
 	for biome in BiomeType.values():
-		tokens_per_biome[biome] = 0
-		for token in placed_tokens:
-			if token.biome_type == biome:
-				tokens_per_biome[biome] += 1
+		for type in TokenType.values():
+			token_counts[str(biome) + "_" + str(type)] = 0
 	
-	# First pass: ensure at least one token of each biome if not maxed out
+	# First pass: ensure at least one token of each combination
 	for biome in BiomeType.values():
-		if tokens_per_biome[biome] >= MAX_TOKENS_PER_BIOME:
-			continue
-			
-		if player_tokens[player_id].size() >= TOKENS_PER_PLAYER:
-			break
-			
+		for type in TokenType.values():
+			if player_tokens[player_id].size() >= TOKENS_PER_PLAYER:
+				break
+				
+			var token_data = {
+				"biome": biome,
+				"type": type
+			}
+			player_tokens[player_id].append(token_data)
+			token_counts[str(biome) + "_" + str(type)] += 1
+	
+	# Second pass: fill remaining slots randomly
+	while player_tokens[player_id].size() < TOKENS_PER_PLAYER:
+		var biome = randi() % BiomeType.size()
+		var type = randi() % TokenType.size()
+		
 		var token_data = {
 			"biome": biome,
-			"type": randi() % TokenType.size()
+			"type": type
 		}
 		player_tokens[player_id].append(token_data)
-		tokens_per_biome[biome] += 1
-	
-	# Second pass: fill remaining slots
-	while player_tokens[player_id].size() < TOKENS_PER_PLAYER:
-		var available_biomes = []
-		for biome in BiomeType.values():
-			if tokens_per_biome[biome] < MAX_TOKENS_PER_BIOME:
-				available_biomes.append(biome)
-		
-		if available_biomes.is_empty():
-			break
-			
-		var selected_biome = available_biomes[randi() % available_biomes.size()]
-		var token_data = {
-			"biome": selected_biome,
-			"type": randi() % TokenType.size()
-		}
-		player_tokens[player_id].append(token_data)
-		tokens_per_biome[selected_biome] += 1
 
 func get_placed_tokens_for_player(player_id: int) -> Array:
 	var game = get_tree().get_root().get_node("Game")
