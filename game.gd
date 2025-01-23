@@ -19,6 +19,14 @@ var game_started = false
 var max_players = 4  # Maximum players allowed
 var player_hands = {}  # Store each player's hand data
 var player_slots = []  # Track occupied player slots
+var player_colors = {}  # Mapping of player IDs to colors
+
+const PLAYER_COLORS = [
+	Color(1, 0, 0),     # Red
+	Color(0, 1, 0),     # Green
+	Color(0, 0, 1),     # Blue
+	Color(1, 1, 0)      # Yellow
+]
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Card System Dependencies
@@ -148,7 +156,7 @@ func _ready() -> void:
 	dice_manager.roll_completed.connect(_on_dice_roll_completed)
 	
 	# Camera setup
-	var camera = $Camera3D
+	# var camera = $Camera3D
 	
 	# Set up area picking
 	_setup_area_picking(action_area)
@@ -204,6 +212,9 @@ func _on_host_pressed():
 		distribute_initial_hand()
 		setup_player(host_id)
 		start_game()
+		
+		# Set host's color immediately
+		player_colors[host_id] = PLAYER_COLORS[0]  # First color for host
 
 func _on_join_pressed():
 	var error = multiplayer_peer.create_client("localhost", PORT)
@@ -230,6 +241,13 @@ func _on_peer_connected(new_peer_id):
 		
 		# Initialize new player's hand tracking
 		player_hands[new_peer_id] = []
+		
+		# Assign a color to the new player
+		var color_index = players.size() - 1
+		if color_index < PLAYER_COLORS.size():
+			player_colors[new_peer_id] = PLAYER_COLORS[color_index]
+			# Sync colors to all clients including the new one
+			rpc("sync_player_colors", player_colors)
 		
 		# Find first available slot
 		var slot_index = player_slots.find(false)
@@ -987,6 +1005,11 @@ func sync_game_state(current_players: Array, is_game_started: bool, current_plac
 	players = current_players
 	game_started = is_game_started
 	
+	# Sync player colors
+	if multiplayer.is_server():
+		# Server sends color mapping to new client
+		rpc("sync_player_colors", player_colors)
+	
 	# Replay all placed cards
 	for placement in current_placed_cards:
 		var player_id = placement.get("player_id", 1)
@@ -998,6 +1021,15 @@ func sync_game_state(current_players: Array, is_game_started: bool, current_plac
 		player_hands[multiplayer.get_unique_id()].is_empty()
 	):
 		rpc_id(1, "request_initial_cards")
+
+@rpc("any_peer", "call_local")
+func sync_player_colors(colors: Dictionary):
+	player_colors = colors.duplicate()
+	# Update existing tokens
+	if $Tokens:
+		for token in $Tokens.get_children():
+			if token.has_method("update_token_display"):
+				token.update_token_display()
 
 func remove_card_from_player_hand(player_id: int, card_index: int) -> void:
 	if !player_hands.has(player_id):
@@ -1317,6 +1349,11 @@ func start_game():
 func sync_game_start(current_players):
 	players = current_players
 	game_started = true
+	
+	# Assign colors to existing players
+	for i in range(players.size()):
+		if i < PLAYER_COLORS.size():
+			player_colors[players[i]] = PLAYER_COLORS[i]
 
 @rpc("any_peer", "call_local")
 func add_player(player_id):
