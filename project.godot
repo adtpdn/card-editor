@@ -13,8 +13,16 @@ config_version=5
 config/name="Botanimagic"
 config/version="0.0.1"
 run/main_scene="res://game.tscn"
+config/use_custom_user_dir=true
+config/custom_user_dir_name="Botanimagic"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://thumb.png"
+
+[network]
+
+limits/tcp/connect_timeout_seconds=10
+config/broadcast_enabled=true
+config/use_ipv6=false
 
 [rendering]
 

@@ -6,7 +6,40 @@ extends Node
 
 var multiplayer_peer = ENetMultiplayerPeer.new()
 const PORT = 9999
-const ADDRESS = "127.0.0.1"
+const DEFAULT_IP = "127.0.0.1"  # Changed from ADDRESS constant
+
+# Add to networking variables section
+var use_upnp = true  # Enable UPNP for mobile networking
+var upnp_attempts = 0
+const MAX_UPNP_ATTEMPTS = 10
+var is_mobile = false
+var local_ip = "127.0.0.1"
+var is_host = false
+
+# Add these networking variables
+var peer_status = "Not Connected"
+var last_error = ""
+var connect_retries = 0
+const MAX_CONNECT_RETRIES = 3
+
+# Add these networking variables
+const BROADCAST_PORT = 9998  # Port for network discovery
+var broadcast_timer: Timer
+var discovery_socket: PacketPeerUDP
+
+# Add these UI-related variables
+var ip_display_timer: Timer
+var last_ip_refresh_time = 0.0
+const IP_REFRESH_INTERVAL = 5.0  # Refresh IPs every 5 seconds
+
+# Add these constants at the top with other networking variables
+const BROADCAST_ADDRESS = "255.255.255.255"
+var broadcast_enabled = false
+
+# Add these networking variables at the top
+var broadcast_socket: PacketPeerUDP
+var listen_socket: PacketPeerUDP
+const SERVER_BROADCAST_INTERVAL = 1.0
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Multiplayer variables
@@ -113,6 +146,15 @@ const POINT_ADJUSTMENT_COOLDOWN = 0.25  # 250ms cooldown
 @onready var point_counter = $PointCounter
 @onready var roll_result_label = $UI/RollResultLabel
 
+# Add new UI references
+@onready var ip_input = $UI/Menu/IPInput
+@onready var connect_status = $UI/Menu/ConnectStatus
+
+# Add touch handling variables
+var touch_start_position = Vector2()
+var touch_threshold = 10  # pixels for drag detection
+var is_dragging = false
+
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---    _Ready Initiation     ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
@@ -194,44 +236,119 @@ func _ready() -> void:
 	player_slots.resize(max_players)
 	player_slots.fill(false)
 
+	# Check if running on mobile
+	is_mobile = OS.has_feature("mobile")
+	if is_mobile:
+		setup_mobile_ui()
+		setup_mobile_network()
+	
+	# Get local IP for display
+	local_ip = get_local_ip()
+
+	if is_mobile:
+		setup_network_discovery()
+
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---    Host/Client Logic     ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 func _on_host_pressed():
+	is_host = true
+	connect_status.text = "Starting server..."
+	
+	# Get the first valid IP
+	var host_ip = get_valid_ips()[0] if !get_valid_ips().is_empty() else "127.0.0.1"
+	
 	var error = multiplayer_peer.create_server(PORT)
+	
 	if error == OK:
+		if is_mobile and use_upnp:
+			if setup_upnp():
+				connect_status.text += "\nUPnP setup successful"
+			else:
+				connect_status.text += "\nUPnP setup failed, port forwarding may be needed"
+		
 		$UI/NetworkInfo/NetworkSideDisplay.text = "Server"
-		$UI/Menu.visible = false
+		connect_status.text += "\nServer running on: " + host_ip + ":" + str(PORT)
+		
 		multiplayer.multiplayer_peer = multiplayer_peer
 		var host_id = multiplayer.get_unique_id()
-		players.append(host_id)
 		
-		# Initialize host's hand tracking
+		# Initialize host data
+		players = [host_id]  # Reset players array
 		player_hands[host_id] = []
+		player_colors[host_id] = PLAYER_COLORS[0]
 		
-		# Initialize host's tokens
+		# Initialize game state
 		token_manager.initialize_player_tokens(host_id)
 		var tokens = token_manager.get_player_tokens(host_id)
 		update_token_ui(tokens)
-		
-		# Distribute initial hand to host
 		distribute_initial_hand()
 		setup_player(host_id)
 		start_game()
 		
-		# Set host's color immediately
-		player_colors[host_id] = PLAYER_COLORS[0]  # First color for host
+		# Start broadcasting server info
+		setup_network_discovery()
+	else:
+		connect_status.text = "Failed to create server: " + str(error)
 
 func _on_join_pressed():
-	var error = multiplayer_peer.create_client("localhost", PORT)
-	if error == OK:
-		$UI/NetworkInfo/NetworkSideDisplay.text = "Client"
-		$UI/Menu.visible = false
-		multiplayer.multiplayer_peer = multiplayer_peer
+	is_host = false
+	connect_retries = 0
+	
+	var target_ip = ip_input.text.strip_edges()
+	if target_ip.is_empty() or target_ip == "127.0.0.1":
+		connect_status.text = "Searching for local servers..."
+		# Start discovery process
+		if !discovery_socket:
+			setup_network_discovery()
+		_start_server_discovery()
 	else:
-		pass
-	print_hand_debug()
+		attempt_connection(target_ip)
+
+# Modify attempt_connection
+func attempt_connection(target_ip: String):
+	if connect_retries >= MAX_CONNECT_RETRIES:
+		connect_status.text = "Failed to connect after multiple attempts"
+		return
+	
+	connect_retries += 1
+	
+	# Close existing connections
+	if multiplayer.multiplayer_peer:
+		multiplayer.multiplayer_peer = null
+	
+	if multiplayer_peer:
+		multiplayer_peer.close()
+	
+	multiplayer_peer = ENetMultiplayerPeer.new()
+	
+	print("Attempting to connect to: ", target_ip)
+	connect_status.text = "Connecting to " + target_ip + "... (Attempt " + str(connect_retries) + ")"
+	
+	var error = multiplayer_peer.create_client(target_ip, PORT)
+	if error == OK:
+		multiplayer.multiplayer_peer = multiplayer_peer
+		$UI/NetworkInfo/NetworkSideDisplay.text = "Client"
+	else:
+		connect_status.text = "Connection failed: " + str(error)
+		# Retry after delay
+		await get_tree().create_timer(1.0).timeout
+		attempt_connection(target_ip)
+
+func is_valid_ip(ip: String) -> bool:
+	if ip.is_empty():
+		return false
+	var parts = ip.split(".")
+	if parts.size() != 4:
+		return false
+	for part in parts:
+		if !part.is_valid_int():
+			return false
+		var num = part.to_int()
+		if num < 0 or num > 255:
+			return false
+	return true
 
 func _on_peer_connected(new_peer_id):
 	if multiplayer.is_server():
@@ -297,69 +414,74 @@ func _on_peer_disconnected(peer_id):
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 func _unhandled_input(event):
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if selected_token_biome != -1 and selected_token_type != -1:  # Changed from selected_token_index
-			# Add cooldown check for placement
-			var current_time = Time.get_ticks_msec() / 1000.0
-			if current_time - last_token_placement_time < TOKEN_PLACEMENT_COOLDOWN:
-				return
-			
-			var player_id = multiplayer.get_unique_id()
-			
-			# Check if it's player's turn
-			if !is_valid_player_turn(player_id):
-				print("Not your turn!")
-				selected_token_biome = -1
-				selected_token_type = -1
-				unhighlight_all_token_placements()
-				return
-			
-			var camera = get_node("Camera3D")
-			var from = camera.project_ray_origin(event.position)
-			var to = from + camera.project_ray_normal(event.position) * 1000
-			
-			var space_state = get_tree().get_root().get_world_3d().direct_space_state
-			var query = PhysicsRayQueryParameters3D.create(from, to)
-			var result = space_state.intersect_ray(query)
-			
-			if result:
-				var placement = get_token_placement_at_position(result.position)
-				if placement and !placement.is_occupied:
-					var tokens = token_manager.get_player_tokens(player_id)
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			_handle_touch(event.position)
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_handle_touch(event.position)
+
+func _handle_touch(position: Vector2):
+	if selected_token_biome != -1 and selected_token_type != -1:
+		var current_time = Time.get_ticks_msec() / 1000.0
+		if current_time - last_token_placement_time < TOKEN_PLACEMENT_COOLDOWN:
+			return
+		
+		var player_id = multiplayer.get_unique_id()
+		
+		# Check if it's player's turn
+		if !is_valid_player_turn(player_id):
+			print("Not your turn!")
+			selected_token_biome = -1
+			selected_token_type = -1
+			unhighlight_all_token_placements()
+			return
+		
+		var camera = get_node("Camera3D")
+		var from = camera.project_ray_origin(position)
+		var to = from + camera.project_ray_normal(position) * 1000
+		
+		var space_state = get_tree().get_root().get_world_3d().direct_space_state
+		var query = PhysicsRayQueryParameters3D.create(from, to)
+		var result = space_state.intersect_ray(query)
+		
+		if result:
+			var placement = get_token_placement_at_position(result.position)
+			if placement and !placement.is_occupied:
+				var tokens = token_manager.get_player_tokens(player_id)
+				
+				# Find token data for selected biome and type
+				var token_data = null
+				var token_index = -1
+				for i in range(tokens.size()):
+					if tokens[i].biome == selected_token_biome and tokens[i].type == selected_token_type:
+						token_data = tokens[i]
+						token_index = i
+						break
+				
+				if token_data:
+					print("Found matching token data")
+					# Update cooldown time
+					last_token_placement_time = current_time
 					
-					# Find token data for selected biome and type
-					var token_data = null
-					var token_index = -1
-					for i in range(tokens.size()):
-						if tokens[i].biome == selected_token_biome and tokens[i].type == selected_token_type:
-							token_data = tokens[i]
-							token_index = i
-							break
-					
-					if token_data:
-						print("Found matching token data")
-						# Update cooldown time
-						last_token_placement_time = current_time
+					if multiplayer.is_server():
+						# Server directly places token
+						token_manager.remove_token(player_id, token_index)
+						sync_token_placement(player_id, token_data, placement.global_position)
 						
-						if multiplayer.is_server():
-							# Server directly places token
-							token_manager.remove_token(player_id, token_index)
-							sync_token_placement(player_id, token_data, placement.global_position)
-							
-							# Update UI for all players
-							for pid in players:
-								var updated_tokens = token_manager.get_player_tokens(pid)
-								rpc_id(pid, "sync_player_tokens", updated_tokens)
-						else:
-							# Client requests placement
-							rpc_id(1, "request_token_placement", token_index, placement.global_position)
-						
-						# Reset selection state
-						selected_token_biome = -1
-						selected_token_type = -1
-						unhighlight_all_token_placements()
+						# Update UI for all players
+						for pid in players:
+							var updated_tokens = token_manager.get_player_tokens(pid)
+							rpc_id(pid, "sync_player_tokens", updated_tokens)
 					else:
-						print("No matching token data found")
+						# Client requests placement
+						rpc_id(1, "request_token_placement", token_index, placement.global_position)
+					
+					# Reset selection state
+					selected_token_biome = -1
+					selected_token_type = -1
+					unhighlight_all_token_placements()
+				else:
+					print("No matching token data found")
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---   Token Logic Handling   ---
@@ -1783,3 +1905,211 @@ func sync_remove_card(index: int, player_id: int):
 		if multiplayer.is_server() and player_hands.has(player_id):
 			if index >= 0 and index < player_hands[player_id].size():
 				player_hands[player_id].remove_at(index)
+
+# Add these new networking functions
+func setup_mobile_ui():
+	if ip_input:
+		ip_input.virtual_keyboard_enabled = true
+		ip_input.placeholder_text = "Enter host IP..."
+
+func setup_mobile_network():
+	# Display local IP for hosting
+	if ip_input and connect_status:
+		var addresses = IP.get_local_addresses()
+		var ip_text = "Available IPs:\n"
+		for ip in addresses:
+			# Only show IPv4 addresses that aren't localhost
+			if ip.count(".") == 3 and not ip.begins_with("127."):
+				ip_text += ip + "\n"
+		connect_status.text = ip_text
+
+func get_local_ip() -> String:
+	var addresses = IP.get_local_addresses()
+	
+	# First try to find a non-localhost IPv4 address
+	for ip in addresses:
+		if ip.count(".") == 3 and not ip.begins_with("127."):
+			return ip
+	
+	# If no suitable IP found, return the first IPv4 address
+	for ip in addresses:
+		if ip.count(".") == 3:
+			return ip
+			
+	return "IP not found"
+
+func setup_upnp() -> bool:
+	var upnp = UPNP.new()
+	var discover_result = upnp.discover(2000, 2, "InternetGatewayDevice")
+	
+	if discover_result == UPNP.UPNP_RESULT_SUCCESS:
+		if upnp.get_gateway() and upnp.get_gateway().is_valid_gateway():
+			# Try to map both UDP and TCP
+			var map_result_udp = upnp.add_port_mapping(PORT, PORT, "GodotGameUDP", "UDP")
+			var map_result_tcp = upnp.add_port_mapping(PORT, PORT, "GodotGameTCP", "TCP")
+			
+			if map_result_udp == UPNP.UPNP_RESULT_SUCCESS or map_result_tcp == UPNP.UPNP_RESULT_SUCCESS:
+				print("External IP: ", upnp.query_external_address())
+				return true
+	
+	return false
+
+func cleanup_upnp():
+	if !is_host:
+		return
+		
+	var upnp = UPNP.new()
+	if upnp.discover() == UPNP.UPNP_RESULT_SUCCESS:
+		if upnp.get_gateway() and upnp.get_gateway().is_valid_gateway():
+			upnp.delete_port_mapping(PORT, "UDP")
+			upnp.delete_port_mapping(PORT, "TCP")
+
+func setup_network_discovery():
+	if is_host:
+		# Setup broadcasting socket
+		broadcast_socket = PacketPeerUDP.new()
+		broadcast_socket.set_broadcast_enabled(true)
+		broadcast_timer = Timer.new()
+		add_child(broadcast_timer)
+		broadcast_timer.wait_time = SERVER_BROADCAST_INTERVAL
+		broadcast_timer.timeout.connect(_broadcast_server_info)
+		broadcast_timer.start()
+	else:
+		# Setup listening socket
+		listen_socket = PacketPeerUDP.new()
+		var err = listen_socket.bind(BROADCAST_PORT)
+		if err == OK:
+			print("Listening for servers on port ", BROADCAST_PORT)
+		else:
+			print("Failed to bind discovery port: ", err)
+
+func _broadcast_server_info():
+	if !is_host or !broadcast_socket:
+		return
+		
+	var server_info = JSON.stringify({
+		"server_ip": get_local_ip(),
+		"server_port": PORT,
+		"players": players.size()
+	})
+	
+	broadcast_socket.set_dest_address("255.255.255.255", BROADCAST_PORT)
+	broadcast_socket.put_packet(server_info.to_utf8_buffer())
+
+func _process(_delta):
+	if !is_host and listen_socket:
+		if listen_socket.get_available_packet_count() > 0:
+			var server_ip = listen_socket.get_packet_ip()
+			var server_data_raw = listen_socket.get_packet()
+			var server_data_str = server_data_raw.get_string_from_utf8()
+			var server_info = JSON.parse_string(server_data_str)
+			
+			if server_info and server_info.has("server_ip"):
+				print("Found server at: ", server_info.server_ip)
+				connect_status.text = "Found server at: " + server_info.server_ip
+				attempt_connection(server_info.server_ip)
+				listen_socket = null  # Stop listening once we find a server
+	
+	# Check connection status
+	if multiplayer_peer:
+		match multiplayer_peer.get_connection_status():
+			MultiplayerPeer.CONNECTION_DISCONNECTED:
+				if peer_status != "Disconnected":
+					peer_status = "Disconnected"
+					connect_status.text = "Disconnected from server"
+					$UI/Menu.visible = true
+			MultiplayerPeer.CONNECTION_CONNECTED:
+				if peer_status != "Connected":
+					peer_status = "Connected"
+					connect_status.text = "Connected!"
+					$UI/Menu.visible = false
+
+func cleanup_network():
+	if broadcast_socket:
+		broadcast_socket.close()
+	if listen_socket:
+		listen_socket.close()
+	if broadcast_timer:
+		broadcast_timer.stop()
+	if multiplayer_peer:
+		multiplayer_peer.close()
+
+#func setup_network_discovery():
+	## Setup broadcast timer
+	#broadcast_timer = Timer.new()
+	#add_child(broadcast_timer)
+	#broadcast_timer.wait_time = 1.0
+	#broadcast_timer.timeout.connect(_on_broadcast_timer)
+	#
+	## Setup IP refresh timer
+	#ip_display_timer = Timer.new()
+	#add_child(ip_display_timer)
+	#ip_display_timer.wait_time = IP_REFRESH_INTERVAL
+	#ip_display_timer.timeout.connect(_refresh_ip_display)
+	#ip_display_timer.start()
+#
+#func _on_broadcast_timer():
+	#if discovery_socket and is_host:
+		#var msg = JSON.stringify({"game_port": PORT, "host_ip": get_local_ip()})
+		#discovery_socket.put_packet(msg.to_utf8_buffer())
+
+#func setup_mobile_network():
+	#discovery_socket = PacketPeerUDP.new()
+	#
+	## Trying to bind to broadcast port
+	#var err = discovery_socket.bind(BROADCAST_PORT)
+	#if err == OK:
+		#discovery_socket.set_broadcast_enabled(true)
+		#broadcast_timer.start()
+		#print("Network discovery enabled")
+	#else:
+		#print("Failed to bind discovery socket: ", err)
+	#
+	## Update UI with available IPs
+	#_refresh_ip_display()
+
+func _refresh_ip_display():
+	if !connect_status:
+		return
+		
+	var addresses = get_valid_ips()
+	var ip_text = "Available IPs:\n"
+	
+	for ip in addresses:
+		ip_text += ip + "\n"
+	
+	if is_host:
+		ip_text += "\nHosting on port: " + str(PORT)
+	
+	connect_status.text = ip_text
+
+func get_valid_ips() -> Array:
+	var valid_ips = []
+	var addresses = IP.get_local_addresses()
+	
+	for ip in addresses:
+		# Filter for valid IPv4 addresses
+		if ip.count(".") == 3 and not ip.begins_with("127."):
+			# Check for mobile-specific IP patterns
+			if ip.begins_with("192.168.") or \
+			   ip.begins_with("10.") or \
+			   ip.begins_with("172."):
+				valid_ips.append(ip)
+	
+	return valid_ips
+
+func _start_server_discovery():
+	if discovery_socket:
+		# Listen for broadcast messages
+		while discovery_socket.get_available_packet_count() > 0:
+			var packet = discovery_socket.get_packet()
+			var data_str = packet.get_string_from_utf8()
+			var server_data = JSON.parse_string(data_str)
+			
+			if server_data and server_data.has("host_ip") and server_data.has("game_port"):
+				print("Found server at: ", server_data.host_ip)
+				attempt_connection(server_data.host_ip)
+				return
+	
+	# Retry discovery after a delay if no server found
+	get_tree().create_timer(1.0).timeout.connect(_start_server_discovery)

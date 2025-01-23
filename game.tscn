@@ -276,45 +276,58 @@ anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -171.0
-offset_top = -324.5
-offset_bottom = 324.5
+offset_left = -228.0
+offset_top = -324.0
+offset_bottom = 325.0
 grow_horizontal = 0
 grow_vertical = 2
 
 [node name="Menu" type="VBoxContainer" parent="UI"]
+clip_contents = true
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -35.5
-offset_top = 8.0
-offset_right = 58.5
-offset_bottom = 74.0
+offset_left = -86.0
+offset_top = -91.5
+offset_right = 84.0
+offset_bottom = 107.5
 grow_horizontal = 2
 grow_vertical = 2
+alignment = 1
+
+[node name="ConnectStatus" type="Label" parent="UI/Menu"]
+layout_mode = 2
+text = "ConnectStatus"
 
 [node name="HostButton" type="Button" parent="UI/Menu"]
 z_index = 2
+custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 text = "Host Game"
 
 [node name="JoinButton" type="Button" parent="UI/Menu"]
 z_index = 2
+custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 text = "Join Game"
+
+[node name="IPInput" type="LineEdit" parent="UI/Menu"]
+layout_mode = 2
+size_flags_vertical = 3
+clear_button_enabled = true
 
 [node name="NetworkInfo" type="VBoxContainer" parent="UI"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -135.0
-offset_top = 286.5
-offset_right = -19.0
-offset_bottom = 309.5
+offset_left = -201.0
+offset_top = 203.0
+offset_right = -85.0
+offset_bottom = 226.0
 grow_horizontal = 0
 
 [node name="NetworkSideDisplay" type="Label" parent="UI/NetworkInfo"]
@@ -330,10 +343,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -27.5
-offset_top = 108.0
-offset_right = 50.5
-offset_bottom = 139.0
+offset_left = -20.0
+offset_top = 158.5
+offset_right = 58.0
+offset_bottom = 189.5
 grow_horizontal = 2
 grow_vertical = 2
 disabled = true
@@ -428,10 +441,10 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -47.5
-offset_top = 551.5
-offset_right = 54.5
-offset_bottom = 582.5
+offset_left = -28.0
+offset_top = 546.0
+offset_right = 74.0
+offset_bottom = 577.0
 grow_horizontal = 2
 text = "Roll Dice"
 
@@ -440,10 +453,10 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -47.5
-offset_top = 594.5
-offset_right = 54.5
-offset_bottom = 617.5
+offset_left = -28.0
+offset_top = 589.0
+offset_right = 74.0
+offset_bottom = 612.0
 grow_horizontal = 2
 text = "DICE LABEL"
 horizontal_alignment = 1
