@@ -269,7 +269,7 @@ offset_bottom = 70.0
 grow_horizontal = 0
 text = "Discard Card"
 
-[node name="UI" type="Control" parent="."]
+[node name="RightUI" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 6
 anchor_left = 1.0
@@ -282,7 +282,7 @@ offset_bottom = 325.0
 grow_horizontal = 0
 grow_vertical = 2
 
-[node name="Menu" type="VBoxContainer" parent="UI"]
+[node name="Menu" type="VBoxContainer" parent="RightUI"]
 clip_contents = true
 layout_mode = 1
 anchors_preset = 8
@@ -290,53 +290,55 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -86.0
-offset_top = -91.5
-offset_right = 84.0
-offset_bottom = 107.5
+offset_left = -84.0
+offset_top = -108.5
+offset_right = 86.0
+offset_bottom = 135.5
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 10
 alignment = 1
 
-[node name="ConnectStatus" type="Label" parent="UI/Menu"]
+[node name="ConnectStatus" type="Label" parent="RightUI/Menu"]
 layout_mode = 2
 text = "ConnectStatus"
+horizontal_alignment = 1
 
-[node name="HostButton" type="Button" parent="UI/Menu"]
+[node name="HostButton" type="Button" parent="RightUI/Menu"]
 z_index = 2
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 text = "Host Game"
 
-[node name="JoinButton" type="Button" parent="UI/Menu"]
+[node name="JoinButton" type="Button" parent="RightUI/Menu"]
 z_index = 2
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 text = "Join Game"
 
-[node name="IPInput" type="LineEdit" parent="UI/Menu"]
+[node name="IPInput" type="LineEdit" parent="RightUI/Menu"]
 layout_mode = 2
 size_flags_vertical = 3
 clear_button_enabled = true
 
-[node name="NetworkInfo" type="VBoxContainer" parent="UI"]
+[node name="NetworkInfo" type="VBoxContainer" parent="RightUI"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -201.0
-offset_top = 203.0
-offset_right = -85.0
-offset_bottom = 226.0
+offset_left = -200.0
+offset_top = 188.0
+offset_right = -29.0
+offset_bottom = 211.0
 grow_horizontal = 0
 
-[node name="NetworkSideDisplay" type="Label" parent="UI/NetworkInfo"]
+[node name="NetworkSideDisplay" type="Label" parent="RightUI/NetworkInfo"]
 layout_mode = 2
 text = "Not Connected"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="EndTurnButton" type="Button" parent="UI"]
+[node name="EndTurnButton" type="Button" parent="RightUI"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -352,7 +354,7 @@ grow_vertical = 2
 disabled = true
 text = "End Turn"
 
-[node name="TokenGrid" type="GridContainer" parent="UI"]
+[node name="TokenGrid" type="GridContainer" parent="RightUI"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -364,79 +366,79 @@ offset_bottom = 122.5
 grow_horizontal = 0
 columns = 3
 
-[node name="TokenButton1" type="Button" parent="UI/TokenGrid"]
+[node name="TokenButton1" type="Button" parent="RightUI/TokenGrid"]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "00"
 
-[node name="TokenButton2" type="Button" parent="UI/TokenGrid"]
+[node name="TokenButton2" type="Button" parent="RightUI/TokenGrid"]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "00"
 
-[node name="TokenButton3" type="Button" parent="UI/TokenGrid"]
+[node name="TokenButton3" type="Button" parent="RightUI/TokenGrid"]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "00"
 
-[node name="TokenButton4" type="Button" parent="UI/TokenGrid"]
+[node name="TokenButton4" type="Button" parent="RightUI/TokenGrid"]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "00"
 
-[node name="TokenButton5" type="Button" parent="UI/TokenGrid"]
+[node name="TokenButton5" type="Button" parent="RightUI/TokenGrid"]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "00"
 
-[node name="TokenButton6" type="Button" parent="UI/TokenGrid"]
+[node name="TokenButton6" type="Button" parent="RightUI/TokenGrid"]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "00"
 
-[node name="TokenButton7" type="Button" parent="UI/TokenGrid"]
+[node name="TokenButton7" type="Button" parent="RightUI/TokenGrid"]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "00"
 
-[node name="TokenButton8" type="Button" parent="UI/TokenGrid"]
+[node name="TokenButton8" type="Button" parent="RightUI/TokenGrid"]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "00"
 
-[node name="TokenButton9" type="Button" parent="UI/TokenGrid"]
+[node name="TokenButton9" type="Button" parent="RightUI/TokenGrid"]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "00"
 
-[node name="TokenButton10" type="Button" parent="UI/TokenGrid"]
+[node name="TokenButton10" type="Button" parent="RightUI/TokenGrid"]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "00"
 
-[node name="TokenButton11" type="Button" parent="UI/TokenGrid"]
+[node name="TokenButton11" type="Button" parent="RightUI/TokenGrid"]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "00"
 
-[node name="TokenButton12" type="Button" parent="UI/TokenGrid"]
+[node name="TokenButton12" type="Button" parent="RightUI/TokenGrid"]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "00"
 
-[node name="RollDiceButton" type="Button" parent="UI"]
+[node name="RollDiceButton" type="Button" parent="RightUI"]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -448,7 +450,7 @@ offset_bottom = 577.0
 grow_horizontal = 2
 text = "Roll Dice"
 
-[node name="RollResultLabel" type="Label" parent="UI"]
+[node name="RollResultLabel" type="Label" parent="RightUI"]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -460,6 +462,90 @@ offset_bottom = 612.0
 grow_horizontal = 2
 text = "DICE LABEL"
 horizontal_alignment = 1
+
+[node name="LeftUI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 170.0
+grow_vertical = 2
+size_flags_horizontal = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="LeftUI"]
+layout_mode = 1
+offset_left = 27.0
+offset_top = 22.0
+offset_right = 147.0
+offset_bottom = 123.0
+
+[node name="TriangleButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="LeftUI/VBoxContainer/TriangleButtons"]
+layout_mode = 2
+text = "Triangle"
+
+[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/TriangleButtons"]
+layout_mode = 2
+text = " + "
+
+[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/TriangleButtons"]
+layout_mode = 2
+text = " - "
+
+[node name="RectangleButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="LeftUI/VBoxContainer/RectangleButtons"]
+layout_mode = 2
+text = "Square  "
+
+[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/RectangleButtons"]
+layout_mode = 2
+text = " + "
+
+[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/RectangleButtons"]
+layout_mode = 2
+text = " - "
+
+[node name="CircleButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="LeftUI/VBoxContainer/CircleButtons"]
+layout_mode = 2
+text = "Circle     "
+
+[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/CircleButtons"]
+layout_mode = 2
+text = " + "
+
+[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/CircleButtons"]
+layout_mode = 2
+text = " - "
+
+[node name="StartGameButton" type="Button" parent="LeftUI"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 25.0
+offset_top = -76.0
+offset_right = 157.0
+offset_bottom = -25.0
+grow_vertical = 0
+text = "Start Game"
+
+[node name="PlayerList" type="ItemList" parent="LeftUI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 26.0
+offset_top = 393.0
+offset_right = -10.0
+offset_bottom = -135.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="HandAreas" type="Control" parent="."]
 clip_contents = true
@@ -526,69 +612,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.656615, 0, 0)
 [node name="CircleStack" type="Node3D" parent="PointCounter"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.78999)
 
-[node name="UI" type="Control" parent="PointCounter"]
-layout_mode = 3
-anchors_preset = 9
-anchor_bottom = 1.0
-offset_right = 279.0
-offset_bottom = -544.0
-grow_vertical = 2
-size_flags_horizontal = 4
-
-[node name="VBoxContainer" type="VBoxContainer" parent="PointCounter/UI"]
-layout_mode = 1
-offset_left = 27.0
-offset_top = 22.0
-offset_right = 147.0
-offset_bottom = 123.0
-
-[node name="TriangleButtons" type="HBoxContainer" parent="PointCounter/UI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="PointCounter/UI/VBoxContainer/TriangleButtons"]
-layout_mode = 2
-text = "Triangle"
-
-[node name="PlusButton" type="Button" parent="PointCounter/UI/VBoxContainer/TriangleButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="PointCounter/UI/VBoxContainer/TriangleButtons"]
-layout_mode = 2
-text = " - "
-
-[node name="SquareButtons" type="HBoxContainer" parent="PointCounter/UI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label2" type="Label" parent="PointCounter/UI/VBoxContainer/SquareButtons"]
-layout_mode = 2
-text = "Square  "
-
-[node name="PlusButton" type="Button" parent="PointCounter/UI/VBoxContainer/SquareButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="PointCounter/UI/VBoxContainer/SquareButtons"]
-layout_mode = 2
-text = " - "
-
-[node name="RectangleButtons" type="HBoxContainer" parent="PointCounter/UI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label3" type="Label" parent="PointCounter/UI/VBoxContainer/RectangleButtons"]
-layout_mode = 2
-text = "Circle     "
-
-[node name="PlusButton" type="Button" parent="PointCounter/UI/VBoxContainer/RectangleButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="PointCounter/UI/VBoxContainer/RectangleButtons"]
-layout_mode = 2
-text = " - "
-
 [connection signal="pressed" from="ResetButton" to="." method="_on_reset_button_pressed"]
 [connection signal="pressed" from="DiscardCardButton" to="." method="_on_discard_card_button_pressed"]
-[connection signal="button_down" from="UI/RollDiceButton" to="." method="_on_roll_dice_pressed"]
+[connection signal="button_down" from="RightUI/RollDiceButton" to="." method="_on_roll_dice_pressed"]
 [connection signal="pressed" from="DrawActionButton" to="." method="_on_draw_action_button_pressed"]
 [connection signal="pressed" from="DrawAreaButton" to="." method="_on_draw_area_button_pressed"]

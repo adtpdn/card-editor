@@ -17,6 +17,13 @@ const STACK_SPACING = 2.0  # Distance between stacks
 @onready var square_stack = $SquareStack
 @onready var circle_stack = $CircleStack
 
+@onready var btn_triangle_plus = $"../LeftUI/VBoxContainer/TriangleButtons/PlusButton"
+@onready var btn_triangle_min = $"../LeftUI/VBoxContainer/TriangleButtons/MinusButton"
+@onready var btn_rectangle_plus = $"../LeftUI/VBoxContainer/RectangleButtons/PlusButton"
+@onready var btn_rectangle_min = $"../LeftUI/VBoxContainer/RectangleButtons/MinusButton"
+@onready var btn_circle_plus = $"../LeftUI/VBoxContainer/CircleButtons/PlusButton"
+@onready var btn_circle_min = $"../LeftUI/VBoxContainer/CircleButtons/MinusButton"
+
 # Add multiplayer variables
 var current_turn_player_id: int = 1
 
@@ -67,12 +74,12 @@ func _ready():
 func connect_signals():
 	# Clear any existing connections first
 	var buttons = [
-		$UI/VBoxContainer/TriangleButtons/PlusButton,
-		$UI/VBoxContainer/TriangleButtons/MinusButton,
-		$UI/VBoxContainer/SquareButtons/PlusButton,
-		$UI/VBoxContainer/SquareButtons/MinusButton,
-		$UI/VBoxContainer/RectangleButtons/PlusButton,
-		$UI/VBoxContainer/RectangleButtons/MinusButton
+		btn_triangle_plus,
+		btn_triangle_min,
+		btn_rectangle_plus,
+		btn_rectangle_min,
+		btn_circle_plus,
+		btn_circle_min
 	]
 	
 	# Disconnect all existing connections safely
@@ -81,17 +88,17 @@ func connect_signals():
 			button.pressed.disconnect(on_button_pressed)
 	
 	# Reconnect with lambda functions
-	$UI/VBoxContainer/TriangleButtons/PlusButton.pressed.connect(
+	btn_triangle_plus.pressed.connect(
 		func(): on_button_pressed("triangle", 1))
-	$UI/VBoxContainer/TriangleButtons/MinusButton.pressed.connect(
+	btn_triangle_min.pressed.connect(
 		func(): on_button_pressed("triangle", -1))
-	$UI/VBoxContainer/SquareButtons/PlusButton.pressed.connect(
+	btn_rectangle_plus.pressed.connect(
 		func(): on_button_pressed("square", 1))
-	$UI/VBoxContainer/SquareButtons/MinusButton.pressed.connect(
+	btn_rectangle_min.pressed.connect(
 		func(): on_button_pressed("square", -1))
-	$UI/VBoxContainer/RectangleButtons/PlusButton.pressed.connect(
+	btn_circle_plus.pressed.connect(
 		func(): on_button_pressed("circle", 1))
-	$UI/VBoxContainer/RectangleButtons/MinusButton.pressed.connect(
+	btn_circle_min.pressed.connect(
 		func(): on_button_pressed("circle", -1))
 
 func on_button_pressed(region: String, delta: int):
@@ -258,12 +265,12 @@ func get_points(region: String) -> int:
 
 func set_buttons_enabled(enabled: bool):
 	var buttons = [
-		$UI/VBoxContainer/TriangleButtons/PlusButton,
-		$UI/VBoxContainer/TriangleButtons/MinusButton,
-		$UI/VBoxContainer/SquareButtons/PlusButton,
-		$UI/VBoxContainer/SquareButtons/MinusButton,
-		$UI/VBoxContainer/RectangleButtons/PlusButton,
-		$UI/VBoxContainer/RectangleButtons/MinusButton
+		btn_triangle_plus,
+		btn_triangle_min,
+		btn_rectangle_plus,
+		btn_rectangle_min,
+		btn_circle_plus,
+		btn_circle_min
 	]
 	
 	for button in buttons:

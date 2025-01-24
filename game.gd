@@ -104,7 +104,7 @@ var selected_token_biome = -1
 var selected_token_type = -1  # Add this line
 
 # Modified token button container setup
-@onready var token_grid = $UI/TokenGrid  # Change from TokenContainer to TokenGrid
+@onready var token_grid = $RightUI/TokenGrid  # Change from TokenContainer to TokenGrid
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Biome System Dependencies
@@ -144,16 +144,20 @@ const POINT_ADJUSTMENT_COOLDOWN = 0.25  # 250ms cooldown
 
 @onready var dice_manager: Node3D = $DiceManager
 @onready var point_counter = $PointCounter
-@onready var roll_result_label = $UI/RollResultLabel
+@onready var roll_result_label = $RightUI/RollResultLabel
 
 # Add new UI references
-@onready var ip_input = $UI/Menu/IPInput
-@onready var connect_status = $UI/Menu/ConnectStatus
+@onready var ip_input = $RightUI/Menu/IPInput
+@onready var connect_status = $RightUI/Menu/ConnectStatus
 
 # Add touch handling variables
 var touch_start_position = Vector2()
 var touch_threshold = 10  # pixels for drag detection
 var is_dragging = false
+
+# Add these new variables at the top
+@onready var player_list = $LeftUI/PlayerList
+@onready var start_game_button = $LeftUI/StartGameButton
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---    _Ready Initiation     ---
@@ -190,16 +194,16 @@ func _ready() -> void:
 	# Connect signals
 	action_deck.card_drawn.connect(_on_action_card_drawn)
 	area_deck.card_drawn.connect(_on_area_card_drawn)
-	$UI/Menu/HostButton.pressed.connect(_on_host_pressed)
-	$UI/Menu/JoinButton.pressed.connect(_on_join_pressed)
-	$UI/EndTurnButton.pressed.connect(_on_end_turn_pressed)
+	$RightUI/Menu/HostButton.pressed.connect(_on_host_pressed)
+	$RightUI/Menu/JoinButton.pressed.connect(_on_join_pressed)
+	$RightUI/EndTurnButton.pressed.connect(_on_end_turn_pressed)
 
 	# Setup multiplayer
 	multiplayer_peer.peer_connected.connect(_on_peer_connected)
 	multiplayer_peer.peer_disconnected.connect(_on_peer_disconnected)
 
 	# Turn off the end turn button
-	$UI/EndTurnButton.disabled = true
+	$RightUI/EndTurnButton.disabled = true
 	
 	# Dice Manager Initiated
 	dice_manager.roll_completed.connect(_on_dice_roll_completed)
@@ -227,7 +231,7 @@ func _ready() -> void:
 			)
 	
 	# Token Buttons disabled by default
-	var token_buttons = $UI/TokenGrid.get_children()
+	var token_buttons = $RightUI/TokenGrid.get_children()
 	for button in token_buttons:
 		button.disabled = true
 		button.visible = false
@@ -247,6 +251,12 @@ func _ready() -> void:
 
 	if is_mobile:
 		setup_network_discovery()
+	
+	# Connect the start game button
+	start_game_button.pressed.connect(_on_start_game_pressed)
+	
+	# Hide the start game button initially
+	start_game_button.visible = false
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---    Host/Client Logic     ---
@@ -268,7 +278,7 @@ func _on_host_pressed():
 			else:
 				connect_status.text += "\nUPnP setup failed, port forwarding may be needed"
 		
-		$UI/NetworkInfo/NetworkSideDisplay.text = "Server"
+		$RightUI/NetworkInfo/NetworkSideDisplay.text = "Server"
 		connect_status.text += "\nServer running on: " + host_ip + ":" + str(PORT)
 		
 		multiplayer.multiplayer_peer = multiplayer_peer
@@ -329,7 +339,7 @@ func attempt_connection(target_ip: String):
 	var error = multiplayer_peer.create_client(target_ip, PORT)
 	if error == OK:
 		multiplayer.multiplayer_peer = multiplayer_peer
-		$UI/NetworkInfo/NetworkSideDisplay.text = "Client"
+		$RightUI/NetworkInfo/NetworkSideDisplay.text = "Client"
 	else:
 		connect_status.text = "Connection failed: " + str(error)
 		# Retry after delay
@@ -390,6 +400,9 @@ func _on_peer_connected(new_peer_id):
 		rpc_id(new_peer_id, "sync_player_tokens", player_tokens)
 		
 		setup_player(new_peer_id)
+		
+		# Update the player list UI
+		update_player_list()
 
 func _on_peer_disconnected(peer_id):
 	if peer_id == null or peer_id == 0:  # Check for both null and invalid ID
@@ -408,6 +421,45 @@ func _on_peer_disconnected(peer_id):
 	
 	if multiplayer.is_server():
 		rpc("remove_player", peer_id)
+		
+		# Update the player list UI
+		update_player_list()
+
+func update_player_list():
+	player_list.clear()
+	for player_id in players:
+		var player_name = "P_" + str(player_id)
+		player_list.add_item(player_name)
+	
+	# Show the start game button if there are players
+	start_game_button.visible = players.size() > 0
+
+func _on_start_game_pressed():
+	if multiplayer.is_server():
+		var selected_index = player_list.get_selected_items()[0]
+		if selected_index != -1:
+			var first_player_id = players[selected_index]
+			start_game_with_first_player(first_player_id)
+
+func start_game_with_first_player(first_player_id):
+	if multiplayer.is_server():
+		game_started = true
+		current_turn_index = players.find(first_player_id)
+		if players.size() > 0:
+			print("\n=== Starting Game ===")
+			print("Initial players: ", players)
+			print("Starting turn index: ", current_turn_index)
+			
+			# Sync game start to all clients
+			rpc("sync_game_start", players)
+			
+			# Set initial turn
+			print("First player: ", first_player_id)
+			rpc("set_current_turn", first_player_id)
+			
+			print("=== Game Start Complete ===\n")
+		else:
+			print("No players available to start game")
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # --- Control / Input Handling ---
@@ -788,7 +840,7 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 		update_token_ui(tokens)
 
 func reset_token_buttons():
-	var token_buttons = $UI/TokenGrid.get_children()
+	var token_buttons = $RightUI/TokenGrid.get_children()
 	for button in token_buttons:
 		# Disconnect any existing signals
 		if button.pressed.is_connected(_on_token_selected):
@@ -1540,7 +1592,7 @@ func set_current_turn(player_id):
 	if player_id == local_id:
 		# Enable controls for local player
 		player_hand.set_interaction_enabled(true)
-		$UI/EndTurnButton.disabled = false
+		$RightUI/EndTurnButton.disabled = false
 		if point_counter:
 			point_counter.set_buttons_enabled(true)
 			point_counter.update_all_stacks()
@@ -1563,7 +1615,7 @@ func set_current_turn(player_id):
 	else:
 		# Disable controls for non-local player
 		player_hand.set_interaction_enabled(false)
-		$UI/EndTurnButton.disabled = true
+		$RightUI/EndTurnButton.disabled = true
 		if point_counter:
 			point_counter.set_buttons_enabled(false)
 			point_counter.update_all_stacks()
@@ -1581,11 +1633,11 @@ func is_valid_turn_index() -> bool:
 
 func enable_player_turn():
 	player_hand.set_interaction_enabled(true)
-	$UI/EndTurnButton.disabled = false
+	$RightUI/EndTurnButton.disabled = false
 
 func disable_player_turn():
 	player_hand.set_interaction_enabled(false)
-	$UI/EndTurnButton.disabled = true
+	$RightUI/EndTurnButton.disabled = true
 
 # ╭──────────────────────────────╮
 # |  Turn Manager - Next Turn    |
@@ -1650,7 +1702,7 @@ func _on_end_turn_pressed():
 	if multiplayer.is_server():
 		# Disable current player's controls immediately
 		player_hand.set_interaction_enabled(false)
-		$UI/EndTurnButton.disabled = true
+		$RightUI/EndTurnButton.disabled = true
 		if point_counter:
 			point_counter.set_buttons_enabled(false)
 		
@@ -1658,7 +1710,7 @@ func _on_end_turn_pressed():
 	else:
 		# Client requests turn end
 		player_hand.set_interaction_enabled(false)
-		$UI/EndTurnButton.disabled = true
+		$RightUI/EndTurnButton.disabled = true
 		if point_counter:
 			point_counter.set_buttons_enabled(false)
 			
@@ -1921,12 +1973,12 @@ func _process(_delta):
 				if peer_status != "Disconnected":
 					peer_status = "Disconnected"
 					connect_status.text = "Disconnected from server"
-					$UI/Menu.visible = true
+					$RightUI/Menu.visible = true
 			MultiplayerPeer.CONNECTION_CONNECTED:
 				if peer_status != "Connected":
 					peer_status = "Connected"
 					connect_status.text = "Connected!"
-					$UI/Menu.visible = false
+					$RightUI/Menu.visible = false
 
 func cleanup_network():
 	if broadcast_socket:
