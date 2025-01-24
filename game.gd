@@ -598,12 +598,6 @@ func setup_token_placements():
 			$TokenPlacements.add_child(token_placement,true)
 			token_placement.global_position = pos
 			placements_per_biome[biome] += 1
-	
-	# Debug print final counts
-	#for biome in placements_per_biome.keys():
-		#
-		#print("Total placements for biome ", TokenManager.BiomeType.keys()[biome], 
-			  #": ", placements_per_biome[biome])
 
 # ╭──────────────────────────────╮
 # |  Token - Slice Position Gen  |
@@ -861,60 +855,6 @@ func update_all_players_tokens():
 			# Update clients
 			rpc_id(pid, "sync_player_tokens", updated_tokens)
 
-#func update_token_ui(tokens: Array):
-	#var player_id = multiplayer.get_unique_id()
-	#var current_player = players[current_turn_index] if current_turn_index >= 0 and current_turn_index < players.size() else -1
-	#var is_my_turn = current_player == player_id
-	#
-	## Get all token buttons
-	#var token_buttons = $UI/TokenContainer.get_children()
-	#print("Updating token UI - Player: ", player_id, " Is my turn: ", is_my_turn)
-	#
-	## Reset all buttons first
-	#for button in token_buttons:
-		#button.visible = true
-		#button.disabled = true
-		#button.modulate = Color(0.5, 0.5, 0.5, 0.5)
-		## Disconnect any existing signals
-		#if button.pressed.is_connected(_on_token_selected):
-			#button.pressed.disconnect(_on_token_selected)
-	#
-	## Only proceed if it's player's turn
-	#if !is_my_turn:
-		#return
-	#
-	## Create a map of available tokens by biome
-	#var available_tokens = {}
-	#for token in tokens:
-		#var biome = int(token.biome)
-		#if !available_tokens.has(biome):
-			#available_tokens[biome] = 0
-		#available_tokens[biome] += 1
-	#
-	#print("Available tokens: ", available_tokens)
-	#
-	## Update buttons based on available tokens
-	#for biome in TokenManager.BiomeType.values():
-		#var button_index = biome
-		#if button_index < token_buttons.size():
-			#var button = token_buttons[button_index]
-			#var biome_int = int(biome)
-			#
-			#button.text = "Token (%s)" % TokenManager.BiomeType.keys()[biome]
-			#
-			## Enable button if tokens are available for this biome
-			#if available_tokens.has(biome_int) and available_tokens[biome_int] > 0:
-				#button.disabled = false
-				#button.modulate = Color(1, 1, 1, 1)
-				#
-				## Connect signal for enabled buttons
-				#if !button.pressed.is_connected(_on_token_selected.bind(biome_int)):
-					#button.pressed.connect(func(): _on_token_selected(biome_int))
-				#
-				## Highlight if this biome is currently selected
-				#if selected_token_index == biome_int:
-					#button.modulate = Color(1.2, 1.2, 0.8, 1)
-
 func update_token_ui(tokens: Array):
 	var player_id = multiplayer.get_unique_id()
 	var is_my_turn = is_valid_player_turn(player_id)
@@ -1004,42 +944,6 @@ func _on_token_placed(token: Node3D, placement_location: Node3D):
 	# Unhighlight all placement locations
 	unhighlight_all_token_placements()
 	selected_token_index = -1  # Reset selected token
-
-#func _on_token_selected(token_index: int):
-	#if !is_valid_player_turn(multiplayer.get_unique_id()):
-		#selected_token_index = -1
-		#reset_token_buttons()
-		#return
-		#
-	#var current_time = Time.get_ticks_msec() / 1000.0
-	#if current_time - last_token_selection_time < TOKEN_PLACEMENT_COOLDOWN:
-		#return
-	#
-	#last_token_selection_time = current_time
-	#
-	## If selecting the same token, deselect it
-	#if selected_token_index == token_index:
-		#selected_token_index = -1
-		#unhighlight_all_token_placements()
-		#reset_token_buttons()
-		#var tokens = token_manager.get_player_tokens(multiplayer.get_unique_id())
-		#update_token_ui(tokens)
-		#return
-	#
-	## Reset previous selection
-	#reset_token_buttons()
-	#selected_token_index = token_index
-	#var tokens = token_manager.get_player_tokens(multiplayer.get_unique_id())
-	#
-	## Highlight all unoccupied placement locations
-	#var valid_placements = 0
-	#for placement in $TokenPlacements.get_children():
-		#if !placement.is_occupied:
-			#placement.set_highlight(true)
-			#valid_placements += 1
-	#
-	## Update UI to show selection
-	#update_token_ui(tokens)
 
 func _on_token_selected(biome: int, type: int):
 	if !is_valid_player_turn(multiplayer.get_unique_id()):
@@ -2034,40 +1938,6 @@ func cleanup_network():
 	if multiplayer_peer:
 		multiplayer_peer.close()
 
-#func setup_network_discovery():
-	## Setup broadcast timer
-	#broadcast_timer = Timer.new()
-	#add_child(broadcast_timer)
-	#broadcast_timer.wait_time = 1.0
-	#broadcast_timer.timeout.connect(_on_broadcast_timer)
-	#
-	## Setup IP refresh timer
-	#ip_display_timer = Timer.new()
-	#add_child(ip_display_timer)
-	#ip_display_timer.wait_time = IP_REFRESH_INTERVAL
-	#ip_display_timer.timeout.connect(_refresh_ip_display)
-	#ip_display_timer.start()
-#
-#func _on_broadcast_timer():
-	#if discovery_socket and is_host:
-		#var msg = JSON.stringify({"game_port": PORT, "host_ip": get_local_ip()})
-		#discovery_socket.put_packet(msg.to_utf8_buffer())
-
-#func setup_mobile_network():
-	#discovery_socket = PacketPeerUDP.new()
-	#
-	## Trying to bind to broadcast port
-	#var err = discovery_socket.bind(BROADCAST_PORT)
-	#if err == OK:
-		#discovery_socket.set_broadcast_enabled(true)
-		#broadcast_timer.start()
-		#print("Network discovery enabled")
-	#else:
-		#print("Failed to bind discovery socket: ", err)
-	#
-	## Update UI with available IPs
-	#_refresh_ip_display()
-
 func _refresh_ip_display():
 	if !connect_status:
 		return
@@ -2113,3 +1983,8 @@ func _start_server_discovery():
 	
 	# Retry discovery after a delay if no server found
 	get_tree().create_timer(1.0).timeout.connect(_start_server_discovery)
+
+func _notification(what):
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		cleanup_network()
+		get_tree().quit()
