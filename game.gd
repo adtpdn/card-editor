@@ -337,6 +337,7 @@ func attempt_connection(target_ip: String):
 	connect_status.text = "Connecting to " + target_ip + "... (Attempt " + str(connect_retries) + ")"
 	
 	var error = multiplayer_peer.create_client(target_ip, PORT)
+	print("error : ", error)
 	if error == OK:
 		multiplayer.multiplayer_peer = multiplayer_peer
 		$RightUI/NetworkInfo/NetworkSideDisplay.text = "Client"
