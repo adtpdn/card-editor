@@ -811,7 +811,6 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	if !placement:
 		return
 	
-	# Remove biome type check, only check if occupied
 	if placement.is_occupied:
 		return
 	
@@ -823,7 +822,25 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	var biome_type = int(token_data.biome) if token_data.has("biome") else 0
 	var token_type = int(token_data.type) if token_data.has("type") else 0
 	
-	token.set_token_data(biome_type, token_type, player_id)
+	# Determine token status and biome type based on parent node
+	var token_status = TokenManager.TokenStatus.COMMON
+	var parent_name = placement.get_parent().name
+	
+	# Check if placement is in an engine node
+	if parent_name.begins_with("TokenEngine"):
+		token_status = TokenManager.TokenStatus.ENGINE
+	
+	# Override biome type based on parent node
+	if parent_name == "TokenPlacementForest":
+		biome_type = TokenManager.BiomeType.FOREST
+	elif parent_name == "TokenPlacementDesert":
+		biome_type = TokenManager.BiomeType.DESERT
+	elif parent_name == "TokenPlacementMountain":
+		biome_type = TokenManager.BiomeType.MOUNTAIN
+	elif parent_name == "TokenPlacementWater":
+		biome_type = TokenManager.BiomeType.WATER
+	
+	token.set_token_data(biome_type, token_type, player_id, token_status)
 	token.global_position = position
 	
 	# Mark placement as occupied

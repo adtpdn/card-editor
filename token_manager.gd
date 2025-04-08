@@ -4,6 +4,7 @@ extends Node
 
 enum BiomeType {FOREST, DESERT, MOUNTAIN, WATER}
 enum TokenType {TRIANGLE, SQUARE, CIRCLE}
+enum TokenStatus {COMMON, ENGINE}
 
 var player_tokens = {}
 const TOKENS_PER_PLAYER = 12  # Change from 4 to 12 tokens per player

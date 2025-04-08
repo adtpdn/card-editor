@@ -2,9 +2,12 @@ extends Node3D
 
 enum BiomeType {FOREST, DESERT, MOUNTAIN, WATER}
 enum TokenType {TRIANGLE, SQUARE, CIRCLE}
+enum TokenStatus {COMMON, ENGINE}
 
 var biome_type: BiomeType
 var token_type: TokenType
+var token_status: TokenStatus = TokenStatus.COMMON
+
 @onready var outline_mesh: MeshInstance3D = $OutlineMesh  # Outer ring mesh
 @onready var token_mesh: MeshInstance3D = $TokenMesh  # Inner token mesh
 @onready var mesh_instance: MeshInstance3D = $MeshInstance3D
@@ -33,11 +36,12 @@ const PLAYER_COLORS = {
 	4: Color(1, 1, 0)      # Player 4 (Yellow)
 }
 
-func set_token_data(b_type: BiomeType, t_type: TokenType, p_id: int = -1):
-	print("Setting token data - Biome: ", b_type, " Type: ", t_type, " Owner: ", p_id)
+func set_token_data(b_type: BiomeType, t_type: TokenType, p_id: int = -1, status: TokenStatus = TokenStatus.COMMON):
+	print("Setting token data - Biome: ", b_type, " Type: ", t_type, " Owner: ", p_id, " Status: ", status)
 	biome_type = b_type
 	token_type = t_type
 	owner_id = p_id
+	token_status = status
 	
 	# Update mesh based on type
 	if TYPE_MESHES.has(token_type):
