@@ -808,10 +808,7 @@ func sync_player_tokens(tokens: Array):
 @rpc("any_peer", "call_local")
 func sync_token_placement(player_id: int, token_data: Dictionary, position: Vector3):
 	var placement = get_token_placement_at_position(position)
-	if !placement:
-		return
-	
-	if placement.is_occupied:
+	if !placement or placement.is_occupied:
 		return
 	
 	# Create and place the token
@@ -840,22 +837,35 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	elif parent_name == "TokenPlacementWater":
 		biome_type = TokenManager.BiomeType.WATER
 	
+	# Create complete token data
+	var complete_token_data = {
+		"biome": biome_type,
+		"type": token_type,
+		"status": token_status
+	}
+	
+	# Add to placed tokens in token manager
+	token_manager.add_placed_token(player_id, complete_token_data, position)
+	
+	# Set token data and position
 	token.set_token_data(biome_type, token_type, player_id, token_status)
 	token.global_position = position
 	
 	# Mark placement as occupied
 	placement.set_occupied(true)
 	
-	# Reset selection state but maintain button enablement
+	# Reset selection state
 	selected_token_index = -1
 	unhighlight_all_token_placements()
 	
-	# Update UI for the current player regardless of host/client status
-	var local_id = multiplayer.get_unique_id()
-	if local_id == players[current_turn_index]:
-		# Get latest token data for the current player
-		var tokens = token_manager.get_player_tokens(local_id)
-		update_token_ui(tokens)
+	# Update UI
+	if multiplayer.get_unique_id() == players[current_turn_index]:
+		update_token_ui(token_manager.get_player_tokens(multiplayer.get_unique_id()))
+	
+	var counts = token_manager.get_token_counts(player_id)
+	print("Placed tokens: ", counts.placed)
+	print("Unplaced tokens: ", counts.unplaced)
+	print("Total tokens: ", counts.total)
 
 func reset_token_buttons():
 	var token_buttons = $RightUI/TokenGrid.get_children()
