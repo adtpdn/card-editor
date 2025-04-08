@@ -571,7 +571,7 @@ func sync_existing_game_state(new_peer_id: int):
 	
 	# Sync occupied locations
 	var occupied_locations = []
-	for placement in $TokenPlacements.get_children():
+	for placement in $TokenPlacements.token_placements:
 		if placement.is_occupied:
 			occupied_locations.append(placement.global_position)
 	
@@ -620,7 +620,7 @@ func setup_token_placements():
 	var token_placement_scene = preload("res://token_placement_location.tscn")
 	
 	# Clear existing placements
-	for child in $TokenPlacements.get_children():
+	for child in $TokenPlacements.token_placements:
 		child.queue_free()
 	
 	var placements_per_biome = {}
@@ -972,7 +972,7 @@ func notify_invalid_placement():
 	update_token_ui(tokens)
 
 func get_token_placement_at_position(pos: Vector3) -> Node:
-	for placement in $TokenPlacements.get_children():
+	for placement in $TokenPlacements.token_placements:
 		if placement.global_position.distance_to(pos) < 0.1:
 			#print("Found token placement at ", pos)
 			return placement
@@ -1029,7 +1029,7 @@ func _on_token_selected(biome: int, type: int):
 	
 	# Highlight all unoccupied placement locations
 	var valid_placements = 0
-	for placement in $TokenPlacements.get_children():
+	for placement in $TokenPlacements.token_placements:
 		if !placement.is_occupied:
 			placement.set_highlight(true)
 			valid_placements += 1
@@ -1038,7 +1038,7 @@ func _on_token_selected(biome: int, type: int):
 	update_token_ui(tokens)
 
 func unhighlight_all_token_placements():
-	for placement in $TokenPlacements.get_children():
+	for placement in $TokenPlacements.token_placements:
 		placement.set_highlight(false)
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -1882,17 +1882,30 @@ func setup_mobile_network():
 
 func get_local_ip() -> String:
 	var addresses = IP.get_local_addresses()
+	#print("address : ", addresses)
 	
-	# First try to find a non-localhost IPv4 address
+	# Priority 1: Find a 192.168.x.x address (common home/office network)
 	for ip in addresses:
-		if ip.count(".") == 3 and not ip.begins_with("127."):
+		if ip.begins_with("192.168."):
 			return ip
 	
-	# If no suitable IP found, return the first IPv4 address
+	# Priority 2: Find other common private network addresses
 	for ip in addresses:
-		if ip.count(".") == 3:
+		if ip.begins_with("10.") or ip.begins_with("172.16.") or ip.begins_with("172.17.") or \
+		   ip.begins_with("172.18.") or ip.begins_with("172.19.") or ip.begins_with("172.2") or \
+		   ip.begins_with("172.30.") or ip.begins_with("172.31."):
 			return ip
-			
+	
+	# Priority 3: Only use link-local as a last resort before localhost
+	for ip in addresses:
+		if ip.begins_with("169.254."):
+			return ip
+	
+	# Priority 4: Use localhost if nothing else is available
+	for ip in addresses:
+		if ip == "127.0.0.1":
+			return ip
+	
 	return "IP not found"
 
 func setup_upnp() -> bool:

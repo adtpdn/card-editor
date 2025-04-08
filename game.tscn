@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=21 format=3 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" path="res://game.gd" id="1_0rb8f"]
 [ext_resource type="Script" path="res://hand.gd" id="2_drdp6"]
@@ -8,6 +8,7 @@
 [ext_resource type="Resource" uid="uid://jby5l2ek6uel" path="res://cards/action_cards.tres" id="4_tg8ug"]
 [ext_resource type="Resource" uid="uid://dvmue13fxi5od" path="res://cards/area_cards.tres" id="5_ti4wn"]
 [ext_resource type="PackedScene" uid="uid://cqkw6uj4kgxav" path="res://token_placement_location_magic.tscn" id="6_aclfe"]
+[ext_resource type="Script" path="res://token_placements.gd" id="6_lfyqs"]
 [ext_resource type="PackedScene" uid="uid://u5swx58xo14j" path="res://token_placement_location.tscn" id="7_i0rid"]
 [ext_resource type="Material" uid="uid://l6qa3myb6cds" path="res://assets/transparent_material.tres" id="7_l1bdx"]
 [ext_resource type="PackedScene" uid="uid://3blq6hslbv2" path="res://dice_manager.tscn" id="7_p3vul"]
@@ -59,109 +60,118 @@ deck_resource = ExtResource("5_ti4wn")
 deck_name = "Area Cards"
 
 [node name="TokenPlacements" type="Node3D" parent="."]
+script = ExtResource("6_lfyqs")
 
-[node name="TokenPlacementLocation_M_1" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineForest" type="Node3D" parent="TokenPlacements"]
+
+[node name="TokenEngineForest_1" parent="TokenPlacements/TokenEngineForest" instance=ExtResource("6_aclfe")]
 transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, -4.98579, 0, -6)
 
-[node name="TokenPlacementLocation_M_2" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineForest_2" parent="TokenPlacements/TokenEngineForest" instance=ExtResource("6_aclfe")]
 transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, -5.49289, 0, -6.50711)
 
-[node name="TokenPlacementLocation_M_3" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineForest_3" parent="TokenPlacements/TokenEngineForest" instance=ExtResource("6_aclfe")]
 transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, -6, 0, -7.01421)
 
-[node name="TokenPlacementLocation_M_4" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineForest_4" parent="TokenPlacements/TokenEngineForest" instance=ExtResource("6_aclfe")]
 transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, -6, 0, -4.98579)
 
-[node name="TokenPlacementLocation_M_5" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineForest_5" parent="TokenPlacements/TokenEngineForest" instance=ExtResource("6_aclfe")]
 transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, -6.50711, 0, -5.49289)
 
-[node name="TokenPlacementLocation_M_6" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineForest_6" parent="TokenPlacements/TokenEngineForest" instance=ExtResource("6_aclfe")]
 transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, -7.01421, 0, -6)
 
-[node name="TokenPlacementLocation_M_7" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineForest_7" parent="TokenPlacements/TokenEngineForest" instance=ExtResource("6_aclfe")]
 transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, -6, 0, -6)
 
-[node name="TokenPlacementLocation_M_8" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineDesert" type="Node3D" parent="TokenPlacements"]
+
+[node name="TokenEngineDesert_1" parent="TokenPlacements/TokenEngineDesert" instance=ExtResource("6_aclfe")]
 transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -6, 0, 4.98579)
 accepted_biome = 1
 
-[node name="TokenPlacementLocation_M_9" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineDesert_2" parent="TokenPlacements/TokenEngineDesert" instance=ExtResource("6_aclfe")]
 transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -6.50711, 0, 5.49289)
 accepted_biome = 1
 
-[node name="TokenPlacementLocation_M_10" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineDesert_3" parent="TokenPlacements/TokenEngineDesert" instance=ExtResource("6_aclfe")]
 transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -7.01421, 0, 6)
 accepted_biome = 1
 
-[node name="TokenPlacementLocation_M_11" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineDesert_4" parent="TokenPlacements/TokenEngineDesert" instance=ExtResource("6_aclfe")]
 transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -4.98579, 0, 6)
 accepted_biome = 1
 
-[node name="TokenPlacementLocation_M_12" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineDesert_5" parent="TokenPlacements/TokenEngineDesert" instance=ExtResource("6_aclfe")]
 transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -5.49289, 0, 6.50711)
 accepted_biome = 1
 
-[node name="TokenPlacementLocation_M_13" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineDesert_6" parent="TokenPlacements/TokenEngineDesert" instance=ExtResource("6_aclfe")]
 transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -6, 0, 7.01421)
 accepted_biome = 1
 
-[node name="TokenPlacementLocation_M_14" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineDesert_7" parent="TokenPlacements/TokenEngineDesert" instance=ExtResource("6_aclfe")]
 transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -6, 0, 6)
 accepted_biome = 1
 
-[node name="TokenPlacementLocation_M_15" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineMountain" type="Node3D" parent="TokenPlacements"]
+
+[node name="TokenEngineMountain_1" parent="TokenPlacements/TokenEngineMountain" instance=ExtResource("6_aclfe")]
 transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 4.98579, 0, 6)
 accepted_biome = 2
 
-[node name="TokenPlacementLocation_M_16" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineMountain_2" parent="TokenPlacements/TokenEngineMountain" instance=ExtResource("6_aclfe")]
 transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 5.49289, 0, 6.50711)
 accepted_biome = 2
 
-[node name="TokenPlacementLocation_M_17" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineMountain_3" parent="TokenPlacements/TokenEngineMountain" instance=ExtResource("6_aclfe")]
 transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 6, 0, 7.01421)
 accepted_biome = 2
 
-[node name="TokenPlacementLocation_M_18" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineMountain_4" parent="TokenPlacements/TokenEngineMountain" instance=ExtResource("6_aclfe")]
 transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 6, 0, 4.98579)
 accepted_biome = 2
 
-[node name="TokenPlacementLocation_M_19" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineMountain_5" parent="TokenPlacements/TokenEngineMountain" instance=ExtResource("6_aclfe")]
 transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 6.50711, 0, 5.49289)
 accepted_biome = 2
 
-[node name="TokenPlacementLocation_M_20" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineMountain_6" parent="TokenPlacements/TokenEngineMountain" instance=ExtResource("6_aclfe")]
 transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 7.01421, 0, 6)
 accepted_biome = 2
 
-[node name="TokenPlacementLocation_M_21" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineMountain_7" parent="TokenPlacements/TokenEngineMountain" instance=ExtResource("6_aclfe")]
 transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 6, 0, 6)
 accepted_biome = 2
 
-[node name="TokenPlacementLocation_M_22" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineWater" type="Node3D" parent="TokenPlacements"]
+
+[node name="TokenEngineWater_1" parent="TokenPlacements/TokenEngineWater" instance=ExtResource("6_aclfe")]
 transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 6, 0, -4.98579)
 accepted_biome = 3
 
-[node name="TokenPlacementLocation_M_23" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineWater_2" parent="TokenPlacements/TokenEngineWater" instance=ExtResource("6_aclfe")]
 transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 6.50711, 0, -5.49289)
 accepted_biome = 3
 
-[node name="TokenPlacementLocation_M_24" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineWater_3" parent="TokenPlacements/TokenEngineWater" instance=ExtResource("6_aclfe")]
 transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 7.01421, 0, -6)
 accepted_biome = 3
 
-[node name="TokenPlacementLocation_M_25" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineWater_4" parent="TokenPlacements/TokenEngineWater" instance=ExtResource("6_aclfe")]
 transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 4.98579, 0, -6)
 accepted_biome = 3
 
-[node name="TokenPlacementLocation_M_26" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineWater_5" parent="TokenPlacements/TokenEngineWater" instance=ExtResource("6_aclfe")]
 transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 5.49289, 0, -6.50711)
 accepted_biome = 3
 
-[node name="TokenPlacementLocation_M_27" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineWater_6" parent="TokenPlacements/TokenEngineWater" instance=ExtResource("6_aclfe")]
 transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 6, 0, -7.01421)
 accepted_biome = 3
 
-[node name="TokenPlacementLocation_M_28" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+[node name="TokenEngineWater_7" parent="TokenPlacements/TokenEngineWater" instance=ExtResource("6_aclfe")]
 transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 6, 0, -6)
 accepted_biome = 3
 
