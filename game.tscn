@@ -1,8 +1,8 @@
 [gd_scene load_steps=20 format=3 uid="uid://dpmxlw8f4fyvd"]
 
-[ext_resource type="Script" path="res://game.gd" id="1_0rb8f"]
-[ext_resource type="Script" path="res://hand.gd" id="2_drdp6"]
-[ext_resource type="Script" path="res://token_manager.gd" id="2_njql7"]
+[ext_resource type="Script" uid="uid://dxw30a06jy1ob" path="res://game.gd" id="1_0rb8f"]
+[ext_resource type="Script" uid="uid://c2tr7drd8erxt" path="res://hand.gd" id="2_drdp6"]
+[ext_resource type="Script" uid="uid://yvstv6ykg660" path="res://token_manager.gd" id="2_njql7"]
 [ext_resource type="Curve" uid="uid://dtskme7prx4g5" path="res://hand_y_curve.tres" id="3_jwe8m"]
 [ext_resource type="Curve" uid="uid://dwkwcluylhkq0" path="res://hand_rotation_curve.tres" id="4_lbysu"]
 [ext_resource type="Resource" uid="uid://jby5l2ek6uel" path="res://cards/action_cards.tres" id="4_tg8ug"]
@@ -12,9 +12,9 @@
 [ext_resource type="Material" uid="uid://l6qa3myb6cds" path="res://assets/transparent_material.tres" id="7_l1bdx"]
 [ext_resource type="PackedScene" uid="uid://3blq6hslbv2" path="res://dice_manager.tscn" id="7_p3vul"]
 [ext_resource type="Shape3D" uid="uid://gjjokcof6ivg" path="res://cards/card_3d_collision.tres" id="11_1ew6f"]
-[ext_resource type="Script" path="res://point_counter.gd" id="11_beb7m"]
-[ext_resource type="Script" path="res://deck_location.gd" id="12_8ltkn"]
-[ext_resource type="Script" path="res://planting_location.gd" id="13_u747q"]
+[ext_resource type="Script" uid="uid://dsckm3ue38tnq" path="res://point_counter.gd" id="11_beb7m"]
+[ext_resource type="Script" uid="uid://cfsntbrmww4pn" path="res://deck_location.gd" id="12_8ltkn"]
+[ext_resource type="Script" uid="uid://tyi1lrpkp76k" path="res://planting_location.gd" id="13_u747q"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cu6c3"]
 albedo_color = Color(0.42, 0.42, 0.42, 1)
