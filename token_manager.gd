@@ -11,6 +11,8 @@ var placed_tokens = {}  # Placed tokens
 const TOKENS_PER_PLAYER = 12
 const MAX_TOKENS_PER_BIOME = 12
 
+var counts = {}
+
 signal token_placed(player_id: int, biome: BiomeType, token_type: TokenType, location: Vector3)
 
 var token_scene = preload("res://token_3d.tscn")
@@ -102,10 +104,14 @@ func set_player_tokens(player_id: int, tokens: Array):
 
 # Helper function to get token counts
 func get_token_counts(player_id: int) -> Dictionary:
-	var counts = {
+	counts = {
 		"placed": placed_tokens.get(player_id, []).size(),
 		"unplaced": player_tokens.get(player_id, []).size(),
 		"total": 0
 	}
 	counts.total = counts.placed + counts.unplaced
+	print("")
+	print("player tokens : ", player_tokens)
+	print("placed tokens : ", placed_tokens)
+	print("counts : ", counts)
 	return counts
