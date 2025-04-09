@@ -225,9 +225,14 @@ func _ready() -> void:
 		if multiplayer.is_server():
 			# Initial sync of points
 			point_counter.rpc("sync_point_values", 
-				point_counter.triangle_points,
-				point_counter.square_points,
-				point_counter.circle_points
+				point_counter.forest_points,
+				point_counter.desert_points,
+				point_counter.mountain_points,
+				point_counter.water_points,
+				point_counter.forest_magic_points,
+				point_counter.desert_magic_points,
+				point_counter.mountain_magic_points,
+				point_counter.water_magic_points
 			)
 	
 	# Token Buttons disabled by default
@@ -1688,9 +1693,15 @@ func next_turn():
 		# Force sync point counter state
 		if point_counter:
 			point_counter.rpc("sync_point_values", 
-				point_counter.triangle_points,
-				point_counter.square_points,
-				point_counter.circle_points
+				point_counter.forest_points,
+				point_counter.desert_points,
+				point_counter.mountain_points,
+				point_counter.water_points,
+				# magic point
+				point_counter.forest_magic_points,
+				point_counter.desert_magic_points,
+				point_counter.mountain_magic_points,
+				point_counter.water_magic_points
 			)
 	
 	print("=== Next Turn Complete ===\n")
@@ -1784,9 +1795,14 @@ func process_point_adjustment(region: String, delta: int, requesting_player: int
 			
 		# Sync to all clients
 		point_counter.rpc("sync_point_values", 
-			point_counter.triangle_points,
-			point_counter.square_points,
-			point_counter.circle_points
+			point_counter.forest_points,
+			point_counter.desert_points,
+			point_counter.mountain_points,
+			point_counter.water_points,
+			point_counter.forest_magic_points,
+			point_counter.desert_magic_points,
+			point_counter.mountain_magic_points,
+			point_counter.water_magic_points
 		)
 	#else:
 		#print("Invalid turn for point adjustment!")
@@ -1800,14 +1816,14 @@ func adjust_points_increase(region: String):
 	var points_to_remove = 1
 	
 	# Remove points from other regions
-	if region != "triangle" and point_counter.triangle_points > 0:
-		point_counter.set_points("triangle", point_counter.triangle_points - 1)
+	if region != "triangle" and point_counter.forest_points > 0:
+		point_counter.set_points("triangle", point_counter.forest_points - 1)
 		points_to_remove -= 1
-	if points_to_remove > 0 and region != "square" and point_counter.square_points > 0:
-		point_counter.set_points("square", point_counter.square_points - 1)
+	if points_to_remove > 0 and region != "square" and point_counter.desert_points > 0:
+		point_counter.set_points("square", point_counter.desert_points - 1)
 		points_to_remove -= 1
-	if points_to_remove > 0 and region != "circle" and point_counter.circle_points > 0:
-		point_counter.set_points("circle", point_counter.circle_points - 1)
+	if points_to_remove > 0 and region != "circle" and point_counter.mountain_points > 0:
+		point_counter.set_points("circle", point_counter.mountain_points - 1)
 	
 	# Add point to selected region
 	point_counter.set_points(region, point_counter.get_points(region) + 1)
@@ -1820,13 +1836,13 @@ func adjust_points_decrease(region: String):
 	
 	# Add points to other regions
 	if region != "triangle":
-		point_counter.set_points("triangle", point_counter.triangle_points + 1)
+		point_counter.set_points("triangle", point_counter.forest_points + 1)
 		points_to_add -= 1
 	if points_to_add > 0 and region != "square":
-		point_counter.set_points("square", point_counter.square_points + 1)
+		point_counter.set_points("square", point_counter.desert_points + 1)
 		points_to_add -= 1
 	if points_to_add > 0 and region != "circle":
-		point_counter.set_points("circle", point_counter.circle_points + 1)
+		point_counter.set_points("circle", point_counter.mountain_points + 1)
 	
 	# Remove point from selected region
 	point_counter.set_points(region, point_counter.get_points(region) - 1)
@@ -1836,9 +1852,14 @@ func sync_points():
 	if !point_counter:
 		return
 	point_counter.rpc("sync_point_values", 
-		point_counter.triangle_points,
-		point_counter.square_points,
-		point_counter.circle_points
+		point_counter.forest_points,
+		point_counter.desert_points,
+		point_counter.mountain_points,
+		point_counter.water_points,
+		point_counter.forest_magic_points,
+		point_counter.desert_magic_points,
+		point_counter.mountain_magic_points,
+		point_counter.water_magic_points
 	)
 
 @rpc("any_peer")
