@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="DeckResource" load_steps=11 format=3 uid="uid://dvmue13fxi5od"]
 
-[ext_resource type="Script" path="res://card_resource.gd" id="1_jshdv"]
+[ext_resource type="Script" uid="uid://beya0vuvxspr5" path="res://card_resource.gd" id="1_jshdv"]
 [ext_resource type="Resource" uid="uid://5keaj8ghqsnp" path="res://cards/area_blackhole.tres" id="2_b2aqi"]
-[ext_resource type="Script" path="res://deck_resource.gd" id="2_xo8od"]
+[ext_resource type="Script" uid="uid://cuvbmlsje2ik1" path="res://deck_resource.gd" id="2_xo8od"]
 [ext_resource type="Resource" uid="uid://8b8d7o3633n4" path="res://cards/area_familiar.tres" id="3_0rxd8"]
 [ext_resource type="Resource" uid="uid://dfmcgimtxtw0i" path="res://cards/area_grim.tres" id="4_uxlx5"]
 [ext_resource type="Resource" uid="uid://dntcc2bvwlv3r" path="res://cards/area_incanation.tres" id="5_1wf0w"]
