@@ -13,18 +13,21 @@ signal token_placed(player_id: int, biome: BiomeType, location: Vector3)
 # Token scene reference
 var token_scene = preload("res://token_3d.tscn")
 
-func initialize_player_tokens(player_id: int, force_refresh: bool = false):
-	# Allow force refresh of tokens if needed
-	if player_tokens.has(player_id) and !force_refresh:
-		return
+# In your TokenManager class:
+func initialize_player_tokens(player_id: int, force_reset: bool = false):
+	# Check if this is initial setup
+	if !player_tokens.has(player_id) or force_reset:
+		# Clear existing tokens
+		player_tokens[player_id] = []
 		
-	player_tokens[player_id] = []
-	
-	# Simply add 16 generic tokens
-	for i in range(TOKENS_PER_PLAYER):
-		player_tokens[player_id].append({})
-	
-	print("Initialized " + str(player_tokens[player_id].size()) + " tokens for player " + str(player_id))
+		# Add exactly 16 tokens (4 of each biome)
+		for biome in range(BiomeType.size()):
+			for i in range(4):  # 4 tokens per biome
+				player_tokens[player_id].append({
+					"biome": biome
+				})
+		
+		print("Initialized tokens for player ", player_id, " with ", TOKENS_PER_PLAYER, " tokens")
 
 func get_placed_tokens_for_player(player_id: int) -> Array:
 	var game = get_tree().get_root().get_node("Game")

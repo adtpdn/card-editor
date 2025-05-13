@@ -168,6 +168,8 @@ var is_dragging = false
 @onready var start_game_button = $LeftUI/StartGameButton
 
 
+var player_token_counts = {}  # Dictionary to store token counts per player
+
 var is_remove := false
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -530,17 +532,13 @@ func _handle_touch(position: Vector2):
 				break
 		
 		if found_token:
-			# Only allow removing tokens that belong to the current player
-			if found_token.owner_id == player_id:
-				# Request token removal
-				if multiplayer.is_server():
-					# Direct removal on server
-					process_token_removal(found_token.global_position)
-				else:
-					# Client requests server
-					rpc_id(1, "request_token_removal", found_token.global_position)
+			# Request token removal
+			if multiplayer.is_server():
+				# Direct removal on server
+				process_token_removal(found_token.global_position)
 			else:
-				print("Cannot remove another player's token!")
+				# Client requests server
+				rpc_id(1, "request_token_removal", found_token.global_position)
 		
 		# Reset remove mode after attempt
 		is_remove = false
@@ -854,18 +852,27 @@ func setup_player(player_id: int) -> void:
 		# Enable interaction for the local player
 		player_hand.set_interaction_enabled(true)
 		player_hand.player_id = player_id
-		# Initialize tokens for this player
-		if multiplayer.is_server():
+		
+		# Initialize tokens only if this is the first setup
+		if multiplayer.is_server() and !token_manager.player_tokens.has(player_id):
 			token_manager.initialize_player_tokens(player_id)
 			var tokens = token_manager.get_player_tokens(player_id)
 			update_token_ui()
+			
+			# Store initial token count
+			player_token_counts[player_id] = tokens.size()
 	
 	# Token initialization for clients
-	if multiplayer.is_server():
+	if multiplayer.is_server() and !token_manager.player_tokens.has(player_id):
 		token_manager.initialize_player_tokens(player_id)
+		
+		# Store initial token count
+		var tokens = token_manager.get_player_tokens(player_id)
+		player_token_counts[player_id] = tokens.size()
+		
 		# Use rpc_id instead of rpc when sending to a specific player
 		if player_id != multiplayer.get_unique_id():
-			rpc_id(player_id, "sync_player_tokens", token_manager.get_player_tokens(player_id))
+			rpc_id(player_id, "sync_player_tokens", tokens)
 
 @rpc("authority", "reliable")
 func sync_player_tokens(tokens: Array):
@@ -918,6 +925,16 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	var local_id = multiplayer.get_unique_id()
 	if local_id == players[current_turn_index]:
 		update_token_ui()
+	
+	# After placing the token, update the saved count
+	if multiplayer.is_server():
+		var updated_tokens = token_manager.get_player_tokens(player_id)
+		player_token_counts[player_id] = updated_tokens.size()
+
+func save_player_token_count(player_id: int):
+	var tokens = token_manager.get_player_tokens(player_id)
+	player_token_counts[player_id] = tokens.size()
+	print("Saved token count for player ", player_id, ": ", tokens.size())
 
 func reset_token_buttons():
 	# Reset token button state
@@ -1807,8 +1824,21 @@ func set_current_turn(player_id):
 	print("Setting turn for player: ", player_id, " (local: ", local_id, ")")
 
 	# Always show token button for local player
-	var tokens = token_manager.get_player_tokens(local_id)
 	token_button.visible = true  # Always visible
+	
+	# Don't reset tokens, just sync the current state
+	if multiplayer.is_server():
+		# Make sure the player has a token entry
+		if !token_manager.player_tokens.has(player_id):
+			token_manager.initialize_player_tokens(player_id)
+		
+		# Sync tokens to the player whose turn it is
+		var tokens = token_manager.get_player_tokens(player_id)
+		if player_id != multiplayer.get_unique_id():
+			rpc_id(player_id, "sync_player_tokens", tokens)
+		else:
+			# Direct update for host
+			sync_player_tokens(tokens)
 	
 	if player_id == local_id:
 		# It's your turn - Enable controls for local player
@@ -1822,20 +1852,17 @@ func set_current_turn(player_id):
 		$DrawActionButton.disabled = false
 		$DrawAreaButton.disabled = false
 
-		# Force token refresh
+		# Force token refresh if client
 		if !multiplayer.is_server():
 			rpc_id(1, "request_token_refresh")
-		else:
-			# Direct refresh for host
-			token_manager.initialize_player_tokens(local_id, true)
-			#var tokens = token_manager.get_player_tokens(local_id)
-			sync_player_tokens(tokens)
 		
 		# Enable card interactions
 		player_hand.set_interaction_enabled(true)
 		
-		# Enable token button if you have tokens and it's your turn
+		# Update token display after refreshing tokens
+		var tokens = token_manager.get_player_tokens(local_id)
 		token_button.disabled = tokens.size() <= 0
+		token_button.text = "Tokens: " + str(tokens.size())
 		
 		# Make sure the token button is connected
 		if token_button.pressed.is_connected(_on_token_selected):
@@ -1862,9 +1889,13 @@ func set_current_turn(player_id):
 		# Reset any highlighting when it's not your turn
 		is_token_selected = false
 		unhighlight_all_token_placements()
+		
+		# Still update the local player's token display
+		var tokens = token_manager.get_player_tokens(local_id)
+		token_button.text = "Tokens: " + str(tokens.size())
 	
-	# Update the token count display regardless of whose turn it is
-	token_button.text = "Tokens: " + str(tokens.size())
+	# Update the token count display for all players
+	update_token_indicators()
 	
 	# Update visual feedback for token selection state
 	if is_token_selected:
@@ -1912,12 +1943,16 @@ func next_turn():
 	print("Current turn index: ", current_turn_index)
 	
 	if players.size() > 0:
+		# Save the current player's token count before advancing turn
+		var current_player = players[current_turn_index]
+		save_player_token_count(current_player)
+		
+		# Advance to next player
 		current_turn_index = (current_turn_index + 1) % players.size()
 		var next_player = players[current_turn_index]
 		print("Next player: ", next_player)
 		
-		# Initialize tokens for next player before setting turn
-		token_manager.initialize_player_tokens(next_player, true)
+		# DON'T initialize tokens for next player - use their saved count if available
 		var tokens = token_manager.get_player_tokens(next_player)
 		
 		# Sync turn and tokens to all clients
@@ -1949,6 +1984,11 @@ func next_turn():
 # ╰──────────────────────────────╯
 
 func _on_end_turn_pressed():
+	var current_player = players[current_turn_index]
+	
+	# Save the token count before ending turn
+	save_player_token_count(current_player)
+	
 	if multiplayer.is_server():
 		# Disable current player's controls immediately
 		player_hand.set_interaction_enabled(false)
@@ -2107,7 +2147,11 @@ func sync_points():
 func request_token_refresh():
 	if multiplayer.is_server():
 		var requesting_player = multiplayer.get_remote_sender_id()
-		token_manager.initialize_player_tokens(requesting_player, true)
+		
+		# Don't force reset, just ensure the player has an entry
+		if !token_manager.player_tokens.has(requesting_player):
+			token_manager.initialize_player_tokens(requesting_player, false)
+			
 		var tokens = token_manager.get_player_tokens(requesting_player)
 		rpc_id(requesting_player, "sync_player_tokens", tokens)
 
