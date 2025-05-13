@@ -2,7 +2,7 @@
 class_name TokenManager
 extends Node
 
-enum BiomeType {FOREST, DESERT, MOUNTAIN, WATER}
+enum BiomeType {FOREST, WATER, MOUNTAIN, DESERT}
 
 var player_tokens = {}
 const TOKENS_PER_PLAYER = 16  # Increased to 16 tokens

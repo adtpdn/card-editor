@@ -1,25 +1,26 @@
 # token_placement_location.gd
 extends Node3D
 
-enum BiomeType {FOREST, DESERT, MOUNTAIN, WATER}
+enum BiomeType {FOREST, WATER, MOUNTAIN, DESERT}
 
 @export var accepted_biome: TokenManager.BiomeType
 var is_highlighted: bool = false
 var is_occupied = false
 var current_token = null
 
+
 const BIOME_COLORS = {
 	BiomeType.FOREST: Color(0.2, 0.8, 0.2, 0.3),    # Green
-	BiomeType.DESERT: Color(0.8, 0.8, 0.2, 0.3),    # Yellow
+	BiomeType.WATER: Color(0.2, 0.2, 0.8, 0.3),      # Blue
 	BiomeType.MOUNTAIN: Color(0.5, 0.5, 0.5, 0.3),  # Gray
-	BiomeType.WATER: Color(0.2, 0.2, 0.8, 0.3)      # Blue
+	BiomeType.DESERT: Color(0.8, 0.8, 0.2, 0.3)    # Yellow
 }
 
 const BIOME_NAMES = {
 	BiomeType.FOREST: "Forest",
-	BiomeType.DESERT: "Desert",
+	BiomeType.WATER: "Water",
 	BiomeType.MOUNTAIN: "Mountain",
-	BiomeType.WATER: "Water"
+	BiomeType.DESERT: "Desert"
 }
 
 @onready var marker_mesh = $MarkerMesh
@@ -93,6 +94,9 @@ func set_occupied(occupied: bool):
 	is_occupied = occupied
 	if occupied:
 		set_highlight(false)
+	else:
+		# If no longer occupied, clear the token reference
+		current_token = null
 
 # Optional: Add these functions if you need drag and drop functionality
 func _on_area_3d_mouse_entered():

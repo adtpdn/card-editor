@@ -8,7 +8,7 @@ var multiplayer_peer = ENetMultiplayerPeer.new()
 const PORT = 9999
 const DEFAULT_IP = "127.0.0.1"  # Changed from ADDRESS constant
 
-# Add to networking variables section
+# Add to networking variables sections
 var use_upnp = true  # Enable UPNP for mobile networking
 var upnp_attempts = 0
 const MAX_UPNP_ATTEMPTS = 10
@@ -117,17 +117,17 @@ var radius = 4.0  # Radius of the octagon
 var borders_node: Node3D
 var biome_assignments = {
 	TokenManager.BiomeType.FOREST: [0, 1],    # Slices 0 and 1
-	TokenManager.BiomeType.DESERT: [2, 3],    # Slices 2 and 3
+	TokenManager.BiomeType.WATER: [2, 3],    # Slices 2 and 3
 	TokenManager.BiomeType.MOUNTAIN: [4, 5],  # Slices 4 and 5
-	TokenManager.BiomeType.WATER: [6, 7]      # Slices 6 and 7
+	TokenManager.BiomeType.DESERT: [6, 7]      # Slices 6 and 7
 }
 
 # Add these color definitions if not already in TokenManager
 const BIOME_COLORS = {
 	TokenManager.BiomeType.FOREST: Color(0.2, 0.8, 0.2, 1.0),    # Green
-	TokenManager.BiomeType.DESERT: Color(0.8, 0.8, 0.2, 1.0),    # Yellow
+	TokenManager.BiomeType.WATER: Color(0.2, 0.2, 0.8, 1.0),      # Blue
 	TokenManager.BiomeType.MOUNTAIN: Color(0.5, 0.5, 0.5, 1.0),  # Gray
-	TokenManager.BiomeType.WATER: Color(0.2, 0.2, 0.8, 1.0)      # Blue
+	TokenManager.BiomeType.DESERT: Color(0.8, 0.8, 0.2, 1.0)   # Yellow
 }
 
 const TOKEN_PLACEMENT_COOLDOWN = 0.5  # 500ms cooldown
@@ -845,8 +845,9 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	token.set_token_data(biome_type, player_id)
 	token.global_position = position
 	
-	# Mark placement as occupied
+	# Mark placement as occupied and store token reference
 	placement.set_occupied(true)
+	placement.current_token = token  # Store reference to the token
 	
 	# Reset selection state
 	is_token_selected = false
@@ -856,7 +857,6 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	var local_id = multiplayer.get_unique_id()
 	if local_id == players[current_turn_index]:
 		update_token_ui()
-	update_token_indicators()
 
 func reset_token_buttons():
 	# Reset token button state

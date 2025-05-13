@@ -1,6 +1,6 @@
 extends Node3D
 
-enum BiomeType {FOREST, DESERT, MOUNTAIN, WATER}
+enum BiomeType {FOREST, WATER, MOUNTAIN, DESERT}
 
 var biome_type: BiomeType
 @onready var outline_mesh: MeshInstance3D = $OutlineMesh  # Outer ring mesh
@@ -12,9 +12,9 @@ var owner_id: int = -1
 
 const BIOME_COLORS = {
 	BiomeType.FOREST: Color(0.2, 0.8, 0.2),  # Green
-	BiomeType.DESERT: Color(0.8, 0.8, 0.2),  # Yellow
+	BiomeType.WATER: Color(0.2, 0.2, 0.8),     # Blue
 	BiomeType.MOUNTAIN: Color(0.5, 0.5, 0.5), # Gray
-	BiomeType.WATER: Color(0.2, 0.2, 0.8)     # Blue
+	BiomeType.DESERT: Color(0.8, 0.8, 0.2),  # Yellow
 }
 
 # Add player color mapping
