@@ -1012,6 +1012,13 @@ layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
+[node name="RemoveButton" type="Button" parent="RightUI"]
+layout_mode = 0
+offset_top = 54.0
+offset_right = 122.0
+offset_bottom = 85.0
+text = "Remove Token"
+
 [node name="LeftUI" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 9

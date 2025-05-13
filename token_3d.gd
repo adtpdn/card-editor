@@ -10,6 +10,10 @@ var biome_type: BiomeType
 
 var owner_id: int = -1
 
+var token_placement = null
+var is_energy: bool = false
+var is_blighted: bool = false
+
 const BIOME_COLORS = {
 	BiomeType.FOREST: Color(0.2, 0.8, 0.2),  # Green
 	BiomeType.WATER: Color(0.2, 0.2, 0.8),     # Blue
@@ -25,10 +29,11 @@ const PLAYER_COLORS = {
 	4: Color(1, 1, 0)      # Player 4 (Yellow)
 }
 
-func set_token_data(b_type: BiomeType, p_id: int = -1):
-	print("Setting token data - Biome: ", b_type, " Owner: ", p_id)
+func set_token_data(b_type: BiomeType, p_id: int = -1, energy: bool = false):
+	print("Setting token data - Biome: ", b_type, " Owner: ", p_id, " Energy: ", energy)
 	biome_type = b_type
 	owner_id = p_id
+	is_energy = energy
 	
 	# Standard mesh for all tokens
 	var material = StandardMaterial3D.new()
@@ -55,3 +60,12 @@ func update_token_display():
 		outline_material.albedo_color = Color(0.5, 0.5, 0.5)  # Gray
 		
 	outline_mesh.material_override = outline_material
+
+func remove_token():
+	# Mark the placement as unoccupied
+	if token_placement:
+		token_placement.set_occupied(false)
+		token_placement.current_token = null
+		token_placement.set_highlight(false)
+	# Remove the token itself
+	queue_free()

@@ -4,6 +4,7 @@ extends Node3D
 enum BiomeType {FOREST, WATER, MOUNTAIN, DESERT}
 
 @export var accepted_biome: TokenManager.BiomeType
+
 var is_highlighted: bool = false
 var is_occupied = false
 var current_token = null
@@ -97,6 +98,16 @@ func set_occupied(occupied: bool):
 	else:
 		# If no longer occupied, clear the token reference
 		current_token = null
+
+func set_energy_placement(is_sigil_placement: bool):
+	# Optional: Update the visual appearance to indicate sigil placement
+	if is_sigil_placement:
+		# Maybe add a special effect or change the marker appearance
+		var material = marker_mesh.material_override.duplicate()
+		# Add a subtle glow or pattern to indicate sigil placement
+		material.emission_enabled = true
+		material.emission = Color(1, 1, 1, 0.3)
+		marker_mesh.material_override = material
 
 # Optional: Add these functions if you need drag and drop functionality
 func _on_area_3d_mouse_entered():

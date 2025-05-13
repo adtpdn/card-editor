@@ -1,6 +1,11 @@
 extends Node
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Buttons 
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+@onready var remove_button = $RightUI/RemoveButton
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Multiplayer Dependencies
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -101,6 +106,7 @@ var current_selected_button: Button = null
 
 # Modify token selection handling to use both biome and type
 var selected_token_biome = -1
+var selected_token_node
 
 # Modified token button container setup
 @onready var token_button  = $RightUI/TokenButton  # Change from TokenContainer to TokenGrid
@@ -112,7 +118,6 @@ var is_token_selected = false
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Biome System Dependencies
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 var radius = 4.0  # Radius of the octagon
 var borders_node: Node3D
 var biome_assignments = {
@@ -162,6 +167,9 @@ var is_dragging = false
 @onready var player_list = $LeftUI/PlayerList
 @onready var start_game_button = $LeftUI/StartGameButton
 
+
+var is_remove := false
+
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---    _Ready Initiation     ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
@@ -204,7 +212,8 @@ func _ready() -> void:
 	$RightUI/Menu/HostButton.pressed.connect(_on_host_pressed)
 	$RightUI/Menu/JoinButton.pressed.connect(_on_join_pressed)
 	$RightUI/EndTurnButton.pressed.connect(_on_end_turn_pressed)
-
+	$RightUI/RemoveButton.pressed.connect(_on_remove_token_pressed)
+	
 	# Setup multiplayer
 	multiplayer_peer.peer_connected.connect(_on_peer_connected)
 	multiplayer_peer.peer_disconnected.connect(_on_peer_disconnected)
@@ -479,37 +488,63 @@ func start_game_with_first_player(first_player_id):
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 ## NO NEED FOR NOW
-#func _unhandled_input(event):
-	#if event is InputEventScreenTouch:
-		#if event.pressed:
-			#_handle_touch(event.position)
-	#elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		#_handle_touch(event.position)
+func _unhandled_input(event):
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			_handle_touch(event.position)
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_handle_touch(event.position)
 
-#func _handle_touch(position: Vector2):
-	#if selected_token_biome != -1 and selected_token_type != -1:
-		#var current_time = Time.get_ticks_msec() / 1000.0
-		#if current_time - last_token_placement_time < TOKEN_PLACEMENT_COOLDOWN:
-			#return
-		#
-		#var player_id = multiplayer.get_unique_id()
-		#
-		## Check if it's player's turn
-		#if !is_valid_player_turn(player_id):
-			#print("Not your turn!")
-			#selected_token_biome = -1
-			#selected_token_type = -1
-			#unhighlight_all_token_placements()
-			#return
-		#
-		#var camera = get_node("Camera3D")
-		#var from = camera.project_ray_origin(position)
-		#var to = from + camera.project_ray_normal(position) * 1000
-		#
-		#var space_state = get_tree().get_root().get_world_3d().direct_space_state
-		#var query = PhysicsRayQueryParameters3D.create(from, to)
-		#var result = space_state.intersect_ray(query)
-		#print("result : ", result)
+func _handle_touch(position: Vector2):
+	var current_time = Time.get_ticks_msec() / 1000.0
+	if current_time - last_token_placement_time < TOKEN_PLACEMENT_COOLDOWN:
+		return
+	
+	var player_id = multiplayer.get_unique_id()
+	
+	# Check if it's player's turn
+	if !is_valid_player_turn(player_id):
+		print("Not your turn!")
+		selected_token_biome = -1
+		unhighlight_all_token_placements()
+		return
+	
+	var camera = get_node("Camera3D")
+	var from = camera.project_ray_origin(position)
+	var to = from + camera.project_ray_normal(position) * 1000
+	
+	var space_state = get_tree().get_root().get_world_3d().direct_space_state
+	var query = PhysicsRayQueryParameters3D.create(from, to)
+	var result = space_state.intersect_ray(query)
+	
+	# Process remove token if in remove mode
+	if result and is_remove:
+		var collider = result["collider"]
+		var hit_position = result["position"]
+		
+		# Find the token at this position
+		var found_token = null
+		for token in $Tokens.get_children():
+			if token.global_position.distance_to(hit_position) < 0.5:  # Generous distance check
+				found_token = token
+				break
+		
+		if found_token:
+			# Only allow removing tokens that belong to the current player
+			if found_token.owner_id == player_id:
+				# Request token removal
+				if multiplayer.is_server():
+					# Direct removal on server
+					process_token_removal(found_token.global_position)
+				else:
+					# Client requests server
+					rpc_id(1, "request_token_removal", found_token.global_position)
+			else:
+				print("Cannot remove another player's token!")
+		
+		# Reset remove mode after attempt
+		is_remove = false
+		
 		#if result:
 			#print("")
 			#print("token placement")
@@ -627,7 +662,6 @@ func distribute_initial_tokens_to_client(peer_id: int):
 	#print("Sent initial tokens to client: ", tokens)
 
 func setup_token_placements():
-	
 	# Only set up if not already set up
 	if $TokenPlacements.get_child_count() > 0:
 		return
@@ -666,9 +700,29 @@ func setup_token_placements():
 		for pos in positions:
 			var token_placement = token_placement_scene.instantiate()
 			token_placement.accepted_biome = biome
-			$TokenPlacements.add_child(token_placement,true)
+			$TokenPlacements.add_child(token_placement, true)
 			token_placement.global_position = pos
 			placements_per_biome[biome] += 1
+	
+	# Set the first 28 token placements as energy placements
+	# We need to determine how many per biome (e.g., 7 per biome for 4 biomes)
+	var energy_count = 0
+	var energy_per_biome = 7  # 7 per biome x 4 biomes = 28 total
+	
+	# Iterate through all placements
+	for placement in $TokenPlacements.get_children():
+		# Check if we've already marked enough energy placements for this biome
+		var biome_energy_count = 0
+		for check_placement in $TokenPlacements.get_children():
+			if check_placement.accepted_biome == placement.accepted_biome and check_placement.is_energy:
+				biome_energy_count += 1
+		
+		# If we haven't reached the limit for this biome and total energy count is under 28
+		if biome_energy_count < energy_per_biome and energy_count < 28:
+			placement.set_energy_placement(true)
+			energy_count += 1
+		else:
+			placement.set_energy_placement(false)
 
 # ╭──────────────────────────────╮
 # |  Token - Slice Position Gen  |
@@ -841,9 +895,16 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	# Convert types explicitly
 	var biome_type = int(token_data.biome) if token_data.has("biome") else placement.accepted_biome
 	
-	# Call the updated set_token_data with biome and player id
-	token.set_token_data(biome_type, player_id)
+	# Check if this is an energy placement (one of the first 28 placements)
+	var placement_index = placement.get_index()
+	var is_energy = placement_index < 28
+	
+	# Call the updated set_token_data with biome, player id, and energy status
+	token.set_token_data(biome_type, player_id, is_energy)
 	token.global_position = position
+	
+	# Store reference to the placement in the token
+	token.token_placement = placement
 	
 	# Mark placement as occupied and store token reference
 	placement.set_occupied(true)
@@ -920,6 +981,113 @@ func request_token_placement(token_index: int, position: Vector3):
 			for pid in players:
 				var updated_tokens = token_manager.get_player_tokens(pid)
 				rpc_id(pid, "sync_player_tokens", updated_tokens)
+
+# ╭──────────────────────────────╮
+# |  Token - REMOVE              |
+# ╰──────────────────────────────╯
+
+func _on_remove_token_pressed():
+	is_remove = true
+
+@rpc("any_peer")
+func request_token_removal(token_position: Vector3):
+	if !multiplayer.is_server():
+		return
+	
+	var player_id = multiplayer.get_remote_sender_id()
+	
+	# Validate it's the player's turn
+	if !is_valid_player_turn(player_id):
+		return
+	
+	# Process the token removal
+	process_token_removal(token_position)
+
+func process_token_removal(token_position: Vector3):
+	# Find the token at this position
+	var token = null
+	for t in $Tokens.get_children():
+		if t.global_position.distance_to(token_position) < 0.5:
+			token = t
+			break
+	
+	if token:
+		var player_id = token.owner_id
+		var biome_type = token.biome_type
+		
+		# Get the token placement
+		var placement = get_token_placement_at_position(token.global_position)
+		
+		# Mark the placement as available again
+		if placement:
+			placement.set_occupied(false)
+			placement.current_token = null
+		
+		# Add a token back to the player's pool
+		if player_id != -1:
+			token_manager.add_token_to_player(player_id, biome_type)
+		
+		# Remove the token
+		token.queue_free()
+		
+		# Sync to all clients
+		rpc("sync_token_removal_at_position", token_position, player_id, biome_type)
+		
+		# Update tokens UI for all players
+		for pid in players:
+			var updated_tokens = token_manager.get_player_tokens(pid)
+			if pid == multiplayer.get_unique_id():
+				sync_player_tokens(updated_tokens)
+			else:
+				rpc_id(pid, "sync_player_tokens", updated_tokens)
+
+@rpc("any_peer", "call_local")
+func sync_token_removal(token):
+	if token:
+		print("token : ", token )
+		var player_id = token.owner_id
+		if player_id != -1:
+			# Add token back to player's tokens
+			token_manager.add_token_to_player(player_id, token.biome_type)
+			
+			# Update UI if this is the local player
+			if player_id == multiplayer.get_unique_id():
+				update_token_ui()
+		print("")
+		# Remove the token
+		token.remove_token()
+
+@rpc("any_peer", "call_local")
+func sync_token_removal_at_position(token_position: Vector3, player_id: int, biome_type: int):
+	# Find the token at this position
+	var token = null
+	for t in $Tokens.get_children():
+		if t.global_position.distance_to(token_position) < 0.5:
+			token = t
+			break
+	
+	if token:
+		# Get the token placement
+		var placement = get_token_placement_at_position(token.global_position)
+		
+		# Mark the placement as available again
+		if placement:
+			placement.set_occupied(false)
+			placement.current_token = null
+			placement.set_highlight(false)
+		# Remove the token
+		token.queue_free()
+		
+		# Update UI if this is for the local player
+		if player_id == multiplayer.get_unique_id():
+			update_token_ui()
+
+func find_token_at_position(position: Vector3) -> Node:
+	for token in $Tokens.get_children():
+		if token.global_position.distance_to(position) < 0.1:
+			return token
+	return null
+
 
 func update_all_players_tokens():
 	if !multiplayer.is_server():

@@ -60,3 +60,16 @@ func get_player_tokens(player_id: int) -> Array:
 	if !player_tokens.has(player_id):
 		player_tokens[player_id] = []
 	return player_tokens[player_id].duplicate()
+
+func add_token_to_player(player_id: int, biome_type: int):
+	if !player_tokens.has(player_id):
+		player_tokens[player_id] = []
+	
+	# Create a new token data entry
+	player_tokens[player_id].append({})
+	
+	# Force update to clients
+	var game = get_tree().get_root().get_node("Game")
+	if game and game.multiplayer.is_server():
+		var tokens = get_player_tokens(player_id)
+		game.rpc_id(player_id, "sync_player_tokens", tokens)
