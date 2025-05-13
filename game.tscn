@@ -971,87 +971,13 @@ grow_vertical = 2
 disabled = true
 text = "End Turn"
 
-[node name="TokenGrid" type="GridContainer" parent="RightUI"]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -210.0
-offset_top = 22.5
-offset_right = -22.0
-offset_bottom = 122.5
-grow_horizontal = 0
-columns = 3
-
-[node name="TokenButton1" type="Button" parent="RightUI/TokenGrid"]
+[node name="TokenButton" type="Button" parent="RightUI"]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 10
-text = "00"
-
-[node name="TokenButton2" type="Button" parent="RightUI/TokenGrid"]
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 10
-text = "00"
-
-[node name="TokenButton3" type="Button" parent="RightUI/TokenGrid"]
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 10
-text = "00"
-
-[node name="TokenButton4" type="Button" parent="RightUI/TokenGrid"]
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 10
-text = "00"
-
-[node name="TokenButton5" type="Button" parent="RightUI/TokenGrid"]
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 10
-text = "00"
-
-[node name="TokenButton6" type="Button" parent="RightUI/TokenGrid"]
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 10
-text = "00"
-
-[node name="TokenButton7" type="Button" parent="RightUI/TokenGrid"]
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 10
-text = "00"
-
-[node name="TokenButton8" type="Button" parent="RightUI/TokenGrid"]
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 10
-text = "00"
-
-[node name="TokenButton9" type="Button" parent="RightUI/TokenGrid"]
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 10
-text = "00"
-
-[node name="TokenButton10" type="Button" parent="RightUI/TokenGrid"]
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 10
-text = "00"
-
-[node name="TokenButton11" type="Button" parent="RightUI/TokenGrid"]
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 10
-text = "00"
-
-[node name="TokenButton12" type="Button" parent="RightUI/TokenGrid"]
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
+offset_left = 28.0
+offset_top = 24.0
+offset_right = 88.0
+offset_bottom = 46.0
 theme_override_font_sizes/font_size = 10
 text = "00"
 
@@ -1079,6 +1005,12 @@ offset_bottom = 612.0
 grow_horizontal = 2
 text = "DICE LABEL"
 horizontal_alignment = 1
+
+[node name="PlayerTokenIndicators" type="HBoxContainer" parent="RightUI"]
+visible = false
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
 
 [node name="LeftUI" type="Control" parent="."]
 layout_mode = 3

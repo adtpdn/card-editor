@@ -25,7 +25,6 @@ const BIOME_NAMES = {
 @onready var marker_mesh = $MarkerMesh
 @onready var area_3d = $Area3D
 
-
 func _ready():
 	update_marker_appearance()
 	update_appearance()
@@ -49,25 +48,23 @@ func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: 
 		if !game.is_valid_player_turn(player_id):
 			return
 			
-		if game.selected_token_biome == -1 or game.selected_token_type == -1:
+		# Only process clicks if token selection mode is active
+		if !game.is_token_selected:
 			return
-			
+		
+		# Check if player has tokens left
 		var player_tokens = game.token_manager.get_player_tokens(player_id)
+		if player_tokens.size() <= 0:
+			return
 		
-		# Find matching token
-		var matching_token_index = -1
-		for i in range(player_tokens.size()):
-			if player_tokens[i].biome == game.selected_token_biome and \
-			   player_tokens[i].type == game.selected_token_type:
-				matching_token_index = i
-				break
+		# Just use the first available token
+		var token_index = 0
 		
-		if matching_token_index >= 0:
-			# Send placement request to server
-			if multiplayer.is_server():
-				game.request_token_placement(matching_token_index, global_position)
-			else:
-				game.rpc_id(1, "request_token_placement", matching_token_index, global_position)
+		# Send placement request to server
+		if multiplayer.is_server():
+			game.request_token_placement(token_index, global_position)
+		else:
+			game.rpc_id(1, "request_token_placement", token_index, global_position)
 
 func set_highlight(enabled: bool):
 	if is_occupied:  # Never highlight if occupied
