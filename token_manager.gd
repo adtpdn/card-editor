@@ -89,6 +89,7 @@ func set_player_tokens(player_id: int, tokens: Array):
 	player_tokens[player_id] = tokens.duplicate()
 
 func get_player_tokens(player_id: int) -> Array:
+	#print("player tokens : ", player_tokens)
 	if !player_tokens.has(player_id):
 		player_tokens[player_id] = []
 	return player_tokens[player_id].duplicate()

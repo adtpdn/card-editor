@@ -471,75 +471,79 @@ func start_game_with_first_player(first_player_id):
 # --- Control / Input Handling ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-func _unhandled_input(event):
-	if event is InputEventScreenTouch:
-		if event.pressed:
-			_handle_touch(event.position)
-	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		_handle_touch(event.position)
+## NO NEED FOR NOW
+#func _unhandled_input(event):
+	#if event is InputEventScreenTouch:
+		#if event.pressed:
+			#_handle_touch(event.position)
+	#elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		#_handle_touch(event.position)
 
-func _handle_touch(position: Vector2):
-	if selected_token_biome != -1 and selected_token_type != -1:
-		var current_time = Time.get_ticks_msec() / 1000.0
-		if current_time - last_token_placement_time < TOKEN_PLACEMENT_COOLDOWN:
-			return
-		
-		var player_id = multiplayer.get_unique_id()
-		
-		# Check if it's player's turn
-		if !is_valid_player_turn(player_id):
-			print("Not your turn!")
-			selected_token_biome = -1
-			selected_token_type = -1
-			unhighlight_all_token_placements()
-			return
-		
-		var camera = get_node("Camera3D")
-		var from = camera.project_ray_origin(position)
-		var to = from + camera.project_ray_normal(position) * 1000
-		
-		var space_state = get_tree().get_root().get_world_3d().direct_space_state
-		var query = PhysicsRayQueryParameters3D.create(from, to)
-		var result = space_state.intersect_ray(query)
-		
-		if result:
-			var placement = get_token_placement_at_position(result.position)
-			if placement and !placement.is_occupied:
-				var tokens = token_manager.get_player_tokens(player_id)
-				
-				# Find token data for selected biome and type
-				var token_data = null
-				var token_index = -1
-				for i in range(tokens.size()):
-					if tokens[i].biome == selected_token_biome and tokens[i].type == selected_token_type:
-						token_data = tokens[i]
-						token_index = i
-						break
-				
-				if token_data:
-					print("Found matching token data")
-					# Update cooldown time
-					last_token_placement_time = current_time
-					
-					if multiplayer.is_server():
-						# Server directly places token
-						token_manager.remove_token(player_id, token_index)
-						sync_token_placement(player_id, token_data, placement.global_position)
-						
-						# Update UI for all players
-						for pid in players:
-							var updated_tokens = token_manager.get_player_tokens(pid)
-							rpc_id(pid, "sync_player_tokens", updated_tokens)
-					else:
-						# Client requests placement
-						rpc_id(1, "request_token_placement", token_index, placement.global_position)
-					
-					# Reset selection state
-					selected_token_biome = -1
-					selected_token_type = -1
-					unhighlight_all_token_placements()
-				else:
-					print("No matching token data found")
+#func _handle_touch(position: Vector2):
+	#if selected_token_biome != -1 and selected_token_type != -1:
+		#var current_time = Time.get_ticks_msec() / 1000.0
+		#if current_time - last_token_placement_time < TOKEN_PLACEMENT_COOLDOWN:
+			#return
+		#
+		#var player_id = multiplayer.get_unique_id()
+		#
+		## Check if it's player's turn
+		#if !is_valid_player_turn(player_id):
+			#print("Not your turn!")
+			#selected_token_biome = -1
+			#selected_token_type = -1
+			#unhighlight_all_token_placements()
+			#return
+		#
+		#var camera = get_node("Camera3D")
+		#var from = camera.project_ray_origin(position)
+		#var to = from + camera.project_ray_normal(position) * 1000
+		#
+		#var space_state = get_tree().get_root().get_world_3d().direct_space_state
+		#var query = PhysicsRayQueryParameters3D.create(from, to)
+		#var result = space_state.intersect_ray(query)
+		#print("result : ", result)
+		#if result:
+			#print("")
+			#print("token placement")
+			#var placement = get_token_placement_at_position(result.position)
+			#if placement and !placement.is_occupied:
+				#var tokens = token_manager.get_player_tokens(player_id)
+				#
+				## Find token data for selected biome and type
+				#var token_data = null
+				#var token_index = -1
+				#for i in range(tokens.size()):
+					#if tokens[i].biome == selected_token_biome and tokens[i].type == selected_token_type:
+						#token_data = tokens[i]
+						#token_index = i
+						#break
+				#
+				#if token_data:
+					#print("Found matching token data")
+					## Update cooldown time
+					#last_token_placement_time = current_time
+					#
+					#if multiplayer.is_server():
+						## Server directly places token
+						#token_manager.remove_token(player_id, token_index)
+						#sync_token_placement(player_id, token_data, placement.global_position)
+						#
+						## Update UI for all players
+						#for pid in players:
+							#var updated_tokens = token_manager.get_player_tokens(pid)
+							#rpc_id(pid, "sync_player_tokens", updated_tokens)
+					#else:
+						## Client requests placement
+						#rpc_id(1, "request_token_placement", token_index, placement.global_position)
+					#
+					## Reset selection state
+					#selected_token_biome = -1
+					#selected_token_type = -1
+					#unhighlight_all_token_placements()
+				#else:
+					#print("No matching token data found")
+
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---   Token Logic Handling   ---
@@ -547,7 +551,8 @@ func _handle_touch(position: Vector2):
 
 @rpc("any_peer", "call_local")
 func sync_existing_tokens(tokens_data: Array):
-	#print("Syncing existing tokens: ", tokens_data.size())
+	print("")
+	print("Syncing existing tokens: ", tokens_data)
 	
 	# Clear existing tokens first
 	for token in $Tokens.get_children():
@@ -557,6 +562,7 @@ func sync_existing_tokens(tokens_data: Array):
 	for token_info in tokens_data:
 		var token = token_manager.token_scene.instantiate()
 		$Tokens.add_child(token,true)
+		print("token info biome: ", token_info)
 		token.set_token_data(token_info.biome, token_info.type)
 		token.global_position = token_info.position
 		
@@ -824,9 +830,13 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	var token = token_manager.token_scene.instantiate()
 	$Tokens.add_child(token, true)
 	
+	print("")
+	print("token data : ", token_data)
+	print("token data biome: ", token_data.biome)
 	# Convert types explicitly
 	var biome_type = int(token_data.biome) if token_data.has("biome") else 0
 	var token_type = int(token_data.type) if token_data.has("type") else 0
+	
 	
 	token.set_token_data(biome_type, token_type, player_id)
 	token.global_position = position
@@ -1903,17 +1913,30 @@ func setup_mobile_network():
 
 func get_local_ip() -> String:
 	var addresses = IP.get_local_addresses()
+	#print("address : ", addresses)
 	
-	# First try to find a non-localhost IPv4 address
+	# Priority 1: Find a 192.168.x.x address (common home/office network)
 	for ip in addresses:
-		if ip.count(".") == 3 and not ip.begins_with("127."):
+		if ip.begins_with("192.168."):
 			return ip
 	
-	# If no suitable IP found, return the first IPv4 address
+	# Priority 2: Find other common private network addresses
 	for ip in addresses:
-		if ip.count(".") == 3:
+		if ip.begins_with("10.") or ip.begins_with("172.16.") or ip.begins_with("172.17.") or \
+		   ip.begins_with("172.18.") or ip.begins_with("172.19.") or ip.begins_with("172.2") or \
+		   ip.begins_with("172.30.") or ip.begins_with("172.31."):
 			return ip
-			
+	
+	# Priority 3: Only use link-local as a last resort before localhost
+	for ip in addresses:
+		if ip.begins_with("169.254."):
+			return ip
+	
+	# Priority 4: Use localhost if nothing else is available
+	for ip in addresses:
+		if ip == "127.0.0.1":
+			return ip
+	
 	return "IP not found"
 
 func setup_upnp() -> bool:
