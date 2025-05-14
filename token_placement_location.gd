@@ -9,13 +9,8 @@ var is_highlighted: bool = false
 var is_occupied = false
 var current_token = null
 
-
-const BIOME_COLORS = {
-	BiomeType.FOREST: Color(0.2, 0.8, 0.2, 0.3),    # Green
-	BiomeType.WATER: Color(0.2, 0.2, 0.8, 0.3),      # Blue
-	BiomeType.MOUNTAIN: Color(0.5, 0.5, 0.5, 0.3),  # Gray
-	BiomeType.DESERT: Color(0.8, 0.8, 0.2, 0.3)    # Yellow
-}
+# Replace biome colors with a neutral placeholder color
+const PLACEHOLDER_COLOR = Color(0.7, 0.7, 0.7, 0.3)  # Light gray with transparency
 
 const BIOME_NAMES = {
 	BiomeType.FOREST: "Forest",
@@ -72,10 +67,10 @@ func set_highlight(enabled: bool):
 	if is_occupied:  # Never highlight if occupied
 		is_highlighted = false
 		var material = StandardMaterial3D.new()
-		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA  # Enable transparency
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		material.albedo_color = Color(0, 0, 0, 0)  # Fully transparent
-		material.flags_transparent = true  # Ensure transparency is enabled
-		material.flags_no_depth_test = true  # Optional: prevents depth testing issues
+		material.flags_transparent = true
+		material.flags_no_depth_test = true
 		$MarkerMesh.material_override = material
 		return
 	
@@ -83,9 +78,9 @@ func set_highlight(enabled: bool):
 	var material = StandardMaterial3D.new()
 	
 	if enabled:
-		material.albedo_color = Color(0, 0, 0, 0.3)  # Yellow highlight
+		material.albedo_color = Color(1, 1, 0.3, 0.3)  # Yellow highlight
 	else:
-		material.albedo_color = BIOME_COLORS[accepted_biome]  # Default biome color
+		material.albedo_color = PLACEHOLDER_COLOR  # Neutral placeholder color
 		
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	$MarkerMesh.material_override = material
@@ -118,12 +113,12 @@ func _on_area_3d_mouse_exited():
 
 func update_appearance():
 	var material = StandardMaterial3D.new()
-	material.albedo_color = BIOME_COLORS[accepted_biome]
+	material.albedo_color = PLACEHOLDER_COLOR  # Use neutral color
 	$MarkerMesh.material_override = material
 
 func update_marker_appearance():
 	var material = StandardMaterial3D.new()
-	material.albedo_color = BIOME_COLORS[accepted_biome]
+	material.albedo_color = PLACEHOLDER_COLOR  # Use neutral color
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	marker_mesh.material_override = material
 

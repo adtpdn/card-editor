@@ -974,10 +974,10 @@ text = "End Turn"
 [node name="TokenButton" type="Button" parent="RightUI"]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
-offset_left = 28.0
-offset_top = 24.0
-offset_right = 88.0
-offset_bottom = 46.0
+offset_left = 7.0
+offset_top = 45.0
+offset_right = 120.0
+offset_bottom = 87.0
 theme_override_font_sizes/font_size = 10
 text = "00"
 
@@ -1014,10 +1014,23 @@ offset_bottom = 40.0
 
 [node name="RemoveButton" type="Button" parent="RightUI"]
 layout_mode = 0
-offset_top = 54.0
-offset_right = 122.0
-offset_bottom = 85.0
+offset_left = 7.0
+offset_top = 113.0
+offset_right = 129.0
+offset_bottom = 144.0
 text = "Remove Token"
+
+[node name="BlightButton" type="Button" parent="RightUI"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -214.0
+offset_top = 148.0
+offset_right = -109.0
+offset_bottom = 179.0
+grow_horizontal = 0
+text = "Blight Token"
 
 [node name="LeftUI" type="Control" parent="."]
 layout_mode = 3
@@ -1232,6 +1245,7 @@ sky_mode = 1
 
 [node name="PointCounter" type="Node3D" parent="."]
 transform = Transform3D(-0.00947704, 0, 0.999955, 0, 1, 0, -0.999955, 0, -0.00947704, -6.88334, 0, 0.0452511)
+visible = false
 script = ExtResource("11_beb7m")
 
 [node name="ForestStack" type="Node3D" parent="PointCounter"]

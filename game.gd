@@ -4,6 +4,7 @@ extends Node
 # Buttons 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 @onready var remove_button = $RightUI/RemoveButton
+@onready var blight_button = $RightUI/BlightButton
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Multiplayer Dependencies
@@ -167,10 +168,10 @@ var is_dragging = false
 @onready var player_list = $LeftUI/PlayerList
 @onready var start_game_button = $LeftUI/StartGameButton
 
-
 var player_token_counts = {}  # Dictionary to store token counts per player
 
 var is_remove := false
+var is_blight_mode := false
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---    _Ready Initiation     ---
@@ -215,6 +216,7 @@ func _ready() -> void:
 	$RightUI/Menu/JoinButton.pressed.connect(_on_join_pressed)
 	$RightUI/EndTurnButton.pressed.connect(_on_end_turn_pressed)
 	$RightUI/RemoveButton.pressed.connect(_on_remove_token_pressed)
+	blight_button.pressed.connect(_on_blight_token_pressed)
 	
 	# Setup multiplayer
 	multiplayer_peer.peer_connected.connect(_on_peer_connected)
@@ -519,8 +521,7 @@ func _handle_touch(position: Vector2):
 	var query = PhysicsRayQueryParameters3D.create(from, to)
 	var result = space_state.intersect_ray(query)
 	
-	# Process remove token if in remove mode
-	if result and is_remove:
+	if result:
 		var collider = result["collider"]
 		var hit_position = result["position"]
 		
@@ -532,57 +533,41 @@ func _handle_touch(position: Vector2):
 				break
 		
 		if found_token:
-			# Request token removal
-			if multiplayer.is_server():
-				# Direct removal on server
-				process_token_removal(found_token.global_position)
-			else:
-				# Client requests server
-				rpc_id(1, "request_token_removal", found_token.global_position)
-		
-		# Reset remove mode after attempt
-		is_remove = false
-		
-		#if result:
-			#print("")
-			#print("token placement")
-			#var placement = get_token_placement_at_position(result.position)
-			#if placement and !placement.is_occupied:
-				#var tokens = token_manager.get_player_tokens(player_id)
-				#
-				## Find token data for selected biome and type
-				#var token_data = null
-				#var token_index = -1
-				#for i in range(tokens.size()):
-					#if tokens[i].biome == selected_token_biome and tokens[i].type == selected_token_type:
-						#token_data = tokens[i]
-						#token_index = i
-						#break
-				#
-				#if token_data:
-					#print("Found matching token data")
-					## Update cooldown time
-					#last_token_placement_time = current_time
-					#
-					#if multiplayer.is_server():
-						## Server directly places token
-						#token_manager.remove_token(player_id, token_index)
-						#sync_token_placement(player_id, token_data, placement.global_position)
-						#
-						## Update UI for all players
-						#for pid in players:
-							#var updated_tokens = token_manager.get_player_tokens(pid)
-							#rpc_id(pid, "sync_player_tokens", updated_tokens)
-					#else:
-						## Client requests placement
-						#rpc_id(1, "request_token_placement", token_index, placement.global_position)
-					#
-					## Reset selection state
-					#selected_token_biome = -1
-					#selected_token_type = -1
-					#unhighlight_all_token_placements()
-				#else:
-					#print("No matching token data found")
+			if is_remove:
+				# Handle remove mode
+				if multiplayer.is_server():
+					process_token_removal(found_token.global_position)
+				else:
+					rpc_id(1, "request_token_removal", found_token.global_position)
+				
+				is_remove = false  # Reset remove mode after attempt
+			elif is_blight_mode:
+				# Handle blight mode
+				if multiplayer.is_server():
+					process_token_blight(found_token.global_position)
+				else:
+					rpc_id(1, "request_token_blight", found_token.global_position)
+				
+				is_blight_mode = false  # Reset blight mode after attempt
+		else:
+			# Handle token placement if in token selection mode
+			if is_token_selected:
+				var placement = get_token_placement_at_position(hit_position)
+				if placement and !placement.is_occupied:
+					# Handle token placement (existing code)
+					var token_index = 0  # Use first available token
+					
+					# Update cooldown time
+					last_token_placement_time = current_time
+					
+					if multiplayer.is_server():
+						request_token_placement(token_index, placement.global_position)
+					else:
+						rpc_id(1, "request_token_placement", token_index, placement.global_position)
+					
+					# Reset selection state
+					is_token_selected = false
+					unhighlight_all_token_placements()
 
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -832,8 +817,8 @@ func setup_biome_borders():
 			var mesh_instance = MeshInstance3D.new()
 			mesh_instance.mesh = surface_tool.commit()
 			
-			# Set material color based on biome
-			var color = BIOME_COLORS[biome]
+			# Use a neutral color instead of biome color
+			var color = Color(0.7, 0.7, 0.7)  # Light gray
 			color.a = 0.2
 			var region_material = material.duplicate()
 			region_material.albedo_color = color
@@ -998,6 +983,56 @@ func request_token_placement(token_index: int, position: Vector3):
 			for pid in players:
 				var updated_tokens = token_manager.get_player_tokens(pid)
 				rpc_id(pid, "sync_player_tokens", updated_tokens)
+
+# ╭──────────────────────────────╮
+# |  Token - Blight              |
+# ╰──────────────────────────────╯
+func _on_blight_token_pressed():
+	is_blight_mode = true
+	is_remove = false  # Disable remove mode if active
+
+@rpc("any_peer")
+func request_token_blight(token_position: Vector3):
+	if !multiplayer.is_server():
+		return
+	
+	var player_id = multiplayer.get_remote_sender_id()
+	
+	# Validate it's the player's turn
+	if !is_valid_player_turn(player_id):
+		return
+	
+	# Process the token blighting
+	process_token_blight(token_position)
+
+func process_token_blight(token_position: Vector3):
+	# Find the token at this position
+	var token = null
+	for t in $Tokens.get_children():
+		if t.global_position.distance_to(token_position) < 0.5:
+			token = t
+			break
+	
+	if token:
+		# Toggle blight status
+		token.is_blighted = !token.is_blighted
+		token.update_token_display()
+		
+		# Sync to all clients
+		rpc("sync_token_blight", token_position, token.is_blighted)
+
+@rpc("any_peer", "call_local")
+func sync_token_blight(token_position: Vector3, is_blighted: bool):
+	# Find the token at this position
+	var token = null
+	for t in $Tokens.get_children():
+		if t.global_position.distance_to(token_position) < 0.5:
+			token = t
+			break
+	
+	if token:
+		token.is_blighted = is_blighted
+		token.update_token_display()
 
 # ╭──────────────────────────────╮
 # |  Token - REMOVE              |

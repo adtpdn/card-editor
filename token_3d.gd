@@ -14,52 +14,58 @@ var token_placement = null
 var is_energy: bool = false
 var is_blighted: bool = false
 
-const BIOME_COLORS = {
-	BiomeType.FOREST: Color(0.2, 0.8, 0.2),  # Green
-	BiomeType.WATER: Color(0.2, 0.2, 0.8),     # Blue
-	BiomeType.MOUNTAIN: Color(0.5, 0.5, 0.5), # Gray
-	BiomeType.DESERT: Color(0.8, 0.8, 0.2),  # Yellow
-}
-
-# Add player color mapping
-const PLAYER_COLORS = {
-	1: Color(1, 0, 0),     # Host/Player 1 (Red)
-	2: Color(0, 1, 0),     # Player 2 (Green) 
-	3: Color(0, 0, 1),     # Player 3 (Blue)
-	4: Color(1, 1, 0)      # Player 4 (Yellow)
-}
-
 func set_token_data(b_type: BiomeType, p_id: int = -1, energy: bool = false):
 	print("Setting token data - Biome: ", b_type, " Owner: ", p_id, " Energy: ", energy)
 	biome_type = b_type
 	owner_id = p_id
 	is_energy = energy
-	
-	# Standard mesh for all tokens
-	var material = StandardMaterial3D.new()
-	material.albedo_color = Color(0, 0, 0)
-	mesh_instance.material_override = material
+	is_blighted = false  # Initialize as not blighted
 	
 	update_token_display()
 
-func update_token_display():
-	var material = StandardMaterial3D.new()
-	var outline_material = StandardMaterial3D.new()
-	
-	# Set biome color
-	if token_mesh and biome_type in BIOME_COLORS:
-		material.albedo_color = BIOME_COLORS[biome_type]
-		token_mesh.material_override = material
+func set_blighted(blighted: bool):
+	is_blighted = blighted
+	update_token_display()
 
-	# Set player-specific outline color
+func update_token_display():
+	var outline_material = StandardMaterial3D.new()
+	var token_material = StandardMaterial3D.new()
+	var mesh_material = StandardMaterial3D.new()
+	
+	# First, set the outline color based on player
 	if game && game.player_colors.has(owner_id):
 		outline_material.albedo_color = game.player_colors[owner_id]
 		print("Setting token color for player ", owner_id, ": ", game.player_colors[owner_id])
 	else:
 		print("No color found for player ", owner_id)
-		outline_material.albedo_color = Color(0.5, 0.5, 0.5)  # Gray
-		
+		outline_material.albedo_color = Color(0.5, 0.5, 0.5)  # Gray default
+	
+	# Apply outline material
 	outline_mesh.material_override = outline_material
+	
+	if is_blighted:
+		# If blighted, both inner meshes are black
+		token_material.albedo_color = Color(0, 0, 0)  # Black
+		mesh_material.albedo_color = Color(0, 0, 0)  # Black
+	else:
+		# If not blighted, inner meshes match the player color
+		token_material.albedo_color = outline_material.albedo_color  # Same as outline
+		mesh_material.albedo_color = outline_material.albedo_color  # Same as outline
+		
+		# Optional: make mesh_instance slightly darker for visual distinction
+		mesh_material.albedo_color = mesh_material.albedo_color.darkened(0.2)
+	
+	# Apply the materials
+	token_mesh.material_override = token_material
+	mesh_instance.material_override = mesh_material
+	
+	# Apply any additional visual effects for energy tokens if needed
+	if is_energy:
+		# Example: Add emission to the token for energy tokens
+		token_material.emission_enabled = true
+		token_material.emission = token_material.albedo_color.lightened(0.3)
+		token_material.emission_energy = 0.5
+		token_mesh.material_override = token_material
 
 func remove_token():
 	# Mark the placement as unoccupied
