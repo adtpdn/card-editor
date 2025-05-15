@@ -214,9 +214,9 @@ func notify_card_removed(index: int, player_id: int):
 	if multiplayer.is_server():
 		var game_node = get_node("/root/Game")
 		if game_node:
-			game_node.remove_card_from_player_hand(player_id, index)
+			game_node.card_manager.remove_card_from_player_hand(player_id, index)
 			# Sync removal to all clients to prevent duplicates
-			game_node.rpc("sync_remove_card", index, player_id)
+			game_node.card_manager.rpc("sync_remove_card", index, player_id)
 
 @rpc("any_peer", "call_local")
 func sync_remove_card(index: int):

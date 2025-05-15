@@ -143,6 +143,7 @@ func sync_game_start(current_players):
 	#card_manager.distribute_initial_cards()
 	update_turn_controls()
 	debug_turn_state()
+	update_player_hand_interaction()
 	print("=== Game Start Complete ===\n")
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -305,12 +306,18 @@ func set_current_turn(player_id: int):
 	# Set the current turn index
 	current_turn_index = player_index
 	
-	# Update the UI to reflect the current turn
-	#ui_manager.update_turn_indicator() 
-	
 	# Update token UI
 	token_manager.update_token_ui()
 	
+	# Important: Enable/disable hand interaction based on whose turn it is
+	var player_hand = get_parent().get_node("HandAreas/PlayerHand")
+	if player_hand:
+		var is_my_turn = (multiplayer.get_unique_id() == player_id)
+		player_hand.set_interaction_enabled(is_my_turn)
+		print("Hand interaction " + ("enabled" if is_my_turn else "disabled") + 
+			  " for local player (ID: " + str(multiplayer.get_unique_id()) + ")")
+	
+	# Update turn controls
 	update_turn_controls()
 	debug_turn_state()
 	
@@ -379,6 +386,8 @@ func next_turn():
 		
 		# Sync turn and tokens to all clients
 		get_parent().rpc("set_current_turn", next_player)
+		
+		# Update token state for next player
 		if next_player != multiplayer.get_unique_id():
 			get_parent().rpc_id(next_player, "sync_player_tokens", tokens)
 		else:
@@ -411,7 +420,10 @@ func _on_end_turn_pressed():
 	var player_hand = get_parent().get_node("HandAreas/PlayerHand")
 	var end_turn_button = get_parent().get_node("RightUI/EndTurnButton")
 	
-	if multiplayer.is_server():
+	# Only disable controls if this is the local player's turn
+	var local_player_id = multiplayer.get_unique_id()
+	if local_player_id == current_player:
+		print("Disabling controls for current player: " + str(local_player_id))
 		# Disable current player's controls immediately
 		if player_hand:
 			player_hand.set_interaction_enabled(false)
@@ -421,20 +433,24 @@ func _on_end_turn_pressed():
 		
 		if point_counter:
 			point_counter.set_buttons_enabled(false)
-		
+	
+	if multiplayer.is_server():
 		next_turn()
 	else:
 		# Client requests turn end
-		if player_hand:
-			player_hand.set_interaction_enabled(false)
-		
-		if end_turn_button:
-			end_turn_button.disabled = true
-		
-		if point_counter:
-			point_counter.set_buttons_enabled(false)
-			
 		get_parent().rpc_id(1, "request_next_turn")
+
+# Add this new function to game_state_manager.gd
+func update_player_hand_interaction():
+	var player_hand = get_parent().get_node("HandAreas/PlayerHand")
+	if !player_hand:
+		return
+		
+	var local_player_id = multiplayer.get_unique_id()
+	var is_my_turn = is_valid_player_turn(local_player_id)
+	
+	player_hand.set_interaction_enabled(is_my_turn)
+	print("Updated hand interaction: " + ("enabled" if is_my_turn else "disabled"))
 
 func reset_game():
 	get_tree().reload_current_scene()
