@@ -60,7 +60,7 @@ func _input(event):
 				var game = get_node("/root/Game")
 				var hand = game.get_node("HandAreas/PlayerHand")
 				# Check if it's player's turn before allowing placement
-				if hand and game.is_valid_player_turn(multiplayer.get_unique_id()):
+				if hand and game.game_state_manager.is_valid_player_turn(multiplayer.get_unique_id()):
 					var selected_card = hand.get_selected_card()
 					if selected_card and can_accept_card(selected_card.card_resource):
 						var index = slots.find(selected_marker)

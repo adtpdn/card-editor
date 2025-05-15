@@ -39,29 +39,40 @@ func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: 
 		var game = get_node("/root/Game")
 		
 		if !game or is_occupied:
+			print("Game not found or location is occupied")
 			return
-			
+		
 		var player_id = multiplayer.get_unique_id()
-		if !game.is_valid_player_turn(player_id):
+		if !game.game_state_manager.is_valid_player_turn(player_id):
+			print("Not your turn!")
 			return
-			
+		
+		# Debug token selection state
+		print("Token selected: " + str(game.token_manager.is_token_selected))
+		
 		# Only process clicks if token selection mode is active
-		if !game.is_token_selected:
+		if !game.token_manager.is_token_selected:
+			print("Token selection mode not active")
 			return
 		
 		# Check if player has tokens left
 		var player_tokens = game.token_manager.get_player_tokens(player_id)
 		if player_tokens.size() <= 0:
+			print("No tokens left!")
 			return
+		
+		print("Attempting token placement")
 		
 		# Just use the first available token
 		var token_index = 0
 		
-		# Send placement request to server
+		# IMPORTANT: This is the fix - pass the accepted_biome as the third parameter
 		if multiplayer.is_server():
-			game.request_token_placement(token_index, global_position)
+			print("Server direct placement")
+			game.token_manager.request_token_placement(token_index, global_position, accepted_biome)
 		else:
-			game.rpc_id(1, "request_token_placement", token_index, global_position)
+			print("Client requesting placement")
+			game.token_manager.rpc_id(1, "request_token_placement", token_index, global_position, accepted_biome)
 
 func set_highlight(enabled: bool):
 	if is_occupied:  # Never highlight if occupied

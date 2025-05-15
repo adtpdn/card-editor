@@ -1,13 +1,17 @@
-[gd_scene load_steps=20 format=3 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=24 format=3 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://game.gd" id="1_0rb8f"]
 [ext_resource type="Script" uid="uid://61ovdinil8mj" path="res://hand.gd" id="2_drdp6"]
 [ext_resource type="Script" uid="uid://ckodjk0ue4j3n" path="res://token_manager.gd" id="2_njql7"]
+[ext_resource type="Script" uid="uid://b51yqiry8444l" path="res://network_manager.gd" id="3_boyg6"]
 [ext_resource type="Curve" uid="uid://dtskme7prx4g5" path="res://hand_y_curve.tres" id="3_jwe8m"]
+[ext_resource type="Script" uid="uid://crljukaucgphk" path="res://game_state_manager.gd" id="4_e36ub"]
 [ext_resource type="Curve" uid="uid://dwkwcluylhkq0" path="res://hand_rotation_curve.tres" id="4_lbysu"]
 [ext_resource type="Resource" uid="uid://jby5l2ek6uel" path="res://cards/action_cards.tres" id="4_tg8ug"]
+[ext_resource type="Script" uid="uid://dpaobk3mip7va" path="res://card_manager.gd" id="5_hb5m1"]
 [ext_resource type="Resource" uid="uid://dvmue13fxi5od" path="res://cards/area_cards.tres" id="5_ti4wn"]
 [ext_resource type="PackedScene" uid="uid://cqkw6uj4kgxav" path="res://token_placement_location_magic.tscn" id="6_aclfe"]
+[ext_resource type="Script" uid="uid://22sqj66kc86h" path="res://ui_manager.gd" id="6_x5p1p"]
 [ext_resource type="PackedScene" uid="uid://u5swx58xo14j" path="res://token_placement_location.tscn" id="7_i0rid"]
 [ext_resource type="Material" uid="uid://l6qa3myb6cds" path="res://assets/transparent_material.tres" id="7_l1bdx"]
 [ext_resource type="PackedScene" uid="uid://3blq6hslbv2" path="res://dice_manager.tscn" id="7_p3vul"]
@@ -32,6 +36,18 @@ script = ExtResource("1_0rb8f")
 
 [node name="TokenManager" type="Node" parent="."]
 script = ExtResource("2_njql7")
+
+[node name="NetworkManager" type="Node" parent="."]
+script = ExtResource("3_boyg6")
+
+[node name="GameStateManager" type="Node" parent="."]
+script = ExtResource("4_e36ub")
+
+[node name="CardManager" type="Node" parent="."]
+script = ExtResource("5_hb5m1")
+
+[node name="UIManager" type="Node" parent="."]
+script = ExtResource("6_x5p1p")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 25, 0.5)
@@ -1245,7 +1261,6 @@ sky_mode = 1
 
 [node name="PointCounter" type="Node3D" parent="."]
 transform = Transform3D(-0.00947704, 0, 0.999955, 0, 1, 0, -0.999955, 0, -0.00947704, -6.88334, 0, 0.0452511)
-visible = false
 script = ExtResource("11_beb7m")
 
 [node name="ForestStack" type="Node3D" parent="PointCounter"]

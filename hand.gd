@@ -85,8 +85,8 @@ func draw(card_resource: CardResource) -> void:
 			return
 	
 	# Check if we're exceeding max cards for this type
-	var type_count = game.count_cards_by_type(card_resource.card_type)
-	var max_cards = game.MAX_ACTION_CARDS if card_resource.card_type == CardResource.CardType.ACTION else game.MAX_AREA_CARDS
+	var type_count = game.card_manager.count_cards_by_type(card_resource.card_type)
+	var max_cards = game.card_manager.MAX_ACTION_CARDS if card_resource.card_type == CardResource.CardType.ACTION else game.card_manager.MAX_AREA_CARDS
 	
 	if type_count >= max_cards:
 		print("Max cards of type ", card_resource.card_type, " reached")
