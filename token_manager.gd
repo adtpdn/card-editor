@@ -80,7 +80,7 @@ func _ready():
 	if !get_parent().has_node("BiomeBorders"):
 		borders_node = Node3D.new()
 		borders_node.name = "BiomeBorders"
-		get_parent().add_child(borders_node)
+		get_parent().add_child.call_deferred(borders_node)
 	else:
 		borders_node = get_parent().get_node("BiomeBorders")
 	

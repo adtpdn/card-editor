@@ -41,7 +41,7 @@ func _ready():
 	token_manager.initialize()
 	network_manager.initialize()
 	game_state_manager.initialize()
-	ui_manager.initialize()
+	#ui_manager.initialize()
 	
 	# Connect input events to token manager
 	set_process_input(true)

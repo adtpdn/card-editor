@@ -24,31 +24,31 @@ var ui_update_timer: Timer
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-func _ready():
-	setup_debug_ui()
-	setup_menu_buttons()
-	setup_player_list()
-	
-	# Connect to camera zoom buttons if they exist
-	var zoom_in_button = get_parent().get_node("ZoomControls/ZoomInButton")
-	var zoom_out_button = get_parent().get_node("ZoomControls/ZoomOutButton")
-	
-	if zoom_in_button:
-		if zoom_in_button.pressed.is_connected(_on_zoom_in_pressed):
-			zoom_in_button.pressed.disconnect(_on_zoom_in_pressed)
-		zoom_in_button.pressed.connect(_on_zoom_in_pressed)
-	
-	if zoom_out_button:
-		if zoom_out_button.pressed.is_connected(_on_zoom_out_pressed):
-			zoom_out_button.pressed.disconnect(_on_zoom_out_pressed)
-		zoom_out_button.pressed.connect(_on_zoom_out_pressed)
-	
-	# Set up timer for UI updates
-	ui_update_timer = Timer.new()
-	add_child(ui_update_timer)
-	ui_update_timer.wait_time = 0.5  # Update every half second
-	ui_update_timer.timeout.connect(_on_ui_update_timer)
-	ui_update_timer.start()
+#func _ready():
+	#setup_debug_ui()
+	#setup_menu_buttons()
+	#setup_player_list()
+	#
+	## Connect to camera zoom buttons if they exist
+	#var zoom_in_button = get_parent().get_node("ZoomControls/ZoomInButton")
+	#var zoom_out_button = get_parent().get_node("ZoomControls/ZoomOutButton")
+	#
+	#if zoom_in_button:
+		#if zoom_in_button.pressed.is_connected(_on_zoom_in_pressed):
+			#zoom_in_button.pressed.disconnect(_on_zoom_in_pressed)
+		#zoom_in_button.pressed.connect(_on_zoom_in_pressed)
+	#
+	#if zoom_out_button:
+		#if zoom_out_button.pressed.is_connected(_on_zoom_out_pressed):
+			#zoom_out_button.pressed.disconnect(_on_zoom_out_pressed)
+		#zoom_out_button.pressed.connect(_on_zoom_out_pressed)
+	#
+	## Set up timer for UI updates
+	#ui_update_timer = Timer.new()
+	#add_child(ui_update_timer)
+	#ui_update_timer.wait_time = 0.5  # Update every half second
+	#ui_update_timer.timeout.connect(_on_ui_update_timer)
+	#ui_update_timer.start()
 
 func initialize():
 	# Initial UI setup
