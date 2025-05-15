@@ -114,6 +114,13 @@ func connect_signals():
 	btn_water_magic_min.pressed.connect(func(): on_button_pressed("water_magic", -1))
 
 func on_button_pressed(biome: String, delta: int):
+	# Implement cooldown to prevent rapid button presses
+	var current_time = Time.get_ticks_msec() / 1000.0
+	if current_time - last_button_press_time < BUTTON_PRESS_COOLDOWN:
+		return
+		
+	last_button_press_time = current_time
+	
 	var game_node = get_parent()
 	if game_node and game_node.has_method("request_point_adjustment"):
 		game_node.request_point_adjustment(biome, delta)

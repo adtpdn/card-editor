@@ -10,6 +10,7 @@ extends Node
 @onready var card_manager = $CardManager
 @onready var ui_manager = $UIManager
 @onready var dice_manager = $DiceManager
+
 @onready var point_counter = $PointCounter
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -187,3 +188,51 @@ func _notification(what):
 		# Cleanup network connections when game is closed
 		network_manager.cleanup_network()
 		get_tree().quit()
+
+
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ---      Point Counter       ---
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+func request_point_adjustment(biome: String, delta: int):
+	if multiplayer.is_server():
+		# Server directly adjusts the points
+		adjust_points(biome, delta)
+	else:
+		# Client sends request to server
+		rpc_id(1, "receive_point_adjustment_request", biome, delta)
+
+@rpc("any_peer")
+func receive_point_adjustment_request(biome: String, delta: int):
+	if !multiplayer.is_server():
+		return
+		
+	# Validate it's the player's turn
+	var requesting_player = multiplayer.get_remote_sender_id()
+	if game_state_manager.is_valid_player_turn(requesting_player):
+		adjust_points(biome, delta)
+
+func adjust_points(biome: String, delta: int):
+	if !point_counter:
+		return
+		
+	# Get current points
+	var current_points = point_counter.get_points(biome)
+	
+	# Calculate new value with validation
+	var new_value = point_counter.validate_points(current_points + delta)
+	
+	# Set the points
+	point_counter.set_points(biome, new_value)
+	
+	# Sync to all clients
+	point_counter.rpc("sync_point_values", 
+		point_counter.forest_points,
+		point_counter.desert_points,
+		point_counter.mountain_points,
+		point_counter.water_points,
+		point_counter.forest_magic_points,
+		point_counter.desert_magic_points,
+		point_counter.mountain_magic_points,
+		point_counter.water_magic_points
+	)

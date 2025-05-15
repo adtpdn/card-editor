@@ -317,6 +317,10 @@ func set_current_turn(player_id: int):
 		print("Hand interaction " + ("enabled" if is_my_turn else "disabled") + 
 			  " for local player (ID: " + str(multiplayer.get_unique_id()) + ")")
 	
+	if point_counter:
+		var is_my_turn = (multiplayer.get_unique_id() == player_id)
+		point_counter.set_buttons_enabled(is_my_turn)
+	
 	# Update turn controls
 	update_turn_controls()
 	debug_turn_state()
