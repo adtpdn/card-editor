@@ -10,7 +10,6 @@ extends Node
 @onready var game_state_manager = $"../GameStateManager" 
 @onready var card_manager = $"../CardManager"
 @onready var ui_manager = $"../UIManager"
-@onready var dice_manager = $"../DiceManager"
 @onready var point_counter = $"../PointCounter"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -129,6 +128,120 @@ func initialize():
 			token_button.disabled = false  # Force enable for host
 		
 	print("TokenManager initialized.")
+
+func handle_touch(position: Vector2):
+	var current_time = Time.get_ticks_msec() / 1000.0
+	if current_time - last_token_placement_time < TOKEN_PLACEMENT_COOLDOWN:
+		return
+	
+	var player_id = multiplayer.get_unique_id()
+	
+	# Only check for turn validity in token placement mode
+	if is_token_selected and !game_state_manager.is_valid_player_turn(player_id):
+		print("Not your turn!")
+		selected_token_biome = -1
+		unhighlight_all_token_placements()
+		return
+	
+	var camera = get_parent().get_node("Camera3D")
+	if !camera:
+		print("Camera not found!")
+		return
+		
+	var from = camera.project_ray_origin(position)
+	var to = from + camera.project_ray_normal(position) * 1000
+	
+	var space_state = get_tree().get_root().get_world_3d().direct_space_state
+	var query = PhysicsRayQueryParameters3D.create(from, to)
+	var result = space_state.intersect_ray(query)
+	
+	# Check if it's this player's turn
+	if !game_state_manager.is_valid_player_turn(player_id):
+		print("Not your turn!")
+		selected_token_biome = -1
+		unhighlight_all_token_placements()
+		return
+	
+	# First, check if SigilManager wants to handle this input
+	if get_parent().has_node("SigilManager"):
+		var sigil_manager = get_parent().get_node("SigilManager")
+		if sigil_manager.handle_sigil_input(position):
+			return  # Input was handled by SigilManager
+	
+	if result:
+		var collider = result["collider"]
+		var hit_position = result["position"]
+		
+		# Find the token at this position with improved detection
+		var found_token = null
+		for token in get_parent().get_node("Tokens").get_children():
+			var distance = token.global_position.distance_to(hit_position)
+			print("Distance to token: " + str(distance))
+			if distance < 1.0:  # More generous distance check
+				found_token = token
+				print("Found token at position: " + str(token.global_position))
+				break
+		
+		if found_token:
+			print("Processing token: " + str(found_token.name))
+			if is_remove:
+				print("Attempting to remove token")
+				# Handle remove mode
+				if multiplayer.is_server():
+					process_token_removal(found_token.global_position)
+				else:
+					print("Sending removal request to server")
+					rpc_id(1, "request_token_removal", found_token.global_position)
+				
+				# Reset remove mode after attempt
+				is_remove = false
+				
+			elif is_blight_mode:
+				print("Attempting to blight token")
+				# Handle blight mode
+				if multiplayer.is_server():
+					process_token_blight(found_token.global_position)
+				else:
+					print("Sending blight request to server")
+					rpc_id(1, "request_token_blight", found_token.global_position)
+				
+				# Reset blight mode after attempt
+				is_blight_mode = false
+				
+			# Always unhighlight after any token action
+			unhighlight_all_token_placements()
+			
+			# Reset button visual states
+			var remove_button = get_parent().get_node("RightUI/RemoveButton")
+			var blight_button = get_parent().get_node("RightUI/BlightButton")
+			
+			if remove_button:
+				remove_button.modulate = Color(1, 1, 1, 1)
+			if blight_button:
+				blight_button.modulate = Color(1, 1, 1, 1)
+		else:
+			print("No token found at position")
+			# Handle token placement if in token selection mode
+			if is_token_selected:
+				var placement = get_token_placement_at_position(hit_position)
+				if placement and !placement.is_occupied:
+					# Handle token placement
+					var token_index = 0  # Use first available token
+					
+					# Update cooldown time
+					last_token_placement_time = current_time
+					
+					# IMPORTANT: Pass the accepted_biome from the placement location
+					var biome_type = placement.accepted_biome
+					
+					if multiplayer.is_server():
+						request_token_placement(token_index, placement.global_position, biome_type)
+					else:
+						rpc_id(1, "request_token_placement", token_index, placement.global_position, biome_type)
+					
+					# Reset selection state
+					is_token_selected = false
+					unhighlight_all_token_placements()
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---   Player Token Management ---
@@ -1076,104 +1189,59 @@ func request_token_refresh():
 		var tokens = get_player_tokens(requesting_player)
 		rpc_id(requesting_player, "sync_player_tokens", tokens)
 
-# Optional: Handle input for token selection/placement
-func handle_touch(position: Vector2):
-	var current_time = Time.get_ticks_msec() / 1000.0
-	if current_time - last_token_placement_time < TOKEN_PLACEMENT_COOLDOWN:
+
+@rpc("any_peer")
+func request_token_movement(from_position: Vector3, to_position: Vector3):
+	if !multiplayer.is_server():
 		return
 	
-	var player_id = multiplayer.get_unique_id()
-	
-	# Only check for turn validity in token placement mode
-	if is_token_selected and !game_state_manager.is_valid_player_turn(player_id):
-		print("Not your turn!")
-		selected_token_biome = -1
-		unhighlight_all_token_placements()
+	var player_id = multiplayer.get_remote_sender_id()
+	if !game_state_manager.is_valid_player_turn(player_id):
 		return
 	
-	var camera = get_parent().get_node("Camera3D")
-	if !camera:
-		print("Camera not found!")
+	# Find the token
+	var token = find_token_at_position(from_position)
+	if !token:
 		return
-		
-	var from = camera.project_ray_origin(position)
-	var to = from + camera.project_ray_normal(position) * 1000
 	
-	var space_state = get_tree().get_root().get_world_3d().direct_space_state
-	var query = PhysicsRayQueryParameters3D.create(from, to)
-	var result = space_state.intersect_ray(query)
+	# Find the placements
+	var from_placement = get_token_placement_at_position(from_position)
+	var to_placement = get_token_placement_at_position(to_position)
 	
-	if result:
-		var collider = result["collider"]
-		var hit_position = result["position"]
-		
-		# Find the token at this position with improved detection
-		var found_token = null
-		for token in get_parent().get_node("Tokens").get_children():
-			var distance = token.global_position.distance_to(hit_position)
-			print("Distance to token: " + str(distance))
-			if distance < 1.0:  # More generous distance check
-				found_token = token
-				print("Found token at position: " + str(token.global_position))
-				break
-		
-		if found_token:
-			print("Processing token: " + str(found_token.name))
-			if is_remove:
-				print("Attempting to remove token")
-				# Handle remove mode
-				if multiplayer.is_server():
-					process_token_removal(found_token.global_position)
-				else:
-					print("Sending removal request to server")
-					rpc_id(1, "request_token_removal", found_token.global_position)
-				
-				# Reset remove mode after attempt
-				is_remove = false
-				
-			elif is_blight_mode:
-				print("Attempting to blight token")
-				# Handle blight mode
-				if multiplayer.is_server():
-					process_token_blight(found_token.global_position)
-				else:
-					print("Sending blight request to server")
-					rpc_id(1, "request_token_blight", found_token.global_position)
-				
-				# Reset blight mode after attempt
-				is_blight_mode = false
-				
-			# Always unhighlight after any token action
-			unhighlight_all_token_placements()
-			
-			# Reset button visual states
-			var remove_button = get_parent().get_node("RightUI/RemoveButton")
-			var blight_button = get_parent().get_node("RightUI/BlightButton")
-			
-			if remove_button:
-				remove_button.modulate = Color(1, 1, 1, 1)
-			if blight_button:
-				blight_button.modulate = Color(1, 1, 1, 1)
-		else:
-			print("No token found at position")
-			# Handle token placement if in token selection mode
-			if is_token_selected:
-				var placement = get_token_placement_at_position(hit_position)
-				if placement and !placement.is_occupied:
-					# Handle token placement
-					var token_index = 0  # Use first available token
-					
-					# Update cooldown time
-					last_token_placement_time = current_time
-					
-					# IMPORTANT: Pass the accepted_biome from the placement location
-					var biome_type = placement.accepted_biome
-					
-					if multiplayer.is_server():
-						request_token_placement(token_index, placement.global_position, biome_type)
-					else:
-						rpc_id(1, "request_token_placement", token_index, placement.global_position, biome_type)
-					
-					# Reset selection state
-					is_token_selected = false
-					unhighlight_all_token_placements()
+	if !from_placement or !to_placement or to_placement.is_occupied:
+		return
+	
+	# Update placements
+	from_placement.set_occupied(false)
+	from_placement.current_token = null
+	
+	to_placement.set_occupied(true)
+	to_placement.current_token = token
+	
+	# Move the token
+	token.global_position = to_placement.global_position
+	
+	# Sync to all clients
+	rpc("sync_token_movement", from_position, to_position)
+
+@rpc("any_peer", "call_local")
+func sync_token_movement(from_position: Vector3, to_position: Vector3):
+	var token = find_token_at_position(from_position)
+	if !token:
+		return
+	
+	var from_placement = get_token_placement_at_position(from_position)
+	var to_placement = get_token_placement_at_position(to_position)
+	
+	if !from_placement or !to_placement:
+		return
+	
+	# Update placements
+	from_placement.set_occupied(false)
+	from_placement.current_token = null
+	
+	to_placement.set_occupied(true)
+	to_placement.current_token = token
+	
+	# Move the token
+	token.global_position = to_placement.global_position

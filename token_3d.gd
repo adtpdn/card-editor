@@ -14,6 +14,17 @@ var token_placement = null
 var is_energy: bool = false
 var is_blighted: bool = false
 
+signal token_clicked(token)
+
+var is_highlighted = false
+var pattern_highlights = []
+
+func _ready():
+	# Make sure the token is clickable
+	var area = $Area3D
+	if area:
+		area.input_event.connect(_on_input_event)
+
 func set_token_data(b_type: BiomeType, p_id: int = -1, energy: bool = false):
 	print("Setting token data - Biome: ", b_type, " Owner: ", p_id, " Energy: ", energy)
 	biome_type = b_type
@@ -35,7 +46,7 @@ func update_token_display():
 	# First, set the outline color based on player
 	if game && game.player_colors.has(owner_id):
 		outline_material.albedo_color = game.player_colors[owner_id]
-		print("Setting token color for player ", owner_id, ": ", game.player_colors[owner_id])
+		#print("Setting token color for player ", owner_id, ": ", game.player_colors[owner_id])
 	else:
 		print("No color found for player ", owner_id)
 		outline_material.albedo_color = Color(0.5, 0.5, 0.5)  # Gray default
@@ -75,3 +86,71 @@ func remove_token():
 		token_placement.set_highlight(false)
 	# Remove the token itself
 	queue_free()
+
+func _on_input_event(_camera, event, _position, _normal, _shape_idx):
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		emit_signal("token_clicked", self)
+
+func highlight(enabled: bool):
+	is_highlighted = enabled
+	
+	# Visual feedback for highlight
+	if enabled:
+		# Get the mesh instance
+		var mesh_instance = $MeshInstance3D
+		
+		# Check if it has a material
+		var material
+		if mesh_instance.get_surface_override_material_count() > 0:
+			material = mesh_instance.get_surface_override_material(0)
+			if material:
+				material = material.duplicate() # Create a copy to modify
+			else:
+				material = StandardMaterial3D.new()
+		else:
+			material = StandardMaterial3D.new()
+		
+		# Apply highlight properties
+		material.emission_enabled = true
+		material.emission = Color(1, 1, 0.5)  # Yellow highlight
+		
+		# Set the material
+		mesh_instance.set_surface_override_material(0, material)
+	else:
+		update_token_display()  # Reset to normal appearance
+
+func set_pattern_highlight(enabled: bool, patterns: Array):
+	pattern_highlights = patterns
+	
+	# Only apply pattern highlight if not already highlighted
+	if !is_highlighted:
+		# Get the mesh instance
+		var mesh_instance = $MeshInstance3D
+		
+		if enabled and patterns.size() > 0:
+			# Get or create material
+			var material
+			if mesh_instance.get_surface_override_material_count() > 0:
+				material = mesh_instance.get_surface_override_material(0)
+				if material:
+					material = material.duplicate() # Create a copy to modify
+				else:
+					material = StandardMaterial3D.new()
+			else:
+				material = StandardMaterial3D.new()
+			
+			# Apply pattern highlight
+			material.emission_enabled = true
+			
+			# Different colors for different patterns
+			if patterns.has(0):  # SIGIL_A
+				material.emission = Color(1, 0.5, 0.5, 0.5)  # Red tint for Pattern A
+			elif patterns.has(1):  # SIGIL_B
+				material.emission = Color(0.5, 1, 0.5, 0.5)  # Green tint for Pattern B
+			elif patterns.has(2):  # SIGIL_C
+				material.emission = Color(0.5, 0.5, 1, 0.5)  # Blue tint for Pattern C
+			
+			# Set the material
+			mesh_instance.set_surface_override_material(0, material)
+		else:
+			update_token_display()  # Reset to normal appearance

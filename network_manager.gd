@@ -9,7 +9,6 @@ extends Node
 @onready var game_state_manager = $"../GameStateManager" 
 @onready var card_manager = $"../CardManager"
 @onready var ui_manager = $"../UIManager"
-@onready var dice_manager = $"../DiceManager"
 @onready var point_counter = $"../PointCounter"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

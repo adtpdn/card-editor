@@ -12,9 +12,9 @@
 [ext_resource type="Resource" uid="uid://dvmue13fxi5od" path="res://cards/area_cards.tres" id="5_ti4wn"]
 [ext_resource type="PackedScene" uid="uid://cqkw6uj4kgxav" path="res://token_placement_location_magic.tscn" id="6_aclfe"]
 [ext_resource type="Script" uid="uid://22sqj66kc86h" path="res://ui_manager.gd" id="6_x5p1p"]
+[ext_resource type="Script" uid="uid://b33jfe6s6f3g4" path="res://sigil_manager.gd" id="7_boyg6"]
 [ext_resource type="PackedScene" uid="uid://u5swx58xo14j" path="res://token_placement_location.tscn" id="7_i0rid"]
 [ext_resource type="Material" uid="uid://l6qa3myb6cds" path="res://assets/transparent_material.tres" id="7_l1bdx"]
-[ext_resource type="PackedScene" uid="uid://3blq6hslbv2" path="res://dice_manager.tscn" id="7_p3vul"]
 [ext_resource type="Shape3D" uid="uid://gjjokcof6ivg" path="res://cards/card_3d_collision.tres" id="11_1ew6f"]
 [ext_resource type="Script" uid="uid://inns47cokwch" path="res://point_counter.gd" id="11_beb7m"]
 [ext_resource type="Script" uid="uid://oigll5nbfhgy" path="res://deck_location.gd" id="12_8ltkn"]
@@ -48,6 +48,9 @@ script = ExtResource("5_hb5m1")
 
 [node name="UIManager" type="Node" parent="."]
 script = ExtResource("6_x5p1p")
+
+[node name="SigilManager" type="Node" parent="."]
+script = ExtResource("7_boyg6")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 25, 0.5)
@@ -903,9 +906,6 @@ transform = Transform3D(1, 0, 7.45058e-09, 0, 0.03, 0, 0, 0, 1, -0.00149435, 0, 
 mesh = SubResource("BoxMesh_nfgrx")
 surface_material_override/0 = ExtResource("7_l1bdx")
 
-[node name="DiceManager" parent="." instance=ExtResource("7_p3vul")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.87374, 0.51, 2.80558)
-
 [node name="ResetButton" type="Button" parent="."]
 visible = false
 anchors_preset = 5
@@ -1025,18 +1025,6 @@ offset_bottom = 87.0
 theme_override_font_sizes/font_size = 10
 text = "00"
 
-[node name="RollDiceButton" type="Button" parent="RightUI"]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -28.0
-offset_top = 546.0
-offset_right = 74.0
-offset_bottom = 577.0
-grow_horizontal = 2
-text = "Roll Dice"
-
 [node name="RollResultLabel" type="Label" parent="RightUI"]
 layout_mode = 1
 anchors_preset = 5
@@ -1085,6 +1073,7 @@ grow_vertical = 2
 size_flags_horizontal = 4
 
 [node name="VBoxContainer" type="VBoxContainer" parent="LeftUI"]
+visible = false
 layout_mode = 1
 offset_left = 27.0
 offset_top = 22.0
@@ -1212,6 +1201,7 @@ layout_mode = 2
 text = " - "
 
 [node name="StartGameButton" type="Button" parent="LeftUI"]
+visible = false
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -1317,6 +1307,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.48982, 0, 10.8626)
 
 [connection signal="pressed" from="ResetButton" to="." method="_on_reset_button_pressed"]
 [connection signal="pressed" from="DiscardCardButton" to="." method="_on_discard_card_button_pressed"]
-[connection signal="button_down" from="RightUI/RollDiceButton" to="." method="_on_roll_dice_pressed"]
 [connection signal="pressed" from="DrawActionButton" to="." method="_on_draw_action_button_pressed"]
 [connection signal="pressed" from="DrawAreaButton" to="." method="_on_draw_area_button_pressed"]

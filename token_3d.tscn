@@ -37,13 +37,3 @@ skeleton = NodePath("")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="MeshInstance3D/StaticBody3D"]
 shape = SubResource("ConcavePolygonShape3D_43hjs")
-
-[node name="ValueLabel" type="Label3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.628184, 0)
-visible = false
-billboard = 1
-modulate = Color(1, 1, 1, 0.588235)
-outline_modulate = Color(0, 0, 0, 0.588235)
-text = "01"
-font_size = 26
-outline_size = 18

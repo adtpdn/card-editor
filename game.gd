@@ -9,7 +9,6 @@ extends Node
 @onready var game_state_manager = $GameStateManager
 @onready var card_manager = $CardManager
 @onready var ui_manager = $UIManager
-@onready var dice_manager = $DiceManager
 
 @onready var point_counter = $PointCounter
 
@@ -43,6 +42,9 @@ func _ready():
 	network_manager.initialize()
 	game_state_manager.initialize()
 	#ui_manager.initialize()
+	
+	if has_node("SigilManager"):
+		$SigilManager.initialize()
 	
 	# Connect input events to token manager
 	set_process_input(true)
@@ -167,13 +169,6 @@ func add_player(player_id):
 func remove_player(player_id):
 	game_state_manager.remove_player(player_id)
 
-@rpc("any_peer")
-func roll_dice(player_id: int):
-	dice_manager.roll_dice(player_id)
-
-@rpc("any_peer", "call_local")
-func sync_dice_result(result: int, player_id: int):
-	dice_manager.sync_dice_result(result, player_id)
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---   Game Engine Handlers   ---

@@ -9,7 +9,6 @@ extends Node
 @onready var network_manager = $"../NetworkManager"
 @onready var card_manager = $"../CardManager"
 @onready var ui_manager = $"../UIManager"
-@onready var dice_manager = $"../DiceManager"
 @onready var point_counter = $"../PointCounter"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -278,9 +277,9 @@ func is_valid_player_turn(player_id: int) -> bool:
 	var current_player = players[current_turn_index]
 	var is_my_turn = (player_id == current_player)
 	
-	print("Turn validation: Player " + str(player_id) + 
-		  ", Current player " + str(current_player) + 
-		  ", Is valid: " + str(is_my_turn))
+	#print("Turn validation: Player " + str(player_id) + 
+		  #", Current player " + str(current_player) + 
+		  #", Is valid: " + str(is_my_turn))
 	
 	return is_my_turn
 
