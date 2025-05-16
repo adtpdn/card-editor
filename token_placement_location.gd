@@ -4,6 +4,7 @@ extends Node3D
 enum BiomeType {FOREST, WATER, MOUNTAIN, DESERT}
 
 @export var accepted_biome: TokenManager.BiomeType
+@export var place_id: int = -1
 
 var is_highlighted: bool = false
 var is_occupied = false
