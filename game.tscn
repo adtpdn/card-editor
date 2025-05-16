@@ -1225,6 +1225,25 @@ offset_bottom = -135.0
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="SigilContainer" type="VBoxContainer" parent="LeftUI"]
+layout_mode = 1
+offset_left = 29.0
+offset_top = 85.0
+offset_right = 87.0
+offset_bottom = 186.0
+
+[node name="SigilAButton" type="Button" parent="LeftUI/SigilContainer"]
+layout_mode = 2
+text = "Sigil A "
+
+[node name="SigilBButton" type="Button" parent="LeftUI/SigilContainer"]
+layout_mode = 2
+text = "Sigil B"
+
+[node name="SigilCButton" type="Button" parent="LeftUI/SigilContainer"]
+layout_mode = 2
+text = "Sigil C"
+
 [node name="HandAreas" type="Control" parent="."]
 clip_contents = true
 layout_mode = 3

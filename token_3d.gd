@@ -25,13 +25,10 @@ func _ready():
 	if area:
 		area.input_event.connect(_on_input_event)
 
-func set_token_data(b_type: BiomeType, p_id: int = -1, energy: bool = false):
-	print("Setting token data - Biome: ", b_type, " Owner: ", p_id, " Energy: ", energy)
-	biome_type = b_type
-	owner_id = p_id
-	is_energy = energy
-	is_blighted = false  # Initialize as not blighted
-	
+func set_token_data(biome, owner, is_energy_token=false):
+	biome_type = biome
+	owner_id = owner
+	is_energy = is_energy_token  # Set energy status
 	update_token_display()
 
 func set_blighted(blighted: bool):

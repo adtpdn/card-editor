@@ -136,25 +136,6 @@ func handle_touch(position: Vector2):
 	
 	var player_id = multiplayer.get_unique_id()
 	
-	# Only check for turn validity in token placement mode
-	if is_token_selected and !game_state_manager.is_valid_player_turn(player_id):
-		print("Not your turn!")
-		selected_token_biome = -1
-		unhighlight_all_token_placements()
-		return
-	
-	var camera = get_parent().get_node("Camera3D")
-	if !camera:
-		print("Camera not found!")
-		return
-		
-	var from = camera.project_ray_origin(position)
-	var to = from + camera.project_ray_normal(position) * 1000
-	
-	var space_state = get_tree().get_root().get_world_3d().direct_space_state
-	var query = PhysicsRayQueryParameters3D.create(from, to)
-	var result = space_state.intersect_ray(query)
-	
 	# Check if it's this player's turn
 	if !game_state_manager.is_valid_player_turn(player_id):
 		print("Not your turn!")
@@ -167,6 +148,19 @@ func handle_touch(position: Vector2):
 		var sigil_manager = get_parent().get_node("SigilManager")
 		if sigil_manager.handle_sigil_input(position):
 			return  # Input was handled by SigilManager
+	
+	# Continue with regular token placement logic...
+	var camera = get_parent().get_node("Camera3D")
+	if !camera:
+		print("Camera not found!")
+		return
+		
+	var from = camera.project_ray_origin(position)
+	var to = from + camera.project_ray_normal(position) * 1000
+	
+	var space_state = get_tree().get_root().get_world_3d().direct_space_state
+	var query = PhysicsRayQueryParameters3D.create(from, to)
+	var result = space_state.intersect_ray(query)
 	
 	if result:
 		var collider = result["collider"]
@@ -818,9 +812,10 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	# Convert types explicitly
 	var biome_type = int(token_data.biome) if token_data.has("biome") else placement.accepted_biome
 	
-	# Check if this is an energy placement (one of the first 28 placements)
+	# Check if this is an energy placement (magic token placement)
 	var placement_index = placement.get_index()
-	var is_energy = placement_index < 28
+	var is_energy = placement_index < 28  # First 28 placements are energy placements
+	print("Placing token at index ", placement_index, ", is_energy: ", is_energy)
 	
 	# Call the updated set_token_data with biome, player id, and energy status
 	token.set_token_data(biome_type, player_id, is_energy)

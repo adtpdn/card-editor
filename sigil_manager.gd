@@ -47,7 +47,10 @@ func initialize():
 	# Connect to existing tokens
 	for token in tokens_node.get_children():
 		_connect_to_new_token(token)
-		
+	
+	# Connect sigil buttons
+	connect_sigil_buttons()
+	force_initialize_sigil_buttons()
 	print("SigilManager initialized.")
 
 # Connect to new tokens added to the scene
@@ -55,12 +58,175 @@ func _connect_to_new_token(token):
 	if !token.is_connected("token_clicked", _on_token_clicked):
 		token.connect("token_clicked", _on_token_clicked)
 
+func connect_sigil_buttons():
+	var sigil_a_button = game.get_node("LeftUI/SigilContainer/SigilAButton")
+	var sigil_b_button = game.get_node("LeftUI/SigilContainer/SigilBButton")
+	var sigil_c_button = game.get_node("LeftUI/SigilContainer/SigilCButton")
+	
+	# Disconnect existing signals to prevent duplicates
+	if sigil_a_button.pressed.is_connected(_on_sigil_a_pressed):
+		sigil_a_button.pressed.disconnect(_on_sigil_a_pressed)
+	if sigil_b_button.pressed.is_connected(_on_sigil_b_pressed):
+		sigil_b_button.pressed.disconnect(_on_sigil_b_pressed)
+	if sigil_c_button.pressed.is_connected(_on_sigil_c_pressed):
+		sigil_c_button.pressed.disconnect(_on_sigil_c_pressed)
+	
+	# Connect new signals
+	sigil_a_button.pressed.connect(_on_sigil_a_pressed)
+	sigil_b_button.pressed.connect(_on_sigil_b_pressed)
+	sigil_c_button.pressed.connect(_on_sigil_c_pressed)
+	
+	# Initially disable the buttons
+	sigil_a_button.disabled = true
+	sigil_b_button.disabled = true
+	sigil_c_button.disabled = true
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Sigil Button
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+func _on_sigil_a_pressed():
+	# Check if we have a selected token
+	if selected_energy_token:
+		# Verify it's an energy token, not blighted, and owned by the current player
+		if selected_energy_token.is_energy and !selected_energy_token.is_blighted and selected_energy_token.owner_id == multiplayer.get_unique_id():
+			# Check if this token can form a Sigil A pattern
+			if check_for_sigil_a_pattern(selected_energy_token):
+				# If valid, activate the sigil
+				activate_sigil_pattern(selected_energy_token, SigilPattern.SIGIL_A)
+			else:
+				# Show feedback that pattern is not valid
+				show_invalid_pattern_message("Sigil A (L Pattern)")
+		else:
+			show_invalid_token_message()
+	else:
+		show_no_token_selected_message()
+
+func _on_sigil_b_pressed():
+	# Check if we have a selected token
+	if selected_energy_token:
+		# Verify it's an energy token, not blighted, and owned by the current player
+		if selected_energy_token.is_energy and !selected_energy_token.is_blighted and selected_energy_token.owner_id == multiplayer.get_unique_id():
+			# Check if this token can form a Sigil B pattern
+			if check_for_sigil_b_pattern(selected_energy_token):
+				# If valid, activate the sigil
+				activate_sigil_pattern(selected_energy_token, SigilPattern.SIGIL_B)
+			else:
+				# Show feedback that pattern is not valid
+				show_invalid_pattern_message("Sigil B (Straight Pattern)")
+		else:
+			show_invalid_token_message()
+	else:
+		show_no_token_selected_message()
+
+func _on_sigil_c_pressed():
+	# Check if we have a selected token
+	if selected_energy_token:
+		# Verify it's an energy token, not blighted, and owned by the current player
+		if selected_energy_token.is_energy and !selected_energy_token.is_blighted and selected_energy_token.owner_id == multiplayer.get_unique_id():
+			# Check if this token can form a Sigil C pattern
+			if check_for_sigil_c_pattern(selected_energy_token):
+				# If valid, activate the sigil
+				activate_sigil_pattern(selected_energy_token, SigilPattern.SIGIL_C)
+			else:
+				# Show feedback that pattern is not valid
+				show_invalid_pattern_message("Sigil C (Diagonal Pattern)")
+		else:
+			show_invalid_token_message()
+	else:
+		show_no_token_selected_message()
+
+func update_sigil_button_states(token):
+	var sigil_a_button = game.get_node("LeftUI/SigilContainer/SigilAButton")
+	var sigil_b_button = game.get_node("LeftUI/SigilContainer/SigilBButton")
+	var sigil_c_button = game.get_node("LeftUI/SigilContainer/SigilCButton")
+	
+	# Debug log the token info
+	print("Checking patterns for token - Biome: ", token.biome_type, 
+		  ", ID: ", get_token_id(token), 
+		  ", Is Energy: ", token.is_energy, 
+		  ", Owner: ", token.owner_id)
+	
+	# Check which patterns this token can form
+	var can_form_a = check_for_sigil_a_pattern(token)
+	var can_form_b = check_for_sigil_b_pattern(token)
+	var can_form_c = check_for_sigil_c_pattern(token)
+	
+	# Debug log pattern check results
+	print("Pattern detection results - A: ", can_form_a, ", B: ", can_form_b, ", C: ", can_form_c)
+	
+	# Also check if there's enough mana
+	var has_mana = check_mana_available(token.biome_type)
+	print("Has mana: ", has_mana)
+	
+	# Enable or disable buttons based on pattern availability and mana
+	sigil_a_button.disabled = !(can_form_a && has_mana)
+	sigil_b_button.disabled = !(can_form_b && has_mana)
+	sigil_c_button.disabled = !(can_form_c && has_mana)
+	
+	# Debug log button states
+	print("Button states - A: ", !sigil_a_button.disabled, ", B: ", !sigil_b_button.disabled, ", C: ", !sigil_c_button.disabled)
+	
+	# Update button appearance based on state
+	sigil_a_button.modulate = Color(1, 1, 1, 1.0 if !sigil_a_button.disabled else 0.5)
+	sigil_b_button.modulate = Color(1, 1, 1, 1.0 if !sigil_b_button.disabled else 0.5)
+	sigil_c_button.modulate = Color(1, 1, 1, 1.0 if !sigil_c_button.disabled else 0.5)
+
+func disable_all_sigil_buttons():
+	var sigil_a_button = game.get_node("LeftUI/SigilContainer/SigilAButton")
+	var sigil_b_button = game.get_node("LeftUI/SigilContainer/SigilBButton")
+	var sigil_c_button = game.get_node("LeftUI/SigilContainer/SigilCButton")
+	
+	sigil_a_button.disabled = true
+	sigil_b_button.disabled = true
+	sigil_c_button.disabled = true
+	
+	sigil_a_button.modulate = Color(1, 1, 1, 0.5)
+	sigil_b_button.modulate = Color(1, 1, 1, 0.5)
+	sigil_c_button.modulate = Color(1, 1, 1, 0.5)
+
+func show_invalid_pattern_message(pattern_name: String):
+	var dialog = AcceptDialog.new()
+	dialog.title = "Invalid Pattern"
+	dialog.dialog_text = "Selected token cannot form a " + pattern_name + " with other tokens."
+	game.add_child(dialog)
+	dialog.popup_centered()
+
+func show_invalid_token_message():
+	var dialog = AcceptDialog.new()
+	dialog.title = "Invalid Token"
+	dialog.dialog_text = "Selected token must be your energy token and not blighted."
+	game.add_child(dialog)
+	dialog.popup_centered()
+
+func show_no_token_selected_message():
+	var dialog = AcceptDialog.new()
+	dialog.title = "No Token Selected"
+	dialog.dialog_text = "Please select an energy token first before activating a sigil."
+	game.add_child(dialog)
+	dialog.popup_centered()
+
+func force_initialize_sigil_buttons():
+	var sigil_a_button = game.get_node("LeftUI/SigilContainer/SigilAButton")
+	var sigil_b_button = game.get_node("LeftUI/SigilContainer/SigilBButton")
+	var sigil_c_button = game.get_node("LeftUI/SigilContainer/SigilCButton")
+	
+	if sigil_a_button and sigil_b_button and sigil_c_button:
+		sigil_a_button.disabled = true
+		sigil_b_button.disabled = true
+		sigil_c_button.disabled = true
+		
+		# Ensure connections are set up
+		connect_sigil_buttons()
+	else:
+		print("ERROR: Could not find one or more sigil buttons")
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Sigil Pattern Detection
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 func _on_pattern_check_timer():
-	# Check for patterns in the background
-	update_all_pattern_highlights()
+	# Only check if there's a selected energy token
+	if selected_energy_token and selected_energy_token.is_energy and !selected_energy_token.is_blighted:
+		update_sigil_button_states(selected_energy_token)
 
 # Update all token pattern highlights
 func update_all_pattern_highlights():
@@ -112,8 +278,8 @@ func _on_token_clicked(token):
 		# Highlight the token to show it's selected
 		token.highlight(true)
 		
-		# Check for patterns with this token
-		check_for_sigil_patterns(token)
+		# Update sigil button states
+		update_sigil_button_states(token)
 	else:
 		print("Not a valid energy token for activation")
 		
@@ -122,6 +288,9 @@ func _on_token_clicked(token):
 			selected_energy_token.highlight(false)
 			selected_energy_token = null
 			is_sigil_mode = false
+			
+			# Disable all sigil buttons
+			disable_all_sigil_buttons()
 
 # Main pattern check function
 func check_for_sigil_patterns(token):
@@ -151,6 +320,7 @@ func check_for_sigil_patterns(token):
 func get_token_id(token):
 	var token_placement = token_manager.get_token_placement_at_position(token.global_position)
 	if !token_placement:
+		print("WARNING: Token placement not found for token at: ", token.global_position)
 		return -1
 		
 	# Calculate the ID (1-7) based on the token placement's index within its biome
@@ -159,7 +329,9 @@ func get_token_id(token):
 	var local_index = placement_index - (biome_index * 7)
 	
 	# The ID is the local index + 1 (since IDs start at 1)
-	return local_index + 1
+	var token_id = local_index + 1
+	print("Token at position ", token.global_position, " has ID: ", token_id, " (placement index: ", placement_index, ", biome: ", biome_index, ")")
+	return token_id
 
 # Pattern detection based on token IDs within a biome
 func check_for_sigil_a_pattern(token) -> bool:
@@ -169,10 +341,12 @@ func check_for_sigil_a_pattern(token) -> bool:
 	# Get the token ID
 	var token_id = get_token_id(token)
 	if token_id == -1:
+		print("Sigil A check: Invalid token ID")
 		return false
 	
 	# Get all tokens in the same biome (from ANY player)
 	var all_tokens = get_tokens_in_biome(token.biome_type)
+	print("Sigil A check: Found ", all_tokens.size(), " energy tokens in biome ", token.biome_type)
 	
 	# Convert tokens to IDs
 	var token_ids = []
@@ -181,6 +355,8 @@ func check_for_sigil_a_pattern(token) -> bool:
 			var id = get_token_id(t)
 			if id != -1:
 				token_ids.append(id)
+	
+	print("Sigil A check: Token IDs in biome: ", token_ids)
 	
 	# Check each L pattern
 	var patterns = [
@@ -195,16 +371,21 @@ func check_for_sigil_a_pattern(token) -> bool:
 		if !pattern.has(token_id):
 			continue
 			
+		print("Sigil A check: Current token part of pattern ", pattern)
+			
 		# Check if all pattern IDs exist in placed tokens
 		var pattern_found = true
 		for id in pattern:
 			if !token_ids.has(id):
 				pattern_found = false
+				print("Sigil A check: Missing ID ", id, " for pattern ", pattern)
 				break
 				
 		if pattern_found:
+			print("Sigil A check: Pattern found! ", pattern)
 			return true
 	
+	print("Sigil A check: No pattern found")
 	return false
 
 func check_for_sigil_b_pattern(token) -> bool:
@@ -299,10 +480,18 @@ func get_tokens_in_biome(biome_type: int) -> Array:
 	var result = []
 	var tokens = game.get_node("Tokens").get_children()
 	
+	print("Checking tokens in biome ", biome_type, " (total tokens: ", tokens.size(), ")")
+	
 	for token in tokens:
+		# Debug token properties
+		print("Token - biome: ", token.biome_type, 
+			  ", is_energy: ", token.is_energy if token.has_method("is_energy") else "unknown", 
+			  ", position: ", token.global_position)
+		
 		if token.biome_type == biome_type and token.is_energy:
 			result.append(token)
 	
+	print("Found ", result.size(), " energy tokens in biome ", biome_type)
 	return result
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -656,7 +845,7 @@ func request_token_movement(from_position: Vector3, to_position: Vector3):
 func handle_sigil_input(position: Vector2):
 	var camera = game.get_node("Camera3D")
 	if !camera:
-		return
+		return false
 		
 	var from = camera.project_ray_origin(position)
 	var to = from + camera.project_ray_normal(position) * 1000
@@ -672,5 +861,12 @@ func handle_sigil_input(position: Vector2):
 		if found_token:
 			_on_token_clicked(found_token)
 			return true  # Token was handled
+			
+	# If no token was clicked, deselect current token
+	if selected_energy_token:
+		selected_energy_token.highlight(false)
+		selected_energy_token = null
+		is_sigil_mode = false
+		disable_all_sigil_buttons()
 			
 	return false  # No token was handled
