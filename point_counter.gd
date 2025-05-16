@@ -66,11 +66,24 @@ func _ready():
 	connect_signals()
 	set_multiplayer_authority(1)
 	
-	## Position stacks
-	#forest_stack.position = Vector3(-STACK_SPACING * 1.5, 0, 0)
-	#desert_stack.position = Vector3(-STACK_SPACING * 0.5, 0, 0)
-	#mountain_stack.position = Vector3(STACK_SPACING * 0.5, 0, 0)
-	#water_stack.position = Vector3(STACK_SPACING * 1.5, 0, 0)
+	# Initialize magic points to 1 if this is the server
+	if multiplayer.is_server() or multiplayer.get_unique_id() == 1:
+		forest_magic_points = 1
+		desert_magic_points = 1
+		mountain_magic_points = 1
+		water_magic_points = 1
+		
+		# Sync to all clients
+		rpc("sync_point_values", 
+			forest_points,
+			desert_points,
+			mountain_points,
+			water_points,
+			forest_magic_points,
+			desert_magic_points,
+			mountain_magic_points,
+			water_magic_points
+		)
 	
 	create_stack_labels()
 	update_all_stacks()
