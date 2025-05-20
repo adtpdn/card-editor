@@ -885,7 +885,7 @@ func process_token_removal(token_position: Vector3):
 	# Find the token at this position
 	var token = null
 	for t in get_parent().get_node("Tokens").get_children():
-		if t.global_position.distance_to(token_position) < 1.0:  # More generous distance check
+		if t.global_position == token_position:  # More generous distance check
 			token = t
 			break
 	
@@ -1029,7 +1029,7 @@ func sync_token_removal_at_position(token_position: Vector3, player_id: int, bio
 	# Find the token at this position
 	var token = null
 	for t in get_parent().get_node("Tokens").get_children():
-		if t.global_position.distance_to(token_position) < 1.0:  # More generous distance check
+		if t.global_position == token_position:  # More generous distance check
 			token = t
 			break
 	
