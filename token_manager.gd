@@ -171,11 +171,11 @@ func handle_touch(position: Vector2):
 	
 	if result:
 		var collider = result["collider"]
-		print("")
-		print("result : ", result )
+		#print("")
+		#print("result : ", result )
 		# Find the token at this position with improved detection
 		var found_token = collider.get_parent().get_parent()
-		print("found token : ", found_token)
+		#print("found token : ", found_token)
 		if found_token:
 			print("Processing token: " + str(found_token.name))
 			if is_remove:

@@ -857,7 +857,7 @@ func handle_sigil_input(position: Vector2):
 	if result:
 		print("")
 		print("sigil manager")
-		print("result : ", result)
+		#print("result : ", result)
 		
 		var found_token = result.collider.get_parent().get_parent()
 		print("found token : ", found_token)
