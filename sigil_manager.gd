@@ -281,7 +281,7 @@ func _on_token_clicked(token):
 		# Update sigil button states
 		update_sigil_button_states(token)
 	else:
-		print("Not a valid energy token for activation")
+		#print("Not a valid energy token for activation")
 		
 		# Deselect any currently selected energy token
 		if selected_energy_token:
@@ -855,10 +855,14 @@ func handle_sigil_input(position: Vector2):
 	var result = space_state.intersect_ray(query)
 	
 	if result:
-		var hit_position = result.position
-		var found_token = token_manager.find_token_at_position(hit_position)
+		print("")
+		print("sigil manager")
+		print("result : ", result)
 		
-		if found_token:
+		var found_token = result.collider.get_parent().get_parent()
+		print("found token : ", found_token)
+		
+		if found_token and found_token.is_energy:
 			_on_token_clicked(found_token)
 			return true  # Token was handled
 			

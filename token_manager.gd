@@ -71,8 +71,6 @@ const BIOME_COLORS = {
 # Signal declarations
 signal token_placed(player_id: int, biome: BiomeType, location: Vector3)
 
-# Variable for found token when it's clicked
-var found_token
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization
@@ -132,6 +130,12 @@ func initialize():
 		
 	print("TokenManager initialized.")
 
+func _input(event):
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		#print("event : ", event)
+		handle_touch(event.position)
+
+
 func handle_touch(position: Vector2):
 	var current_time = Time.get_ticks_msec() / 1000.0
 	if current_time - last_token_placement_time < TOKEN_PLACEMENT_COOLDOWN:
@@ -167,19 +171,11 @@ func handle_touch(position: Vector2):
 	
 	if result:
 		var collider = result["collider"]
-		var hit_position = result["position"]
-		
+		print("")
+		print("result : ", result )
 		# Find the token at this position with improved detection
-		found_token = null
-		for token in get_parent().get_node("Tokens").get_children():
-			var distance = token.global_position.distance_to(hit_position)
-			print("Distance to token: " + str(distance))
-			if distance < 1.0:  # More generous distance check
-				found_token = token
-				#print("Token: ", found_token.name)
-				#print("Found token at position: " + str(token.global_position))
-				break
-		
+		var found_token = collider.get_parent().get_parent()
+		print("found token : ", found_token)
 		if found_token:
 			print("Processing token: " + str(found_token.name))
 			if is_remove:
@@ -205,7 +201,7 @@ func handle_touch(position: Vector2):
 				
 				# Reset blight mode after attempt
 				is_blight_mode = false
-				
+			found_token = null
 			# Always unhighlight after any token action
 			unhighlight_all_token_placements()
 			
@@ -217,29 +213,6 @@ func handle_touch(position: Vector2):
 				remove_button.modulate = Color(1, 1, 1, 1)
 			if blight_button:
 				blight_button.modulate = Color(1, 1, 1, 1)
-		else:
-			print("No token found at position")
-			# Handle token placement if in token selection mode
-			if is_token_selected:
-				var placement = get_token_placement_at_position(hit_position)
-				if placement and !placement.is_occupied:
-					# Handle token placement
-					var token_index = 0  # Use first available token
-					
-					# Update cooldown time
-					last_token_placement_time = current_time
-					
-					# IMPORTANT: Pass the accepted_biome from the placement location
-					var biome_type = placement.accepted_biome
-					
-					if multiplayer.is_server():
-						request_token_placement(token_index, placement.global_position, biome_type)
-					else:
-						rpc_id(1, "request_token_placement", token_index, placement.global_position, biome_type)
-					
-					# Reset selection state
-					is_token_selected = false
-					unhighlight_all_token_placements()
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---   Player Token Management ---
@@ -967,22 +940,30 @@ func request_token_blight(token_position: Vector3):
 	process_token_blight(token_position)
 	print("Server processed token blight at: " + str(token_position))
 
-func process_token_blight(token_position: Vector3):
+func process_token_blight(token_position):
 	# Find the token at this position
+	print("token position : ", token_position)
 	var token = null
 	for t in get_parent().get_node("Tokens").get_children():
-		if t.global_position.distance_to(token_position) < 1.0:  # More generous distance check
+		if t.global_position == token_position :  # More generous distance check
 			token = t
 			break
 	
 	if token:
-		print("Blighting token at position: " + str(token_position))
+		print("process token blight")
+		print('token name : ', token)
+		print("Blighting token at position: " + str(token.global_position))
 		# Toggle blight status
 		token.is_blighted = !token.is_blighted
 		
+		# Play animation on the server
+		if token.is_blighted:
+			token.animation_player.play("blight")
+		else:
+			token.animation_player.play("unblight")
 		
-		# IMPORTANT: Sync to all clients using RPC on this node, not the parent
-		rpc("sync_token_blight", token_position, token.is_blighted)
+		# IMPORTANT: Sync to all clients using RPC with POSITION
+		rpc("sync_token_blight", token.global_position, token.is_blighted)
 		
 		# Always unhighlight token placements after any token action
 		unhighlight_all_token_placements()
@@ -1000,7 +981,7 @@ func process_token_blight(token_position: Vector3):
 		if blight_button:
 			blight_button.modulate = Color(1, 1, 1, 1)
 	else:
-		print("No token found at position: " + str(token_position))
+		print("No token found")
 
 @rpc("any_peer", "call_local")
 func sync_token_blight(token_position: Vector3, is_blighted: bool):
@@ -1009,7 +990,7 @@ func sync_token_blight(token_position: Vector3, is_blighted: bool):
 	# Find the token at this position
 	var token = null
 	for t in get_parent().get_node("Tokens").get_children():
-		if t.global_position.distance_to(token_position) < 1.0:  # More generous distance check
+		if t.global_position == token_position:  # More generous distance check
 			token = t
 			break
 	
@@ -1127,6 +1108,9 @@ func find_token_at_position(position: Vector3) -> Node:
 		if token.global_position.distance_to(position) < 0.1:
 			return token
 	return null
+
+func find_token_by_collision():
+	pass
 
 func reset_token_buttons():
 	var token_button = get_parent().get_node("RightUI/TokenButton")

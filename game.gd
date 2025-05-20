@@ -51,11 +51,6 @@ func _ready():
 	print("Game initialized.")
 
 
-func _input(event):
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		# When clicking, pass to token manager for handling
-		if token_manager:
-			token_manager.handle_touch(event.position)
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---  Network Synchronization ---
