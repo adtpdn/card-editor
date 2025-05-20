@@ -71,6 +71,9 @@ const BIOME_COLORS = {
 # Signal declarations
 signal token_placed(player_id: int, biome: BiomeType, location: Vector3)
 
+# Variable for found token when it's clicked
+var found_token
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -167,13 +170,14 @@ func handle_touch(position: Vector2):
 		var hit_position = result["position"]
 		
 		# Find the token at this position with improved detection
-		var found_token = null
+		found_token = null
 		for token in get_parent().get_node("Tokens").get_children():
 			var distance = token.global_position.distance_to(hit_position)
 			print("Distance to token: " + str(distance))
 			if distance < 1.0:  # More generous distance check
 				found_token = token
-				print("Found token at position: " + str(token.global_position))
+				#print("Token: ", found_token.name)
+				#print("Found token at position: " + str(token.global_position))
 				break
 		
 		if found_token:
@@ -975,7 +979,7 @@ func process_token_blight(token_position: Vector3):
 		print("Blighting token at position: " + str(token_position))
 		# Toggle blight status
 		token.is_blighted = !token.is_blighted
-		token.update_token_display()
+		
 		
 		# IMPORTANT: Sync to all clients using RPC on this node, not the parent
 		rpc("sync_token_blight", token_position, token.is_blighted)
@@ -1010,8 +1014,14 @@ func sync_token_blight(token_position: Vector3, is_blighted: bool):
 			break
 	
 	if token:
+		# Set the blight flag
 		token.is_blighted = is_blighted
-		token.update_token_display()
+		
+		# Ensure the animation plays on the client
+		if is_blighted:
+			token.animation_player.play("blight")
+		else:
+			token.animation_player.play("unblight")
 		
 		# Always unhighlight token placements after any token action
 		unhighlight_all_token_placements()

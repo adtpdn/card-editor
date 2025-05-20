@@ -97,6 +97,11 @@ func sync_turn_state(new_turn_index: int):
 	game_state_manager.update_turn_controls()
 	token_manager.update_token_ui()
 
+@rpc("any_peer", "call_local")
+func sync_token_blight(token_position: Vector3, is_blighted: bool):
+	# Forward to token manager
+	token_manager.sync_token_blight(token_position, is_blighted)
+
 @rpc("any_peer")
 func request_token_refresh():
 	if !multiplayer.is_server():
