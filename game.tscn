@@ -1245,6 +1245,22 @@ text = "Sigil B"
 layout_mode = 2
 text = "Sigil C"
 
+[node name="PullorPushContainer" type="VBoxContainer" parent="LeftUI"]
+visible = false
+layout_mode = 0
+offset_left = 108.0
+offset_top = 101.0
+offset_right = 154.0
+offset_bottom = 167.0
+
+[node name="Pull" type="Button" parent="LeftUI/PullorPushContainer"]
+layout_mode = 2
+text = "Pull"
+
+[node name="Push" type="Button" parent="LeftUI/PullorPushContainer"]
+layout_mode = 2
+text = "Push"
+
 [node name="HandAreas" type="Control" parent="."]
 clip_contents = true
 layout_mode = 3

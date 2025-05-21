@@ -11,6 +11,7 @@ extends Node
 @onready var card_manager = $"../CardManager"
 @onready var ui_manager = $"../UIManager"
 @onready var point_counter = $"../PointCounter"
+@onready var sigil_manager = $"../SigilManager"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Enums and Constants
@@ -178,6 +179,9 @@ func handle_touch(position: Vector2):
 		#print("found token : ", found_token)
 		if found_token:
 			print("Processing token: " + str(found_token.name))
+			if sigil_manager.is_sigil_mode:
+				sigil_manager._selected_token = found_token
+				sigil_manager.signal_other_player_token.emit()
 			if is_remove:
 				print("Attempting to remove token")
 				# Handle remove mode

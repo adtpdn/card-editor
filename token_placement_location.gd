@@ -38,7 +38,7 @@ func _ready():
 func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: Vector3, shape_idx: int):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var game = get_node("/root/Game")
-		
+		print("placement location")
 		if !game or is_occupied:
 			print("Game not found or location is occupied")
 			return
