@@ -247,40 +247,41 @@ func update_all_pattern_highlights():
 
 # Handle token clicks for sigil pattern activation
 func _on_token_clicked(token):
-	var player_id = multiplayer.get_unique_id()
-	
-	# Make sure it's the player's turn
-	if !game_state_manager.is_valid_player_turn(player_id):
-		print("Not your turn!")
-		return
-	
-	# Only allow selecting own energy tokens
-	if token.is_energy and token.owner_id == player_id and !token.is_blighted:
-		print("Energy token selected")
+	if !is_sigil_mode:
+		var player_id = multiplayer.get_unique_id()
 		
-		# Deselect any previously selected token
-		if selected_energy_token:
-			selected_energy_token.highlight(false)
+		# Make sure it's the player's turn
+		if !game_state_manager.is_valid_player_turn(player_id):
+			print("Not your turn!")
+			return
 		
-		selected_energy_token = token
-		is_sigil_mode = true
-		
-		# Highlight the token to show it's selected
-		token.highlight(true)
-		
-		# Update sigil button states
-		update_sigil_button_states(token)
-	else:
-		print("Not a valid energy token for activation")
-		
-		# Deselect any currently selected energy token
-		if selected_energy_token:
-			selected_energy_token.highlight(false)
-			selected_energy_token = null
-			is_sigil_mode = false
+		# Only allow selecting own energy tokens
+		if token.is_energy and token.owner_id == player_id and !token.is_blighted:
+			print("Energy token selected")
 			
-			# Disable all sigil buttons
-			disable_all_sigil_buttons()
+			# Deselect any previously selected token
+			if selected_energy_token:
+				selected_energy_token.highlight(false)
+			
+			selected_energy_token = token
+			is_sigil_mode = true
+			
+			# Highlight the token to show it's selected
+			token.highlight(true)
+			
+			# Update sigil button states
+			update_sigil_button_states(token)
+		else:
+			print("Not a valid energy token for activation")
+			
+			# Deselect any currently selected energy token
+			if selected_energy_token:
+				selected_energy_token.highlight(false)
+				selected_energy_token = null
+				is_sigil_mode = false
+				
+				# Disable all sigil buttons
+				disable_all_sigil_buttons()
 
 # Main pattern check function
 func check_for_sigil_patterns(token):
@@ -734,16 +735,19 @@ func show_push_pull_direction_ui():
 	# Add direction options
 	popup.add_item("Push Away", 0)
 	popup.add_item("Pull Closer", 1)
+	var token_energy = _selected_token
+	var energy_token = _selected_token
 	
 	await signal_other_player_token
 	var target_token = _selected_token
 	
 	
-	# Connect signal
-	popup.id_pressed.connect(func(id): perform_push_pull(target_token, id == 0))
 	
-	is_sigil_mode = false
-	_selected_token = null
+	# Connect signal
+	await popup.id_pressed.connect(func(id): perform_push_pull(energy_token, target_token, id == 0))
+	
+	#is_sigil_mode = false
+	#_selected_token = null
 	
 	# Show popup at mouse position
 	var mouse_pos = get_viewport().get_mouse_position()
@@ -751,70 +755,167 @@ func show_push_pull_direction_ui():
 	popup.popup()
 
 # Perform the actual push or pull
-func perform_push_pull(token, is_push: bool):
-	var token_placement = token_manager.get_token_placement_at_position(token.global_position)
+func perform_push_pull(energy_token, token, is_push: bool):
+	# Store the selected token for use in subsequent steps
+	var target_token = token
+	
+	# Reset token selection mode
+	#is_sigil_mode = false
+	
+	# Clear any previous highlights
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		placement.set_highlight(false)
+	
+	# Get the token's current placement
+	var token_placement = token_manager.get_token_placement_at_position(target_token.global_position)
 	if !token_placement:
 		print("Could not find token placement location")
 		return
 	
-	var current_index = token_placement.get_index()
-	var new_index = -1
+	# Get the sigil token's placement (this is the energy token that activated the sigil)
+	var energy_token_placement = null
+	if energy_token:
+		energy_token_placement = token_manager.get_token_placement_at_position(energy_token.global_position)
 	
-	# Calculate direction based on current sigil token and target token
-	var sigil_placement = token_manager.get_token_placement_at_position(_selected_token.global_position)
-	if !sigil_placement:
-		print("Could not find sigil token placement location")
+	if !energy_token_placement:
+		print("Could not find energy token placement")
 		return
 	
-	var sigil_index = sigil_placement.get_index()
+	# Get the biome types
+	var target_token_biome = target_token.biome_type
+	var energy_token_biome = energy_token.biome_type
 	
-	# Calculate direction vector
-	var dir_x = current_index % 7 - sigil_index % 7
-	var dir_y = current_index / 7 - sigil_index / 7
+	# Find potential placement locations based on push/pull mode
+	var potential_placements = []
 	
-	# Normalize direction
-	if dir_x != 0:
-		dir_x = dir_x / abs(dir_x)
-	if dir_y != 0:
-		dir_y = dir_y / abs(dir_y)
+	# Determine adjacent biomes based on the rule:
+	# If energy token biome is 0 or 2, adjacent biomes are 1 and 3
+	# If energy token biome is 1 or 3, adjacent biomes are 0 and 2
+	var adjacent_biomes = []
+	if energy_token_biome == BiomeType.FOREST || energy_token_biome == BiomeType.MOUNTAIN:
+		adjacent_biomes = [BiomeType.WATER, BiomeType.DESERT]
+	else: # WATER or DESERT
+		adjacent_biomes = [BiomeType.FOREST, BiomeType.MOUNTAIN]
 	
-	# Calculate new position
-	if is_push:
-		# Push one step away
-		new_index = current_index + dir_x + dir_y * 7
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if placement.is_occupied:
+			continue
+		
+		var placement_biome = placement.accepted_biome
+		
+		if is_push:
+			# For "push away": Highlight placements in adjacent biomes to the energy token
+			if adjacent_biomes.has(placement_biome):
+				placement.set_highlight(true)
+				potential_placements.append(placement)
+		else:
+			# For "pull closer": Highlight placements in the energy token's biome
+			if placement_biome == energy_token_biome:
+				placement.set_highlight(true)
+				potential_placements.append(placement)
+	
+	if potential_placements.size() == 0:
+		print("No valid placements found for push/pull operation")
+		return
+	
+	# Store token for use in the input handler
+	_selected_token = target_token
+	
+	# Clean up any existing connection first
+	if get_tree().root.is_connected("input_event", Callable(self, "_on_push_pull_input")):
+		get_tree().root.disconnect("input_event", Callable(self, "_on_push_pull_input"))
+
+	# Connect to the input event properly - use the whole scene tree to capture all input
+	get_tree().root.connect("input_event", Callable(self, "_on_push_pull_input"))
+	
+	print("Please click on a highlighted location to move the token")
+
+
+# Function to handle the input for push/pull destination selection
+func _on_push_pull_input(viewport, event, shape_idx):
+	if !(event is InputEventMouseButton) or !event.pressed or event.button_index != MOUSE_BUTTON_LEFT:
+		return
+	
+	print("Processing push/pull input")
+	
+	var camera = game.get_node("Camera3D")
+	if !camera:
+		print("Camera not found")
+		return
+		
+	var from = camera.project_ray_origin(event.position)
+	var to = from + camera.project_ray_normal(event.position) * 1000
+	
+	var space_state = get_tree().get_root().get_world_3d().direct_space_state
+	var query = PhysicsRayQueryParameters3D.create(from, to)
+	var result = space_state.intersect_ray(query)
+	
+	if result:
+		print("Hit something at position: ", result.position)
+		
+		# Find token placement at this position
+		var all_placements = get_parent().get_node("TokenPlacements").get_children()
+		var closest_placement = null
+		var closest_distance = 1000.0
+		
+		for placement in all_placements:
+			if placement.is_highlighted and !placement.is_occupied:
+				var distance = placement.global_position.distance_to(result.position)
+				if distance < closest_distance and distance < 1.0:  # Within 1 unit
+					closest_placement = placement
+					closest_distance = distance
+		
+		if closest_placement:
+			print("Found highlighted placement at: ", closest_placement.global_position)
+			
+			# Get source and destination positions
+			var token = _selected_token
+			var source_position = token.global_position
+			var destination_position = closest_placement.global_position
+			
+			print("Moving token from ", source_position, " to ", destination_position)
+			
+			# Move the token
+			if multiplayer.is_server():
+				# Move directly on server
+				var source_placement = token_manager.get_token_placement_at_position(source_position)
+				
+				if source_placement:
+					# Clear the current placement
+					source_placement.set_occupied(false)
+					source_placement.current_token = null
+					
+					# Set the new placement
+					closest_placement.set_occupied(true)
+					closest_placement.current_token = token
+					
+					# Move the token
+					token.global_position = destination_position
+					
+					# Sync to clients
+					token_manager.rpc("sync_token_movement", source_position, destination_position)
+				else:
+					print("Source placement not found!")
+			else:
+				# Request server to move the token
+				print("Requesting server to move token")
+				token_manager.rpc_id(1, "request_token_movement", source_position, destination_position)
+			
+			# Cleanup
+			if get_tree().root.is_connected("input_event", Callable(self, "_on_push_pull_input")):
+				get_tree().root.disconnect("input_event", Callable(self, "_on_push_pull_input"))
+			
+			# Clear all highlights
+			for placement in get_parent().get_node("TokenPlacements").get_children():
+				placement.set_highlight(false)
+			
+			_selected_token = null
+			is_sigil_mode = false
+			print("Token move operation completed")
+		else:
+			print("No highlighted placement found near click position")
 	else:
-		# Pull one step closer
-		new_index = current_index - dir_x - dir_y * 7
-	
-	# Validate new position
-	var placements = game.get_node("TokenPlacements")
-	if new_index < 0 or new_index >= placements.get_child_count():
-		print("Invalid new position")
-		return
-	
-	var new_placement = placements.get_child(new_index)
-	if new_placement.is_occupied:
-		print("New position is already occupied")
-		return
-	
-	# Move the token
-	if multiplayer.is_server():
-		# Clear the current placement
-		token_placement.set_occupied(false)
-		token_placement.current_token = null
-		
-		# Set the new placement
-		new_placement.set_occupied(true)
-		new_placement.current_token = token
-		
-		# Move the token
-		token.global_position = new_placement.global_position
-		
-		# Sync to clients
-		token_manager.rpc("sync_token_movement", token.global_position, new_placement.global_position)
-	else:
-		# Request server to move the token
-		token_manager.rpc_id(1, "request_token_movement", token.global_position, new_placement.global_position)
+		print("No ray hit result")
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Network Integration
