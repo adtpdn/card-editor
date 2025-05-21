@@ -1,6 +1,10 @@
 [gd_scene load_steps=2 format=3 uid="uid://c3143lgob3rqa"]
 
+<<<<<<< HEAD
 [ext_resource type="Script" uid="uid://bcppp5o4562jn" path="res://point_counter.gd" id="1_q8ijy"]
+=======
+[ext_resource type="Script" uid="uid://inns47cokwch" path="res://point_counter.gd" id="1_q8ijy"]
+>>>>>>> gfx-biomes
 
 [node name="PointCounter" type="Node3D"]
 script = ExtResource("1_q8ijy")

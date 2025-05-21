@@ -49,7 +49,7 @@ func create_marker_material(highlighted: bool) -> StandardMaterial3D:
 			highlight_color = Color(0.2, 0.2, 1.0, 0.5)  # Blue for area
 		material.albedo_color = highlight_color
 	else:
-		material.albedo_color = Color(1.0, 1.0, 1.0, 0.2)
+		material.albedo_color = Color(1.0, 1.0, 1.0, 0.05)
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	return material
 
@@ -57,23 +57,29 @@ func _input(event):
 	if event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			if selected_marker:
-				var hand = get_node("/root/Game/HandAreas/PlayerHand")
-				if hand:
+				var game = get_node("/root/Game")
+				var hand = game.get_node("HandAreas/PlayerHand")
+				# Check if it's player's turn before allowing placement
+				if hand and game.game_state_manager.is_valid_player_turn(multiplayer.get_unique_id()):
 					var selected_card = hand.get_selected_card()
 					if selected_card and can_accept_card(selected_card.card_resource):
 						var index = slots.find(selected_marker)
 						if index != -1:
 							print("Attempting to place card in ", location_name, " at index ", index)
-							card_placed.emit(selected_card.card_resource, index, location_name)
+							# Remove the card from hand before emitting the signal
 							hand.remove_card(selected_card)
+							card_placed.emit(selected_card.card_resource, index, location_name)
 
 func plant_card(card_resource: CardResource, slot_index: int) -> void:
-	if slot_index < 0 or slot_index >= slots.size():
+	var game = get_node("/root/Game")
+	if !game or slot_index < 0 or slot_index >= slots.size():
 		print("Invalid slot index: ", slot_index)
 		return
 		
 	var slot = slots[slot_index]
 	print("Planting card in slot: ", slot.name, " at location: ", location_name)
+	
+	card_resource.revealed = false
 	
 	var card_instance = Card3DScene.instantiate()
 	add_child(card_instance)
@@ -86,16 +92,21 @@ func plant_card(card_resource: CardResource, slot_index: int) -> void:
 	card_instance.global_position = position
 	planted_cards[slot.name].append(card_instance)
 	
-	card_instance.rotation.x = -PI/2
+	card_instance.rotation.x = PI
 	card_instance.rotation.y = slot.rotation.y
-	
+
+	# Update the visual stack
 	update_stack_visuals(slot)
 
 @rpc("any_peer")
 func request_plant_card(card_data: Dictionary, slot_index: int, location_name: String):
 	if multiplayer.is_server():
-		# Server validates and broadcasts the card placement
-		rpc("sync_plant_card", card_data, slot_index)
+		var game = get_node("/root/Game")
+		var requesting_player = multiplayer.get_remote_sender_id()
+		
+		# Validate it's the player's turn
+		if game.is_valid_player_turn(requesting_player):
+			rpc("sync_plant_card", card_data, slot_index)
 
 @rpc("any_peer", "call_local")
 func sync_plant_card(card_data: Dictionary, slot_index: int):
@@ -108,6 +119,9 @@ func sync_plant_card(card_data: Dictionary, slot_index: int):
 	var slot = slots[slot_index]
 	var card_instance = Card3DScene.instantiate()
 	add_child(card_instance)
+	
+	# Ensure card is unrevealed when planted
+	card_resource.revealed = false
 	
 	# Set card data
 	card_instance.set_card_data(card_resource)

@@ -1,13 +1,136 @@
-[gd_scene load_steps=3 format=3 uid="uid://dfjq1voh17um3"]
+[gd_scene load_steps=9 format=3 uid="uid://dfjq1voh17um3"]
 
+<<<<<<< HEAD
 [ext_resource type="Script" uid="uid://dekq8g3mv48o8" path="res://token_3d.gd" id="1_18jwr"]
+=======
+[ext_resource type="Script" uid="uid://dw7af08d83l31" path="res://token_3d.gd" id="1_18jwr"]
+>>>>>>> gfx-biomes
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_bpimy"]
 radial_segments = 8
 
-[node name="Token3D" type="Node3D"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jqqdb"]
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_82ns2"]
+data = PackedVector3Array(0, 1, 0.5, 0.3536, 1, 0.3536, 0, 0.6, 0.5, 0.3536, 1, 0.3536, 0.3536, 0.6, 0.3536, 0, 0.6, 0.5, 0.3536, 1, 0.3536, 0.5, 1, 0, 0.3536, 0.6, 0.3536, 0.5, 1, 0, 0.5, 0.6, 0, 0.3536, 0.6, 0.3536, 0.5, 1, 0, 0.3536, 1, -0.3536, 0.5, 0.6, 0, 0.3536, 1, -0.3536, 0.3536, 0.6, -0.3536, 0.5, 0.6, 0, 0.3536, 1, -0.3536, 0, 1, -0.5, 0.3536, 0.6, -0.3536, 0, 1, -0.5, 0, 0.6, -0.5, 0.3536, 0.6, -0.3536, 0, 1, -0.5, -0.3536, 1, -0.3536, 0, 0.6, -0.5, -0.3536, 1, -0.3536, -0.3536, 0.6, -0.3536, 0, 0.6, -0.5, -0.3536, 1, -0.3536, -0.5, 1, 0, -0.3536, 0.6, -0.3536, -0.5, 1, 0, -0.5, 0.6, 0, -0.3536, 0.6, -0.3536, -0.5, 1, 0, -0.3536, 1, 0.3536, -0.5, 0.6, 0, -0.3536, 1, 0.3536, -0.3536, 0.6, 0.3536, -0.5, 0.6, 0, -0.3536, 1, 0.3536, 0, 1, 0.5, -0.3536, 0.6, 0.3536, 0, 1, 0.5, 0, 0.6, 0.5, -0.3536, 0.6, 0.3536, 0, 0.6, 0.5, 0.3536, 0.6, 0.3536, 0, 0.2, 0.5, 0.3536, 0.6, 0.3536, 0.3536, 0.2, 0.3536, 0, 0.2, 0.5, 0.3536, 0.6, 0.3536, 0.5, 0.6, 0, 0.3536, 0.2, 0.3536, 0.5, 0.6, 0, 0.5, 0.2, 0, 0.3536, 0.2, 0.3536, 0.5, 0.6, 0, 0.3536, 0.6, -0.3536, 0.5, 0.2, 0, 0.3536, 0.6, -0.3536, 0.3536, 0.2, -0.3536, 0.5, 0.2, 0, 0.3536, 0.6, -0.3536, 0, 0.6, -0.5, 0.3536, 0.2, -0.3536, 0, 0.6, -0.5, 0, 0.2, -0.5, 0.3536, 0.2, -0.3536, 0, 0.6, -0.5, -0.3536, 0.6, -0.3536, 0, 0.2, -0.5, -0.3536, 0.6, -0.3536, -0.3536, 0.2, -0.3536, 0, 0.2, -0.5, -0.3536, 0.6, -0.3536, -0.5, 0.6, 0, -0.3536, 0.2, -0.3536, -0.5, 0.6, 0, -0.5, 0.2, 0, -0.3536, 0.2, -0.3536, -0.5, 0.6, 0, -0.3536, 0.6, 0.3536, -0.5, 0.2, 0, -0.3536, 0.6, 0.3536, -0.3536, 0.2, 0.3536, -0.5, 0.2, 0, -0.3536, 0.6, 0.3536, 0, 0.6, 0.5, -0.3536, 0.2, 0.3536, 0, 0.6, 0.5, 0, 0.2, 0.5, -0.3536, 0.2, 0.3536, 0, 0.2, 0.5, 0.3536, 0.2, 0.3536, 0, -0.2, 0.5, 0.3536, 0.2, 0.3536, 0.3536, -0.2, 0.3536, 0, -0.2, 0.5, 0.3536, 0.2, 0.3536, 0.5, 0.2, 0, 0.3536, -0.2, 0.3536, 0.5, 0.2, 0, 0.5, -0.2, 0, 0.3536, -0.2, 0.3536, 0.5, 0.2, 0, 0.3536, 0.2, -0.3536, 0.5, -0.2, 0, 0.3536, 0.2, -0.3536, 0.3536, -0.2, -0.3536, 0.5, -0.2, 0, 0.3536, 0.2, -0.3536, 0, 0.2, -0.5, 0.3536, -0.2, -0.3536, 0, 0.2, -0.5, 0, -0.2, -0.5, 0.3536, -0.2, -0.3536, 0, 0.2, -0.5, -0.3536, 0.2, -0.3536, 0, -0.2, -0.5, -0.3536, 0.2, -0.3536, -0.3536, -0.2, -0.3536, 0, -0.2, -0.5, -0.3536, 0.2, -0.3536, -0.5, 0.2, 0, -0.3536, -0.2, -0.3536, -0.5, 0.2, 0, -0.5, -0.2, 0, -0.3536, -0.2, -0.3536, -0.5, 0.2, 0, -0.3536, 0.2, 0.3536, -0.5, -0.2, 0, -0.3536, 0.2, 0.3536, -0.3536, -0.2, 0.3536, -0.5, -0.2, 0, -0.3536, 0.2, 0.3536, 0, 0.2, 0.5, -0.3536, -0.2, 0.3536, 0, 0.2, 0.5, 0, -0.2, 0.5, -0.3536, -0.2, 0.3536, 0, -0.2, 0.5, 0.3536, -0.2, 0.3536, 0, -0.6, 0.5, 0.3536, -0.2, 0.3536, 0.3536, -0.6, 0.3536, 0, -0.6, 0.5, 0.3536, -0.2, 0.3536, 0.5, -0.2, 0, 0.3536, -0.6, 0.3536, 0.5, -0.2, 0, 0.5, -0.6, 0, 0.3536, -0.6, 0.3536, 0.5, -0.2, 0, 0.3536, -0.2, -0.3536, 0.5, -0.6, 0, 0.3536, -0.2, -0.3536, 0.3536, -0.6, -0.3536, 0.5, -0.6, 0, 0.3536, -0.2, -0.3536, 0, -0.2, -0.5, 0.3536, -0.6, -0.3536, 0, -0.2, -0.5, 0, -0.6, -0.5, 0.3536, -0.6, -0.3536, 0, -0.2, -0.5, -0.3536, -0.2, -0.3536, 0, -0.6, -0.5, -0.3536, -0.2, -0.3536, -0.3536, -0.6, -0.3536, 0, -0.6, -0.5, -0.3536, -0.2, -0.3536, -0.5, -0.2, 0, -0.3536, -0.6, -0.3536, -0.5, -0.2, 0, -0.5, -0.6, 0, -0.3536, -0.6, -0.3536, -0.5, -0.2, 0, -0.3536, -0.2, 0.3536, -0.5, -0.6, 0, -0.3536, -0.2, 0.3536, -0.3536, -0.6, 0.3536, -0.5, -0.6, 0, -0.3536, -0.2, 0.3536, 0, -0.2, 0.5, -0.3536, -0.6, 0.3536, 0, -0.2, 0.5, 0, -0.6, 0.5, -0.3536, -0.6, 0.3536, 0, -0.6, 0.5, 0.3536, -0.6, 0.3536, 0, -1, 0.5, 0.3536, -0.6, 0.3536, 0.3536, -1, 0.3536, 0, -1, 0.5, 0.3536, -0.6, 0.3536, 0.5, -0.6, 0, 0.3536, -1, 0.3536, 0.5, -0.6, 0, 0.5, -1, 0, 0.3536, -1, 0.3536, 0.5, -0.6, 0, 0.3536, -0.6, -0.3536, 0.5, -1, 0, 0.3536, -0.6, -0.3536, 0.3536, -1, -0.3536, 0.5, -1, 0, 0.3536, -0.6, -0.3536, 0, -0.6, -0.5, 0.3536, -1, -0.3536, 0, -0.6, -0.5, 0, -1, -0.5, 0.3536, -1, -0.3536, 0, -0.6, -0.5, -0.3536, -0.6, -0.3536, 0, -1, -0.5, -0.3536, -0.6, -0.3536, -0.3536, -1, -0.3536, 0, -1, -0.5, -0.3536, -0.6, -0.3536, -0.5, -0.6, 0, -0.3536, -1, -0.3536, -0.5, -0.6, 0, -0.5, -1, 0, -0.3536, -1, -0.3536, -0.5, -0.6, 0, -0.3536, -0.6, 0.3536, -0.5, -1, 0, -0.3536, -0.6, 0.3536, -0.3536, -1, 0.3536, -0.5, -1, 0, -0.3536, -0.6, 0.3536, 0, -0.6, 0.5, -0.3536, -1, 0.3536, 0, -0.6, 0.5, 0, -1, 0.5, -0.3536, -1, 0.3536, 0, 1, 0, 0.3536, 1, 0.3536, 0, 1, 0.5, 0, 1, 0, 0.5, 1, 0, 0.3536, 1, 0.3536, 0, 1, 0, 0.3536, 1, -0.3536, 0.5, 1, 0, 0, 1, 0, 0, 1, -0.5, 0.3536, 1, -0.3536, 0, 1, 0, -0.3536, 1, -0.3536, 0, 1, -0.5, 0, 1, 0, -0.5, 1, 0, -0.3536, 1, -0.3536, 0, 1, 0, -0.3536, 1, 0.3536, -0.5, 1, 0, 0, 1, 0, 0, 1, 0.5, -0.3536, 1, 0.3536, 0, -1, 0, 0, -1, 0.5, 0.3536, -1, 0.3536, 0, -1, 0, 0.3536, -1, 0.3536, 0.5, -1, 0, 0, -1, 0, 0.5, -1, 0, 0.3536, -1, -0.3536, 0, -1, 0, 0.3536, -1, -0.3536, 0, -1, -0.5, 0, -1, 0, 0, -1, -0.5, -0.3536, -1, -0.3536, 0, -1, 0, -0.3536, -1, -0.3536, -0.5, -1, 0, 0, -1, 0, -0.5, -1, 0, -0.3536, -1, 0.3536, 0, -1, 0, -0.3536, -1, 0.3536, 0, -1, 0.5)
+
+[sub_resource type="Animation" id="Animation_82ns2"]
+resource_name = "blight"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0, 0, -3.14159)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("TokenMesh:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.257626, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(-1.517, -0.8, 0), Vector3(0, 0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_43hjs"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0, 0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0, 0, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("TokenMesh:position")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0, 0.104121, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_noijm"]
+resource_name = "unblight"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(0, 0, -3.14159), Vector3(0, 0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("TokenMesh:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.257626, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(-1.517, -0.8, 0), Vector3(0, 0, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_gknmk"]
+_data = {
+&"RESET": SubResource("Animation_43hjs"),
+&"blight": SubResource("Animation_82ns2"),
+&"unblight": SubResource("Animation_noijm")
+}
+
+[node name="Token3D_1" type="Node3D"]
+transform = Transform3D(0.4, 0, 0, 0, 0.05, 0, 0, 0, 0.4, 0, 0, 0)
 script = ExtResource("1_18jwr")
 
 [node name="TokenMesh" type="MeshInstance3D" parent="."]
-transform = Transform3D(0.4, 0, 0, 0, 0.15, 0, 0, 0, 0.4, 0, 0.104121, 0)
+transform = Transform3D(1, -4.65661e-10, 0, 2.98023e-08, 1, 0, 0, 0, 1, 0, 0.104121, 0)
 mesh = SubResource("CylinderMesh_bpimy")
+surface_material_override/0 = SubResource("StandardMaterial3D_jqqdb")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="TokenMesh"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TokenMesh/StaticBody3D"]
+shape = SubResource("ConcavePolygonShape3D_82ns2")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_gknmk")
+}

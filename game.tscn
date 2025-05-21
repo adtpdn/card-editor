@@ -1,16 +1,47 @@
-[gd_scene load_steps=29 format=3 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=32 format=3 uid="uid://dpmxlw8f4fyvd"]
 
+<<<<<<< HEAD
 [ext_resource type="Script" uid="uid://biuauecv8bg1f" path="res://game.gd" id="1_0rb8f"]
 [ext_resource type="Script" uid="uid://bmfy2jysh7a3r" path="res://hand.gd" id="2_drdp6"]
 [ext_resource type="Script" uid="uid://qiokwigge68u" path="res://token_manager.gd" id="2_njql7"]
+=======
+[ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://game.gd" id="1_0rb8f"]
+[ext_resource type="Script" uid="uid://61ovdinil8mj" path="res://hand.gd" id="2_drdp6"]
+[ext_resource type="Script" uid="uid://ckodjk0ue4j3n" path="res://token_manager.gd" id="2_njql7"]
+[ext_resource type="Script" uid="uid://b51yqiry8444l" path="res://network_manager.gd" id="3_boyg6"]
+>>>>>>> gfx-biomes
 [ext_resource type="Curve" uid="uid://dtskme7prx4g5" path="res://hand_y_curve.tres" id="3_jwe8m"]
+[ext_resource type="Script" uid="uid://crljukaucgphk" path="res://game_state_manager.gd" id="4_e36ub"]
 [ext_resource type="Curve" uid="uid://dwkwcluylhkq0" path="res://hand_rotation_curve.tres" id="4_lbysu"]
+<<<<<<< HEAD
 [ext_resource type="Script" uid="uid://cqdeqh63oridj" path="res://card_resource.gd" id="6_w411x"]
 [ext_resource type="PackedScene" uid="uid://3blq6hslbv2" path="res://dice_manager.tscn" id="7_p3vul"]
 [ext_resource type="Shape3D" uid="uid://gjjokcof6ivg" path="res://cards/card_3d_collision.tres" id="11_1ew6f"]
 [ext_resource type="Script" uid="uid://bcppp5o4562jn" path="res://point_counter.gd" id="11_beb7m"]
 [ext_resource type="Script" uid="uid://doj5puww2eifa" path="res://deck_location.gd" id="12_8ltkn"]
 [ext_resource type="Script" uid="uid://he2g7ts4qfp2" path="res://planting_location.gd" id="13_u747q"]
+=======
+[ext_resource type="Resource" uid="uid://jby5l2ek6uel" path="res://cards/action_cards.tres" id="4_tg8ug"]
+[ext_resource type="Script" uid="uid://dpaobk3mip7va" path="res://card_manager.gd" id="5_hb5m1"]
+[ext_resource type="Resource" uid="uid://dvmue13fxi5od" path="res://cards/area_cards.tres" id="5_ti4wn"]
+[ext_resource type="PackedScene" uid="uid://cqkw6uj4kgxav" path="res://token_placement_location_magic.tscn" id="6_aclfe"]
+[ext_resource type="Script" uid="uid://22sqj66kc86h" path="res://ui_manager.gd" id="6_x5p1p"]
+[ext_resource type="Script" uid="uid://b33jfe6s6f3g4" path="res://sigil_manager.gd" id="7_boyg6"]
+[ext_resource type="PackedScene" uid="uid://u5swx58xo14j" path="res://token_placement_location.tscn" id="7_i0rid"]
+[ext_resource type="Material" uid="uid://l6qa3myb6cds" path="res://assets/transparent_material.tres" id="7_l1bdx"]
+[ext_resource type="PackedScene" uid="uid://r5nd8a37k5q5" path="res://assets/meshes/biome_slice_1.glb" id="8_xa8c5"]
+[ext_resource type="PackedScene" uid="uid://bad2hf3m5gwb2" path="res://assets/meshes/biome_slice_2.glb" id="9_5b14r"]
+[ext_resource type="PackedScene" uid="uid://b3d2en7dx48os" path="res://assets/meshes/biome_slice_3.glb" id="10_bnpwn"]
+[ext_resource type="Shape3D" uid="uid://gjjokcof6ivg" path="res://cards/card_3d_collision.tres" id="11_1ew6f"]
+[ext_resource type="PackedScene" uid="uid://bfh8j800mc1uq" path="res://assets/meshes/biome_slice_4.glb" id="11_36jdj"]
+[ext_resource type="Script" uid="uid://inns47cokwch" path="res://point_counter.gd" id="11_beb7m"]
+[ext_resource type="Script" uid="uid://cfsntbrmww4pn" path="res://deck_location.gd" id="12_8ltkn"]
+[ext_resource type="Script" uid="uid://dao6ito3qdqs4" path="res://planting_location.gd" id="13_u747q"]
+[ext_resource type="PackedScene" uid="uid://dcowk0qhpovrj" path="res://assets/meshes/sigil_slot_1.glb" id="15_xfvwf"]
+[ext_resource type="PackedScene" uid="uid://ckc5fe52hxbo7" path="res://assets/meshes/sigil_slot_2.glb" id="16_dhpj7"]
+[ext_resource type="PackedScene" uid="uid://dy1jahwg10ltr" path="res://assets/meshes/sigil_slot_3.glb" id="17_7knny"]
+[ext_resource type="PackedScene" uid="uid://c75jlfpiagn3a" path="res://assets/meshes/sigil_slot_4.glb" id="18_082n1"]
+>>>>>>> gfx-biomes
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cu6c3"]
 albedo_color = Color(0.42, 0.42, 0.42, 1)
@@ -19,119 +50,9 @@ albedo_color = Color(0.42, 0.42, 0.42, 1)
 material = SubResource("StandardMaterial3D_cu6c3")
 radial_segments = 8
 
-[sub_resource type="Resource" id="Resource_4lx16"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 0
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_y7hxr"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 0
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_5835r"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 0
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_xjjx3"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 0
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_qc3ij"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 0
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_o3mn0"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 0
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_a0ern"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 0
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_lnaii"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 1
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_bc4bn"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 1
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_2sqg2"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 1
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_788mm"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 1
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_34ioq"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 1
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_lwa1b"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 1
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
-[sub_resource type="Resource" id="Resource_7gyo5"]
-script = ExtResource("6_w411x")
-card_name = "New Card"
-card_type = 1
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-
 [sub_resource type="BoxMesh" id="BoxMesh_nfgrx"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nhupc"]
 
 [node name="Game" type="Node"]
 script = ExtResource("1_0rb8f")
@@ -139,32 +60,713 @@ script = ExtResource("1_0rb8f")
 [node name="TokenManager" type="Node" parent="."]
 script = ExtResource("2_njql7")
 
+[node name="NetworkManager" type="Node" parent="."]
+script = ExtResource("3_boyg6")
+
+[node name="GameStateManager" type="Node" parent="."]
+script = ExtResource("4_e36ub")
+
+[node name="CardManager" type="Node" parent="."]
+script = ExtResource("5_hb5m1")
+
+[node name="UIManager" type="Node" parent="."]
+script = ExtResource("6_x5p1p")
+
+[node name="SigilManager" type="Node" parent="."]
+script = ExtResource("7_boyg6")
+
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 17, 0.8)
-fov = 55.0
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 17, 0)
+projection = 1
+fov = 50.0
+size = 14.966
+
+[node name="Node" type="Node" parent="."]
+
+[node name="biome_slice_1" parent="Node" instance=ExtResource("8_xa8c5")]
+
+[node name="biome_slice_22" parent="Node" instance=ExtResource("9_5b14r")]
+
+[node name="biome_slice_32" parent="Node" instance=ExtResource("10_bnpwn")]
+
+[node name="biome_slice_42" parent="Node" instance=ExtResource("11_36jdj")]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(8, 0, 0, 0, -0.05, 0, 0, 0, 8, 0, -0.0680389, 0)
+visible = false
 mesh = SubResource("CylinderMesh_yl3nv")
 
 [node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
 transform = Transform3D(11, 0, -9.61651e-07, 0, -0.08, 0, 9.61651e-07, 0, 11, 0, -0.20056, 0)
+visible = false
 mesh = SubResource("CylinderMesh_yl3nv")
 
 [node name="DeckLocations" type="Node3D" parent="."]
 
 [node name="ActionDeck" type="Node3D" parent="DeckLocations"]
 script = ExtResource("12_8ltkn")
+deck_resource = ExtResource("4_tg8ug")
 deck_name = "Action Cards"
-revealed = true
-initial_cards = Array[ExtResource("6_w411x")]([SubResource("Resource_4lx16"), SubResource("Resource_y7hxr"), SubResource("Resource_5835r"), SubResource("Resource_xjjx3"), SubResource("Resource_qc3ij"), SubResource("Resource_o3mn0"), SubResource("Resource_a0ern")])
 
 [node name="AreaDeck" type="Node3D" parent="DeckLocations"]
 script = ExtResource("12_8ltkn")
+deck_resource = ExtResource("5_ti4wn")
 deck_name = "Area Cards"
-initial_cards = Array[ExtResource("6_w411x")]([SubResource("Resource_lnaii"), SubResource("Resource_bc4bn"), SubResource("Resource_2sqg2"), SubResource("Resource_788mm"), SubResource("Resource_34ioq"), SubResource("Resource_lwa1b"), SubResource("Resource_7gyo5")])
+
+[node name="TokenPlacementsMat" type="Node" parent="."]
+
+[node name="sigil_slot_1" parent="TokenPlacementsMat" instance=ExtResource("15_xfvwf")]
+
+[node name="sigil_slot_2" parent="TokenPlacementsMat" instance=ExtResource("16_dhpj7")]
+
+[node name="sigil_slot_3" parent="TokenPlacementsMat" instance=ExtResource("17_7knny")]
+
+[node name="sigil_slot_4" parent="TokenPlacementsMat" instance=ExtResource("18_082n1")]
 
 [node name="TokenPlacements" type="Node3D" parent="."]
+
+[node name="TokenPlacementLocation_M_1" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, -4.98579, 0, -6)
+place_id = 1
+
+[node name="TokenPlacementLocation_M_2" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, -5.49289, 0, -6.50711)
+place_id = 2
+
+[node name="TokenPlacementLocation_M_3" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, -6, 0, -7.01421)
+place_id = 3
+
+[node name="TokenPlacementLocation_M_4" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, -6, 0, -4.98579)
+place_id = 4
+
+[node name="TokenPlacementLocation_M_5" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, -6.50711, 0, -5.49289)
+place_id = 5
+
+[node name="TokenPlacementLocation_M_6" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, -7.01421, 0, -6)
+place_id = 6
+
+[node name="TokenPlacementLocation_M_7" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, -6, 0, -6)
+place_id = 7
+
+[node name="TokenPlacementLocation_M_8" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -6, 0, 4.98579)
+accepted_biome = 1
+place_id = 1
+
+[node name="TokenPlacementLocation_M_9" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -6.50711, 0, 5.49289)
+accepted_biome = 1
+place_id = 2
+
+[node name="TokenPlacementLocation_M_10" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -7.01421, 0, 6)
+accepted_biome = 1
+place_id = 3
+
+[node name="TokenPlacementLocation_M_11" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -4.98579, 0, 6)
+accepted_biome = 1
+place_id = 4
+
+[node name="TokenPlacementLocation_M_12" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -5.49289, 0, 6.50711)
+accepted_biome = 1
+place_id = 5
+
+[node name="TokenPlacementLocation_M_13" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -6, 0, 7.01421)
+accepted_biome = 1
+place_id = 6
+
+[node name="TokenPlacementLocation_M_14" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -6, 0, 6)
+accepted_biome = 1
+place_id = 7
+
+[node name="TokenPlacementLocation_M_15" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 4.98579, 0, 6)
+accepted_biome = 2
+place_id = 1
+
+[node name="TokenPlacementLocation_M_16" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 5.49289, 0, 6.50711)
+accepted_biome = 2
+place_id = 2
+
+[node name="TokenPlacementLocation_M_17" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 6, 0, 7.01421)
+accepted_biome = 2
+place_id = 3
+
+[node name="TokenPlacementLocation_M_18" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 6, 0, 4.98579)
+accepted_biome = 2
+place_id = 4
+
+[node name="TokenPlacementLocation_M_19" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 6.50711, 0, 5.49289)
+accepted_biome = 2
+place_id = 5
+
+[node name="TokenPlacementLocation_M_20" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 7.01421, 0, 6)
+accepted_biome = 2
+place_id = 6
+
+[node name="TokenPlacementLocation_M_21" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 6, 0, 6)
+accepted_biome = 2
+place_id = 7
+
+[node name="TokenPlacementLocation_M_22" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 6, 0, -4.98579)
+accepted_biome = 3
+place_id = 1
+
+[node name="TokenPlacementLocation_M_23" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 6.50711, 0, -5.49289)
+accepted_biome = 3
+place_id = 2
+
+[node name="TokenPlacementLocation_M_24" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 7.01421, 0, -6)
+accepted_biome = 3
+place_id = 3
+
+[node name="TokenPlacementLocation_M_25" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 4.98579, 0, -6)
+accepted_biome = 3
+place_id = 4
+
+[node name="TokenPlacementLocation_M_26" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 5.49289, 0, -6.50711)
+accepted_biome = 3
+place_id = 5
+
+[node name="TokenPlacementLocation_M_27" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 6, 0, -7.01421)
+accepted_biome = 3
+place_id = 6
+
+[node name="TokenPlacementLocation_M_28" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
+transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 6, 0, -6)
+accepted_biome = 3
+place_id = 7
+
+[node name="TokenPlacementLocation_01" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -0.339527, 0, -0.340011)
+
+[node name="TokenPlacementLocation_02" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -0.939527, 0, -0.340011)
+
+[node name="TokenPlacementLocation_03" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -0.339527, 0, -0.940011)
+
+[node name="TokenPlacementLocation_04" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -1.53953, 0, -0.340011)
+
+[node name="TokenPlacementLocation_05" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -0.939527, 0, -0.940011)
+
+[node name="TokenPlacementLocation_06" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -0.339527, 0, -1.54001)
+
+[node name="TokenPlacementLocation_07" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -2.13953, 0, -0.340011)
+
+[node name="TokenPlacementLocation_08" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -1.53953, 0, -0.940011)
+
+[node name="TokenPlacementLocation_09" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -0.939527, 0, -1.54001)
+
+[node name="TokenPlacementLocation_10" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -0.339527, 0, -2.14001)
+
+[node name="TokenPlacementLocation_11" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -2.73953, 0, -0.340011)
+
+[node name="TokenPlacementLocation_12" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -2.13953, 0, -0.940011)
+
+[node name="TokenPlacementLocation_13" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -1.53953, 0, -1.54001)
+
+[node name="TokenPlacementLocation_14" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -0.939527, 0, -2.14001)
+
+[node name="TokenPlacementLocation_15" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -0.339527, 0, -2.74001)
+
+[node name="TokenPlacementLocation_16" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -3.33953, 0, -0.340011)
+
+[node name="TokenPlacementLocation_17" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -2.73953, 0, -0.940011)
+
+[node name="TokenPlacementLocation_18" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -2.13953, 0, -1.54001)
+
+[node name="TokenPlacementLocation_19" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -1.53953, 0, -2.14001)
+
+[node name="TokenPlacementLocation_20" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -0.939527, 0, -2.74001)
+
+[node name="TokenPlacementLocation_21" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -0.339527, 0, -3.34001)
+
+[node name="TokenPlacementLocation_22" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -3.93953, 0, -0.340011)
+
+[node name="TokenPlacementLocation_23" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -3.33953, 0, -0.940011)
+
+[node name="TokenPlacementLocation_24" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -2.73953, 0, -1.54001)
+
+[node name="TokenPlacementLocation_25" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -2.13953, 0, -2.14001)
+
+[node name="TokenPlacementLocation_26" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -1.53953, 0, -2.74001)
+
+[node name="TokenPlacementLocation_27" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -0.939527, 0, -3.34001)
+
+[node name="TokenPlacementLocation_28" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -0.339527, 0, -3.94001)
+
+[node name="TokenPlacementLocation_29" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -3.93953, 0, -0.940011)
+
+[node name="TokenPlacementLocation_30" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -3.33953, 0, -1.54001)
+
+[node name="TokenPlacementLocation_31" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -2.73953, 0, -2.14001)
+
+[node name="TokenPlacementLocation_32" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -2.13953, 0, -2.74001)
+
+[node name="TokenPlacementLocation_33" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -1.53953, 0, -3.34001)
+
+[node name="TokenPlacementLocation_34" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.702981, 0, 0.711209, 0, 1, 0, -0.711209, 0, -0.702981, -0.939527, 0, -3.94001)
+
+[node name="TokenPlacementLocation_35" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 0.332825, 0, -0.340011)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_36" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 0.332825, 0, -0.94001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_37" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 0.932825, 0, -0.340011)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_38" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 0.332825, 0, -1.54001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_39" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 0.932825, 0, -0.94001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_40" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 1.53283, 0, -0.340011)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_41" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 0.332825, 0, -2.14001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_42" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 0.932825, 0, -1.54001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_43" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 1.53283, 0, -0.94001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_44" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 2.13282, 0, -0.340011)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_45" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 0.332825, 0, -2.74001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_46" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 0.932825, 0, -2.14001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_47" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 1.53283, 0, -1.54001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_48" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 2.13282, 0, -0.94001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_49" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 2.73283, 0, -0.340011)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_50" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 0.332825, 0, -3.34001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_51" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 0.932825, 0, -2.74001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_52" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 1.53283, 0, -2.14001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_53" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 2.13283, 0, -1.54001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_54" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 2.73283, 0, -0.94001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_55" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 3.33283, 0, -0.34001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_56" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 0.332825, 0, -3.94001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_57" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 0.932825, 0, -3.34001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_58" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 1.53283, 0, -2.74001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_59" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 2.13283, 0, -2.14001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_60" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 2.73283, 0, -1.54001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_61" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 3.33283, 0, -0.94001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_62" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 3.93283, 0, -0.34001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_63" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 0.932825, 0, -3.94001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_64" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 1.53283, 0, -3.34001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_65" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 2.13283, 0, -2.74001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_66" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 2.73283, 0, -2.14001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_67" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 3.33283, 0, -1.54001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_68" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.711209, 0, 0.702981, 0, 1, 0, -0.702981, 0, 0.711209, 3.93283, 0, -0.94001)
+accepted_biome = 3
+
+[node name="TokenPlacementLocation_69" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 0.332826, 0, 0.332342)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_70" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 0.932826, 0, 0.332342)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_71" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 0.332826, 0, 0.932342)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_72" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 1.53283, 0, 0.332342)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_73" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 0.932826, 0, 0.932342)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_74" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 0.332826, 0, 1.53234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_75" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 2.13283, 0, 0.332342)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_76" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 1.53283, 0, 0.932342)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_77" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 0.932826, 0, 1.53234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_78" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 0.332826, 0, 2.13234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_79" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 2.73283, 0, 0.332342)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_80" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 2.13283, 0, 0.932342)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_81" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 1.53283, 0, 1.53234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_82" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 0.932826, 0, 2.13234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_83" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 0.332826, 0, 2.73234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_84" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 3.33283, 0, 0.332343)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_85" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 2.73283, 0, 0.932342)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_86" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 2.13283, 0, 1.53234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_87" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 1.53283, 0, 2.13234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_88" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 0.932826, 0, 2.73234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_89" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 0.332825, 0, 3.33234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_90" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 3.93283, 0, 0.332343)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_91" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 3.33283, 0, 0.932342)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_92" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 2.73283, 0, 1.53234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_93" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 2.13283, 0, 2.13234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_94" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 1.53283, 0, 2.73234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_95" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 0.932826, 0, 3.33234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_96" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 0.332825, 0, 3.93234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_97" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 3.93283, 0, 0.932342)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_98" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 3.33283, 0, 1.53234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_99" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 2.73283, 0, 2.13234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_100" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 2.13283, 0, 2.73234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_101" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 1.53283, 0, 3.33234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_102" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(0.702981, 0, -0.711209, 0, 1, 0, 0.711209, 0, 0.702981, 0.932826, 0, 3.93234)
+accepted_biome = 2
+
+[node name="TokenPlacementLocation_103" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -0.339528, 0, 0.332343)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_104" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -0.339528, 0, 0.932343)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_105" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -0.939527, 0, 0.332343)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_106" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -0.339528, 0, 1.53234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_107" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -0.939527, 0, 0.932343)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_108" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -1.53953, 0, 0.332343)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_109" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -0.339528, 0, 2.13234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_110" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -0.939528, 0, 1.53234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_111" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -1.53953, 0, 0.932343)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_112" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -2.13953, 0, 0.332343)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_113" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -0.339528, 0, 2.73234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_114" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -0.939528, 0, 2.13234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_115" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -1.53953, 0, 1.53234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_116" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -2.13953, 0, 0.932343)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_117" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -2.73953, 0, 0.332343)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_118" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -0.339528, 0, 3.33234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_119" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -0.939528, 0, 2.73234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_120" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -1.53953, 0, 2.13234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_121" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -2.13953, 0, 1.53234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_122" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -2.73953, 0, 0.932343)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_123" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -3.33953, 0, 0.332342)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_124" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -0.339528, 0, 3.93234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_125" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -0.939528, 0, 3.33234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_126" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -1.53953, 0, 2.73234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_127" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -2.13953, 0, 2.13234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_128" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -2.73953, 0, 1.53234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_129" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -3.33953, 0, 0.932343)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_130" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -3.93953, 0, 0.332342)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_131" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -0.939528, 0, 3.93234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_132" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -1.53953, 0, 3.33234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_133" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -2.13953, 0, 2.73234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_134" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -2.73953, 0, 2.13234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_135" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -3.33953, 0, 1.53234)
+accepted_biome = 1
+
+[node name="TokenPlacementLocation_136" parent="TokenPlacements" instance=ExtResource("7_i0rid")]
+transform = Transform3D(-0.711209, 0, -0.702981, 0, 1, 0, 0.702981, 0, -0.711209, -3.93953, 0, 0.932343)
+accepted_biome = 1
 
 [node name="Tokens" type="Node3D" parent="."]
 
@@ -173,12 +775,12 @@ initial_cards = Array[ExtResource("6_w411x")]([SubResource("Resource_lnaii"), Su
 [node name="ActionArea" type="Node3D" parent="PlantingLocations"]
 script = ExtResource("13_u747q")
 location_name = "Action Area"
-accepted_card_types = PackedInt32Array()
+accepted_card_types = PackedInt32Array(0)
 
 [node name="Markers" type="Node3D" parent="PlantingLocations/ActionArea"]
 
 [node name="Marker3D1" type="Marker3D" parent="PlantingLocations/ActionArea/Markers"]
-transform = Transform3D(0.8, 0, 0, 0, 1, 0, 0, 0, 1, -4.74961, 0, -4.74074)
+transform = Transform3D(-0.565685, 0, 0.707107, 0, 1, 0, -0.565685, 0, -0.707107, -4.74961, 0, -4.74074)
 
 [node name="Area3D" type="Area3D" parent="PlantingLocations/ActionArea/Markers/Marker3D1"]
 
@@ -187,37 +789,38 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.694153, 0)
 shape = ExtResource("11_1ew6f")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/ActionArea/Markers/Marker3D1"]
-transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(1.2, 0, 0, 0, 0.03, 0, 0, 0, 1.35, 0, -0.22395, 0)
 mesh = SubResource("BoxMesh_nfgrx")
+surface_material_override/0 = SubResource("StandardMaterial3D_nhupc")
 
 [node name="Marker3D2" type="Marker3D" parent="PlantingLocations/ActionArea/Markers"]
-transform = Transform3D(0.8, 0, 0, 0, 1, 0, 0, 0, 1, -4.74961, 0, 4.74273)
+transform = Transform3D(-0.565685, 0, -0.707107, 0, 1, 0, 0.565685, 0, -0.707107, -4.74961, 0, 4.74273)
 
 [node name="Area3D" type="Area3D" parent="PlantingLocations/ActionArea/Markers/Marker3D2"]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="PlantingLocations/ActionArea/Markers/Marker3D2/Area3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.694153, 0)
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0.694153, 0)
 shape = ExtResource("11_1ew6f")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/ActionArea/Markers/Marker3D2"]
-transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(1.2, 0, 0, 0, 0.03, 0, 0, 0, 1.35, 0, -0.22395, 0)
 mesh = SubResource("BoxMesh_nfgrx")
 
 [node name="Marker3D3" type="Marker3D" parent="PlantingLocations/ActionArea/Markers"]
-transform = Transform3D(-0.8, 0, -1.50996e-07, 0, 1, 0, 1.20797e-07, 0, -1, 4.76042, 0, 4.77095)
+transform = Transform3D(0.565685, 0, -0.707107, 0, 1, 0, 0.565685, 0, 0.707107, 4.76195, 0, 4.7783)
 
 [node name="Area3D" type="Area3D" parent="PlantingLocations/ActionArea/Markers/Marker3D3"]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="PlantingLocations/ActionArea/Markers/Marker3D3/Area3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.694153, 0)
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0.694153, 0)
 shape = ExtResource("11_1ew6f")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/ActionArea/Markers/Marker3D3"]
-transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(1.2, 0, 0, 0, 0.03, 0, 0, 0, 1.35, 0, -0.22395, 0)
 mesh = SubResource("BoxMesh_nfgrx")
 
 [node name="Marker3D4" type="Marker3D" parent="PlantingLocations/ActionArea/Markers"]
-transform = Transform3D(-0.8, 0, 1.50996e-07, 0, 1, 0, -1.20797e-07, 0, -1, 4.7322, 0, -4.73908)
+transform = Transform3D(0.565685, 0, 0.707107, 0, 1, 0, -0.565685, 0, 0.707107, 4.73001, 0, -4.74074)
 
 [node name="Area3D" type="Area3D" parent="PlantingLocations/ActionArea/Markers/Marker3D4"]
 
@@ -226,13 +829,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.694153, 0)
 shape = ExtResource("11_1ew6f")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/ActionArea/Markers/Marker3D4"]
-transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(1.2, 0, 0, 0, 0.03, 0, 0, 0, 1.35, 0, -0.22395, 0)
 mesh = SubResource("BoxMesh_nfgrx")
 
 [node name="AreaZone" type="Node3D" parent="PlantingLocations"]
 script = ExtResource("13_u747q")
 location_name = "Area Zone"
-accepted_card_types = PackedInt32Array()
+accepted_card_types = PackedInt32Array(1)
 
 [node name="Markers" type="Node3D" parent="PlantingLocations/AreaZone"]
 
@@ -248,6 +851,7 @@ shape = ExtResource("11_1ew6f")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/AreaZone/Markers/Marker3D1"]
 transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("BoxMesh_nfgrx")
+surface_material_override/0 = ExtResource("7_l1bdx")
 
 [node name="Marker3D2" type="Marker3D" parent="PlantingLocations/AreaZone/Markers"]
 transform = Transform3D(1.17219, 0, 0.920505, 0, 1, 0, -2.76151, 0, 0.390731, 4.48468, 0, 1.83773)
@@ -261,6 +865,7 @@ shape = ExtResource("11_1ew6f")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/AreaZone/Markers/Marker3D2"]
 transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("BoxMesh_nfgrx")
+surface_material_override/0 = ExtResource("7_l1bdx")
 
 [node name="Marker3D3" type="Marker3D" parent="PlantingLocations/AreaZone/Markers"]
 transform = Transform3D(-1.22021, 0, 0.913545, 0, 1, 0, -2.74064, 0, -0.406736, 4.44849, 0, -1.95696)
@@ -274,6 +879,7 @@ shape = ExtResource("11_1ew6f")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/AreaZone/Markers/Marker3D3"]
 transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("BoxMesh_nfgrx")
+surface_material_override/0 = ExtResource("7_l1bdx")
 
 [node name="Marker3D4" type="Marker3D" parent="PlantingLocations/AreaZone/Markers"]
 transform = Transform3D(-2.74064, 0, 0.406737, 0, 1, 0, -1.22021, 0, -0.913545, 1.93455, 0, -4.42867)
@@ -287,6 +893,7 @@ shape = ExtResource("11_1ew6f")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/AreaZone/Markers/Marker3D4"]
 transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("BoxMesh_nfgrx")
+surface_material_override/0 = ExtResource("7_l1bdx")
 
 [node name="Marker3D5" type="Marker3D" parent="PlantingLocations/AreaZone/Markers"]
 transform = Transform3D(-2.74064, 0, -0.406737, 0, 1, 0, 1.22021, 0, -0.913545, -1.91722, 0, -4.46535)
@@ -300,6 +907,7 @@ shape = ExtResource("11_1ew6f")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/AreaZone/Markers/Marker3D5"]
 transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("BoxMesh_nfgrx")
+surface_material_override/0 = ExtResource("7_l1bdx")
 
 [node name="Marker3D6" type="Marker3D" parent="PlantingLocations/AreaZone/Markers"]
 transform = Transform3D(-1.22021, 0, -0.913545, 0, 1, 0, 2.74064, 0, -0.406737, -4.47219, 0, -1.95396)
@@ -313,6 +921,7 @@ shape = ExtResource("11_1ew6f")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/AreaZone/Markers/Marker3D6"]
 transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("BoxMesh_nfgrx")
+surface_material_override/0 = ExtResource("7_l1bdx")
 
 [node name="Marker3D7" type="Marker3D" parent="PlantingLocations/AreaZone/Markers"]
 transform = Transform3D(1.22021, 0, -0.913545, 0, 1, 0, 2.74064, 0, 0.406737, -4.46118, 0, 1.8317)
@@ -326,11 +935,13 @@ shape = ExtResource("11_1ew6f")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/AreaZone/Markers/Marker3D7"]
 transform = Transform3D(1, 0, 0, 0, 0.03, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("BoxMesh_nfgrx")
+surface_material_override/0 = ExtResource("7_l1bdx")
 
 [node name="Marker3D8" type="Marker3D" parent="PlantingLocations/AreaZone/Markers"]
-transform = Transform3D(2.74064, 0, -0.406737, 0, 1, 0, 1.22021, 0, 0.913545, -1.83282, 0, 4.38246)
+transform = Transform3D(2.74064, 0, -0.406737, 0, 1, 0, 1.22021, 0, 0.913545, -1.83975, 0, 4.39802)
 
 [node name="Area3D" type="Area3D" parent="PlantingLocations/AreaZone/Markers/Marker3D8"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.56114e-09, 0, 0.0994369)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="PlantingLocations/AreaZone/Markers/Marker3D8/Area3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.694153, 0)
@@ -339,11 +950,10 @@ shape = ExtResource("11_1ew6f")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlantingLocations/AreaZone/Markers/Marker3D8"]
 transform = Transform3D(1, 0, 7.45058e-09, 0, 0.03, 0, 0, 0, 1, -0.00149435, 0, 0.100052)
 mesh = SubResource("BoxMesh_nfgrx")
-
-[node name="DiceManager" parent="." instance=ExtResource("7_p3vul")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.87374, 0.51, 2.80558)
+surface_material_override/0 = ExtResource("7_l1bdx")
 
 [node name="ResetButton" type="Button" parent="."]
+visible = false
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
@@ -355,6 +965,7 @@ grow_horizontal = 2
 text = "Reset"
 
 [node name="DiscardCardButton" type="Button" parent="."]
+visible = false
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -365,18 +976,76 @@ offset_bottom = 70.0
 grow_horizontal = 0
 text = "Discard Card"
 
-[node name="UI" type="Control" parent="."]
+[node name="RightUI" type="Control" parent="."]
 layout_mode = 3
-anchors_preset = 14
+anchors_preset = 6
+anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = 990.0
-offset_top = -165.0
-grow_horizontal = 2
+offset_left = -228.0
+offset_top = -324.0
+offset_bottom = 325.0
+grow_horizontal = 0
 grow_vertical = 2
 
-[node name="Menu" type="VBoxContainer" parent="UI"]
+[node name="Menu" type="VBoxContainer" parent="RightUI"]
+clip_contents = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -84.0
+offset_top = -108.5
+offset_right = 86.0
+offset_bottom = 135.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="ConnectStatus" type="Label" parent="RightUI/Menu"]
+layout_mode = 2
+text = "ConnectStatus"
+horizontal_alignment = 1
+
+[node name="HostButton" type="Button" parent="RightUI/Menu"]
+z_index = 2
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+text = "Host Game"
+
+[node name="JoinButton" type="Button" parent="RightUI/Menu"]
+z_index = 2
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+text = "Join Game"
+
+[node name="IPInput" type="LineEdit" parent="RightUI/Menu"]
+layout_mode = 2
+size_flags_vertical = 3
+clear_button_enabled = true
+
+[node name="NetworkInfo" type="VBoxContainer" parent="RightUI"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -200.0
+offset_top = 188.0
+offset_right = -29.0
+offset_bottom = 211.0
+grow_horizontal = 0
+
+[node name="NetworkSideDisplay" type="Label" parent="RightUI/NetworkInfo"]
+layout_mode = 2
+text = "Not Connected"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EndTurnButton" type="Button" parent="RightUI"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -384,105 +1053,242 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -20.0
-offset_top = -20.0
-offset_right = 20.0
-offset_bottom = 20.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="HostButton" type="Button" parent="UI/Menu"]
-z_index = 2
-layout_mode = 2
-text = "Host Game"
-
-[node name="JoinButton" type="Button" parent="UI/Menu"]
-z_index = 2
-layout_mode = 2
-text = "Join Game"
-
-[node name="NetworkInfo" type="VBoxContainer" parent="UI"]
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_bottom = 23.0
-grow_horizontal = 2
-
-[node name="NetworkSideDisplay" type="Label" parent="UI/NetworkInfo"]
-layout_mode = 2
-text = "Not Connected"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="EndTurnButton" type="Button" parent="UI"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -39.0
-offset_top = 42.5
-offset_right = 39.0
-offset_bottom = 73.5
+offset_top = 158.5
+offset_right = 58.0
+offset_bottom = 189.5
 grow_horizontal = 2
 grow_vertical = 2
 disabled = true
 text = "End Turn"
 
-[node name="TokenContainer" type="VBoxContainer" parent="UI"]
-layout_mode = 1
-anchors_preset = 6
-anchor_left = 1.0
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -440.0
-offset_top = -36.5
-offset_right = -198.0
-offset_bottom = 37.5
-grow_horizontal = 0
-grow_vertical = 2
-
-[node name="TokenButton1" type="Button" parent="UI/TokenContainer"]
+[node name="TokenButton" type="Button" parent="RightUI"]
+custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
-text = "TokenButton1"
+offset_left = 7.0
+offset_top = 45.0
+offset_right = 120.0
+offset_bottom = 87.0
+theme_override_font_sizes/font_size = 10
+text = "00"
 
-[node name="TokenButton2" type="Button" parent="UI/TokenContainer"]
-layout_mode = 2
-text = "TokenButton2"
-
-[node name="TokenButton3" type="Button" parent="UI/TokenContainer"]
-layout_mode = 2
-text = "TokenButton3"
-
-[node name="TokenButton4" type="Button" parent="UI/TokenContainer"]
-layout_mode = 2
-text = "TokenButton4"
-
-[node name="RollDiceButton" type="Button" parent="UI"]
+[node name="RollResultLabel" type="Label" parent="RightUI"]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -51.0
-offset_top = 183.0
-offset_right = 51.0
-offset_bottom = 214.0
-grow_horizontal = 2
-text = "Roll Dice"
-
-[node name="RollResultLabel" type="Label" parent="UI"]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -51.0
-offset_top = 226.0
-offset_right = 51.0
-offset_bottom = 249.0
+offset_left = -28.0
+offset_top = 589.0
+offset_right = 74.0
+offset_bottom = 612.0
 grow_horizontal = 2
 text = "DICE LABEL"
 horizontal_alignment = 1
+
+[node name="PlayerTokenIndicators" type="HBoxContainer" parent="RightUI"]
+visible = false
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="RemoveButton" type="Button" parent="RightUI"]
+layout_mode = 0
+offset_left = 7.0
+offset_top = 113.0
+offset_right = 129.0
+offset_bottom = 144.0
+text = "Remove Token"
+
+[node name="BlightButton" type="Button" parent="RightUI"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -214.0
+offset_top = 148.0
+offset_right = -109.0
+offset_bottom = 179.0
+grow_horizontal = 0
+text = "Blight Token"
+
+[node name="LeftUI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 256.0
+grow_vertical = 2
+size_flags_horizontal = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="LeftUI"]
+visible = false
+layout_mode = 1
+offset_left = 27.0
+offset_top = 22.0
+offset_right = 147.0
+offset_bottom = 123.0
+
+[node name="ForestButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="LeftUI/VBoxContainer/ForestButtons"]
+layout_mode = 2
+text = "Forest                       "
+
+[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/ForestButtons"]
+layout_mode = 2
+text = " + "
+
+[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/ForestButtons"]
+layout_mode = 2
+text = " - "
+
+[node name="ForestMagicButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="LeftUI/VBoxContainer/ForestMagicButtons"]
+layout_mode = 2
+text = "Forest  Magic          "
+
+[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/ForestMagicButtons"]
+layout_mode = 2
+text = " + "
+
+[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/ForestMagicButtons"]
+layout_mode = 2
+text = " - "
+
+[node name="DesertButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="LeftUI/VBoxContainer/DesertButtons"]
+layout_mode = 2
+text = "Desert                      "
+
+[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/DesertButtons"]
+layout_mode = 2
+text = " + "
+
+[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/DesertButtons"]
+layout_mode = 2
+text = " - "
+
+[node name="DesertMagicButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="LeftUI/VBoxContainer/DesertMagicButtons"]
+layout_mode = 2
+text = "Desert Magic          "
+
+[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/DesertMagicButtons"]
+layout_mode = 2
+text = " + "
+
+[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/DesertMagicButtons"]
+layout_mode = 2
+text = " - "
+
+[node name="MountainButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="LeftUI/VBoxContainer/MountainButtons"]
+layout_mode = 2
+text = "Mountain                "
+
+[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/MountainButtons"]
+layout_mode = 2
+text = " + "
+
+[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/MountainButtons"]
+layout_mode = 2
+text = " - "
+
+[node name="MountainMagicButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="LeftUI/VBoxContainer/MountainMagicButtons"]
+layout_mode = 2
+text = "Mountain Magic    "
+
+[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/MountainMagicButtons"]
+layout_mode = 2
+text = " + "
+
+[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/MountainMagicButtons"]
+layout_mode = 2
+text = " - "
+
+[node name="WaterButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="LeftUI/VBoxContainer/WaterButtons"]
+layout_mode = 2
+text = "Water                       "
+
+[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/WaterButtons"]
+layout_mode = 2
+text = " + "
+
+[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/WaterButtons"]
+layout_mode = 2
+text = " - "
+
+[node name="WaterMagicButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="LeftUI/VBoxContainer/WaterMagicButtons"]
+layout_mode = 2
+text = "Water Magic           "
+
+[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/WaterMagicButtons"]
+layout_mode = 2
+text = " + "
+
+[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/WaterMagicButtons"]
+layout_mode = 2
+text = " - "
+
+[node name="StartGameButton" type="Button" parent="LeftUI"]
+visible = false
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 25.0
+offset_top = -76.0
+offset_right = 157.0
+offset_bottom = -25.0
+grow_vertical = 0
+text = "Start Game"
+
+[node name="PlayerList" type="ItemList" parent="LeftUI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 26.0
+offset_top = 393.0
+offset_right = -10.0
+offset_bottom = -135.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SigilContainer" type="VBoxContainer" parent="LeftUI"]
+layout_mode = 1
+offset_left = 29.0
+offset_top = 85.0
+offset_right = 87.0
+offset_bottom = 186.0
+
+[node name="SigilAButton" type="Button" parent="LeftUI/SigilContainer"]
+layout_mode = 2
+text = "Sigil A "
+
+[node name="SigilBButton" type="Button" parent="LeftUI/SigilContainer"]
+layout_mode = 2
+text = "Sigil B"
+
+[node name="SigilCButton" type="Button" parent="LeftUI/SigilContainer"]
+layout_mode = 2
+text = "Sigil C"
 
 [node name="HandAreas" type="Control" parent="."]
 clip_contents = true
@@ -491,7 +1297,9 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 322.0
 offset_top = -140.0
+offset_right = -322.0
 grow_horizontal = 2
 grow_vertical = 0
 
@@ -515,6 +1323,7 @@ hand_curve = ExtResource("3_jwe8m")
 rotation_curve = ExtResource("4_lbysu")
 
 [node name="DrawActionButton" type="Button" parent="."]
+visible = false
 offset_left = 17.0
 offset_top = 319.0
 offset_right = 160.0
@@ -522,6 +1331,7 @@ offset_bottom = 350.0
 text = "Draw Action Card"
 
 [node name="DrawAreaButton" type="Button" parent="."]
+visible = false
 offset_left = 17.0
 offset_top = 364.0
 offset_right = 147.0
@@ -536,79 +1346,31 @@ sky_mode = 1
 transform = Transform3D(-0.00947704, 0, 0.999955, 0, 1, 0, -0.999955, 0, -0.00947704, -6.88334, 0, 0.0452511)
 script = ExtResource("11_beb7m")
 
-[node name="TriangleStack" type="Node3D" parent="PointCounter"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.482201, 0, 0)
+[node name="ForestStack" type="Node3D" parent="PointCounter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.65259, 0, 3.14914)
 
-[node name="SquareStack" type="Node3D" parent="PointCounter"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.656615, 0, 0)
+[node name="ForestMagicStack" type="Node3D" parent="PointCounter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.96973, 0, 1.33311)
 
-[node name="CircleStack" type="Node3D" parent="PointCounter"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.78999)
+[node name="WaterStack" type="Node3D" parent="PointCounter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.86879, 0, 1.26962)
 
-[node name="UI" type="Control" parent="PointCounter"]
-layout_mode = 3
-anchors_preset = 9
-anchor_bottom = 1.0
-offset_right = 279.0
-offset_bottom = -544.0
-grow_vertical = 2
-size_flags_horizontal = 4
+[node name="WaterMagicStack" type="Node3D" parent="PointCounter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.58483, 0, 2.95343)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PointCounter/UI"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="MountainStack" type="Node3D" parent="PointCounter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.60969, 0, 10.7574)
 
-[node name="TriangleButtons" type="HBoxContainer" parent="PointCounter/UI/VBoxContainer"]
-layout_mode = 2
+[node name="MountainMagicStack" type="Node3D" parent="PointCounter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.02587, 0, 12.4725)
 
-[node name="Label" type="Label" parent="PointCounter/UI/VBoxContainer/TriangleButtons"]
-layout_mode = 2
-text = "Triangle"
+[node name="DesertStack" type="Node3D" parent="PointCounter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.77378, 0, 12.5464)
 
-[node name="PlusButton" type="Button" parent="PointCounter/UI/VBoxContainer/TriangleButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="PointCounter/UI/VBoxContainer/TriangleButtons"]
-layout_mode = 2
-text = " - "
-
-[node name="SquareButtons" type="HBoxContainer" parent="PointCounter/UI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label2" type="Label" parent="PointCounter/UI/VBoxContainer/SquareButtons"]
-layout_mode = 2
-text = "Square  "
-
-[node name="PlusButton" type="Button" parent="PointCounter/UI/VBoxContainer/SquareButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="PointCounter/UI/VBoxContainer/SquareButtons"]
-layout_mode = 2
-text = " - "
-
-[node name="RectangleButtons" type="HBoxContainer" parent="PointCounter/UI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label3" type="Label" parent="PointCounter/UI/VBoxContainer/RectangleButtons"]
-layout_mode = 2
-text = "Circle     "
-
-[node name="PlusButton" type="Button" parent="PointCounter/UI/VBoxContainer/RectangleButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="PointCounter/UI/VBoxContainer/RectangleButtons"]
-layout_mode = 2
-text = " - "
+[node name="DesertMagicStack" type="Node3D" parent="PointCounter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.48982, 0, 10.8626)
 
 [connection signal="pressed" from="ResetButton" to="." method="_on_reset_button_pressed"]
 [connection signal="pressed" from="DiscardCardButton" to="." method="_on_discard_card_button_pressed"]
-[connection signal="button_down" from="UI/RollDiceButton" to="." method="_on_roll_dice_pressed"]
 [connection signal="pressed" from="DrawActionButton" to="." method="_on_draw_action_button_pressed"]
 [connection signal="pressed" from="DrawAreaButton" to="." method="_on_draw_area_button_pressed"]

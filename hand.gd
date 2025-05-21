@@ -8,6 +8,8 @@ extends ColorRect
 @export var y_min := 50
 @export var y_max := -50
 
+@onready var game = get_node("/root/Game")
+
 # Single array to hold all cards
 var cards: Array[Card] = []
 var card_resources: Array[CardResource] = []
@@ -15,6 +17,7 @@ var card_resources: Array[CardResource] = []
 var card_scene: PackedScene = preload("res://card.tscn")
 var selected_card: Card = null
 var can_interact = false
+var selected = false  # Add this at the top with other variables
 
 # Visual settings for different card types
 const TYPE_SETTINGS = {
@@ -46,32 +49,67 @@ func _ready():
 	player_id = multiplayer.get_unique_id()
 	#print("Hand initialized for player: ", player_id)
 
+func _gui_input(event):
+	if event is InputEventMouseButton:
+		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			if !can_interact:  # Don't process input if interaction is disabled
+				return
+				
+			for card in cards:
+				if card.selected:
+					card.selected = false
+					card.modulate = Color(1, 1, 1)
+			selected = !selected
+
 func set_interaction_enabled(enabled: bool):
 	can_interact = enabled
 	for card in cards:
-		card.set_process_input(enabled)
-		card.modulate.a = 1.0 if enabled else 0.5
-	#print("Interaction ", "enabled" if enabled else "disabled", " for player ", player_id)
+		card.set_process_input(enabled)  # This disables the card's input processing
+		card.modulate.a = 1.0 if enabled else 0.5  # Visual feedback
+		if !enabled:
+			card.selected = false  # Deselect cards when disabling interaction
+			card.modulate = Color(1, 1, 1, 0.5)
+			selected = false
 
 func can_accept_card(card: CardResource) -> bool:
 	return true
 
 func draw(card_resource: CardResource) -> void:
 	if not card_resource:
-		#print("Error: Trying to draw null card resource")
 		return
+		
+	# Strict duplicate checking with multiple conditions
+	for existing_card in card_resources:
+		if is_duplicate_card(existing_card, card_resource):
+			print("Duplicate card detected, skipping: ", card_resource.card_name)
+			return
 	
-	#print("Drawing card for player ", player_id, ": ", card_resource.card_name)
+	# Check if we're exceeding max cards for this type
+	var type_count = game.card_manager.count_cards_by_type(card_resource.card_type)
+	var max_cards = game.card_manager.MAX_ACTION_CARDS if card_resource.card_type == CardResource.CardType.ACTION else game.card_manager.MAX_AREA_CARDS
+	
+	if type_count >= max_cards:
+		print("Max cards of type ", card_resource.card_type, " reached")
+		return
+		
 	card_resources.append(card_resource)
 	_update_cards()
+	print("Drew card: ", card_resource.card_name, " Total cards: ", card_resources.size())
+
+func is_duplicate_card(card1: CardResource, card2: CardResource) -> bool:
+	# Check multiple properties to ensure true duplication
+	return card1.card_name == card2.card_name and \
+		   card1.card_type == card2.card_type and \
+		   card1.cost_to_draw == card2.cost_to_draw
 
 func clear_hand() -> void:
 	card_resources.clear()
+	# Queue free any existing card nodes
 	for child in get_children():
 		if child is Card:
 			child.queue_free()
 	cards.clear()
-	#print("Cleared hand for player ", player_id)
+	#print("Hand cleared")
 
 func discard() -> void:
 	if not card_resources.is_empty():
@@ -138,6 +176,8 @@ func apply_card_visual_style(card: Card) -> void:
 		card.modulate = settings["highlight_color"]
 
 func get_selected_card() -> Card:
+	if !can_interact:  # Don't return selected card if interaction is disabled
+		return null
 	for card in cards:
 		if card.selected:
 			return card
@@ -149,30 +189,34 @@ func remove_card(card: Card) -> void:
 	
 	var index = cards.find(card)
 	if index != -1:
-		# Remove locally only
+		# Remove card instance
 		if index < cards.size():
 			cards[index].queue_free()
 			cards.remove_at(index)
+		
+		# Remove card resource
 		if index < card_resources.size():
+			var removed_resource = card_resources[index]
 			card_resources.remove_at(index)
+		
+		# Update visual state
 		_update_cards()
 		
-		# Notify server about card removal
+		# Clear selection
+		clear_selection()
+		
+		# Notify server about removal
 		if !multiplayer.is_server():
 			rpc_id(1, "notify_card_removed", index, multiplayer.get_unique_id())
 
 @rpc("any_peer")
 func notify_card_removed(index: int, player_id: int):
 	if multiplayer.is_server():
-		# Update server's tracking of player hands
 		var game_node = get_node("/root/Game")
 		if game_node:
-			game_node.remove_card_from_player_hand(player_id, index)
-
-@rpc("any_peer")
-func request_remove_card(index: int):
-	if multiplayer.is_server():
-		rpc("sync_remove_card", index)
+			game_node.card_manager.remove_card_from_player_hand(player_id, index)
+			# Sync removal to all clients to prevent duplicates
+			game_node.card_manager.rpc("sync_remove_card", index, player_id)
 
 @rpc("any_peer", "call_local")
 func sync_remove_card(index: int):
@@ -183,22 +227,24 @@ func sync_remove_card(index: int):
 		card_resources.remove_at(index)
 		_update_cards()
 
-# Helper functions for card management
-func get_card_count() -> int:
-	return card_resources.size()  # Use card_resources instead of cards array
-
 func get_card_at_index(index: int) -> Card:
 	if index >= 0 and index < cards.size():
 		return cards[index]
 	return null
 
 func clear_selection() -> void:
+	if !can_interact:  # Don't allow clearing selection if interaction is disabled
+		return
 	for card in cards:
 		card.selected = false
 		card.modulate = Color(1, 1, 1)
 
 func is_hand_empty() -> bool:
 	return cards.is_empty()
+
+
+func get_card_count() -> int:
+	return card_resources.size()
 
 # Visual feedback functions
 func highlight_playable_cards(valid_types: Array) -> void:

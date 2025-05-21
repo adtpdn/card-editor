@@ -1,6 +1,10 @@
 [gd_scene load_steps=3 format=3 uid="uid://3blq6hslbv2"]
 
+<<<<<<< HEAD
 [ext_resource type="Script" uid="uid://dxt7l4s4hnusb" path="res://dice_manager.gd" id="1_bk0su"]
+=======
+[ext_resource type="Script" uid="uid://casmmhkfeh27k" path="res://dice_manager.gd" id="1_bk0su"]
+>>>>>>> gfx-biomes
 
 [sub_resource type="BoxMesh" id="BoxMesh_vjum8"]
 

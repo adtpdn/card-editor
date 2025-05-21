@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3 uid="uid://cqkw6uj4kgxav"]
+
+[ext_resource type="Script" uid="uid://b3ah4rojyoila" path="res://token_placement_location.gd" id="1_kx8op"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_68ov5"]
+top_radius = 0.4
+bottom_radius = 0.2
+height = 0.1
+radial_segments = 4
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_2j1by"]
+height = 0.3
+radius = 0.4
+
+[node name="TokenPlacementLocation_1" type="Node3D"]
+script = ExtResource("1_kx8op")
+
+[node name="MarkerMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.709981, 0, -0.704221, 0, 0.15, 0, 0.704221, 0, 0.709981, 0, 0, 0)
+mesh = SubResource("CylinderMesh_68ov5")
+
+[node name="Area3D" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+shape = SubResource("CylinderShape3D_2j1by")

@@ -10,6 +10,25 @@ config_version=5
 
 [application]
 
+<<<<<<< HEAD
 config/name="Card Editor"
+=======
+config/name="Botanimagic"
+config/version="0.0.1"
+run/main_scene="res://game.tscn"
+config/use_custom_user_dir=true
+config/custom_user_dir_name="Botanimagic"
+>>>>>>> gfx-biomes
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://thumb.png"
+
+[network]
+
+limits/tcp/connect_timeout_seconds=10
+config/broadcast_enabled=true
+config/use_ipv6=false
+
+[rendering]
+
+renderer/rendering_method="mobile"
+textures/vram_compression/import_etc2_astc=true

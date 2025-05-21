@@ -3,6 +3,7 @@ class_name Card
 extends Panel
 
 const SIZE := Vector2(100, 140)
+const CARD_BACK_TEXTURE = preload("res://assets/cards/2D/tile056.png")
 
 @export var card_resource: CardResource:
 	set(new_resource):
@@ -27,12 +28,29 @@ func update_card_display() -> void:
 		return
 	
 	if card_resource:
-		label.text = card_resource.card_name
-		cost_label.text = "Cost: " + str(card_resource.cost_to_draw)
-		effect1_label.text = card_resource.effect1
-		effect2_label.text = card_resource.effect2
-		if card_resource.card_image:
-			image.texture = card_resource.card_image
+		if card_resource.revealed:
+			# Show card face
+			label.text = card_resource.card_name
+			cost_label.text = "Cost: " + str(card_resource.cost_to_draw)
+			effect1_label.text = card_resource.effect1
+			effect2_label.text = card_resource.effect2
+			if card_resource.image_path != "":
+				image.texture = load(card_resource.image_path)
+			
+			# Show all card elements
+			label.visible = true
+			cost_label.visible = true
+			effect1_label.visible = true
+			effect2_label.visible = true
+		else:
+			# Show card back
+			image.texture = CARD_BACK_TEXTURE
+			
+			# Hide card elements
+			label.visible = false
+			cost_label.visible = false
+			effect1_label.visible = false
+			effect2_label.visible = false
 	else:
 		label.text = "No Card Data"
 		cost_label.text = ""
@@ -62,6 +80,9 @@ func set_selected(value: bool) -> void:
 func _gui_input(event):
 	if event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			var hand = get_parent()
+			if !hand.can_interact:  # Check if hand interaction is enabled
+				return
 			selected = !selected
 			if selected:
 				modulate = Color(1.2, 1.2, 1.2)  # Highlight selected card

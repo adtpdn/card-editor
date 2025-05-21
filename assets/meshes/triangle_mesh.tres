@@ -1,0 +1,33 @@
+[gd_resource type="ArrayMesh" load_steps=3 format=4 uid="uid://fjv58k1bqwwa"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vgbcp"]
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_7nf42"]
+_surfaces = [{
+"aabb": AABB(-0.866025, -1, -1, 1.73205, 2, 1.9975),
+"format": 34896613377,
+"index_count": 24,
+"index_data": PackedByteArray("AAADAAEAAAACAAMAAgAFAAMAAgAEAAUAAwAFAAEABAABAAUABAAAAAEAAAAEAAIA"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 6,
+"vertex_data": PackedByteArray("/38AAAAAAAD/f///AAAAAP//AAD//wAA////////AAAAAAAA//8AAAAA/////wAA")
+}]
+blend_shape_mode = 0
+
+[resource]
+resource_name = "triangle_Cylinder_001"
+_surfaces = [{
+"aabb": AABB(-0.866025, -1, -1, 1.73205, 2, 1.9975),
+"attribute_data": PackedByteArray("/3+Pyf/fCMv//4/J/3//f/+fCMv///9/mfr//1TVj8lU1Y/JVNX/f5m6//9U1f9/qaqPyWTF//+pqo/Jqar/f6mq/39khf//"),
+"format": 34896613399,
+"index_count": 24,
+"index_data": PackedByteArray("AgALAAUAAgAIAAsABwAQAAkABwAOABAACgARAAQADAADAA8ADAAAAAMAAQANAAYA"),
+"material": SubResource("StandardMaterial3D_vgbcp"),
+"primitive": 3,
+"uv_scale": Vector4(2, 1.74, 0, 0),
+"vertex_count": 18,
+"vertex_data": PackedByteArray("/38AAAAAqtD/fwAAAAD/P/9/AAAAAKrQ/3///wAAqtD/f///AAD/v/9///8AAKrQ//8AAP///z///wAA//8AgP//AAD//6rQ////////AID/////////v////////6rQAAAAAP//qtAAAAAA////PwAAAAD//wCAAAD/////qtAAAP////8AgAAA//////+//3///wAA/3//fwAA/3///////3//fwAAAAD/f/9/////fwAA/3///////3//fwAA/3///wAA/3//f////3////9///////9/")
+}]
+blend_shape_mode = 0
+shadow_mesh = SubResource("ArrayMesh_7nf42")
