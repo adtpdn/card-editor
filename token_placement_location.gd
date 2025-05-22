@@ -39,8 +39,16 @@ func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: 
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var game = get_node("/root/Game")
 		print("placement location")
-
+		
 		if !game or is_occupied:
+			if game.sigil_manager.is_sigil_mode:
+				var player_id = multiplayer.get_unique_id()
+				
+				# Check if it's the player's turn and they are the one in sigil mode
+				if game.game_state_manager.is_valid_player_turn(player_id) and game.sigil_manager.selected_energy_token != null and game.sigil_manager.selected_energy_token.owner_id == player_id:
+					if game.sigil_manager._selected_token == null:
+						game.sigil_manager.show_push_pull_direction_ui(game.sigil_manager.selected_energy_token)
+					game.sigil_manager._selected_token = null
 			print("Game not found or location is occupied")
 			return
 		

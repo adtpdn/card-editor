@@ -180,7 +180,7 @@ func handle_touch(position: Vector2):
 		#print("found token : ", found_token)
 		if found_token:
 			print("Processing token: " + str(found_token.name))
-			if sigil_manager.is_sigil_mode:
+			if sigil_manager.is_sigil_mode and !found_token.is_energy:
 				sigil_manager._selected_token = found_token
 				sigil_manager.signal_other_player_token.emit()
 			if is_remove:

@@ -134,6 +134,7 @@ func _on_sigil_a_pressed():
 			if check_for_sigil_a_pattern(selected_energy_token):
 				# If valid, activate the sigil
 				activate_sigil_pattern(selected_energy_token, SigilPattern.SIGIL_A)
+				selected_energy_token.is_blighted = true
 
 
 func _on_sigil_b_pressed():
@@ -263,7 +264,10 @@ func _on_token_clicked(token):
 				selected_energy_token.highlight(false)
 			
 			selected_energy_token = token
-			is_sigil_mode = true
+			
+			# Only set sigil mode for the current player
+			if token.owner_id == multiplayer.get_unique_id():
+				is_sigil_mode = true
 			
 			# Highlight the token to show it's selected
 			token.highlight(true)
@@ -629,7 +633,7 @@ func show_pull_push_ui(energy_token, is_other_player: bool):
 	# Set game to token selection mode for push/pull
 	#pull_or_push_container.show()
 	token_manager.is_token_selected = false  # Turn off normal token placement mode
-	is_sigil_mode = true
+	#is_sigil_mode = true
 	
 	# Store information about which sigil is being used
 	_selected_token_is_other_player = is_other_player
@@ -731,12 +735,15 @@ func show_push_pull_direction_ui(energy_token):
 	popup.name = "DirectionSelectionPopup"
 	game.add_child(popup)
 	
-	# Add direction options
-	popup.add_item("Push Away", 0)
-	popup.add_item("Pull Closer", 1)
 	
 	await signal_other_player_token
 	var target_token = _selected_token
+	
+	# Add direction options
+	if target_token.biome_type == energy_token.biome_type:
+		popup.add_item("Push Away", 0)
+	else:
+		popup.add_item("Pull Closer", 1)
 	
 	# Connect signal
 	popup.id_pressed.connect(func(id): perform_push_pull(energy_token, target_token, id == 0))
@@ -826,50 +833,35 @@ func perform_push_pull(energy_token, token, is_push: bool):
 func _on_push_pull_input(_placement_pos):
 	if is_sigil_mode:
 		print("")
+		
+		if _selected_token == null:
+			show_push_pull_direction_ui(selected_energy_token)
+			return
+		
 		print("Processing push/pull input")
 		print("Target token : ", _selected_token)
 		print("Hit something at position: ", _selected_token.position)
 		print("placement pos : ", _placement_pos)
-		# Find token placement at this position
-		#var all_placements = get_parent().get_node("TokenPlacements").get_children()
-		#var closest_placement = null
-		#var closest_distance = 1000.0
-		#
-		#for placement in all_placements:
-			#if placement.is_highlighted and !placement.is_occupied:
-				#var distance = placement.global_position.distance_to(_selected_token.position)
-				#if distance < closest_distance and distance < 1.0:  # Within 1 unit
-					#closest_placement = placement
-					#closest_distance = distance
-		#
-		#print("closest placement : ", closest_placement)
-		#if closest_placement:
-			#print("Found highlighted placement at: ", closest_placement.global_position)
-			#
-			## Get source and destination positions
-			#var token = _selected_token
-			#var source_position = token.global_position
-			#var destination_position = closest_placement.global_position
-			#
-			#print("Moving token from ", source_position, " to ", destination_position)
+		
 		var source_placement = token_manager.get_token_placement_at_position(_selected_token.global_position)
-		print("source placement : ", source_placement)
+		# Set the new placement
+		var _placement_node = null
+		for _placement in get_parent().get_node("TokenPlacements").get_children():
+			if _placement.global_position.distance_to(_placement_pos) < 0.1:
+				_placement_node = _placement
+				break
+		
+		if !_placement_node.is_highlighted:
+			return
+		
 		# Move the token
 		if multiplayer.is_server():
 			# Move directly on server
-			#var source_placement = token_manager.get_token_placement_at_position(_selected_token.global_position)
 			
 			if source_placement:
 				# Clear the current placement
 				source_placement.set_occupied(false)
 				source_placement.current_token = null
-				
-				# Set the new placement
-				var _placement_node = null
-				for _placement in get_parent().get_node("TokenPlacements").get_children():
-					if _placement.global_position.distance_to(_placement_pos) < 0.1:
-						_placement_node = _placement
-						break
 				
 				print("placement node : ", _placement_node)
 				_placement_node.set_occupied(true)
@@ -897,6 +889,7 @@ func _on_push_pull_input(_placement_pos):
 		
 		_selected_token = null
 		is_sigil_mode = false
+		token_manager.is_token_selected = false
 		print("Token move operation completed")
 		#else:
 			#print("No highlighted placement found near click position")
