@@ -9,6 +9,8 @@ extends Node
 @onready var game_state_manager = $GameStateManager
 @onready var card_manager = $CardManager
 @onready var ui_manager = $UIManager
+@onready var sigil_manager = $SigilManager
+
 
 @onready var point_counter = $PointCounter
 

@@ -152,10 +152,11 @@ func handle_touch(position: Vector2):
 		return
 	
 	# First, check if SigilManager wants to handle this input
-	if get_parent().has_node("SigilManager"):
-		var sigil_manager = get_parent().get_node("SigilManager")
-		if sigil_manager.handle_sigil_input(position):
-			return  # Input was handled by SigilManager
+	if !sigil_manager.is_sigil_mode:
+		if get_parent().has_node("SigilManager"):
+			var sigil_manager = get_parent().get_node("SigilManager")
+			if sigil_manager.handle_sigil_input(position):
+				return  # Input was handled by SigilManager.
 	
 	# Continue with regular token placement logic...
 	var camera = get_parent().get_node("Camera3D")

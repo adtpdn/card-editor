@@ -39,6 +39,7 @@ func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: 
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var game = get_node("/root/Game")
 		print("placement location")
+
 		if !game or is_occupied:
 			print("Game not found or location is occupied")
 			return
@@ -46,6 +47,10 @@ func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: 
 		var player_id = multiplayer.get_unique_id()
 		if !game.game_state_manager.is_valid_player_turn(player_id):
 			print("Not your turn!")
+			return
+		
+		if game.sigil_manager.is_sigil_mode:
+			game.sigil_manager._on_push_pull_input(global_position)
 			return
 		
 		# Debug token selection state
