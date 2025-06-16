@@ -84,11 +84,11 @@ func handle_sigil_input(position: Vector2):
 				return true  # Token was handled
 				
 		# If no token was clicked, deselect current token
-		if selected_energy_token:
-			selected_energy_token.highlight(false)
-			selected_energy_token = null
-			is_sigil_mode = false
-			disable_all_sigil_buttons()
+		#if selected_energy_token:
+			#selected_energy_token.highlight(false)
+			#selected_energy_token = null
+			#is_sigil_mode = false
+			#disable_all_sigil_buttons()
 			
 	return false  # No token was handled
 
@@ -125,6 +125,8 @@ func connect_sigil_buttons():
 func _on_sigil_a_pressed():
 	print("")
 	print("sigil a pressed")
+	if selected_energy_token.owner_id == multiplayer.get_unique_id():
+		is_sigil_mode = true
 	#print("selected energy token : ", selected_energy_token)
 	# Check if we have a selected token
 	if selected_energy_token:
@@ -140,6 +142,8 @@ func _on_sigil_a_pressed():
 func _on_sigil_b_pressed():
 	print("")
 	print("sigil b pressed")
+	if selected_energy_token.owner_id == multiplayer.get_unique_id():
+		is_sigil_mode = true
 	# Check if we have a selected token
 	if selected_energy_token:
 		# Verify it's an energy token, not blighted, and owned by the current player
@@ -148,8 +152,13 @@ func _on_sigil_b_pressed():
 			if check_for_sigil_b_pattern(selected_energy_token):
 				# If valid, activate the sigil
 				activate_sigil_pattern(selected_energy_token, SigilPattern.SIGIL_B)
+				selected_energy_token.is_blighted = true
 
 func _on_sigil_c_pressed():
+	print("")
+	print("sigil b pressed")
+	if selected_energy_token.owner_id == multiplayer.get_unique_id():
+		is_sigil_mode = true
 	# Check if we have a selected token
 	if selected_energy_token:
 		# Verify it's an energy token, not blighted, and owned by the current player
@@ -158,6 +167,7 @@ func _on_sigil_c_pressed():
 			if check_for_sigil_c_pattern(selected_energy_token):
 				# If valid, activate the sigil
 				activate_sigil_pattern(selected_energy_token, SigilPattern.SIGIL_C)
+				selected_energy_token.is_blighted = true
 
 func update_sigil_button_states(token):
 	var sigil_a_button = game.get_node("LeftUI/SigilContainer/SigilAButton")
@@ -266,8 +276,8 @@ func _on_token_clicked(token):
 			selected_energy_token = token
 			
 			# Only set sigil mode for the current player
-			if token.owner_id == multiplayer.get_unique_id():
-				is_sigil_mode = true
+			#if token.owner_id == multiplayer.get_unique_id():
+				#is_sigil_mode = true
 			
 			# Highlight the token to show it's selected
 			token.highlight(true)
@@ -739,6 +749,17 @@ func show_push_pull_direction_ui(energy_token):
 	await signal_other_player_token
 	var target_token = _selected_token
 	
+	# Checking if the true than sigil a active
+	if _selected_token_is_other_player:
+		if target_token.owner_id == energy_token.owner_id:
+			print("sigil A with the same owner id cant run")
+			return
+	# Checking if the true than sigil b active
+	else:
+		if target_token.owner_id != energy_token.owner_id:
+			print("sigil B with the different owner id cant run")
+			return
+	
 	# Add direction options
 	if target_token.biome_type == energy_token.biome_type:
 		popup.add_item("Push Away", 0)
@@ -827,6 +848,7 @@ func perform_push_pull(energy_token, token, is_push: bool):
 	
 	# Will go to push pull input event
 	print("Please click on a highlighted location to move the token")
+	
 
 
 # Function to handle the input for push/pull destination selection
@@ -890,6 +912,9 @@ func _on_push_pull_input(_placement_pos):
 		_selected_token = null
 		is_sigil_mode = false
 		token_manager.is_token_selected = false
+		selected_energy_token.highlight(false)
+		selected_energy_token = null
+		disable_all_sigil_buttons()
 		print("Token move operation completed")
 		#else:
 			#print("No highlighted placement found near click position")
