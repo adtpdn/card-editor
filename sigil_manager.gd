@@ -26,6 +26,8 @@ var _selected_token = null
 var _selected_token_is_other_player = false
 var is_blight_mode = false
 
+var is_sigil_c := false
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -157,7 +159,8 @@ func _on_sigil_b_pressed():
 
 func _on_sigil_c_pressed():
 	print("")
-	print("sigil b pressed")
+	print("sigil c pressed")
+	is_sigil_c = true
 	if selected_energy_token.owner_id == multiplayer.get_unique_id():
 		is_sigil_mode = true
 	# Check if we have a selected token
@@ -655,6 +658,7 @@ func show_pull_push_ui(energy_token, is_other_player: bool):
 
 # UI for Sigil C effect (blight/unblight)
 func show_blight_unblight_ui(token):
+	# Token is still energy
 	# Create UI to select which token to blight/unblight
 	var dialog = AcceptDialog.new()
 	dialog.title = "Select Token to Blight/Unblight"
@@ -667,7 +671,7 @@ func show_blight_unblight_ui(token):
 	is_blight_mode = true
 	
 	# Store information about which sigil is being used
-	_selected_token = token
+	#_selected_token = token
 	
 	# Connect to viewport for token detection
 	if !get_viewport().is_connected("gui_input", _on_blight_unblight_input):
@@ -695,58 +699,83 @@ func show_blight_unblight_ui(token):
 
 
 # Handle blight/unblight input
-func _on_blight_unblight_input(event):
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		# Find token at this position
-		var from = game.get_node("Camera3D").project_ray_origin(event.position)
-		var to = from + game.get_node("Camera3D").project_ray_normal(event.position) * 1000
-		
-		var space_state = get_tree().get_root().get_world_3d().direct_space_state
-		var query = PhysicsRayQueryParameters3D.create(from, to)
-		var result = space_state.intersect_ray(query)
-		
-		if result:
-			var hit_position = result.position
-			var target_token = token_manager.find_token_at_position(hit_position)
-			
-			if target_token:
-				var player_id = multiplayer.get_unique_id()
-				
-				if target_token.owner_id == player_id:
-					# Unblight own token
-					if target_token.is_blighted:
-						if multiplayer.is_server():
-							target_token.is_blighted = false
-							target_token.update_token_display()
-							token_manager.rpc("sync_token_blight", target_token.global_position, false)
-						else:
-							token_manager.rpc_id(1, "request_token_blight", target_token.global_position)
-					else:
-						print("Token is not blighted")
-				else:
-					# Blight other player's token
-					if !target_token.is_blighted:
-						if multiplayer.is_server():
-							target_token.is_blighted = true
-							target_token.update_token_display()
-							token_manager.rpc("sync_token_blight", target_token.global_position, true)
-						else:
-							token_manager.rpc_id(1, "request_token_blight", target_token.global_position)
-					else:
-						print("Token is already blighted")
-		
-		# Clean up
-		get_viewport().disconnect("gui_input", _on_blight_unblight_input)
-		is_blight_mode = false
-		_selected_token = null
+#func _on_blight_unblight_input(event):
+	#if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		## Find token at this position
+		#var from = game.get_node("Camera3D").project_ray_origin(event.position)
+		#var to = from + game.get_node("Camera3D").project_ray_normal(event.position) * 1000
+		#
+		#var space_state = get_tree().get_root().get_world_3d().direct_space_state
+		#var query = PhysicsRayQueryParameters3D.create(from, to)
+		#var result = space_state.intersect_ray(query)
+		#
+		#if result:
+			#var hit_position = result.position
+			#var target_token = token_manager.find_token_at_position(hit_position)
+			#
+			#if target_token:
+				#var player_id = multiplayer.get_unique_id()
+				#
+				#if target_token.owner_id == player_id:
+					## Unblight own token
+					#if target_token.is_blighted:
+						#if multiplayer.is_server():
+							#target_token.is_blighted = false
+							#target_token.update_token_display()
+							#token_manager.rpc("sync_token_blight", target_token.global_position, false)
+						#else:
+							#token_manager.rpc_id(1, "request_token_blight", target_token.global_position)
+					#else:
+						#print("Token is not blighted")
+				#else:
+					## Blight other player's token
+					#if !target_token.is_blighted:
+						#if multiplayer.is_server():
+							#target_token.is_blighted = true
+							#target_token.update_token_display()
+							#token_manager.rpc("sync_token_blight", target_token.global_position, true)
+						#else:
+							#token_manager.rpc_id(1, "request_token_blight", target_token.global_position)
+					#else:
+						#print("Token is already blighted")
+		#
+		## Clean up
+		#get_viewport().disconnect("gui_input", _on_blight_unblight_input)
+		#is_blight_mode = false
+		#_selected_token = null
+
+
+func show_blight_unblight_direction_ui(energy_token):
+	var popup = PopupMenu.new()
+	popup.name = "DirectionSelectionPopup"
+	game.add_child(popup)
+
+	await signal_other_player_token
+	var target_token = _selected_token
+
+	# Add direction options
+	if target_token.biome_type == energy_token.biome_type :
+		if !target_token.is_blighted and target_token.owner_id != energy_token.owner_id:
+			popup.add_item("Blight", 0)
+		elif target_token.is_blighted and target_token.owner_id == energy_token.owner_id:
+			popup.add_item("Unblight", 1)
+		else: 
+			return
+
+	# Connect signal
+	popup.id_pressed.connect(func(id): perform_blight_unblight(energy_token, target_token, id == 0))
+
+	# Show popup at mouse position
+	var mouse_pos = get_viewport().get_mouse_position()
+	popup.position = mouse_pos
+	popup.popup()
 
 # Show UI for push/pull direction selection
 func show_push_pull_direction_ui(energy_token):
 	var popup = PopupMenu.new()
 	popup.name = "DirectionSelectionPopup"
 	game.add_child(popup)
-	
-	
+
 	await signal_other_player_token
 	var target_token = _selected_token
 	
@@ -774,6 +803,16 @@ func show_push_pull_direction_ui(energy_token):
 	var mouse_pos = get_viewport().get_mouse_position()
 	popup.position = mouse_pos
 	popup.popup()
+
+# Perform actual blight or unblight
+func perform_blight_unblight(energy_token, token, is_blight: bool):
+	print("perform blight unblight")
+	
+	_selected_token = token
+	token_manager.is_token_selected = true
+
+	_on_blight_unblight_input()
+
 
 # Perform the actual push or pull
 func perform_push_pull(energy_token, token, is_push: bool):
@@ -849,8 +888,26 @@ func perform_push_pull(energy_token, token, is_push: bool):
 	
 	# Will go to push pull input event
 	print("Please click on a highlighted location to move the token")
-	
 
+
+func _on_blight_unblight_input():
+	print("blight unblight input")
+	if is_sigil_mode:
+		print("")
+		
+		if _selected_token == null:
+			show_blight_unblight_direction_ui(selected_energy_token)
+			return
+		
+		print("Processing push/pull input")
+		print("Target token : ", _selected_token)
+		print("Hit something at position: ", _selected_token.position)
+		
+		var target_token = _selected_token
+		if multiplayer.is_server():
+			var is_blight_status = target_token.is_blighted
+			_selected_token.set_blighted(!is_blight_status)
+			
 
 # Function to handle the input for push/pull destination selection
 func _on_push_pull_input(_placement_pos):

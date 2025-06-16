@@ -47,8 +47,11 @@ func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: 
 				# Check if it's the player's turn and they are the one in sigil mode
 				if game.game_state_manager.is_valid_player_turn(player_id) and game.sigil_manager.selected_energy_token != null and game.sigil_manager.selected_energy_token.owner_id == player_id:
 					print("Selected token : ", game.sigil_manager._selected_token)
-					if game.sigil_manager._selected_token:
+					if game.sigil_manager._selected_token and !game.sigil_manager.is_sigil_c:
 						game.sigil_manager.show_push_pull_direction_ui(game.sigil_manager.selected_energy_token)
+					elif game.sigil_manager._selected_token and game.sigil_manager.is_sigil_c:
+						print("sigi c 1")
+						game.sigil_manager.show_blight_unblight_direction_ui(game.sigil_manager.selected_energy_token)
 					game.sigil_manager._selected_token = null
 			print("Game not found or location is occupied")
 			return
@@ -59,7 +62,11 @@ func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: 
 			return
 		
 		if game.sigil_manager.is_sigil_mode:
-			game.sigil_manager._on_push_pull_input(global_position)
+			if !game.sigil_manager.is_sigil_c:
+				game.sigil_manager._on_push_pull_input(global_position)
+			else:
+				print("sigil c 2")
+				game.sigil_manager._on_blight_unblight_input()
 			return
 		
 		# Debug token selection state
