@@ -53,6 +53,7 @@ func initialize():
 	
 	# Connect sigil buttons
 	connect_sigil_buttons()
+	disable_all_sigil_buttons()
 	#connect_pull_or_push_buttons()
 	print("SigilManager initialized.")
 
