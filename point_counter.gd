@@ -68,10 +68,11 @@ func _ready():
 	
 	# Initialize magic points to 1 if this is the server
 	if multiplayer.is_server() or multiplayer.get_unique_id() == 1:
-		forest_magic_points = 1
-		desert_magic_points = 1
-		mountain_magic_points = 1
-		water_magic_points = 1
+		var point_count = 3
+		forest_magic_points = point_count
+		desert_magic_points = point_count
+		mountain_magic_points = point_count
+		water_magic_points = point_count
 		
 		# Sync to all clients
 		rpc("sync_point_values", 
