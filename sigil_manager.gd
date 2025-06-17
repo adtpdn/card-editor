@@ -848,6 +848,8 @@ func _on_blight_unblight_input():
 		token_manager.is_token_selected = false
 		selected_energy_token.highlight(false)
 		selected_energy_token = null
+		is_sigil_c = false
+		is_blight_mode = false
 		disable_all_sigil_buttons()
 		print("Blight")
 
@@ -916,6 +918,8 @@ func _on_push_pull_input(_placement_pos):
 		token_manager.is_token_selected = false
 		selected_energy_token.highlight(false)
 		selected_energy_token = null
+		
+		
 		disable_all_sigil_buttons()
 		print("Token move operation completed")
 		#else:
@@ -927,5 +931,4 @@ func _on_push_pull_input(_placement_pos):
 # These functions should be added to token_manager.gd if not already there
 
 # Request token movement (for RPC)
-func request_token_movement(from_position: Vector3, to_position: Vector3):
-	token_manager.request_token_movement(from_position, to_position)
+func request_token_movement(from_position: Vector3, to_position: Vector3):	token_manager.request_token_movement(from_position, to_position)
