@@ -184,6 +184,7 @@ func handle_touch(position: Vector2):
 				print("select target token for sigil activation")
 				sigil_manager._selected_token = found_token
 				sigil_manager.signal_other_player_token.emit()
+			
 			if is_remove:
 				print("Attempting to remove token")
 				# Handle remove mode
@@ -933,7 +934,7 @@ func process_token_removal(token_position: Vector3):
 func request_token_blight(token_position: Vector3):
 	if !multiplayer.is_server():
 		return
-	
+	print("request token blight")
 	var player_id = multiplayer.get_remote_sender_id()
 	if player_id == 0:  # Local server call
 		player_id = multiplayer.get_unique_id()
@@ -1231,25 +1232,14 @@ func sync_token_movement(from_position: Vector3, to_position: Vector3):
 	
 	if !from_placement or !to_placement:
 		return
-	
-	#sync_token_biome_type(from_position, to_placement.accepted_biome)
-	
+
 	# Update placements
 	from_placement.set_occupied(false)
 	from_placement.current_token = null
-	
+
 	token.biome_type = to_placement.accepted_biome
 	to_placement.set_occupied(true)
 	to_placement.current_token = token
-	print("TOKEN PLACEMENT ACC Biome : ", to_placement.accepted_biome)
-	
-	print("current token biome type : ", to_placement.current_token.biome_type)
+
 	# Move the token
 	token.global_position = to_placement.global_position
-
-@rpc("any_peer", "call_local")
-func sync_token_biome_type(token_position: Vector3, new_biome_type: int):
-	var token = find_token_at_position(token_position)
-	if token:
-		token.biome_type = new_biome_type
-		print("token biome type : ", token.biome_type)

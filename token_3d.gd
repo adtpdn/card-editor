@@ -38,13 +38,15 @@ func set_blighted(blighted: bool):
 		
 		# Play the appropriate animation
 		if is_blighted:
+			print("blight animation")
 			animation_player.play("blight")
 		else:
 			animation_player.play("unblight")
 			
 		# Sync the animation to all clients
-		if game && game.multiplayer.is_server():
-			game.rpc("sync_token_blight", global_position, is_blighted)
+		#if game && game.multiplayer.is_server():
+		print('sync token blight')
+		game.rpc("sync_token_blight", global_position, is_blighted)
 
 func remove_token():
 	# Mark the placement as unoccupied

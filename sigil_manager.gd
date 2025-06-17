@@ -676,6 +676,7 @@ func show_blight_unblight_ui(energy_token):
 	show_blight_unblight_direction_ui(energy_token)
 
 func show_blight_unblight_direction_ui(energy_token):
+	print("show blight and unblight direction ui")
 	var popup = PopupMenu.new()
 	popup.name = "DirectionSelectionPopup"
 	game.add_child(popup)
@@ -685,6 +686,10 @@ func show_blight_unblight_direction_ui(energy_token):
 
 	# Add direction options
 	if target_token.biome_type == energy_token.biome_type :
+		print("show option blight and unblight")
+		print("target token : ", target_token)
+		print("target token owner id : ", target_token.owner_id)
+		print("energy token owner id : ", energy_token.owner_id)
 		if !target_token.is_blighted and target_token.owner_id != energy_token.owner_id:
 			popup.add_item("Blight", 0)
 		elif target_token.is_blighted and target_token.owner_id == energy_token.owner_id:
@@ -834,9 +839,9 @@ func _on_blight_unblight_input():
 		print("Hit something at position: ", _selected_token.position)
 		
 		var target_token = _selected_token
-		if multiplayer.is_server():
-			var is_blight_status = target_token.is_blighted
-			_selected_token.set_blighted(!is_blight_status)
+		
+		var is_blight_status = target_token.is_blighted
+		_selected_token.set_blighted(!is_blight_status)
 		
 		_selected_token = null
 		is_sigil_mode = false
