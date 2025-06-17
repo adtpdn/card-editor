@@ -1210,6 +1210,7 @@ func request_token_movement(from_position: Vector3, to_position: Vector3):
 	from_placement.set_occupied(false)
 	from_placement.current_token = null
 	
+	token.biome_type = to_placement.accepted_biome
 	to_placement.set_occupied(true)
 	to_placement.current_token = token
 	
@@ -1231,15 +1232,24 @@ func sync_token_movement(from_position: Vector3, to_position: Vector3):
 	if !from_placement or !to_placement:
 		return
 	
+	#sync_token_biome_type(from_position, to_placement.accepted_biome)
+	
 	# Update placements
 	from_placement.set_occupied(false)
 	from_placement.current_token = null
 	
+	token.biome_type = to_placement.accepted_biome
 	to_placement.set_occupied(true)
+	to_placement.current_token = token
 	print("TOKEN PLACEMENT ACC Biome : ", to_placement.accepted_biome)
 	
-	to_placement.current_token = token
-	to_placement.current_token.biome_type = to_placement.accepted_biome
 	print("current token biome type : ", to_placement.current_token.biome_type)
 	# Move the token
 	token.global_position = to_placement.global_position
+
+@rpc("any_peer", "call_local")
+func sync_token_biome_type(token_position: Vector3, new_biome_type: int):
+	var token = find_token_at_position(token_position)
+	if token:
+		token.biome_type = new_biome_type
+		print("token biome type : ", token.biome_type)

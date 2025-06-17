@@ -871,16 +871,18 @@ func _on_push_pull_input(_placement_pos):
 		if !_placement_node.is_highlighted:
 			return
 		
+		print("")
 		# Move the token
 		if multiplayer.is_server():
-			# Move directly on server
-			
+			print("multiplayer pull and push")
 			if source_placement:
 				# Clear the current placement
 				source_placement.set_occupied(false)
 				source_placement.current_token = null
 				
 				print("placement node : ", _placement_node)
+				_selected_token.biome_type = _placement_node.accepted_biome
+				print("biome type current player token: ", _selected_token.biome_type)
 				_placement_node.set_occupied(true)
 				_placement_node.current_token = _selected_token
 				
