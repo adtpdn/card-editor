@@ -1,13 +1,14 @@
 [gd_resource type="Resource" script_class="CardResource" load_steps=2 format=3 uid="uid://nk1emmfrhnqn"]
 
-[ext_resource type="Script" uid="uid://cnsjqdceew03f" path="res://card_resource.gd" id="1_yut18"]
+[ext_resource type="Script" uid="uid://cnsjqdceew03f" path="res://card_resource.gd" id="1_oth5w"]
 
 [resource]
-script = ExtResource("1_yut18")
-card_name = "Hierophant"
+script = ExtResource("1_oth5w")
+card_id = 2
+card_name = "Swap Energy"
 card_type = 0
 cost_to_draw = 1
-effect1 = ""
+effect1 = "Swap your energy position with other player energy on the same sigil magic"
 effect2 = ""
 revealed = true
 tex3D_path = "res://assets/cards/action_card_05.png"

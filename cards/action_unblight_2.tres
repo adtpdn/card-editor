@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardResource" load_steps=2 format=3 uid="uid://45nqojvfbhyg"]
+
+[ext_resource type="Script" uid="uid://cnsjqdceew03f" path="res://card_resource.gd" id="1_30ota"]
+
+[resource]
+script = ExtResource("1_30ota")
+card_id = 0
+card_name = "Unblight"
+card_type = 0
+cost_to_draw = 1
+effect1 = "Unblight 1 of your token in a biome "
+effect2 = ""
+revealed = true
+tex3D_path = "res://assets/cards/action_card_07.png"
+image_path = "res://assets/cards/2D/tile007.png"

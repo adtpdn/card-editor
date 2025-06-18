@@ -1,13 +1,14 @@
 [gd_resource type="Resource" script_class="CardResource" load_steps=2 format=3 uid="uid://dhf8f1v1nt20h"]
 
-[ext_resource type="Script" uid="uid://cnsjqdceew03f" path="res://card_resource.gd" id="2_bykq3"]
+[ext_resource type="Script" uid="uid://cnsjqdceew03f" path="res://card_resource.gd" id="1_fpnfp"]
 
 [resource]
-script = ExtResource("2_bykq3")
-card_name = "Fool"
+script = ExtResource("1_fpnfp")
+card_id = 4
+card_name = "Plant Extra Token/Energy"
 card_type = 0
 cost_to_draw = 1
-effect1 = ""
+effect1 = "Plant 1 extra token on biome or plant 1 extra energy on a sigil magic"
 effect2 = ""
 revealed = true
 tex3D_path = "res://assets/cards/action_card_01.png"
