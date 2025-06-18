@@ -5,6 +5,7 @@ extends Node
 # References to other managers
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 @onready var game = get_parent()
+@onready var sigil_manager = $"../SigilManager"
 @onready var token_manager = $"../TokenManager"
 @onready var network_manager = $"../NetworkManager"
 @onready var game_state_manager = $"../GameStateManager" 
@@ -603,3 +604,15 @@ func print_hand_debug():
 	print("Cards in hand: ", player_hand.get_card_count())
 	print("Card resources: ", player_hand.card_resources.size())
 	print("=================\n")
+
+
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ---        Card Effects      ---
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+func unblight_card_effect():
+	print("unblight card effect")
+	token_manager._on_blight_token_pressed()
+
+func take_off_card_effet():
+	print("take off card effect")
+	token_manager._on_remove_token_pressed()

@@ -138,6 +138,7 @@ func _input(event):
 
 
 func handle_touch(position: Vector2):
+	print("Handle touch")
 	var current_time = Time.get_ticks_msec() / 1000.0
 	if current_time - last_token_placement_time < TOKEN_PLACEMENT_COOLDOWN:
 		return
@@ -177,15 +178,18 @@ func handle_touch(position: Vector2):
 		#print("result : ", result )
 		# Find the token at this position with improved detection
 		var found_token = collider.get_parent().get_parent()
-		#print("found token : ", found_token)
+		print("found token : ", found_token)
 		if found_token:
 			print("Processing token: " + str(found_token.name))
+			# Sigil Effects
 			if sigil_manager.is_sigil_mode and !found_token.is_energy:
 				print("select target token for sigil activation")
 				sigil_manager._selected_token = found_token
 				sigil_manager.signal_other_player_token.emit()
 			
-			if is_remove:
+			## Card Effects
+			# Take Off Energy 
+			if is_remove and found_token.is_energy:
 				print("Attempting to remove token")
 				# Handle remove mode
 				if multiplayer.is_server():
@@ -196,8 +200,9 @@ func handle_touch(position: Vector2):
 				
 				# Reset remove mode after attempt
 				is_remove = false
-				
-			elif is_blight_mode:
+			
+			# Unblight Card Effect
+			elif is_blight_mode and !found_token.is_energy and found_token.is_blighted:
 				print("Attempting to blight token")
 				# Handle blight mode
 				if multiplayer.is_server():

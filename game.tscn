@@ -1046,6 +1046,7 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="RemoveButton" type="Button" parent="RightUI"]
+visible = false
 layout_mode = 0
 offset_left = 7.0
 offset_top = 113.0
@@ -1054,6 +1055,7 @@ offset_bottom = 144.0
 text = "Remove Token"
 
 [node name="BlightButton" type="Button" parent="RightUI"]
+visible = false
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0

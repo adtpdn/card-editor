@@ -4,6 +4,8 @@ extends Node3D
 @export var location_name: String = "Default Location"
 @export var accepted_card_types: PackedInt32Array = PackedInt32Array()
 
+@onready var card_manager = $"../../CardManager"
+
 var slots = []
 var planted_cards = {}
 var selected_marker = null
@@ -81,13 +83,10 @@ func plant_card(card_resource: CardResource, slot_index: int) -> void:
 	
 	card_resource.revealed = false
 	
-	
 	var card_instance = Card3DScene.instantiate()
 	add_child(card_instance)
 	card_instance.set_card_data(card_resource)
 
-	
-	
 	var stack_height = planted_cards[slot.name].size() * (CARD_THICKNESS + STACK_SPACING)
 	var position = slot.global_position
 	position.y += stack_height
@@ -104,6 +103,20 @@ func plant_card(card_resource: CardResource, slot_index: int) -> void:
 	# Update the visual stack
 	update_stack_visuals(slot)
 
+	# Activate card effect
+	print("card name : ", card_resource.card_name)
+	match card_resource.card_id:
+		0: # Unblight Our Own Token
+			card_manager.unblight_card_effect()
+		1: # Tak Off enemy or our energy token
+			card_manager.take_off_card_effet()
+		2: # Swap Energy
+			pass
+		3: # Refresh Energy
+			pass
+		4: # Plant Extra Token or Energy
+			pass
+
 func update_card_biome_type(card_instance):
 	var card_position = card_instance.position # Return Vector3
 	var card_on_biome
@@ -113,7 +126,7 @@ func update_card_biome_type(card_instance):
 
 	# Get id biome from marker position
 	for id in markers_slots.size():
-		if card_position == markers_slots[id].global_position :
+		if card_position.x == markers_slots[id].global_position.x and card_position.z == markers_slots[id].global_position.z :
 			card_on_biome = id
 			break
 
