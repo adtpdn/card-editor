@@ -200,6 +200,19 @@ func attempt_connection(target_ip: String):
 	if error == OK:
 		multiplayer.multiplayer_peer = multiplayer_peer
 		
+		# Request initial game state if joining an existing game
+		get_tree().create_timer(1.0).timeout.connect(func():
+			if multiplayer.is_server():
+				return
+			var local_id = multiplayer.get_unique_id()
+			if local_id > 0:
+				print("Client requesting initial game state and cards")
+				# Request initial game state
+				game.rpc_id(1, "request_game_state_sync", local_id)
+				# Request initial cards
+				game.card_manager.rpc_id(1, "request_initial_cards")
+		)
+		
 		var network_display = get_parent().get_node("RightUI/NetworkInfo/NetworkSideDisplay")
 		if network_display:
 			network_display.text = "Client"
@@ -247,7 +260,11 @@ func _on_peer_connected(new_peer_id):
 		
 		# Initialize player's tokens and hand
 		if game.game_started:
-			card_manager.distribute_initial_hand_to_client(new_peer_id)
+			# IMPORTANT: Skip card distribution for host - only give cards to the new peer
+			var host_id = multiplayer.get_unique_id()
+			if new_peer_id != host_id:
+				card_manager.distribute_initial_hand_to_client(new_peer_id)
+				game.rpc_id(new_peer_id, "sync_game_state", game.players, game.game_started, game.card_manager.placed_cards, game.player_hands)
 		
 		token_manager.initialize_player_tokens(new_peer_id)
 		var player_tokens = token_manager.get_player_tokens(new_peer_id)
