@@ -81,9 +81,12 @@ func plant_card(card_resource: CardResource, slot_index: int) -> void:
 	
 	card_resource.revealed = false
 	
+	
 	var card_instance = Card3DScene.instantiate()
 	add_child(card_instance)
 	card_instance.set_card_data(card_resource)
+
+	
 	
 	var stack_height = planted_cards[slot.name].size() * (CARD_THICKNESS + STACK_SPACING)
 	var position = slot.global_position
@@ -91,12 +94,30 @@ func plant_card(card_resource: CardResource, slot_index: int) -> void:
 	
 	card_instance.global_position = position
 	planted_cards[slot.name].append(card_instance)
-	
+
+	var card_on_biome = update_card_biome_type(card_instance)
+	card_resource.card_on_biome = card_on_biome
+
 	card_instance.rotation.x = PI
 	card_instance.rotation.y = slot.rotation.y
 
 	# Update the visual stack
 	update_stack_visuals(slot)
+
+func update_card_biome_type(card_instance):
+	var card_position = card_instance.position # Return Vector3
+	var card_on_biome
+
+	var action_area = get_parent().get_child(0) #ActionArea
+	var markers_slots = action_area.slots # return array of Markers Children Nodes
+
+	# Get id biome from marker position
+	for id in markers_slots.size():
+		if card_position == markers_slots[id].global_position :
+			card_on_biome = id
+			break
+
+	return card_on_biome
 
 @rpc("any_peer")
 func request_plant_card(card_data: Dictionary, slot_index: int, location_name: String):
