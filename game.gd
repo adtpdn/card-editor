@@ -124,7 +124,6 @@ func sync_card_played(card_data: Dictionary, slot_index: int, location_name: Str
 	card_manager.sync_card_played(card_data, slot_index, location_name, player_id)
 
 
-
 @rpc("any_peer", "call_local")
 func sync_draw_card(card_data: Dictionary):
 	card_manager.sync_draw_card(card_data)

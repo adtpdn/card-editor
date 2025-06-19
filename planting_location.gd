@@ -114,9 +114,9 @@ func plant_card(card_resource: CardResource, slot_index: int) -> void:
 		0: # Unblight Our Own Token
 			card_manager.unblight_card_effect()
 		1: # Tak Off enemy or our energy token
-			card_manager.take_off_card_effet()
+			card_manager.take_off_card_effect()
 		2: # Swap Energy
-			pass
+			card_manager.swap_energy_card_effect()
 		3: # Refresh Energy
 			card_manager.refresh_energy_card_effect()
 		4: # Plant Extra Token or Energy

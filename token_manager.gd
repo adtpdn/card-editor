@@ -46,6 +46,9 @@ var token_scene = preload("res://token_3d.tscn")
 var is_take_off_mode := false
 var is_unblight_mode := false
 var is_refresh_energy_mode := false
+var is_swap_energy_mode := false  
+
+var first_swap_token = null  
 
 # Tracking player token counts
 var player_token_counts = {}
@@ -177,8 +180,8 @@ func handle_touch(position: Vector2):
 			## Card Effects
 			
 			var active_card = card_manager.active_card
-			print("card active : ", active_card)
 			if active_card != null:
+				print("card active : ", active_card.card_resource.card_name)
 				var card_on_biome = active_card.card_resource.card_on_biome
 				# Take Off Energy 
 				if is_take_off_mode and found_token.is_energy and found_token.biome_type == card_on_biome:
@@ -217,6 +220,39 @@ func handle_touch(position: Vector2):
 						rpc_id(1, "request_refresh_energy", found_token.global_position)
 					
 					is_refresh_energy_mode = false
+
+				# Swap Energy Card Effect
+				elif is_swap_energy_mode and found_token.is_energy and found_token.biome_type == card_on_biome:
+					print("Swap Energy Card Effect - Token Selection")
+					
+					# If this is the first token selection
+					if first_swap_token == null:
+						# Only allow selecting your own tokens for the first selection
+						if found_token.owner_id == multiplayer.get_unique_id():
+							first_swap_token = found_token
+							# Highlight this token to show it's selected
+							first_swap_token.highlight(true)
+							print("First token selected for swap: " + str(first_swap_token.global_position))
+						else:
+							print("You can only select your own token first")
+					
+					# If this is the second token selection
+					else:
+						# Make sure we're not selecting the same token
+						if found_token != first_swap_token:
+							# Check that both tokens are in the same biome
+							if found_token.biome_type == first_swap_token.biome_type:
+								# Perform the swap
+								if multiplayer.is_server():
+									swap_energy_tokens(first_swap_token.global_position, found_token.global_position)
+								else:
+									print("Sending swap energy request to server")
+									rpc_id(1, "request_swap_energy_tokens", first_swap_token.global_position, found_token.global_position)
+								
+								# Reset swap mode after attempt
+								first_swap_token = null
+								is_swap_energy_mode = false
+				
 			
 			found_token = null
 			# Always unhighlight after any token action
@@ -860,6 +896,19 @@ func _on_refresh_energy():
 	unhighlight_all_token_placements()
 	update_token_ui()
 
+func _on_swap_energy():
+	print("Swap energy mode activated")
+	is_swap_energy_mode = true
+	is_take_off_mode = false
+	is_unblight_mode = false
+	is_refresh_energy_mode = false
+	first_swap_token = null  # Reset first token selection
+	
+	# Ensure token selection mode is off
+	is_token_selected = false
+	unhighlight_all_token_placements()
+	update_token_ui()
+
 @rpc("any_peer")
 func request_take_off_energy(token_position: Vector3):
 	if !multiplayer.is_server():
@@ -876,6 +925,110 @@ func request_take_off_energy(token_position: Vector3):
 	# Process the token removal
 	take_off_energy(token_position)
 	print("Server processed token removal at: " + str(token_position))
+
+@rpc("any_peer")
+func request_swap_energy_tokens(first_token_position: Vector3, second_token_position: Vector3):
+	if !multiplayer.is_server():
+		return
+	
+	var player_id = multiplayer.get_remote_sender_id()
+	if player_id == 0:  # Local server call
+		player_id = multiplayer.get_unique_id()
+	
+	# Validate it's the player's turn
+	if !game_state_manager.is_valid_player_turn(player_id):
+		return
+	
+	# Find the first token and verify it belongs to the player
+	var first_token = find_token_at_position(first_token_position)
+	if !first_token or first_token.owner_id != player_id:
+		return
+	
+	# Process the token swap
+	swap_energy_tokens(first_token_position, second_token_position)
+	print("Server processed token swap between: " + str(first_token_position) + " and " + str(second_token_position))
+
+func swap_energy_tokens(first_token_position: Vector3, second_token_position: Vector3):
+	# Find both tokens
+	var first_token = find_token_at_position(first_token_position)
+	var second_token = find_token_at_position(second_token_position)
+	
+	if !first_token or !second_token:
+		print("One or both tokens not found")
+		return
+	
+	# Verify both are energy tokens in the same biome
+	if !first_token.is_energy or !second_token.is_energy or first_token.biome_type != second_token.biome_type:
+		print("Invalid swap: Both must be energy tokens in the same biome")
+		return
+	
+	# Get the placements
+	var first_placement = get_token_placement_at_position(first_token_position)
+	var second_placement = get_token_placement_at_position(second_token_position)
+	
+	if !first_placement or !second_placement:
+		print("One or both placements not found")
+		return
+	
+	# Store token data to swap
+	var first_token_owner = first_token.owner_id
+	var second_token_owner = second_token.owner_id
+	var first_token_blighted = first_token.is_blighted
+	var second_token_blighted = second_token.is_blighted
+	
+	# Update tokens with swapped data
+	first_token.owner_id = second_token_owner
+	second_token.owner_id = first_token_owner
+	first_token.is_blighted = second_token_blighted
+	second_token.is_blighted = first_token_blighted
+	
+	# Update visual appearance to match new owners and blight states
+	#first_token.update_appearance()
+	#second_token.update_appearance()
+	
+	# Sync to all clients
+	rpc("sync_energy_token_swap", first_token_position, second_token_position, 
+		first_token_owner, second_token_owner, 
+		first_token_blighted, second_token_blighted)
+	
+	# Always unhighlight after swap
+	unhighlight_all_token_placements()
+
+
+@rpc("any_peer", "call_local")
+func sync_energy_token_swap(first_token_position: Vector3, second_token_position: Vector3, 
+						   first_token_owner: int, second_token_owner: int,
+						   first_token_blighted: bool, second_token_blighted: bool):
+	print("Syncing token swap between: " + str(first_token_position) + " and " + str(second_token_position))
+	
+	# Find both tokens
+	var first_token = find_token_at_position(first_token_position)
+	var second_token = find_token_at_position(second_token_position)
+	
+	if !first_token or !second_token:
+		print("One or both tokens not found for swap sync")
+		return
+	
+	# Swap owner IDs
+	first_token.owner_id = second_token_owner
+	second_token.owner_id = first_token_owner
+	
+	# Swap blight states
+	first_token.is_blighted = second_token_blighted
+	second_token.is_blighted = first_token_blighted
+	
+	# Update visual appearance
+	#first_token.update_appearance()
+	#second_token.update_appearance()
+	
+	# Reset swap mode
+	is_swap_energy_mode = false
+	if first_swap_token:
+		first_swap_token.highlight(false)
+		first_swap_token = null
+	
+	# Always unhighlight token placements after any token action
+	unhighlight_all_token_placements()
 
 func request_refresh_energy(token_position: Vector3):
 	if !multiplayer.is_server():

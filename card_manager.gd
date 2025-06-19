@@ -613,10 +613,14 @@ func unblight_card_effect():
 	print("unblight card effect")
 	token_manager._on_unblight_token()
 
-func take_off_card_effet():
+func take_off_card_effect():
 	print("take off card effect")
 	token_manager._on_take_off_energy()
 
 func refresh_energy_card_effect():
 	print("refresh energy card effect")
 	token_manager._on_refresh_energy()
+
+func swap_energy_card_effect():
+	print("swap energy card effect")
+	token_manager._on_swap_energy()

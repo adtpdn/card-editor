@@ -73,7 +73,7 @@ func handle_sigil_input(position: Vector2):
 	var query = PhysicsRayQueryParameters3D.create(from, to)
 	var result = space_state.intersect_ray(query)
 	
-	if !is_sigil_mode and !token_manager.is_take_off_mode and !token_manager.is_unblight_mode and !token_manager.is_refresh_energy_mode:
+	if !is_sigil_mode and !token_manager.is_take_off_mode and !token_manager.is_unblight_mode and !token_manager.is_refresh_energy_mode and !token_manager.is_swap_energy_mode:
 		if result :
 			print("")
 			print("sigil manager")
