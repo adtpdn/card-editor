@@ -103,6 +103,11 @@ func plant_card(card_resource: CardResource, slot_index: int) -> void:
 	# Update the visual stack
 	update_stack_visuals(slot)
 
+	# Assign the active card 
+	card_manager.active_card = null
+	card_manager.active_card = card_instance
+	print("card manager : ", card_manager.active_card)
+
 	# Activate card effect
 	print("card name : ", card_resource.card_name)
 	match card_resource.card_id:
@@ -113,7 +118,7 @@ func plant_card(card_resource: CardResource, slot_index: int) -> void:
 		2: # Swap Energy
 			pass
 		3: # Refresh Energy
-			pass
+			card_manager.refresh_energy_card_effect()
 		4: # Plant Extra Token or Energy
 			pass
 

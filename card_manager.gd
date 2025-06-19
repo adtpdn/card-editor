@@ -40,7 +40,7 @@ const CARD_TYPES = {
 	"AREA": 1
 }
 
-
+var active_card 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization
@@ -611,8 +611,12 @@ func print_hand_debug():
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 func unblight_card_effect():
 	print("unblight card effect")
-	token_manager._on_blight_token_pressed()
+	token_manager._on_unblight_token()
 
 func take_off_card_effet():
 	print("take off card effect")
-	token_manager._on_remove_token_pressed()
+	token_manager._on_take_off_energy()
+
+func refresh_energy_card_effect():
+	print("refresh energy card effect")
+	token_manager._on_refresh_energy()

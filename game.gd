@@ -72,7 +72,7 @@ func sync_game_state(game_players, has_started, placed, player_hand_data = null)
 	# Update UI to reflect state
 	ui_manager.update_player_list()
 	token_manager.setup_player_token_indicators()
-	
+
 	# Request initial cards if client hasn't received any yet
 	if !multiplayer.is_server() and game_started:
 		var local_id = multiplayer.get_unique_id()
@@ -107,7 +107,7 @@ func sync_turn_state(new_turn_index: int):
 
 @rpc("any_peer", "call_local")
 func sync_token_blight(token_position: Vector3, is_blighted: bool):
-	# Forward to token manager
+	# Forward to token manager to handle the actual state change
 	token_manager.sync_token_blight(token_position, is_blighted)
 
 @rpc("any_peer")

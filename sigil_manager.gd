@@ -73,7 +73,7 @@ func handle_sigil_input(position: Vector2):
 	var query = PhysicsRayQueryParameters3D.create(from, to)
 	var result = space_state.intersect_ray(query)
 	
-	if !is_sigil_mode and !token_manager.is_remove and !token_manager.is_blight_mode:
+	if !is_sigil_mode and !token_manager.is_take_off_mode and !token_manager.is_unblight_mode and !token_manager.is_refresh_energy_mode:
 		if result :
 			print("")
 			print("sigil manager")
@@ -85,13 +85,6 @@ func handle_sigil_input(position: Vector2):
 			if found_token and found_token.is_energy:
 				_on_token_clicked(found_token)
 				return true  # Token was handled
-				
-		# If no token was clicked, deselect current token
-		#if selected_energy_token:
-			#selected_energy_token.highlight(false)
-			#selected_energy_token = null
-			#is_sigil_mode = false
-			#disable_all_sigil_buttons()
 			
 	return false  # No token was handled
 
@@ -109,18 +102,6 @@ func connect_sigil_buttons():
 	sigil_a_button.pressed.connect(_on_sigil_a_pressed)
 	sigil_b_button.pressed.connect(_on_sigil_b_pressed)
 	sigil_c_button.pressed.connect(_on_sigil_c_pressed)
-	
-	# Initially disable the buttons
-	#sigil_a_button.disabled = true
-	#sigil_b_button.disabled = true
-	#sigil_c_button.disabled = true
-
-#func connect_pull_or_push_buttons():
-	#var pull_button = game.get_node("LeftUI/PullorPushContainer/Pull")
-	#var push_button = game.get_node("LeftUI/PullorPushContainer/Push")
-	#
-	#pull_button.pressed.connect(_on_pull_button_pressed)
-	#push_button.pressed.connect(_on_push_button_pressed)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Sigil Button
@@ -139,8 +120,8 @@ func _on_sigil_a_pressed():
 			if check_for_sigil_a_pattern(selected_energy_token):
 				# If valid, activate the sigil
 				activate_sigil_pattern(selected_energy_token, SigilPattern.SIGIL_A)
-				selected_energy_token.is_blighted = true
-
+				# Use RPC to sync the blighted state to all clients
+				game.rpc("sync_token_blight", selected_energy_token.global_position, true)
 
 func _on_sigil_b_pressed():
 	print("")
@@ -155,7 +136,8 @@ func _on_sigil_b_pressed():
 			if check_for_sigil_b_pattern(selected_energy_token):
 				# If valid, activate the sigil
 				activate_sigil_pattern(selected_energy_token, SigilPattern.SIGIL_B)
-				selected_energy_token.is_blighted = true
+				# Use RPC to sync the blighted state to all clients
+				game.rpc("sync_token_blight", selected_energy_token.global_position, true)
 
 func _on_sigil_c_pressed():
 	print("")
@@ -171,7 +153,10 @@ func _on_sigil_c_pressed():
 			if check_for_sigil_c_pattern(selected_energy_token):
 				# If valid, activate the sigil
 				activate_sigil_pattern(selected_energy_token, SigilPattern.SIGIL_C)
-				selected_energy_token.is_blighted = true
+				# Use RPC to sync the blighted state to all clients
+				game.rpc("sync_token_blight", selected_energy_token.global_position, true)
+
+
 
 func update_sigil_button_states(token):
 	var sigil_a_button = game.get_node("LeftUI/SigilContainer/SigilAButton")

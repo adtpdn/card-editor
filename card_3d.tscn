@@ -55,22 +55,23 @@ skeleton = NodePath("")
 transform = Transform3D(-2.55152, 0, 2.23061e-07, 5.78201e-06, -2.89101e-06, 66.1385, 6.44647e-15, 1.68695, 7.3739e-08, 1.33837e-09, 0.396831, -0.0871661)
 
 [node name="CardName" type="Label3D" parent="CardMesh/FrontFace"]
-transform = Transform3D(1, 2.25695e-36, -3.78653e-29, 0, 1, 0, 0, 0, 1, 1.65436e-24, -0.458305, 0.0184336)
+transform = Transform3D(1, 0, -3.28406e-15, 0, 1, 0, 3.82138e-15, -3.55271e-15, 1, 9.02221e-08, 0.573717, 0.0184336)
 pixel_size = 0.002
 text = "Card Name"
 
 [node name="CardType" type="Label3D" parent="CardMesh/FrontFace"]
-transform = Transform3D(1, 7.52316e-37, -1.26218e-29, 0, 1, 0, 0, 0, 1, -1.65436e-24, 0.15, 0.0184336)
+transform = Transform3D(1, 0, -3.28406e-15, 0, 1, 0, 3.82138e-15, -3.55271e-15, 1, -5.19808e-08, -0.444592, 0.0184336)
 pixel_size = 0.002
 text = "Type: Action"
 
 [node name="Cost" type="Label3D" parent="CardMesh/FrontFace"]
-transform = Transform3D(1, 1.50463e-36, -2.52435e-29, 0, 1, 0, 0, 0, 1, 0, 0.580536, 0.0184336)
+transform = Transform3D(1, 0, -3.28406e-15, -7.10543e-15, 1, 0, 3.82138e-15, -7.10543e-15, 1, -1.66674e-08, 0.389883, 0.0184336)
 pixel_size = 0.002
 text = "Cost: 1"
 
 [node name="Effects" type="Label3D" parent="CardMesh/FrontFace"]
-transform = Transform3D(1, 7.52316e-37, -1.26218e-29, 0, 1, 0, 0, 0, 1, -1.65436e-24, -0.2, 0.0184336)
-pixel_size = 0.002
-text = "Effect 1
-Effect 2"
+transform = Transform3D(0.998107, -7.10543e-15, -3.29129e-15, 0, 0.998107, 0, 1.8025e-14, -1.42109e-14, 0.998107, 2.70075e-08, 0.10893, 0.0184336)
+pixel_size = 0.0015
+text = "Plant 1 extra token on biome or plant 1 extra energy on a sigil magic"
+font_size = 24
+autowrap_mode = 2
