@@ -11,6 +11,7 @@ extends Node
 @onready var card_manager = $"../CardManager"
 @onready var ui_manager = $"../UIManager"
 @onready var point_counter = $"../PointCounter"
+@onready var sigil_manager = $"../SigilManager"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Enums and Constants
@@ -41,9 +42,13 @@ var last_token_placement_time = 0.0
 # Token scene reference
 var token_scene = preload("res://token_3d.tscn")
 
-# Add variables for token removal and blighting
-var is_remove := false
-var is_blight_mode := false
+# Add variables for card effects
+var is_take_off_mode := false
+var is_unblight_mode := false
+var is_refresh_energy_mode := false
+var is_swap_energy_mode := false  
+
+var first_swap_token = null  
 
 # Tracking player token counts
 var player_token_counts = {}
@@ -90,20 +95,7 @@ func _ready():
 		if token_button.pressed.is_connected(_on_token_selected):
 			token_button.pressed.disconnect(_on_token_selected)
 		token_button.pressed.connect(_on_token_selected)
-	
-	# Connect remove and blight buttons
-	var remove_button = get_parent().get_node("RightUI/RemoveButton")
-	var blight_button = get_parent().get_node("RightUI/BlightButton")
-	
-	if remove_button:
-		if remove_button.pressed.is_connected(_on_remove_token_pressed):
-			remove_button.pressed.disconnect(_on_remove_token_pressed)
-		remove_button.pressed.connect(_on_remove_token_pressed)
-	
-	if blight_button:
-		if blight_button.pressed.is_connected(_on_blight_token_pressed):
-			blight_button.pressed.disconnect(_on_blight_token_pressed)
-		blight_button.pressed.connect(_on_blight_token_pressed)
+
 
 # Main initialization function that can be called from game.gd
 func initialize():
@@ -137,6 +129,7 @@ func _input(event):
 
 
 func handle_touch(position: Vector2):
+	print("Handle touch")
 	var current_time = Time.get_ticks_msec() / 1000.0
 	if current_time - last_token_placement_time < TOKEN_PLACEMENT_COOLDOWN:
 		return
@@ -151,10 +144,11 @@ func handle_touch(position: Vector2):
 		return
 	
 	# First, check if SigilManager wants to handle this input
-	if get_parent().has_node("SigilManager"):
-		var sigil_manager = get_parent().get_node("SigilManager")
-		if sigil_manager.handle_sigil_input(position):
-			return  # Input was handled by SigilManager
+	if !sigil_manager.is_sigil_mode:
+		if get_parent().has_node("SigilManager"):
+			var sigil_manager = get_parent().get_node("SigilManager")
+			if sigil_manager.handle_sigil_input(position):
+				return  # Input was handled by SigilManager.
 	
 	# Continue with regular token placement logic...
 	var camera = get_parent().get_node("Camera3D")
@@ -171,48 +165,98 @@ func handle_touch(position: Vector2):
 	
 	if result:
 		var collider = result["collider"]
-		#print("")
-		#print("result : ", result )
+
 		# Find the token at this position with improved detection
 		var found_token = collider.get_parent().get_parent()
-		#print("found token : ", found_token)
+
 		if found_token:
 			print("Processing token: " + str(found_token.name))
-			if is_remove:
-				print("Attempting to remove token")
-				# Handle remove mode
-				if multiplayer.is_server():
-					process_token_removal(found_token.global_position)
-				else:
-					print("Sending removal request to server")
-					rpc_id(1, "request_token_removal", found_token.global_position)
+			# Sigil Effects
+			if sigil_manager.is_sigil_mode and !found_token.is_energy:
+				print("select target token for sigil activation")
+				sigil_manager._selected_token = found_token
+				sigil_manager.signal_other_player_token.emit()
+
+			## Card Effects
+			
+			var active_card = card_manager.active_card
+			if active_card != null:
+				print("card active : ", active_card.card_resource.card_name)
+				var card_on_biome = active_card.card_resource.card_on_biome
+				# Take Off Energy 
+				if is_take_off_mode and found_token.is_energy and found_token.biome_type == card_on_biome:
+					print("Take Off Energy Card Effect")
+					# Handle remove mode
+					if multiplayer.is_server():
+						take_off_energy(found_token.global_position)
+					else:
+						print("Sending take off request to server")
+						rpc_id(1, "request_take_off_energy", found_token.global_position)
+					
+					# Reset remove mode after attempt
+					is_take_off_mode = false
+
+				# Unblight Card Effect
+				elif is_unblight_mode and !found_token.is_energy and found_token.is_blighted and found_token.biome_type == card_on_biome:
+					print("Unblight Card Effect")
+					# Handle unblight mode
+					if multiplayer.is_server():
+						unblight_token(found_token.global_position)
+					else:
+						print("Sending unblight request to server")
+						rpc_id(1, "request_unblight_token", found_token.global_position)
+					
+					# Reset blight mode after attempt
+					is_unblight_mode = false
+
+				# Refresh Energy Card Effect 
+				elif is_refresh_energy_mode and found_token.is_energy and found_token.is_blighted and found_token.biome_type == card_on_biome:
+					print("Refresh Energy Card Effet")
+					# Handle refresh energy mode
+					if multiplayer.is_server():
+						refresh_energy(found_token.global_position)
+					else:
+						print("Sending refresh energy request to server")
+						rpc_id(1, "request_refresh_energy", found_token.global_position)
+					
+					is_refresh_energy_mode = false
+
+				# Swap Energy Card Effect
+				elif is_swap_energy_mode and found_token.is_energy and found_token.biome_type == card_on_biome:
+					print("Swap Energy Card Effect - Token Selection")
+					
+					# If this is the first token selection
+					if first_swap_token == null:
+						# Only allow selecting your own tokens for the first selection
+						if found_token.owner_id == multiplayer.get_unique_id():
+							first_swap_token = found_token
+							# Highlight this token to show it's selected
+							first_swap_token.highlight(true)
+							print("First token selected for swap: " + str(first_swap_token.global_position))
+						else:
+							print("You can only select your own token first")
+					
+					# If this is the second token selection
+					else:
+						# Make sure we're not selecting the same token
+						if found_token != first_swap_token:
+							# Check that both tokens are in the same biome
+							if found_token.biome_type == first_swap_token.biome_type:
+								# Perform the swap
+								if multiplayer.is_server():
+									swap_energy_tokens(first_swap_token.global_position, found_token.global_position)
+								else:
+									print("Sending swap energy request to server")
+									rpc_id(1, "request_swap_energy_tokens", first_swap_token.global_position, found_token.global_position)
+								
+								# Reset swap mode after attempt
+								first_swap_token = null
+								is_swap_energy_mode = false
 				
-				# Reset remove mode after attempt
-				is_remove = false
-				
-			elif is_blight_mode:
-				print("Attempting to blight token")
-				# Handle blight mode
-				if multiplayer.is_server():
-					process_token_blight(found_token.global_position)
-				else:
-					print("Sending blight request to server")
-					rpc_id(1, "request_token_blight", found_token.global_position)
-				
-				# Reset blight mode after attempt
-				is_blight_mode = false
+			
 			found_token = null
 			# Always unhighlight after any token action
 			unhighlight_all_token_placements()
-			
-			# Reset button visual states
-			var remove_button = get_parent().get_node("RightUI/RemoveButton")
-			var blight_button = get_parent().get_node("RightUI/BlightButton")
-			
-			if remove_button:
-				remove_button.modulate = Color(1, 1, 1, 1)
-			if blight_button:
-				blight_button.modulate = Color(1, 1, 1, 1)
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---   Player Token Management ---
@@ -823,49 +867,50 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 		player_token_counts[player_id] = updated_tokens.size()
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ---   Token Remove / Blight  ---
+# ---       Card Effects       ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+func _on_take_off_energy():
+	print("Take Off Energy mode activate")
+	is_take_off_mode = true
 
-func _on_remove_token_pressed():
-	is_remove = true
-	is_blight_mode = false  # Disable blight mode if active
-	print("Remove mode activated")
-	
-	# Visual feedback for active mode
-	var remove_button = get_parent().get_node("RightUI/RemoveButton")
-	var blight_button = get_parent().get_node("RightUI/BlightButton")
-	
-	if remove_button:
-		remove_button.modulate = Color(1.2, 0.8, 0.8, 1)  # Highlight in red
-	if blight_button:
-		blight_button.modulate = Color(1, 1, 1, 1)  # Reset blight button
-		
 	# Ensure token selection mode is off
 	is_token_selected = false
 	unhighlight_all_token_placements()
 	update_token_ui()
 
-func _on_blight_token_pressed():
-	is_blight_mode = true
-	is_remove = false  # Disable remove mode if active
-	print("Blight mode activated")
+func _on_unblight_token():
+	print("Unblight mode activated")
+	is_unblight_mode = true
 	
-	# Visual feedback for active mode
-	var remove_button = get_parent().get_node("RightUI/RemoveButton")
-	var blight_button = get_parent().get_node("RightUI/BlightButton")
+	# Ensure token selection mode is off
+	is_token_selected = false
+	unhighlight_all_token_placements()
+	update_token_ui()
+
+func _on_refresh_energy():
+	print("Refresh energy mode activated")
+	is_refresh_energy_mode = true
 	
-	if blight_button:
-		blight_button.modulate = Color(0.8, 0.8, 1.2, 1)  # Highlight in blue
-	if remove_button:
-		remove_button.modulate = Color(1, 1, 1, 1)  # Reset remove button
-		
+	# Ensure token selection mode is off
+	is_token_selected = false
+	unhighlight_all_token_placements()
+	update_token_ui()
+
+func _on_swap_energy():
+	print("Swap energy mode activated")
+	is_swap_energy_mode = true
+	is_take_off_mode = false
+	is_unblight_mode = false
+	is_refresh_energy_mode = false
+	first_swap_token = null  # Reset first token selection
+	
 	# Ensure token selection mode is off
 	is_token_selected = false
 	unhighlight_all_token_placements()
 	update_token_ui()
 
 @rpc("any_peer")
-func request_token_removal(token_position: Vector3):
+func request_take_off_energy(token_position: Vector3):
 	if !multiplayer.is_server():
 		return
 	
@@ -878,10 +923,160 @@ func request_token_removal(token_position: Vector3):
 		return
 	
 	# Process the token removal
-	process_token_removal(token_position)
+	take_off_energy(token_position)
 	print("Server processed token removal at: " + str(token_position))
 
-func process_token_removal(token_position: Vector3):
+@rpc("any_peer")
+func request_swap_energy_tokens(first_token_position: Vector3, second_token_position: Vector3):
+	if !multiplayer.is_server():
+		return
+	
+	var player_id = multiplayer.get_remote_sender_id()
+	if player_id == 0:  # Local server call
+		player_id = multiplayer.get_unique_id()
+	
+	# Validate it's the player's turn
+	if !game_state_manager.is_valid_player_turn(player_id):
+		return
+	
+	# Find the first token and verify it belongs to the player
+	var first_token = find_token_at_position(first_token_position)
+	if !first_token or first_token.owner_id != player_id:
+		return
+	
+	# Process the token swap
+	swap_energy_tokens(first_token_position, second_token_position)
+	print("Server processed token swap between: " + str(first_token_position) + " and " + str(second_token_position))
+
+func swap_energy_tokens(first_token_position: Vector3, second_token_position: Vector3):
+	# Find both tokens
+	var first_token = find_token_at_position(first_token_position)
+	var second_token = find_token_at_position(second_token_position)
+	
+	if !first_token or !second_token:
+		print("One or both tokens not found")
+		return
+	
+	# Verify both are energy tokens in the same biome
+	if !first_token.is_energy or !second_token.is_energy or first_token.biome_type != second_token.biome_type:
+		print("Invalid swap: Both must be energy tokens in the same biome")
+		return
+	
+	# Get the placements
+	var first_placement = get_token_placement_at_position(first_token_position)
+	var second_placement = get_token_placement_at_position(second_token_position)
+	
+	if !first_placement or !second_placement:
+		print("One or both placements not found")
+		return
+	
+	# Store token data to swap
+	var first_token_owner = first_token.owner_id
+	var second_token_owner = second_token.owner_id
+	var first_token_blighted = first_token.is_blighted
+	var second_token_blighted = second_token.is_blighted
+	
+	# Update tokens with swapped data
+	first_token.owner_id = second_token_owner
+	second_token.owner_id = first_token_owner
+	first_token.is_blighted = second_token_blighted
+	second_token.is_blighted = first_token_blighted
+	
+	# Update visual appearance to match new owners and blight states
+	#first_token.update_appearance()
+	#second_token.update_appearance()
+	
+	# Sync to all clients
+	rpc("sync_energy_token_swap", first_token_position, second_token_position, 
+		first_token_owner, second_token_owner, 
+		first_token_blighted, second_token_blighted)
+	
+	# Always unhighlight after swap
+	unhighlight_all_token_placements()
+
+
+@rpc("any_peer", "call_local")
+func sync_energy_token_swap(first_token_position: Vector3, second_token_position: Vector3, 
+						   first_token_owner: int, second_token_owner: int,
+						   first_token_blighted: bool, second_token_blighted: bool):
+	print("Syncing token swap between: " + str(first_token_position) + " and " + str(second_token_position))
+	
+	# Find both tokens
+	var first_token = find_token_at_position(first_token_position)
+	var second_token = find_token_at_position(second_token_position)
+	
+	if !first_token or !second_token:
+		print("One or both tokens not found for swap sync")
+		return
+	
+	# Swap owner IDs
+	first_token.owner_id = second_token_owner
+	second_token.owner_id = first_token_owner
+	
+	# Swap blight states
+	first_token.is_blighted = second_token_blighted
+	second_token.is_blighted = first_token_blighted
+	
+	# Update visual appearance
+	#first_token.update_appearance()
+	#second_token.update_appearance()
+	
+	# Reset swap mode
+	is_swap_energy_mode = false
+	if first_swap_token:
+		first_swap_token.highlight(false)
+		first_swap_token = null
+	
+	# Always unhighlight token placements after any token action
+	unhighlight_all_token_placements()
+
+func request_refresh_energy(token_position: Vector3):
+	if !multiplayer.is_server():
+		return
+	
+	var player_id = multiplayer.get_remote_sender_id()
+	if player_id == 0:  # Local server call
+		player_id = multiplayer.get_unique_id()
+	
+	# Validate it's the player's turn
+	if !game_state_manager.is_valid_player_turn(player_id):
+		return
+	
+	# Process the token removal
+	refresh_energy(token_position)
+	print("Server processed token removal at: " + str(token_position))
+
+func refresh_energy(token_position: Vector3):
+	# Find the token at this position
+	var token = null
+	for t in get_parent().get_node("Tokens").get_children():
+		if t.global_position == token_position:  # More generous distance check
+			token = t
+			break
+	
+	if token:
+		print("Refresh energy token at position: " + str(token_position))
+		var player_id = token.owner_id
+		var biome_type = token.biome_type
+		
+		token.is_blighted = !token.is_blighted
+		
+		# Play animation on the server
+		if token.is_blighted:
+			token.animation_player.play("blight")
+		else:
+			token.animation_player.play("unblight")
+		
+		# IMPORTANT: Sync to all clients using RPC with POSITION
+		rpc("sync_token_blight", token.global_position, token.is_blighted)
+		
+		# Always unhighlight token placements after any token action
+		unhighlight_all_token_placements()
+	
+	else:
+		print("No token found at position: " + str(token_position))
+
+func take_off_energy(token_position: Vector3):
 	# Find the token at this position
 	var token = null
 	for t in get_parent().get_node("Tokens").get_children():
@@ -923,105 +1118,6 @@ func process_token_removal(token_position: Vector3):
 	else:
 		print("No token found at position: " + str(token_position))
 
-@rpc("any_peer")
-func request_token_blight(token_position: Vector3):
-	if !multiplayer.is_server():
-		return
-	
-	var player_id = multiplayer.get_remote_sender_id()
-	if player_id == 0:  # Local server call
-		player_id = multiplayer.get_unique_id()
-	
-	# Validate it's the player's turn
-	if !game_state_manager.is_valid_player_turn(player_id):
-		return
-	
-	# Process the token blighting
-	process_token_blight(token_position)
-	print("Server processed token blight at: " + str(token_position))
-
-func process_token_blight(token_position):
-	# Find the token at this position
-	print("token position : ", token_position)
-	var token = null
-	for t in get_parent().get_node("Tokens").get_children():
-		if t.global_position == token_position :  # More generous distance check
-			token = t
-			break
-	
-	if token:
-		print("process token blight")
-		print('token name : ', token)
-		print("Blighting token at position: " + str(token.global_position))
-		# Toggle blight status
-		token.is_blighted = !token.is_blighted
-		
-		# Play animation on the server
-		if token.is_blighted:
-			token.animation_player.play("blight")
-		else:
-			token.animation_player.play("unblight")
-		
-		# IMPORTANT: Sync to all clients using RPC with POSITION
-		rpc("sync_token_blight", token.global_position, token.is_blighted)
-		
-		# Always unhighlight token placements after any token action
-		unhighlight_all_token_placements()
-		
-		# Reset remove and blight modes
-		is_remove = false
-		is_blight_mode = false
-		
-		# Reset button visual states
-		var remove_button = get_parent().get_node("RightUI/RemoveButton")
-		var blight_button = get_parent().get_node("RightUI/BlightButton")
-		
-		if remove_button:
-			remove_button.modulate = Color(1, 1, 1, 1)
-		if blight_button:
-			blight_button.modulate = Color(1, 1, 1, 1)
-	else:
-		print("No token found")
-
-@rpc("any_peer", "call_local")
-func sync_token_blight(token_position: Vector3, is_blighted: bool):
-	print("Syncing token blight at: " + str(token_position) + ", blighted: " + str(is_blighted))
-	
-	# Find the token at this position
-	var token = null
-	for t in get_parent().get_node("Tokens").get_children():
-		if t.global_position == token_position:  # More generous distance check
-			token = t
-			break
-	
-	if token:
-		# Set the blight flag
-		token.is_blighted = is_blighted
-		
-		# Ensure the animation plays on the client
-		if is_blighted:
-			token.animation_player.play("blight")
-		else:
-			token.animation_player.play("unblight")
-		
-		# Always unhighlight token placements after any token action
-		unhighlight_all_token_placements()
-		
-		# Reset remove and blight modes
-		is_remove = false
-		is_blight_mode = false
-		
-		# Reset button visual states
-		var remove_button = get_parent().get_node("RightUI/RemoveButton")
-		var blight_button = get_parent().get_node("RightUI/BlightButton")
-		
-		if remove_button:
-			remove_button.modulate = Color(1, 1, 1, 1)
-		if blight_button:
-			blight_button.modulate = Color(1, 1, 1, 1)
-	else:
-		print("No token found at position for blight sync: " + str(token_position))
-
 @rpc("any_peer", "call_local")
 func sync_token_removal_at_position(token_position: Vector3, player_id: int, biome_type: int):
 	print("Syncing token removal at: " + str(token_position))
@@ -1055,8 +1151,8 @@ func sync_token_removal_at_position(token_position: Vector3, player_id: int, bio
 	unhighlight_all_token_placements()
 	
 	# Reset remove and blight modes
-	is_remove = false
-	is_blight_mode = false
+	is_take_off_mode = false
+	is_unblight_mode = false
 	
 	# Reset button visual states
 	var remove_button = get_parent().get_node("RightUI/RemoveButton")
@@ -1093,6 +1189,96 @@ func sync_player_tokens(tokens_data):
 		# Update visual feedback for token button
 		if token_button:
 			token_button.modulate = Color(1, 1, 1, 1)  # Reset to normal color
+
+@rpc("any_peer")
+func request_unblight_token(token_position: Vector3):
+	if !multiplayer.is_server():
+		return
+	print("request token blight")
+	var player_id = multiplayer.get_remote_sender_id()
+	if player_id == 0:  # Local server call
+		player_id = multiplayer.get_unique_id()
+	
+	# Validate it's the player's turn
+	if !game_state_manager.is_valid_player_turn(player_id):
+		return
+	
+	# Process the token blighting
+	unblight_token(token_position)
+	print("Server processed token blight at: " + str(token_position))
+
+func unblight_token(token_position):
+	# Find the token at this position
+	print("token position : ", token_position)
+	var token = null
+	for t in get_parent().get_node("Tokens").get_children():
+		if t.global_position == token_position :  # More generous distance check
+			token = t
+			break
+	
+	if token:
+		print("process token blight")
+		print('token name : ', token)
+		print("Blighting token at position: " + str(token.global_position))
+		# Toggle blight status
+		token.is_blighted = !token.is_blighted
+		
+		# Play animation on the server
+		if token.is_blighted:
+			token.animation_player.play("blight")
+		else:
+			token.animation_player.play("unblight")
+		
+		# IMPORTANT: Sync to all clients using RPC with POSITION
+		rpc("sync_token_blight", token.global_position, token.is_blighted)
+		
+		# Always unhighlight token placements after any token action
+		unhighlight_all_token_placements()
+		
+	else:
+		print("No token found")
+
+@rpc("any_peer", "call_local")
+func sync_token_blight(token_position: Vector3, is_blighted: bool):
+	print("Syncing token blight at: " + str(token_position) + ", blighted: " + str(is_blighted))
+	
+	# Find the token at this position
+	var token = null
+	for t in get_parent().get_node("Tokens").get_children():
+		if t.global_position == token_position:  # More generous distance check
+			token = t
+			break
+	
+	if token:
+		# Set the blight flag
+		token.is_blighted = is_blighted
+		
+		# Ensure the animation plays on the client
+		if is_blighted:
+			token.animation_player.play("blight")
+		else:
+			token.animation_player.play("unblight")
+		
+		# Always unhighlight token placements after any token action
+		unhighlight_all_token_placements()
+		
+		# Reset remove and blight modes
+		is_take_off_mode = false
+		is_unblight_mode = false
+		
+		# Reset button visual states
+		var remove_button = get_parent().get_node("RightUI/RemoveButton")
+		var blight_button = get_parent().get_node("RightUI/BlightButton")
+		
+		if remove_button:
+			remove_button.modulate = Color(1, 1, 1, 1)
+		if blight_button:
+			blight_button.modulate = Color(1, 1, 1, 1)
+	else:
+		print("No token found at position for blight sync: " + str(token_position))
+
+
+
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---   Token Helper Methods   ---
@@ -1204,6 +1390,7 @@ func request_token_movement(from_position: Vector3, to_position: Vector3):
 	from_placement.set_occupied(false)
 	from_placement.current_token = null
 	
+	token.biome_type = to_placement.accepted_biome
 	to_placement.set_occupied(true)
 	to_placement.current_token = token
 	
@@ -1224,13 +1411,14 @@ func sync_token_movement(from_position: Vector3, to_position: Vector3):
 	
 	if !from_placement or !to_placement:
 		return
-	
+
 	# Update placements
 	from_placement.set_occupied(false)
 	from_placement.current_token = null
-	
+
+	token.biome_type = to_placement.accepted_biome
 	to_placement.set_occupied(true)
 	to_placement.current_token = token
-	
+
 	# Move the token
 	token.global_position = to_placement.global_position

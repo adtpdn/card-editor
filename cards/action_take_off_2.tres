@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardResource" load_steps=2 format=3 uid="uid://d215hsqvp4m6m"]
+
+[ext_resource type="Script" uid="uid://cnsjqdceew03f" path="res://card_resource.gd" id="1_mrlju"]
+
+[resource]
+script = ExtResource("1_mrlju")
+card_id = 1
+card_name = "Take Off Energy"
+card_type = 0
+cost_to_draw = 1
+effect1 = "Take off 1 energy your or other player energy on a sigil magic "
+effect2 = ""
+revealed = true
+tex3D_path = "res://assets/cards/action_card_04.png"
+image_path = "res://assets/cards/2D/tile004.png"

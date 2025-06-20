@@ -3,7 +3,7 @@ extends Node3D
 
 enum BiomeType {FOREST, WATER, MOUNTAIN, DESERT}
 
-@export var accepted_biome: TokenManager.BiomeType
+@export var accepted_biome: BiomeType
 @export var place_id: int = -1
 
 var is_highlighted: bool = false
@@ -38,14 +38,35 @@ func _ready():
 func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: Vector3, shape_idx: int):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var game = get_node("/root/Game")
+		print("placement location")
 		
 		if !game or is_occupied:
+			if game.sigil_manager.is_sigil_mode:
+				var player_id = multiplayer.get_unique_id()
+				
+				# Check if it's the player's turn and they are the one in sigil mode
+				if game.game_state_manager.is_valid_player_turn(player_id) and game.sigil_manager.selected_energy_token != null and game.sigil_manager.selected_energy_token.owner_id == player_id:
+					print("Selected token : ", game.sigil_manager._selected_token)
+					if game.sigil_manager._selected_token and !game.sigil_manager.is_sigil_c:
+						game.sigil_manager.show_push_pull_direction_ui(game.sigil_manager.selected_energy_token)
+					elif game.sigil_manager._selected_token and game.sigil_manager.is_sigil_c:
+						print("sigi c 1")
+						game.sigil_manager.show_blight_unblight_direction_ui(game.sigil_manager.selected_energy_token)
+					game.sigil_manager._selected_token = null
 			print("Game not found or location is occupied")
 			return
 		
 		var player_id = multiplayer.get_unique_id()
 		if !game.game_state_manager.is_valid_player_turn(player_id):
 			print("Not your turn!")
+			return
+		
+		if game.sigil_manager.is_sigil_mode:
+			if !game.sigil_manager.is_sigil_c:
+				game.sigil_manager._on_push_pull_input(global_position)
+			else:
+				print("sigil c 2")
+				game.sigil_manager._on_blight_unblight_input()
 			return
 		
 		# Debug token selection state

@@ -77,21 +77,32 @@ func can_accept_card(card: CardResource) -> bool:
 func draw(card_resource: CardResource) -> void:
 	if not card_resource:
 		return
-		
+	
+	print("draw called for card: ", card_resource.card_name, " (Type: ", card_resource.card_type, ")")
+	print("Current player_id: ", player_id)
+	print("Current card count before adding: ", card_resources.size())
+	
+	# Skip if this is a different player's turn and we're not syncing our own hand
+	var local_id = multiplayer.get_unique_id()
+	var current_turn_player = game.players[game.game_state_manager.current_turn_index]
+	
+	# Check if we're already at max cards for this type
+	var current_count = 0
+	for card in card_resources:
+		if card.card_type == card_resource.card_type:
+			current_count += 1
+	
+	var max_count = game.card_manager.MAX_ACTION_CARDS if card_resource.card_type == CardResource.CardType.ACTION else game.card_manager.MAX_AREA_CARDS
+	if current_count >= max_count:
+		print("Max cards of type ", card_resource.card_type, " reached. Not adding more.")
+		return
+	
 	# Strict duplicate checking with multiple conditions
 	for existing_card in card_resources:
 		if is_duplicate_card(existing_card, card_resource):
 			print("Duplicate card detected, skipping: ", card_resource.card_name)
 			return
 	
-	# Check if we're exceeding max cards for this type
-	var type_count = game.card_manager.count_cards_by_type(card_resource.card_type)
-	var max_cards = game.card_manager.MAX_ACTION_CARDS if card_resource.card_type == CardResource.CardType.ACTION else game.card_manager.MAX_AREA_CARDS
-	
-	if type_count >= max_cards:
-		print("Max cards of type ", card_resource.card_type, " reached")
-		return
-		
 	card_resources.append(card_resource)
 	_update_cards()
 	print("Drew card: ", card_resource.card_name, " Total cards: ", card_resources.size())
@@ -226,6 +237,24 @@ func sync_remove_card(index: int):
 			cards.remove_at(index)
 		card_resources.remove_at(index)
 		_update_cards()
+
+func sync_with_game_state():
+	print("Syncing hand with game state")
+	var player_id = multiplayer.get_unique_id()
+	
+	# Clear current hand completely
+	clear_hand()
+	
+	# Only if we're the server, sync with the server's tracking
+	if multiplayer.is_server() and game.player_hands.has(player_id):
+		print("Server syncing hand with tracked cards: ", game.player_hands[player_id].size())
+		
+		# Re-add only the cards the server is tracking
+		for card_resource in game.player_hands[player_id]:
+			card_resources.append(card_resource)
+		
+		_update_cards()
+		print("After sync: ", card_resources.size(), " cards")
 
 func get_card_at_index(index: int) -> Card:
 	if index >= 0 and index < cards.size():

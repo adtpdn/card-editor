@@ -1076,6 +1076,7 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="RemoveButton" type="Button" parent="RightUI"]
+visible = false
 layout_mode = 0
 offset_left = 7.0
 offset_top = 113.0
@@ -1084,6 +1085,7 @@ offset_bottom = 144.0
 text = "Remove Token"
 
 [node name="BlightButton" type="Button" parent="RightUI"]
+visible = false
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -1274,6 +1276,22 @@ text = "Sigil B"
 [node name="SigilCButton" type="Button" parent="LeftUI/SigilContainer"]
 layout_mode = 2
 text = "Sigil C"
+
+[node name="PullorPushContainer" type="VBoxContainer" parent="LeftUI"]
+visible = false
+layout_mode = 0
+offset_left = 108.0
+offset_top = 101.0
+offset_right = 154.0
+offset_bottom = 167.0
+
+[node name="Pull" type="Button" parent="LeftUI/PullorPushContainer"]
+layout_mode = 2
+text = "Pull"
+
+[node name="Push" type="Button" parent="LeftUI/PullorPushContainer"]
+layout_mode = 2
+text = "Push"
 
 [node name="HandAreas" type="Control" parent="."]
 clip_contents = true

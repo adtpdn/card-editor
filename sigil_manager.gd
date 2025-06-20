@@ -1,6 +1,9 @@
 # sigil_manager.gd
 extends Node
 
+#SIGNAL
+signal signal_other_player_token
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # References to other managers
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -19,9 +22,11 @@ enum BiomeType {FOREST, WATER, MOUNTAIN, DESERT}
 # Track sigil interaction state
 var selected_energy_token = null
 var is_sigil_mode = false
-var _current_sigil_token = null
-var _current_sigil_is_other_player = false
+var _selected_token = null
+var _selected_token_is_other_player = false
 var is_blight_mode = false
+
+var is_sigil_c := false
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization
@@ -37,7 +42,7 @@ func initialize():
 	check_timer.wait_time = 1.0  # Check every second
 	check_timer.one_shot = false
 	check_timer.autostart = true
-	check_timer.timeout.connect(_on_pattern_check_timer)
+	#check_timer.timeout.connect(_on_pattern_check_timer)
 	add_child(check_timer)
 
 	# Connect to token clicks
@@ -50,8 +55,38 @@ func initialize():
 	
 	# Connect sigil buttons
 	connect_sigil_buttons()
-	force_initialize_sigil_buttons()
+	disable_all_sigil_buttons()
+	#connect_pull_or_push_buttons()
 	print("SigilManager initialized.")
+
+# Handle input from player for sigil interactions
+func handle_sigil_input(position: Vector2):
+	print("handle sigil input")
+	var camera = game.get_node("Camera3D")
+	if !camera:
+		return false
+		
+	var from = camera.project_ray_origin(position)
+	var to = from + camera.project_ray_normal(position) * 1000
+	
+	var space_state = get_tree().get_root().get_world_3d().direct_space_state
+	var query = PhysicsRayQueryParameters3D.create(from, to)
+	var result = space_state.intersect_ray(query)
+	
+	if !is_sigil_mode and !token_manager.is_take_off_mode and !token_manager.is_unblight_mode and !token_manager.is_refresh_energy_mode and !token_manager.is_swap_energy_mode:
+		if result :
+			print("")
+			print("sigil manager")
+			#print("result : ", result)
+			
+			var found_token = result.collider.get_parent().get_parent()
+			print("found token : ", found_token)
+			
+			if found_token and found_token.is_energy:
+				_on_token_clicked(found_token)
+				return true  # Token was handled
+			
+	return false  # No token was handled
 
 # Connect to new tokens added to the scene
 func _connect_to_new_token(token):
@@ -63,28 +98,20 @@ func connect_sigil_buttons():
 	var sigil_b_button = game.get_node("LeftUI/SigilContainer/SigilBButton")
 	var sigil_c_button = game.get_node("LeftUI/SigilContainer/SigilCButton")
 	
-	# Disconnect existing signals to prevent duplicates
-	if sigil_a_button.pressed.is_connected(_on_sigil_a_pressed):
-		sigil_a_button.pressed.disconnect(_on_sigil_a_pressed)
-	if sigil_b_button.pressed.is_connected(_on_sigil_b_pressed):
-		sigil_b_button.pressed.disconnect(_on_sigil_b_pressed)
-	if sigil_c_button.pressed.is_connected(_on_sigil_c_pressed):
-		sigil_c_button.pressed.disconnect(_on_sigil_c_pressed)
-	
 	# Connect new signals
 	sigil_a_button.pressed.connect(_on_sigil_a_pressed)
 	sigil_b_button.pressed.connect(_on_sigil_b_pressed)
 	sigil_c_button.pressed.connect(_on_sigil_c_pressed)
-	
-	# Initially disable the buttons
-	sigil_a_button.disabled = true
-	sigil_b_button.disabled = true
-	sigil_c_button.disabled = true
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Sigil Button
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 func _on_sigil_a_pressed():
+	print("")
+	print("sigil a pressed")
+	if selected_energy_token.owner_id == multiplayer.get_unique_id():
+		is_sigil_mode = true
+	#print("selected energy token : ", selected_energy_token)
 	# Check if we have a selected token
 	if selected_energy_token:
 		# Verify it's an energy token, not blighted, and owned by the current player
@@ -93,15 +120,14 @@ func _on_sigil_a_pressed():
 			if check_for_sigil_a_pattern(selected_energy_token):
 				# If valid, activate the sigil
 				activate_sigil_pattern(selected_energy_token, SigilPattern.SIGIL_A)
-			else:
-				# Show feedback that pattern is not valid
-				show_invalid_pattern_message("Sigil A (L Pattern)")
-		else:
-			show_invalid_token_message()
-	else:
-		show_no_token_selected_message()
+				# Use RPC to sync the blighted state to all clients
+				game.rpc("sync_token_blight", selected_energy_token.global_position, true)
 
 func _on_sigil_b_pressed():
+	print("")
+	print("sigil b pressed")
+	if selected_energy_token.owner_id == multiplayer.get_unique_id():
+		is_sigil_mode = true
 	# Check if we have a selected token
 	if selected_energy_token:
 		# Verify it's an energy token, not blighted, and owned by the current player
@@ -110,15 +136,15 @@ func _on_sigil_b_pressed():
 			if check_for_sigil_b_pattern(selected_energy_token):
 				# If valid, activate the sigil
 				activate_sigil_pattern(selected_energy_token, SigilPattern.SIGIL_B)
-			else:
-				# Show feedback that pattern is not valid
-				show_invalid_pattern_message("Sigil B (Straight Pattern)")
-		else:
-			show_invalid_token_message()
-	else:
-		show_no_token_selected_message()
+				# Use RPC to sync the blighted state to all clients
+				game.rpc("sync_token_blight", selected_energy_token.global_position, true)
 
 func _on_sigil_c_pressed():
+	print("")
+	print("sigil c pressed")
+	is_sigil_c = true
+	if selected_energy_token.owner_id == multiplayer.get_unique_id():
+		is_sigil_mode = true
 	# Check if we have a selected token
 	if selected_energy_token:
 		# Verify it's an energy token, not blighted, and owned by the current player
@@ -127,13 +153,10 @@ func _on_sigil_c_pressed():
 			if check_for_sigil_c_pattern(selected_energy_token):
 				# If valid, activate the sigil
 				activate_sigil_pattern(selected_energy_token, SigilPattern.SIGIL_C)
-			else:
-				# Show feedback that pattern is not valid
-				show_invalid_pattern_message("Sigil C (Diagonal Pattern)")
-		else:
-			show_invalid_token_message()
-	else:
-		show_no_token_selected_message()
+				# Use RPC to sync the blighted state to all clients
+				game.rpc("sync_token_blight", selected_energy_token.global_position, true)
+
+
 
 func update_sigil_button_states(token):
 	var sigil_a_button = game.get_node("LeftUI/SigilContainer/SigilAButton")
@@ -141,10 +164,10 @@ func update_sigil_button_states(token):
 	var sigil_c_button = game.get_node("LeftUI/SigilContainer/SigilCButton")
 	
 	# Debug log the token info
-	print("Checking patterns for token - Biome: ", token.biome_type, 
-		  ", ID: ", get_token_id(token), 
-		  ", Is Energy: ", token.is_energy, 
-		  ", Owner: ", token.owner_id)
+	#print("Checking patterns for token - Biome: ", token.biome_type, 
+		  #", ID: ", get_token_id(token), 
+		  #", Is Energy: ", token.is_energy, 
+		  #", Owner: ", token.owner_id)
 	
 	# Check which patterns this token can form
 	var can_form_a = check_for_sigil_a_pattern(token)
@@ -152,11 +175,13 @@ func update_sigil_button_states(token):
 	var can_form_c = check_for_sigil_c_pattern(token)
 	
 	# Debug log pattern check results
-	print("Pattern detection results - A: ", can_form_a, ", B: ", can_form_b, ", C: ", can_form_c)
+	#print("Pattern detection results - A: ", can_form_a, ", B: ", can_form_b, ", C: ", can_form_c)
 	
 	# Also check if there's enough mana
 	var has_mana = check_mana_available(token.biome_type)
-	print("Has mana: ", has_mana)
+	#print("Has mana: ", has_mana)
+	if !has_mana:
+		return
 	
 	# Enable or disable buttons based on pattern availability and mana
 	sigil_a_button.disabled = !(can_form_a && has_mana)
@@ -164,7 +189,7 @@ func update_sigil_button_states(token):
 	sigil_c_button.disabled = !(can_form_c && has_mana)
 	
 	# Debug log button states
-	print("Button states - A: ", !sigil_a_button.disabled, ", B: ", !sigil_b_button.disabled, ", C: ", !sigil_c_button.disabled)
+	#print("Button states - A: ", !sigil_a_button.disabled, ", B: ", !sigil_b_button.disabled, ", C: ", !sigil_c_button.disabled)
 	
 	# Update button appearance based on state
 	sigil_a_button.modulate = Color(1, 1, 1, 1.0 if !sigil_a_button.disabled else 0.5)
@@ -183,42 +208,6 @@ func disable_all_sigil_buttons():
 	sigil_a_button.modulate = Color(1, 1, 1, 0.5)
 	sigil_b_button.modulate = Color(1, 1, 1, 0.5)
 	sigil_c_button.modulate = Color(1, 1, 1, 0.5)
-
-func show_invalid_pattern_message(pattern_name: String):
-	var dialog = AcceptDialog.new()
-	dialog.title = "Invalid Pattern"
-	dialog.dialog_text = "Selected token cannot form a " + pattern_name + " with other tokens."
-	game.add_child(dialog)
-	dialog.popup_centered()
-
-func show_invalid_token_message():
-	var dialog = AcceptDialog.new()
-	dialog.title = "Invalid Token"
-	dialog.dialog_text = "Selected token must be your energy token and not blighted."
-	game.add_child(dialog)
-	dialog.popup_centered()
-
-func show_no_token_selected_message():
-	var dialog = AcceptDialog.new()
-	dialog.title = "No Token Selected"
-	dialog.dialog_text = "Please select an energy token first before activating a sigil."
-	game.add_child(dialog)
-	dialog.popup_centered()
-
-func force_initialize_sigil_buttons():
-	var sigil_a_button = game.get_node("LeftUI/SigilContainer/SigilAButton")
-	var sigil_b_button = game.get_node("LeftUI/SigilContainer/SigilBButton")
-	var sigil_c_button = game.get_node("LeftUI/SigilContainer/SigilCButton")
-	
-	if sigil_a_button and sigil_b_button and sigil_c_button:
-		sigil_a_button.disabled = true
-		sigil_b_button.disabled = true
-		sigil_c_button.disabled = true
-		
-		# Ensure connections are set up
-		connect_sigil_buttons()
-	else:
-		print("ERROR: Could not find one or more sigil buttons")
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Sigil Pattern Detection
@@ -257,40 +246,44 @@ func update_all_pattern_highlights():
 
 # Handle token clicks for sigil pattern activation
 func _on_token_clicked(token):
-	var player_id = multiplayer.get_unique_id()
-	
-	# Make sure it's the player's turn
-	if !game_state_manager.is_valid_player_turn(player_id):
-		print("Not your turn!")
-		return
-	
-	# Only allow selecting own energy tokens
-	if token.is_energy and token.owner_id == player_id and !token.is_blighted:
-		print("Energy token selected")
+	if !is_sigil_mode:
+		var player_id = multiplayer.get_unique_id()
 		
-		# Deselect any previously selected token
-		if selected_energy_token:
-			selected_energy_token.highlight(false)
+		# Make sure it's the player's turn
+		if !game_state_manager.is_valid_player_turn(player_id):
+			print("Not your turn!")
+			return
 		
-		selected_energy_token = token
-		is_sigil_mode = true
-		
-		# Highlight the token to show it's selected
-		token.highlight(true)
-		
-		# Update sigil button states
-		update_sigil_button_states(token)
-	else:
-		#print("Not a valid energy token for activation")
-		
-		# Deselect any currently selected energy token
-		if selected_energy_token:
-			selected_energy_token.highlight(false)
-			selected_energy_token = null
-			is_sigil_mode = false
+		# Only allow selecting own energy tokens
+		if token.is_energy and token.owner_id == player_id and !token.is_blighted:
+			print("Energy token selected")
 			
-			# Disable all sigil buttons
-			disable_all_sigil_buttons()
+			# Deselect any previously selected token
+			if selected_energy_token:
+				selected_energy_token.highlight(false)
+			
+			selected_energy_token = token
+			
+			# Only set sigil mode for the current player
+			#if token.owner_id == multiplayer.get_unique_id():
+				#is_sigil_mode = true
+			
+			# Highlight the token to show it's selected
+			token.highlight(true)
+			
+			# Update sigil button states
+			update_sigil_button_states(token)
+		else:
+			print("Not a valid energy token for activation")
+			
+			# Deselect any currently selected energy token
+			if selected_energy_token:
+				selected_energy_token.highlight(false)
+				selected_energy_token = null
+				is_sigil_mode = false
+				
+				# Disable all sigil buttons
+				disable_all_sigil_buttons()
 
 # Main pattern check function
 func check_for_sigil_patterns(token):
@@ -330,7 +323,7 @@ func get_token_id(token):
 	
 	# The ID is the local index + 1 (since IDs start at 1)
 	var token_id = local_index + 1
-	print("Token at position ", token.global_position, " has ID: ", token_id, " (placement index: ", placement_index, ", biome: ", biome_index, ")")
+	#print("Token at position ", token.global_position, " has ID: ", token_id, " (placement index: ", placement_index, ", biome: ", biome_index, ")")
 	return token_id
 
 # Pattern detection based on token IDs within a biome
@@ -341,12 +334,12 @@ func check_for_sigil_a_pattern(token) -> bool:
 	# Get the token ID
 	var token_id = get_token_id(token)
 	if token_id == -1:
-		print("Sigil A check: Invalid token ID")
+		#print("Sigil A check: Invalid token ID")
 		return false
 	
 	# Get all tokens in the same biome (from ANY player)
 	var all_tokens = get_tokens_in_biome(token.biome_type)
-	print("Sigil A check: Found ", all_tokens.size(), " energy tokens in biome ", token.biome_type)
+	#print("Sigil A check: Found ", all_tokens.size(), " energy tokens in biome ", token.biome_type)
 	
 	# Convert tokens to IDs
 	var token_ids = []
@@ -356,7 +349,7 @@ func check_for_sigil_a_pattern(token) -> bool:
 			if id != -1:
 				token_ids.append(id)
 	
-	print("Sigil A check: Token IDs in biome: ", token_ids)
+	#print("Sigil A check: Token IDs in biome: ", token_ids)
 	
 	# Check each L pattern
 	var patterns = [
@@ -371,21 +364,21 @@ func check_for_sigil_a_pattern(token) -> bool:
 		if !pattern.has(token_id):
 			continue
 			
-		print("Sigil A check: Current token part of pattern ", pattern)
+		#print("Sigil A check: Current token part of pattern ", pattern)
 			
 		# Check if all pattern IDs exist in placed tokens
 		var pattern_found = true
 		for id in pattern:
 			if !token_ids.has(id):
 				pattern_found = false
-				print("Sigil A check: Missing ID ", id, " for pattern ", pattern)
+				#print("Sigil A check: Missing ID ", id, " for pattern ", pattern)
 				break
 				
 		if pattern_found:
-			print("Sigil A check: Pattern found! ", pattern)
+			#print("Sigil A check: Pattern found! ", pattern)
 			return true
 	
-	print("Sigil A check: No pattern found")
+	#print("Sigil A check: No pattern found")
 	return false
 
 func check_for_sigil_b_pattern(token) -> bool:
@@ -480,18 +473,18 @@ func get_tokens_in_biome(biome_type: int) -> Array:
 	var result = []
 	var tokens = game.get_node("Tokens").get_children()
 	
-	print("Checking tokens in biome ", biome_type, " (total tokens: ", tokens.size(), ")")
+	#print("Checking tokens in biome ", biome_type, " (total tokens: ", tokens.size(), ")")
 	
 	for token in tokens:
 		# Debug token properties
-		print("Token - biome: ", token.biome_type, 
-			  ", is_energy: ", token.is_energy if token.has_method("is_energy") else "unknown", 
-			  ", position: ", token.global_position)
+		#print("Token - biome: ", token.biome_type, 
+			  #", is_energy: ", token.is_energy, 
+			  #", position: ", token.global_position)
 		
 		if token.biome_type == biome_type and token.is_energy:
 			result.append(token)
 	
-	print("Found ", result.size(), " energy tokens in biome ", biome_type)
+	#print("Found ", result.size(), " energy tokens in biome ", biome_type)
 	return result
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -625,7 +618,10 @@ func get_current_round() -> int:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # UI for Sigil A and B effect (push/pull tokens)
-func show_pull_push_ui(token, is_other_player: bool):
+func show_pull_push_ui(energy_token, is_other_player: bool):
+	print("show push or pull ui")
+	var pull_or_push_container = game.get_node("LeftUI/PullorPushContainer/")
+
 	# Create UI to select which token to push/pull
 	var dialog = AcceptDialog.new()
 	dialog.title = "Select Token to Push/Pull"
@@ -634,19 +630,20 @@ func show_pull_push_ui(token, is_other_player: bool):
 	dialog.popup_centered()
 	
 	# Set game to token selection mode for push/pull
+	#pull_or_push_container.show()
 	token_manager.is_token_selected = false  # Turn off normal token placement mode
-	is_sigil_mode = true
+	#is_sigil_mode = true
 	
 	# Store information about which sigil is being used
-	_current_sigil_token = token
-	_current_sigil_is_other_player = is_other_player
+	_selected_token_is_other_player = is_other_player
 	
-	# Connect to viewport for token detection
-	if !get_viewport().is_connected("gui_input", _on_push_pull_input):
-		get_viewport().connect("gui_input", _on_push_pull_input)
+	show_push_pull_direction_ui(energy_token)
+	#_on_push_pull_perform()
+
 
 # UI for Sigil C effect (blight/unblight)
-func show_blight_unblight_ui(token):
+func show_blight_unblight_ui(energy_token):
+	# Token is still energy
 	# Create UI to select which token to blight/unblight
 	var dialog = AcceptDialog.new()
 	dialog.title = "Select Token to Blight/Unblight"
@@ -659,178 +656,259 @@ func show_blight_unblight_ui(token):
 	is_blight_mode = true
 	
 	# Store information about which sigil is being used
-	_current_sigil_token = token
+	#_selected_token = token
 	
-	# Connect to viewport for token detection
-	if !get_viewport().is_connected("gui_input", _on_blight_unblight_input):
-		get_viewport().connect("gui_input", _on_blight_unblight_input)
+	show_blight_unblight_direction_ui(energy_token)
 
-# Handle push/pull input
-func _on_push_pull_input(event):
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		# Find token at this position
-		var from = game.get_node("Camera3D").project_ray_origin(event.position)
-		var to = from + game.get_node("Camera3D").project_ray_normal(event.position) * 1000
-		
-		var space_state = get_tree().get_root().get_world_3d().direct_space_state
-		var query = PhysicsRayQueryParameters3D.create(from, to)
-		var result = space_state.intersect_ray(query)
-		
-		if result:
-			var hit_position = result.position
-			var target_token = token_manager.find_token_at_position(hit_position)
-			
-			if target_token:
-				# Check if this is a valid target
-				var valid = false
-				
-				if _current_sigil_is_other_player:
-					# Sigil A - Can only target other player's tokens
-					valid = target_token.owner_id != multiplayer.get_unique_id()
-				else:
-					# Sigil B - Can only target own tokens
-					valid = target_token.owner_id == multiplayer.get_unique_id()
-				
-				if valid:
-					# Perform push/pull
-					show_push_pull_direction_ui(target_token)
-				else:
-					print("Invalid target for this sigil pattern")
-		
-		# Clean up
-		get_viewport().disconnect("gui_input", _on_push_pull_input)
-		is_sigil_mode = false
-		_current_sigil_token = null
-
-# Handle blight/unblight input
-func _on_blight_unblight_input(event):
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		# Find token at this position
-		var from = game.get_node("Camera3D").project_ray_origin(event.position)
-		var to = from + game.get_node("Camera3D").project_ray_normal(event.position) * 1000
-		
-		var space_state = get_tree().get_root().get_world_3d().direct_space_state
-		var query = PhysicsRayQueryParameters3D.create(from, to)
-		var result = space_state.intersect_ray(query)
-		
-		if result:
-			var hit_position = result.position
-			var target_token = token_manager.find_token_at_position(hit_position)
-			
-			if target_token:
-				var player_id = multiplayer.get_unique_id()
-				
-				if target_token.owner_id == player_id:
-					# Unblight own token
-					if target_token.is_blighted:
-						if multiplayer.is_server():
-							target_token.is_blighted = false
-							target_token.update_token_display()
-							token_manager.rpc("sync_token_blight", target_token.global_position, false)
-						else:
-							token_manager.rpc_id(1, "request_token_blight", target_token.global_position)
-					else:
-						print("Token is not blighted")
-				else:
-					# Blight other player's token
-					if !target_token.is_blighted:
-						if multiplayer.is_server():
-							target_token.is_blighted = true
-							target_token.update_token_display()
-							token_manager.rpc("sync_token_blight", target_token.global_position, true)
-						else:
-							token_manager.rpc_id(1, "request_token_blight", target_token.global_position)
-					else:
-						print("Token is already blighted")
-		
-		# Clean up
-		get_viewport().disconnect("gui_input", _on_blight_unblight_input)
-		is_blight_mode = false
-		_current_sigil_token = null
-
-# Show UI for push/pull direction selection
-func show_push_pull_direction_ui(target_token):
+func show_blight_unblight_direction_ui(energy_token):
+	print("show blight and unblight direction ui")
 	var popup = PopupMenu.new()
 	popup.name = "DirectionSelectionPopup"
 	game.add_child(popup)
+
+	await signal_other_player_token
+	var target_token = _selected_token
+
+	# Add direction options
+	if target_token.biome_type == energy_token.biome_type :
+		print("show option blight and unblight")
+		print("target token : ", target_token)
+		print("target token owner id : ", target_token.owner_id)
+		print("energy token owner id : ", energy_token.owner_id)
+		if !target_token.is_blighted and target_token.owner_id != energy_token.owner_id:
+			popup.add_item("Blight", 0)
+		elif target_token.is_blighted and target_token.owner_id == energy_token.owner_id:
+			popup.add_item("Unblight", 1)
+		else: 
+			return
+
+	# Connect signal
+	popup.id_pressed.connect(func(id): perform_blight_unblight(energy_token, target_token, id == 0))
+
+	# Show popup at mouse position
+	var mouse_pos = get_viewport().get_mouse_position()
+	popup.position = mouse_pos
+	popup.popup()
+
+# Show UI for push/pull direction selection
+func show_push_pull_direction_ui(energy_token):
+	var popup = PopupMenu.new()
+	popup.name = "DirectionSelectionPopup"
+	game.add_child(popup)
+
+	await signal_other_player_token
+	var target_token = _selected_token
+	
+	# Checking if the true than sigil a active
+	if _selected_token_is_other_player:
+		if target_token.owner_id == energy_token.owner_id:
+			print("sigil A with the same owner id cant run")
+			return
+	# Checking if the true than sigil b active
+	else:
+		if target_token.owner_id != energy_token.owner_id:
+			print("sigil B with the different owner id cant run")
+			return
 	
 	# Add direction options
-	popup.add_item("Push Away", 0)
-	popup.add_item("Pull Closer", 1)
+	if target_token.biome_type == energy_token.biome_type:
+		popup.add_item("Push Away", 0)
+	else:
+		popup.add_item("Pull Closer", 1)
 	
 	# Connect signal
-	popup.id_pressed.connect(func(id): perform_push_pull(target_token, id == 0))
+	popup.id_pressed.connect(func(id): perform_push_pull(energy_token, target_token, id == 0))
 	
 	# Show popup at mouse position
 	var mouse_pos = get_viewport().get_mouse_position()
 	popup.position = mouse_pos
 	popup.popup()
 
+# Perform actual blight or unblight
+func perform_blight_unblight(energy_token, token, is_blight: bool):
+	print("perform blight unblight")
+	
+	_selected_token = token
+	token_manager.is_token_selected = true
+
+	_on_blight_unblight_input()
+
+
 # Perform the actual push or pull
-func perform_push_pull(token, is_push: bool):
-	var token_placement = token_manager.get_token_placement_at_position(token.global_position)
+func perform_push_pull(energy_token, token, is_push: bool):
+	print("perform push pull")
+	# Store the selected token for use in subsequent steps
+	var target_token = token
+	
+	# Reset token selection mode
+	#is_sigil_mode = false
+	
+	# Clear any previous highlights
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		placement.set_highlight(false)
+	
+	# Get the token's current placement
+	var token_placement = token_manager.get_token_placement_at_position(target_token.global_position)
 	if !token_placement:
 		print("Could not find token placement location")
 		return
 	
-	var current_index = token_placement.get_index()
-	var new_index = -1
+	# Get the sigil token's placement (this is the energy token that activated the sigil)
+	var energy_token_placement = null
+	print("energy token : ", energy_token)
+	if energy_token:
+		print("energy token : ", energy_token.global_position)
+		energy_token_placement = token_manager.get_token_placement_at_position(energy_token.global_position)
+		print("energy token placment : ", energy_token_placement)
 	
-	# Calculate direction based on current sigil token and target token
-	var sigil_placement = token_manager.get_token_placement_at_position(_current_sigil_token.global_position)
-	if !sigil_placement:
-		print("Could not find sigil token placement location")
+	if !energy_token_placement:
+		print("Could not find energy token placement")
 		return
 	
-	var sigil_index = sigil_placement.get_index()
+	# Get the biome types
+	var target_token_biome = target_token.biome_type
+	var energy_token_biome = energy_token.biome_type
 	
-	# Calculate direction vector
-	var dir_x = current_index % 7 - sigil_index % 7
-	var dir_y = current_index / 7 - sigil_index / 7
+	# Find potential placement locations based on push/pull mode
+	var potential_placements = []
 	
-	# Normalize direction
-	if dir_x != 0:
-		dir_x = dir_x / abs(dir_x)
-	if dir_y != 0:
-		dir_y = dir_y / abs(dir_y)
+	# Determine adjacent biomes based on the rule:
+	# If energy token biome is 0 or 2, adjacent biomes are 1 and 3
+	# If energy token biome is 1 or 3, adjacent biomes are 0 and 2
+	var adjacent_biomes = []
+	if energy_token_biome == BiomeType.FOREST || energy_token_biome == BiomeType.MOUNTAIN:
+		adjacent_biomes = [BiomeType.WATER, BiomeType.DESERT]
+	else: # WATER or DESERT
+		adjacent_biomes = [BiomeType.FOREST, BiomeType.MOUNTAIN]
 	
-	# Calculate new position
-	if is_push:
-		# Push one step away
-		new_index = current_index + dir_x + dir_y * 7
-	else:
-		# Pull one step closer
-		new_index = current_index - dir_x - dir_y * 7
-	
-	# Validate new position
-	var placements = game.get_node("TokenPlacements")
-	if new_index < 0 or new_index >= placements.get_child_count():
-		print("Invalid new position")
-		return
-	
-	var new_placement = placements.get_child(new_index)
-	if new_placement.is_occupied:
-		print("New position is already occupied")
-		return
-	
-	# Move the token
-	if multiplayer.is_server():
-		# Clear the current placement
-		token_placement.set_occupied(false)
-		token_placement.current_token = null
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if placement.is_occupied:
+			continue
 		
+		var placement_biome = placement.accepted_biome
+		
+		if is_push:
+			# For "push away": Highlight placements in adjacent biomes to the energy token
+			if adjacent_biomes.has(placement_biome) and placement.place_id == -1:
+				placement.set_highlight(true)
+				potential_placements.append(placement)
+		else:
+			# For "pull closer": Highlight placements in the energy token's biome
+			if placement_biome == energy_token_biome and placement.place_id == -1:
+				placement.set_highlight(true)
+				potential_placements.append(placement)
+	print("adjcents biomes : ",adjacent_biomes )
+	if potential_placements.size() == 0:
+		print("No valid placements found for push/pull operation")
+		return
+	
+	# Store token for use in the input handler
+	_selected_token = target_token
+	token_manager.is_token_selected = true
+	
+	# Will go to push pull input event
+	print("Please click on a highlighted location to move the token")
+
+
+func _on_blight_unblight_input():
+	print("blight unblight input")
+	if is_sigil_mode:
+		print("")
+		
+		if _selected_token == null:
+			show_blight_unblight_direction_ui(selected_energy_token)
+			return
+		
+		print("Processing push/pull input")
+		print("Target token : ", _selected_token)
+		print("Hit something at position: ", _selected_token.position)
+		
+		var target_token = _selected_token
+		
+		var is_blight_status = target_token.is_blighted
+		_selected_token.set_blighted(!is_blight_status)
+		
+		_selected_token = null
+		is_sigil_mode = false
+		token_manager.is_token_selected = false
+		selected_energy_token.highlight(false)
+		selected_energy_token = null
+		is_sigil_c = false
+		is_blight_mode = false
+		disable_all_sigil_buttons()
+		print("Blight")
+
+# Function to handle the input for push/pull destination selection
+func _on_push_pull_input(_placement_pos):
+	if is_sigil_mode:
+		print("")
+		
+		if _selected_token == null:
+			show_push_pull_direction_ui(selected_energy_token)
+			return
+		
+		print("Processing push/pull input")
+		print("Target token : ", _selected_token)
+		print("Hit something at position: ", _selected_token.position)
+		print("placement pos : ", _placement_pos)
+		
+		var source_placement = token_manager.get_token_placement_at_position(_selected_token.global_position)
 		# Set the new placement
-		new_placement.set_occupied(true)
-		new_placement.current_token = token
+		var _placement_node = null
+		for _placement in get_parent().get_node("TokenPlacements").get_children():
+			if _placement.global_position.distance_to(_placement_pos) < 0.1:
+				_placement_node = _placement
+				break
 		
+		if !_placement_node.is_highlighted:
+			return
+		
+		print("")
 		# Move the token
-		token.global_position = new_placement.global_position
+		if multiplayer.is_server():
+			print("multiplayer pull and push")
+			if source_placement:
+				# Clear the current placement
+				source_placement.set_occupied(false)
+				source_placement.current_token = null
+				
+				print("placement node : ", _placement_node)
+				_selected_token.biome_type = _placement_node.accepted_biome
+				print("biome type current player token: ", _selected_token.biome_type)
+				_placement_node.set_occupied(true)
+				_placement_node.current_token = _selected_token
+				
+				# Move the token
+				_selected_token.global_position = _placement_pos
+				
+				# Sync to clients
+				token_manager.rpc("sync_token_movement", source_placement.global_position, _placement_pos)
+			else:
+				print("Source placement not found!")
+		else:
+			# Request server to move the token
+			print("Requesting server to move token")
+			token_manager.rpc_id(1, "request_token_movement", source_placement.global_position, _placement_pos)
 		
-		# Sync to clients
-		token_manager.rpc("sync_token_movement", token.global_position, new_placement.global_position)
-	else:
-		# Request server to move the token
-		token_manager.rpc_id(1, "request_token_movement", token.global_position, new_placement.global_position)
+		# Cleanup
+		if get_tree().root.is_connected("input_event", Callable(self, "_on_push_pull_input")):
+			get_tree().root.disconnect("input_event", Callable(self, "_on_push_pull_input"))
+		
+		# Clear all highlights
+		for placement in get_parent().get_node("TokenPlacements").get_children():
+			placement.set_highlight(false)
+		
+		_selected_token = null
+		is_sigil_mode = false
+		token_manager.is_token_selected = false
+		selected_energy_token.highlight(false)
+		selected_energy_token = null
+		
+		
+		disable_all_sigil_buttons()
+		print("Token move operation completed")
+		#else:
+			#print("No highlighted placement found near click position")
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Network Integration
@@ -838,39 +916,4 @@ func perform_push_pull(token, is_push: bool):
 # These functions should be added to token_manager.gd if not already there
 
 # Request token movement (for RPC)
-func request_token_movement(from_position: Vector3, to_position: Vector3):
-	token_manager.request_token_movement(from_position, to_position)
-
-# Handle input from player for sigil interactions
-func handle_sigil_input(position: Vector2):
-	var camera = game.get_node("Camera3D")
-	if !camera:
-		return false
-		
-	var from = camera.project_ray_origin(position)
-	var to = from + camera.project_ray_normal(position) * 1000
-	
-	var space_state = get_tree().get_root().get_world_3d().direct_space_state
-	var query = PhysicsRayQueryParameters3D.create(from, to)
-	var result = space_state.intersect_ray(query)
-	
-	if result:
-		print("")
-		print("sigil manager")
-		#print("result : ", result)
-		
-		var found_token = result.collider.get_parent().get_parent()
-		print("found token : ", found_token)
-		
-		if found_token and found_token.is_energy:
-			_on_token_clicked(found_token)
-			return true  # Token was handled
-			
-	# If no token was clicked, deselect current token
-	if selected_energy_token:
-		selected_energy_token.highlight(false)
-		selected_energy_token = null
-		is_sigil_mode = false
-		disable_all_sigil_buttons()
-			
-	return false  # No token was handled
+func request_token_movement(from_position: Vector3, to_position: Vector3):	token_manager.request_token_movement(from_position, to_position)

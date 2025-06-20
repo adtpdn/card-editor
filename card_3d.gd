@@ -16,6 +16,7 @@ func set_card_data(resource: CardResource):
 	card_resource = resource
 	update_card_display()
 
+
 func update_card_display():
 	if card_resource and card_resource.tex3D_path:
 		# Ensure the texture is loaded on all clients

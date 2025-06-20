@@ -9,6 +9,8 @@ extends Node
 @onready var game_state_manager = $GameStateManager
 @onready var card_manager = $CardManager
 @onready var ui_manager = $UIManager
+@onready var sigil_manager = $SigilManager
+
 
 @onready var point_counter = $PointCounter
 
@@ -57,14 +59,25 @@ func _ready():
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 @rpc("any_peer", "call_local") 
-func sync_game_state(game_players, has_started, placed):
+func sync_game_state(game_players, has_started, placed, player_hand_data = null):
 	print("Syncing game state from server")
 	players = game_players
 	game_started = has_started
 	
+	# Sync player_hands if data is provided
+	if player_hand_data != null:
+		player_hands = player_hand_data
+		print("Received player_hands data: ", player_hands)
+	
 	# Update UI to reflect state
 	ui_manager.update_player_list()
 	token_manager.setup_player_token_indicators()
+
+	# Request initial cards if client hasn't received any yet
+	if !multiplayer.is_server() and game_started:
+		var local_id = multiplayer.get_unique_id()
+		if !player_hands.has(local_id) or player_hands[local_id].size() == 0:
+			card_manager.rpc_id(1, "request_initial_cards")
 
 @rpc("any_peer", "call_local")
 func sync_game_start(current_players):
@@ -94,7 +107,7 @@ func sync_turn_state(new_turn_index: int):
 
 @rpc("any_peer", "call_local")
 func sync_token_blight(token_position: Vector3, is_blighted: bool):
-	# Forward to token manager
+	# Forward to token manager to handle the actual state change
 	token_manager.sync_token_blight(token_position, is_blighted)
 
 @rpc("any_peer")
@@ -109,6 +122,7 @@ func request_token_refresh():
 @rpc("any_peer", "call_local")
 func sync_card_played(card_data: Dictionary, slot_index: int, location_name: String, player_id: int):
 	card_manager.sync_card_played(card_data, slot_index, location_name, player_id)
+
 
 @rpc("any_peer", "call_local")
 func sync_draw_card(card_data: Dictionary):
@@ -125,6 +139,27 @@ func request_hand_resync():
 @rpc("any_peer")
 func request_card_placement(card_data: Dictionary, slot_index: int, location_name: String, player_id: int):
 	card_manager.request_card_placement(card_data, slot_index, location_name, player_id)
+
+@rpc("any_peer")
+func request_game_state_sync(requesting_peer_id):
+	if !multiplayer.is_server():
+		return
+		
+	var actual_requesting_peer = multiplayer.get_remote_sender_id()
+	print("Client ", actual_requesting_peer, " requested game state sync")
+	
+	# Send full game state to the requesting client
+	rpc_id(actual_requesting_peer, "sync_game_state", players, game_started, card_manager.placed_cards, player_hands)
+	
+	# Also send turn state
+	rpc_id(actual_requesting_peer, "sync_turn_state", game_state_manager.current_turn_index)
+	
+	# If game is started, make sure client has cards
+	if game_started and player_hands.has(actual_requesting_peer):
+		var cards_data = []
+		for card in player_hands[actual_requesting_peer]:
+			cards_data.append(card.to_dictionary())
+		rpc_id(actual_requesting_peer, "receive_initial_hand", cards_data)
 
 @rpc("any_peer")
 func request_draw_card(is_action: bool):

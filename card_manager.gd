@@ -5,6 +5,7 @@ extends Node
 # References to other managers
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 @onready var game = get_parent()
+@onready var sigil_manager = $"../SigilManager"
 @onready var token_manager = $"../TokenManager"
 @onready var network_manager = $"../NetworkManager"
 @onready var game_state_manager = $"../GameStateManager" 
@@ -20,15 +21,17 @@ extends Node
 @onready var action_area
 @onready var area_zone
 
-const MAX_ACTION_CARDS = 2
-const MAX_AREA_CARDS = 2
+const MAX_ACTION_CARDS = 3
+const MAX_AREA_CARDS = 1
+const INITIAL_ACTION_CARDS = 2
+const INITIAL_AREA_CARDS = 0
 
 var deck: Array[CardResource] = [] # Structure to track placed cards
 var placed_cards = []  # Array of dictionaries containing placement info
 
 const INITIAL_HAND_SIZE = {
-	"action": 2,  # Adjust these numbers as needed
-	"area": 2
+	"action": 0,  # Adjust these numbers as needed
+	"area": 0
 }
 
 # Make sure these are consistent with the card types in CardResource
@@ -37,8 +40,7 @@ const CARD_TYPES = {
 	"AREA": 1
 }
 
-const INITIAL_ACTION_CARDS = 2
-const INITIAL_AREA_CARDS = 2
+var active_card 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization
@@ -138,9 +140,21 @@ func distribute_initial_hand():
 			drawn_cards.append(card)
 			game.player_hands[host_id].append(card)
 			player_hand.draw(card)
+			
+	# Ensure the hand is synced with the game state
+	player_hand.sync_with_game_state()
 
+# Modify the distribute_initial_hand_to_client function
 func distribute_initial_hand_to_client(peer_id: int):
 	if !multiplayer.is_server():
+		return
+	
+	print("distribute_initial_hand_to_client called for peer_id: ", peer_id)
+	var host_id = multiplayer.get_unique_id()
+	
+	# Skip if this is the host ID
+	if peer_id == host_id:
+		print("Skipping distribute_initial_hand_to_client for host")
 		return
 	
 	# Clear any existing hand data first
@@ -158,6 +172,7 @@ func distribute_initial_hand_to_client(peer_id: int):
 		var card = action_deck.draw_card()
 		if card:
 			if !is_card_duplicate(cards_data, card):
+				# ONLY add to server's tracking of client's hand
 				game.player_hands[peer_id].append(card)
 				cards_data.append(card.to_dictionary())
 				action_count += 1
@@ -167,6 +182,7 @@ func distribute_initial_hand_to_client(peer_id: int):
 		var card = area_deck.draw_card()
 		if card:
 			if !is_card_duplicate(cards_data, card):
+				# ONLY add to server's tracking of client's hand
 				game.player_hands[peer_id].append(card)
 				cards_data.append(card.to_dictionary())
 				area_count += 1
@@ -175,6 +191,10 @@ func distribute_initial_hand_to_client(peer_id: int):
 	if cards_data.size() == (INITIAL_ACTION_CARDS + INITIAL_AREA_CARDS):
 		print("Sending initial hand to client ", peer_id, ": ", cards_data.size(), " cards")
 		get_parent().rpc_id(peer_id, "receive_initial_hand", cards_data)
+		
+		# Re-sync host's hand after giving cards to client
+		if player_hand and player_hand.has_method("sync_with_game_state"):
+			player_hand.sync_with_game_state()
 
 func is_card_in_array(card: CardResource, array: Array) -> bool:
 	for existing_card in array:
@@ -200,6 +220,8 @@ func receive_initial_hand(cards_data: Array):
 	if multiplayer.is_server():
 		return
 	
+	print("Client received initial hand with ", cards_data.size(), " cards")
+	
 	# Clear existing hand completely first
 	player_hand.clear_hand()
 	
@@ -224,13 +246,38 @@ func receive_initial_hand(cards_data: Array):
 				player_hand.draw(card_resource)
 				area_count += 1
 	
+	# Add to local tracking for clients
+	var local_id = multiplayer.get_unique_id()
+	if !game.player_hands.has(local_id):
+		game.player_hands[local_id] = []
+	else:
+		game.player_hands[local_id].clear()
+	
+	# Copy cards to local tracking
+	for card in player_hand.card_resources:
+		game.player_hands[local_id].append(card)
+	
 	print("Received initial hand: ", player_hand.card_resources.size(), " cards")
 	print("Action cards: ", action_count, ", Area cards: ", area_count)
+	print("Local tracking updated, player_hands size: ", game.player_hands.size())
 
 @rpc("any_peer")
 func request_initial_cards():
 	if multiplayer.is_server():
-		distribute_initial_hand_to_client(multiplayer.get_remote_sender_id())
+		var requesting_peer = multiplayer.get_remote_sender_id()
+		print("Client ", requesting_peer, " requested initial cards")
+		
+		# Check if this player already has cards tracked on the server
+		if game.player_hands.has(requesting_peer) and game.player_hands[requesting_peer].size() > 0:
+			print("Using existing cards for client ", requesting_peer)
+			var cards_data = []
+			for card in game.player_hands[requesting_peer]:
+				cards_data.append(card.to_dictionary())
+			get_parent().rpc_id(requesting_peer, "receive_initial_hand", cards_data)
+		else:
+			# Distribute new cards
+			print("Distributing new cards to client ", requesting_peer)
+			distribute_initial_hand_to_client(requesting_peer)
 
 @rpc("any_peer", "call_local")
 func sync_card_played(card_data: Dictionary, slot_index: int, location_name: String, player_id: int) -> void:
@@ -340,12 +387,16 @@ func sync_draw_card(card_data: Dictionary) -> void:
 	var current_player = players[current_turn_index]
 	var local_id = multiplayer.get_unique_id()
 	
+	print("sync_draw_card called for player: ", local_id, ", current player turn: ", current_player)
+	
 	if local_id != current_player:
+		print("Not my turn to draw, ignoring card sync")
 		return
 	
 	# Prevent duplicate draws
 	for existing_card in player_hand.card_resources:
 		if existing_card.card_name == card_data.card_name:
+			print("Duplicate card detected in sync_draw_card, ignoring: ", card_data.card_name)
 			return
 	
 	var card_resource = CardResource.new()
@@ -373,6 +424,7 @@ func request_draw_card(is_action: bool):
 	
 	var max_count = MAX_ACTION_CARDS if is_action else MAX_AREA_CARDS
 	if current_count >= max_count:
+		print("Max cards of type ", (CardResource.CardType.ACTION if is_action else CardResource.CardType.AREA), " reached")
 		return
 		
 	var deck = action_deck if is_action else area_deck
@@ -552,3 +604,23 @@ func print_hand_debug():
 	print("Cards in hand: ", player_hand.get_card_count())
 	print("Card resources: ", player_hand.card_resources.size())
 	print("=================\n")
+
+
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ---        Card Effects      ---
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+func unblight_card_effect():
+	print("unblight card effect")
+	token_manager._on_unblight_token()
+
+func take_off_card_effect():
+	print("take off card effect")
+	token_manager._on_take_off_energy()
+
+func refresh_energy_card_effect():
+	print("refresh energy card effect")
+	token_manager._on_refresh_energy()
+
+func swap_energy_card_effect():
+	print("swap energy card effect")
+	token_manager._on_swap_energy()
