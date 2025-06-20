@@ -324,8 +324,63 @@ func set_current_turn(player_id: int):
 	update_turn_controls()
 	debug_turn_state()
 	
+	if player_id == multiplayer.get_unique_id():
+		print("My turn started, requesting token sync")
+		request_complete_token_sync()
+	
 	print("Current turn index set to: " + str(current_turn_index) + 
 		  " (Player " + str(game.players[current_turn_index]) + ")")
+
+@rpc("any_peer")
+func request_complete_token_sync():
+	var requester_id = multiplayer.get_remote_sender_id()
+	if requester_id == 0:  # Local call
+		requester_id = multiplayer.get_unique_id()
+	
+	if multiplayer.is_server():
+		print("Received request for complete token sync from player ", requester_id)
+		# Send full sync just to the requesting player
+		sync_complete_token_state_for_player(requester_id)
+	else:
+		# Client is requesting, so send to server
+		rpc_id(1, "request_complete_token_sync")
+
+func sync_complete_token_state_for_player(player_id: int):
+	if !multiplayer.is_server():
+		return
+	
+	print("Syncing complete token state to player ", player_id)
+	
+	# Similar to sync_complete_token_state but targeted to a specific player
+	var players = get_parent().players
+	for pid in players:
+		var tokens = token_manager.get_player_tokens(pid)
+		rpc_id(player_id, "sync_player_tokens", tokens, pid)
+	
+	# Placement data
+	var placement_data = []
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if placement.is_occupied:
+			placement_data.append({
+				"position": placement.global_position,
+				"occupied": true
+			})
+	
+	# Token data
+	var token_data = []
+	for token in get_parent().get_node("Tokens").get_children():
+		token_data.append({
+			"position": token.global_position,
+			"biome": token.biome_type,
+			"owner": token.owner_id,
+			"is_energy": token.is_energy,
+			"is_blighted": token.is_blighted
+		})
+	
+	# Send targeted sync
+	rpc_id(player_id, "receive_complete_token_state", placement_data, token_data)
+
+
 
 func enable_player_turn():
 	var player_hand = get_parent().get_node("HandAreas/PlayerHand")
@@ -442,8 +497,12 @@ func _on_end_turn_pressed():
 		if point_counter:
 			point_counter.set_buttons_enabled(false)
 	
+	
+	
 	if multiplayer.is_server():
 		next_turn()
+		 # Force sync before processing turn change
+		token_manager.sync_complete_token_state()
 	else:
 		# Client requests turn end
 		get_parent().rpc_id(1, "request_next_turn")
