@@ -801,9 +801,9 @@ func _on_token_selected():
 		# Unhighlight all placements when deselecting
 		unhighlight_all_token_placements()
 	
-	if is_plant_extra: 
-		$"../RightUI/TokenButton".disabled = true
-		is_plant_extra = false 
+	#if is_plant_extra: 
+		#$"../RightUI/TokenButton".disabled = true
+		#is_plant_extra = false 
 	
 	# Update UI to show selection state
 	update_token_ui()
@@ -984,7 +984,13 @@ func reset_turn_token_counters(player_id: int):
 	
 	# Reset the placement type flags
 	can_plant_on_sigil = true
-	can_plant_on_biome = true
+	can_plant_on_biome = false  # Start with only sigil planting enabled
+	
+	# Reset card effect flags
+	is_plant_extra = false
+	
+	# Reset max tokens per turn to default
+	max_tokens_per_turn = 2
 	
 	# Update UI to reflect new state
 	update_token_ui()
