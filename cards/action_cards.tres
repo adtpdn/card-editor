@@ -8,6 +8,18 @@
 [ext_resource type="Resource" uid="uid://nk1emmfrhnqn" path="res://cards/action_swap_energy_1.tres" id="6_r4bn5"]
 [ext_resource type="Resource" uid="uid://ry0bcq5phfq2" path="res://cards/action_unblight_1.tres" id="8_6j46m"]
 
+[sub_resource type="Resource" id="Resource_bf4j5"]
+script = ExtResource("1_kdq4i")
+card_name = "Justice"
+card_type = 0
+cost_to_draw = 1
+effect1 = ""
+effect2 = ""
+revealed = true
+tex3D_path = "res://assets/cards/action_card_08.png"
+image_path = "res://assets/cards/2D/tile008.png"
+
+
 [resource]
 script = ExtResource("2_prun6")
 cards = Array[ExtResource("1_kdq4i")]([ExtResource("8_6j46m"), ExtResource("8_6j46m"), ExtResource("3_bitgn"), ExtResource("3_bitgn"), ExtResource("4_xdpuw"), ExtResource("4_xdpuw"), ExtResource("5_6j46m"), ExtResource("5_6j46m"), ExtResource("6_r4bn5"), ExtResource("6_r4bn5")])
