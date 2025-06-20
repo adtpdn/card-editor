@@ -47,6 +47,7 @@ var is_take_off_mode := false
 var is_unblight_mode := false
 var is_refresh_energy_mode := false
 var is_swap_energy_mode := false  
+var is_plant_extra := false
 
 var first_swap_token = null  
 
@@ -793,12 +794,16 @@ func _on_token_selected():
 				# If second token (planting on biome) and this is a biome location
 				elif tokens_planted_this_turn[player_id] == 1 and placement.place_id != -1:
 					placement.set_highlight(true)
-				# If card effect allows extra token anywhere
-				elif tokens_planted_this_turn[player_id] >= 2 and can_plant_on_sigil and can_plant_on_biome:
+				# If this is an extra token (from card effect) and both sigil and biome are enabled
+				elif tokens_planted_this_turn[player_id] >= 2 and is_plant_extra:
 					placement.set_highlight(true)
 	else:
 		# Unhighlight all placements when deselecting
 		unhighlight_all_token_placements()
+	
+	if is_plant_extra: 
+		$"../RightUI/TokenButton".disabled = true
+		is_plant_extra = false 
 	
 	# Update UI to show selection state
 	update_token_ui()
@@ -1028,22 +1033,36 @@ func _on_swap_energy():
 	update_token_ui()
 
 func _on_plant_extra_token():
-	print("plant extra token card effect")
-	# Temporarily increase max tokens for current player
+	print("Plant extra token card effect activated")
 	var player_id = multiplayer.get_unique_id()
 	
-	# Re-enable placement options
-	can_plant_on_sigil = true
-	can_plant_on_biome = true
+	# Temporarily increase max tokens per turn by 1
+	max_tokens_per_turn += 1
+	print("Max tokens per turn increased to: " + str(max_tokens_per_turn))
 	
-	# Update UI to show token button as active again
+	# Set the plant extra flag
+	is_plant_extra = true
+	
+	# Reset token selection state
+	is_token_selected = false
+	unhighlight_all_token_placements()
+	
+	# If the player has already placed tokens this turn,
+	# make sure we enable both sigil and biome placement
+	if tokens_planted_this_turn.get(player_id, 0) > 0:
+		can_plant_on_sigil = true
+		can_plant_on_biome = true
+	
+	# Update UI to show token button as active
 	update_token_ui()
 	
-	# Highlight available placement locations if in token selection mode
-	if is_token_selected:
-		for placement in get_parent().get_node("TokenPlacements").get_children():
-			if !placement.is_occupied:
-				placement.set_highlight(true)
+	
+	# If the token button was disabled due to reaching max tokens,
+	# we need to re-enable it now
+	var token_button = get_parent().get_node("RightUI/TokenButton")
+	if token_button and token_button.disabled:
+		if tokens_planted_this_turn.get(player_id, 0) < max_tokens_per_turn:
+			token_button.disabled = false
 
 @rpc("any_peer")
 func request_take_off_energy(token_position: Vector3):
