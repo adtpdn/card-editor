@@ -649,7 +649,7 @@ func update_token_ui():
 	# For the host in server mode, always allow token placement
 	var is_my_turn = false
 	if multiplayer.is_server() && get_parent().game_started:
-		is_my_turn = true
+		is_my_turn = game_state_manager.is_valid_player_turn(player_id)
 	else:
 		is_my_turn = game_state_manager.is_valid_player_turn(player_id)
 	
@@ -682,7 +682,8 @@ func update_token_ui():
 	print("Token UI updated - Button disabled: " + str(token_button.disabled) + 
 		  ", Is my turn: " + str(is_my_turn) + 
 		  ", Token count: " + str(token_count) +
-		  ", Tokens planted this turn: " + str(tokens_planted_this_turn[player_id]))
+		  ", Tokens planted this turn: " + str(tokens_planted_this_turn[player_id]) +
+		  ", Max tokens reached: " + str(max_tokens_reached))
 
 func update_token_indicators():
 	var player_token_indicators = get_parent().get_node("RightUI/PlayerTokenIndicators")
@@ -948,14 +949,17 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	# Update token planting state
 	tokens_planted_this_turn[player_id] += 1
 	
+	# Check if player has reached max tokens
+	var max_tokens_reached = tokens_planted_this_turn[player_id] >= max_tokens_per_turn
+	
 	# Update planting permissions based on what was just planted
 	if tokens_planted_this_turn[player_id] == 1:
 		# First token placed, enable biome locations for second token
 		can_plant_on_sigil = false
 		can_plant_on_biome = true
 		print("First token placed on sigil. Now can plant on biome.")
-	elif tokens_planted_this_turn[player_id] == 2:
-		# Second token placed, disable all planting until next turn
+	elif tokens_planted_this_turn[player_id] == 2 || max_tokens_reached:
+		# Second token placed or max tokens reached, disable all planting until next turn
 		can_plant_on_sigil = false
 		can_plant_on_biome = false
 		print("Second token placed on biome. No more planting this turn.")
@@ -964,13 +968,13 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	is_token_selected = false
 	unhighlight_all_token_placements()
 	
-	# Update UI for the current player
-	var local_id = multiplayer.get_unique_id()
-	var players = get_parent().players
-	var current_turn_index = get_parent().game_state_manager.current_turn_index
-	
-	if local_id == players[current_turn_index]:
-		update_token_ui()
+	# Update UI for all players to ensure token button state is correctly updated
+	if multiplayer.is_server():
+		for pid in get_parent().players:
+			if pid == multiplayer.get_unique_id():
+				update_token_ui()  # Direct call for server
+			else:
+				rpc_id(pid, "update_token_ui_remote")  # RPC for clients
 	
 	# After placing the token, update the saved count
 	if multiplayer.is_server():
@@ -992,8 +996,33 @@ func reset_turn_token_counters(player_id: int):
 	# Reset max tokens per turn to default
 	max_tokens_per_turn = 2
 	
+	# Sync state to all clients if we're the server
+	if multiplayer.is_server():
+		rpc("sync_token_planting_state", player_id, 0, true, false, 2)
+	
 	# Update UI to reflect new state
 	update_token_ui()
+
+@rpc("any_peer", "call_local")
+func update_token_ui_remote():
+	update_token_ui()
+
+@rpc("any_peer", "call_local") 
+func sync_token_planting_state(player_id: int, tokens_planted: int, can_place_sigil: bool, can_place_biome: bool, max_tokens: int):
+	# Only update for the current player
+	if player_id == multiplayer.get_unique_id():
+		tokens_planted_this_turn[player_id] = tokens_planted
+		can_plant_on_sigil = can_place_sigil
+		can_plant_on_biome = can_place_biome
+		max_tokens_per_turn = max_tokens
+		
+		# Update UI immediately
+		update_token_ui()
+		
+		print("Synced token planting state: tokens_planted=", tokens_planted, 
+			  ", can_plant_on_sigil=", can_place_sigil, 
+			  ", can_plant_on_biome=", can_place_biome,
+			  ", max_tokens_per_turn=", max_tokens)
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---       Card Effects       ---
@@ -1049,26 +1078,44 @@ func _on_plant_extra_token():
 	# Set the plant extra flag
 	is_plant_extra = true
 	
-	# Reset token selection state
-	is_token_selected = false
-	unhighlight_all_token_placements()
+	# Enable placing on both sigil and biome locations
+	can_plant_on_sigil = true
+	can_plant_on_biome = true
 	
-	# If the player has already placed tokens this turn,
-	# make sure we enable both sigil and biome placement
-	if tokens_planted_this_turn.get(player_id, 0) > 0:
-		can_plant_on_sigil = true
-		can_plant_on_biome = true
+	# Sync changes to all clients if we're the server
+	if multiplayer.is_server():
+		rpc("sync_token_planting_state", player_id, tokens_planted_this_turn.get(player_id, 0), 
+			true, true, max_tokens_per_turn)
+	else:
+		# Request server to sync our changes
+		rpc_id(1, "request_token_planting_state_update", player_id, true, true, max_tokens_per_turn)
 	
 	# Update UI to show token button as active
 	update_token_ui()
+
+@rpc("any_peer")
+func request_token_planting_state_update(player_id: int, can_place_sigil: bool, can_place_biome: bool, max_tokens: int):
+	if !multiplayer.is_server():
+		return
 	
+	var requesting_player = multiplayer.get_remote_sender_id()
+	if requesting_player != player_id:
+		return  # Only allow players to update their own state
 	
-	# If the token button was disabled due to reaching max tokens,
-	# we need to re-enable it now
-	var token_button = get_parent().get_node("RightUI/TokenButton")
-	if token_button and token_button.disabled:
-		if tokens_planted_this_turn.get(player_id, 0) < max_tokens_per_turn:
-			token_button.disabled = false
+	# Update server's state
+	if tokens_planted_this_turn.has(player_id):
+		tokens_planted_this_turn[player_id] = tokens_planted_this_turn[player_id]  # Keep current value
+	else:
+		tokens_planted_this_turn[player_id] = 0
+	
+	# Update flags
+	can_plant_on_sigil = can_place_sigil
+	can_plant_on_biome = can_place_biome
+	max_tokens_per_turn = max_tokens
+	
+	# Sync to all clients
+	rpc("sync_token_planting_state", player_id, tokens_planted_this_turn[player_id], 
+		can_place_sigil, can_place_biome, max_tokens)
 
 @rpc("any_peer")
 func request_take_off_energy(token_position: Vector3):
