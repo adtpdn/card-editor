@@ -379,6 +379,11 @@ func next_turn():
 		var current_player = players[current_turn_index]
 		token_manager.save_player_token_count(current_player)
 		
+		# Reset token counters for the previous player
+		var previous_player = players[current_turn_index]
+		var token_manager = get_parent().get_node("TokenManager")
+		token_manager.reset_turn_token_counters(previous_player)
+		
 		# Advance to next player
 		current_turn_index = (current_turn_index + 1) % players.size()
 		var next_player = players[current_turn_index]

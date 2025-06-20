@@ -624,3 +624,7 @@ func refresh_energy_card_effect():
 func swap_energy_card_effect():
 	print("swap energy card effect")
 	token_manager._on_swap_energy()
+
+func plant_extra_card_effect():
+	print("plant extra token card effect")
+	token_manager._on_plant_extra_token()

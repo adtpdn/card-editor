@@ -76,6 +76,11 @@ const BIOME_COLORS = {
 # Signal declarations
 signal token_placed(player_id: int, biome: BiomeType, location: Vector3)
 
+var tokens_planted_this_turn = {}  # Track tokens planted per player per turn
+var can_plant_on_sigil = true     # Track if player can still plant in sigil locations (place_id == -1)
+var can_plant_on_biome = true     # Track if player can still plant in biome locations (place_id != -1)
+var max_tokens_per_turn = 2       # Maximum tokens allowed per turn
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization
@@ -165,6 +170,34 @@ func handle_touch(position: Vector2):
 	
 	if result:
 		var collider = result["collider"]
+		
+		# If token selection mode is active, check if we're clicking on a valid token placement
+		if is_token_selected:
+			# Find the placement at this position
+			var placement = get_token_placement_at_position(result["position"])
+			if placement:
+				# Check if the placement is highlighted (valid for current phase)
+				if !placement.is_highlighted:
+					print("Cannot place token here - not a valid placement location for current phase")
+					return
+				
+				# Handle token placement at this valid location
+				if placement.is_occupied:
+					print("Location already occupied")
+					return
+				
+				# Place token at this location
+				var token_index = selected_token_index if selected_token_index >= 0 else 0
+				
+				if multiplayer.is_server():
+					request_token_placement(token_index, placement.global_position, placement.accepted_biome)
+				else:
+					rpc_id(1, "request_token_placement", token_index, placement.global_position, placement.accepted_biome)
+				
+				# Reset selection state
+				is_token_selected = false
+				unhighlight_all_token_placements()
+				return
 
 		# Find the token at this position with improved detection
 		var found_token = collider.get_parent().get_parent()
@@ -178,7 +211,6 @@ func handle_touch(position: Vector2):
 				sigil_manager.signal_other_player_token.emit()
 
 			## Card Effects
-			
 			var active_card = card_manager.active_card
 			if active_card != null:
 				print("card active : ", active_card.card_resource.card_name)
@@ -253,7 +285,8 @@ func handle_touch(position: Vector2):
 								first_swap_token = null
 								is_swap_energy_mode = false
 				
-			
+				
+				
 			found_token = null
 			# Always unhighlight after any token action
 			unhighlight_all_token_placements()
@@ -623,14 +656,21 @@ func update_token_ui():
 	var tokens = get_player_tokens(player_id)
 	var token_count = tokens.size()
 	
+	# Check tokens planted this turn
+	if !tokens_planted_this_turn.has(player_id):
+		tokens_planted_this_turn[player_id] = 0
+	
+	# Check if player has reached max tokens for this turn
+	var max_tokens_reached = tokens_planted_this_turn[player_id] >= max_tokens_per_turn
+	
 	# Update button text with current token count
 	token_button.text = "Tokens: " + str(token_count)
 	
 	# Token button is always visible for local player
 	token_button.visible = true
 	
-	# But only enabled during their turn and if they have tokens
-	token_button.disabled = !is_my_turn || token_count <= 0
+	# But only enabled during their turn, if they have tokens, and haven't reached max tokens
+	token_button.disabled = !is_my_turn || token_count <= 0 || max_tokens_reached
 	
 	# Visual feedback for selection state
 	if is_token_selected:
@@ -640,7 +680,8 @@ func update_token_ui():
 	
 	print("Token UI updated - Button disabled: " + str(token_button.disabled) + 
 		  ", Is my turn: " + str(is_my_turn) + 
-		  ", Token count: " + str(token_count))
+		  ", Token count: " + str(token_count) +
+		  ", Tokens planted this turn: " + str(tokens_planted_this_turn[player_id]))
 
 func update_token_indicators():
 	var player_token_indicators = get_parent().get_node("RightUI/PlayerTokenIndicators")
@@ -720,17 +761,43 @@ func _on_token_selected():
 	
 	last_token_selection_time = current_time
 	
+	# Initialize tokens planted counter for this player if needed
+	if !tokens_planted_this_turn.has(player_id):
+		tokens_planted_this_turn[player_id] = 0
+		can_plant_on_sigil = true
+		can_plant_on_biome = false  # Start with only sigil planting enabled
+	
+	# Check if player has already planted the maximum tokens this turn
+	if tokens_planted_this_turn[player_id] >= max_tokens_per_turn:
+		print("Maximum tokens for this turn already planted!")
+		is_token_selected = false
+		update_token_ui()
+		return
+	
 	# Toggle selection state
 	is_token_selected = !is_token_selected
 	print("Token selection mode: " + str(is_token_selected))
 	
 	if is_token_selected:
-		# Highlight all unoccupied placement locations
+		print("Can plant on sigil: " + str(can_plant_on_sigil) + ", Can plant on biome: " + str(can_plant_on_biome))
+		
+		# First unhighlight all placements to ensure clean state
+		unhighlight_all_token_placements()
+		
+		# Then highlight ONLY valid placements based on current planting phase
 		for placement in get_parent().get_node("TokenPlacements").get_children():
 			if !placement.is_occupied:
-				placement.set_highlight(true)
+				# If first token (planting on sigil) and this is a sigil location
+				if tokens_planted_this_turn[player_id] == 0 and placement.place_id == -1:
+					placement.set_highlight(true)
+				# If second token (planting on biome) and this is a biome location
+				elif tokens_planted_this_turn[player_id] == 1 and placement.place_id != -1:
+					placement.set_highlight(true)
+				# If card effect allows extra token anywhere
+				elif tokens_planted_this_turn[player_id] >= 2 and can_plant_on_sigil and can_plant_on_biome:
+					placement.set_highlight(true)
 	else:
-		# Unhighlight all placements
+		# Unhighlight all placements when deselecting
 		unhighlight_all_token_placements()
 	
 	# Update UI to show selection state
@@ -826,6 +893,30 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	if placement.is_occupied:
 		return
 	
+	# Initialize tokens planted counter for this player if needed
+	if !tokens_planted_this_turn.has(player_id):
+		tokens_planted_this_turn[player_id] = 0
+		can_plant_on_sigil = true
+		can_plant_on_biome = false
+	
+	# Validate that the placement is a valid location for current planting phase
+	var is_valid_placement = false
+	
+	# First token must be on sigil location
+	if tokens_planted_this_turn[player_id] == 0 and placement.place_id == -1:
+		is_valid_placement = true
+	# Second token must be on biome location
+	elif tokens_planted_this_turn[player_id] == 1 and placement.place_id != -1:
+		is_valid_placement = true
+	# Extra token from card effect can be on either type if both flags are enabled
+	elif tokens_planted_this_turn[player_id] >= 2 and can_plant_on_sigil and can_plant_on_biome:
+		is_valid_placement = true
+	
+	# If not a valid placement, exit
+	if !is_valid_placement:
+		print("Invalid placement location for current planting phase")
+		return
+	
 	# Create and place the token
 	var token = token_scene.instantiate()
 	get_parent().get_node("Tokens").add_child(token, true)
@@ -833,7 +924,7 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	# Convert types explicitly
 	var biome_type = int(token_data.biome) if token_data.has("biome") else placement.accepted_biome
 	
-	# Check if this is an energy placement (magic token placement)
+	# Determine if this is an energy placement
 	var placement_index = placement.get_index()
 	var is_energy = placement_index < 28  # First 28 placements are energy placements
 	print("Placing token at index ", placement_index, ", is_energy: ", is_energy)
@@ -847,13 +938,28 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	
 	# Mark placement as occupied and store token reference
 	placement.set_occupied(true)
-	placement.current_token = token  # Store reference to the token
+	placement.current_token = token
+	
+	# Update token planting state
+	tokens_planted_this_turn[player_id] += 1
+	
+	# Update planting permissions based on what was just planted
+	if tokens_planted_this_turn[player_id] == 1:
+		# First token placed, enable biome locations for second token
+		can_plant_on_sigil = false
+		can_plant_on_biome = true
+		print("First token placed on sigil. Now can plant on biome.")
+	elif tokens_planted_this_turn[player_id] == 2:
+		# Second token placed, disable all planting until next turn
+		can_plant_on_sigil = false
+		can_plant_on_biome = false
+		print("Second token placed on biome. No more planting this turn.")
 	
 	# Reset selection state
 	is_token_selected = false
 	unhighlight_all_token_placements()
 	
-	# Update UI for the current player regardless of host/client status
+	# Update UI for the current player
 	var local_id = multiplayer.get_unique_id()
 	var players = get_parent().players
 	var current_turn_index = get_parent().game_state_manager.current_turn_index
@@ -865,6 +971,18 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	if multiplayer.is_server():
 		var updated_tokens = get_player_tokens(player_id)
 		player_token_counts[player_id] = updated_tokens.size()
+
+func reset_turn_token_counters(player_id: int):
+	# Reset the tokens planted counter for this player
+	if tokens_planted_this_turn.has(player_id):
+		tokens_planted_this_turn[player_id] = 0
+	
+	# Reset the placement type flags
+	can_plant_on_sigil = true
+	can_plant_on_biome = true
+	
+	# Update UI to reflect new state
+	update_token_ui()
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---       Card Effects       ---
@@ -908,6 +1026,24 @@ func _on_swap_energy():
 	is_token_selected = false
 	unhighlight_all_token_placements()
 	update_token_ui()
+
+func _on_plant_extra_token():
+	print("plant extra token card effect")
+	# Temporarily increase max tokens for current player
+	var player_id = multiplayer.get_unique_id()
+	
+	# Re-enable placement options
+	can_plant_on_sigil = true
+	can_plant_on_biome = true
+	
+	# Update UI to show token button as active again
+	update_token_ui()
+	
+	# Highlight available placement locations if in token selection mode
+	if is_token_selected:
+		for placement in get_parent().get_node("TokenPlacements").get_children():
+			if !placement.is_occupied:
+				placement.set_highlight(true)
 
 @rpc("any_peer")
 func request_take_off_energy(token_position: Vector3):
