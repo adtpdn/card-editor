@@ -2,6 +2,20 @@
 class_name TokenManager
 extends Node
 
+# TOKEN MANAGER SECTIONS:
+# - References & Constants
+# - Variables & State Management 
+# - Initialization & Setup
+# - Token Management
+# - Placement & Selection
+# - Token Placement Generation
+# - UI Management
+# - Turn Management
+# - Card Effects
+# - Card Effect Implementation
+# - Network Synchronization
+# - Helper Functions
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # References to other managers
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -84,7 +98,7 @@ var max_tokens_per_turn = 2       # Maximum tokens allowed per turn
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Initialization
+# Initialization & Setup
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 func _ready():
 	# Create the borders node first if not already present
@@ -101,7 +115,6 @@ func _ready():
 		if token_button.pressed.is_connected(_on_token_selected):
 			token_button.pressed.disconnect(_on_token_selected)
 		token_button.pressed.connect(_on_token_selected)
-
 
 # Main initialization function that can be called from game.gd
 func initialize():
@@ -128,11 +141,286 @@ func initialize():
 		
 	print("TokenManager initialized.")
 
+func setup_token_placements():
+	# Only set up if not already set up
+	if get_parent().get_node("TokenPlacements").get_child_count() > 0:
+		return
+	
+	await get_parent().ready
+	await get_tree().process_frame
+	
+	var token_placement_scene = preload("res://token_placement_location.tscn")
+	
+	# Clear existing placements
+	for child in get_parent().get_node("TokenPlacements").get_children():
+		child.queue_free()
+	
+	var placements_per_biome = {}
+	
+	# Initialize counters for each biome
+	for biome in biome_assignments.keys():
+		placements_per_biome[biome] = 0
+	
+	# Create placements for each biome
+	for biome in biome_assignments.keys():
+		var slice_indices = biome_assignments[biome]
+		
+		# Calculate start and end angles for the entire biome section
+		var start_angle = slice_indices[0] * PI / 4
+		var end_angle = (slice_indices[1] + 1) * PI / 4
+		
+		# Generate positions for this biome section
+		var positions = _generate_slice_positions(
+			radius,
+			start_angle,
+			end_angle
+		)
+		
+		# Create token placements
+		for pos in positions:
+			var token_placement = token_placement_scene.instantiate()
+			token_placement.accepted_biome = biome
+			get_parent().get_node("TokenPlacements").add_child(token_placement, true)
+			token_placement.global_position = pos
+			placements_per_biome[biome] += 1
+	
+	# Set the first 28 token placements as energy placements
+	# We need to determine how many per biome (e.g., 7 per biome for 4 biomes)
+	var energy_count = 0
+	var energy_per_biome = 7  # 7 per biome x 4 biomes = 28 total
+	
+	# Iterate through all placements
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		# Check if we've already marked enough energy placements for this biome
+		var biome_energy_count = 0
+		for check_placement in get_parent().get_node("TokenPlacements").get_children():
+			if check_placement.accepted_biome == placement.accepted_biome and check_placement.is_energy:
+				biome_energy_count += 1
+		
+		# If we haven't reached the limit for this biome and total energy count is under 28
+		if biome_energy_count < energy_per_biome and energy_count < 28:
+			placement.set_energy_placement(true)
+			energy_count += 1
+		else:
+			placement.set_energy_placement(false)
+
+func setup_biome_borders():
+	var material = StandardMaterial3D.new()
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	
+	# Create octagonal border for each biome region
+	for biome in biome_assignments.keys():
+		var slice_indices = biome_assignments[biome]
+		
+		for slice_idx in slice_indices:
+			var start_angle = slice_idx * PI / 4
+			var points = []
+			
+			# Create border mesh
+			var surface_tool = SurfaceTool.new()
+			surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+			
+			# Center point
+			var center = Vector3.ZERO
+			
+			# Add vertices for arc
+			var segments = 8
+			var angle_step = PI / (4 * segments)
+			
+			# Create triangles
+			for i in range(segments):
+				var angle1 = start_angle + i * angle_step
+				var angle2 = start_angle + (i + 1) * angle_step
+				
+				var v1 = Vector3(radius * cos(angle1), 0, radius * sin(angle1))
+				var v2 = Vector3(radius * cos(angle2), 0, radius * sin(angle2))
+				
+				# Add triangle (center, v1, v2)
+				surface_tool.add_vertex(center)
+				surface_tool.add_vertex(v1)
+				surface_tool.add_vertex(v2)
+			
+			var mesh_instance = MeshInstance3D.new()
+			mesh_instance.mesh = surface_tool.commit()
+			
+			# Use a neutral color instead of biome color
+			var color = Color(0.7, 0.7, 0.7)  # Light gray
+			color.a = 0.2
+			var region_material = material.duplicate()
+			region_material.albedo_color = color
+			mesh_instance.material_override = region_material
+			
+			# Add to the borders node
+			borders_node.add_child(mesh_instance)
+
+func setup_token_ui():
+	var token_button = get_parent().get_node("RightUI/TokenButton")
+	# Clear any existing connections
+	if token_button.pressed.is_connected(_on_token_selected):
+		token_button.pressed.disconnect(_on_token_selected)
+		
+	# Connect the token selection function
+	token_button.pressed.connect(_on_token_selected)
+	
+	# Initialize the UI state
+	update_token_ui()
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Token Management
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Original functions from your token_manager.gd
+func initialize_player_tokens(player_id: int, force_reset: bool = false):
+	# Check if this is initial setup
+	if !player_tokens.has(player_id) or force_reset:
+		# Clear existing tokens
+		player_tokens[player_id] = []
+		
+		# Add exactly 16 tokens (4 of each biome)
+		for biome in range(BiomeType.size()):
+			for i in range(4):  # 4 tokens per biome
+				player_tokens[player_id].append({
+					"biome": biome
+				})
+		
+		print("Initialized tokens for player ", player_id, " with ", TOKENS_PER_PLAYER, " tokens")
+
+func get_player_tokens(player_id: int) -> Array:
+	if !player_tokens.has(player_id):
+		player_tokens[player_id] = []
+	return player_tokens[player_id].duplicate()
+
+func add_token_to_player(player_id: int, biome_type: int):
+	if !player_tokens.has(player_id):
+		player_tokens[player_id] = []
+	
+	# Create a new token data entry with the appropriate biome
+	player_tokens[player_id].append({
+		"biome": biome_type
+	})
+	
+	# Force update to clients
+	var game = get_tree().get_root().get_node("Game")
+	if game and game.multiplayer.is_server():
+		var tokens = get_player_tokens(player_id)
+		game.rpc_id(player_id, "sync_player_tokens", tokens)
+
+func remove_token(player_id: int, token_index: int):
+	if player_tokens.has(player_id) and token_index >= 0 and token_index < player_tokens[player_id].size():
+		# Remove the token
+		player_tokens[player_id].remove_at(token_index)
+		
+		# Debug output
+		print("Removed token for player ", player_id, 
+			  ", remaining tokens: ", player_tokens[player_id].size())
+		
+		return true
+	return false
+
+func get_placed_tokens_for_player(player_id: int) -> Array:
+	var game = get_tree().get_root().get_node("Game")
+	if !game:
+		return []
+		
+	var placed_tokens = []
+	var tokens_node = game.get_node("Tokens")
+	if tokens_node:
+		for token in tokens_node.get_children():
+			if token.owner_id == player_id:
+				placed_tokens.append(token)
+	
+	return placed_tokens
+
+func can_place_token(player_id: int, token_index: int) -> bool:
+	if not player_tokens.has(player_id) or token_index >= player_tokens[player_id].size():
+		return false
+	return true
+
+func set_player_tokens(player_id: int, tokens: Array):
+	if tokens == null:
+		tokens = []
+	player_tokens[player_id] = tokens.duplicate()
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Placement & Selection
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+func _on_token_selected():
+	print("Token button clicked")
+	
+	var player_id = multiplayer.get_unique_id()
+	if !game_state_manager.is_valid_player_turn(player_id):
+		print("Not your turn!")
+		is_token_selected = false
+		update_token_ui()
+		return
+	
+	var tokens = get_player_tokens(player_id)
+	if tokens.size() <= 0:
+		print("No tokens left!")
+		is_token_selected = false
+		update_token_ui()
+		return
+	
+	var current_time = Time.get_ticks_msec() / 1000.0
+	if current_time - last_token_selection_time < TOKEN_PLACEMENT_COOLDOWN:
+		return
+	
+	last_token_selection_time = current_time
+	
+	# Initialize tokens planted counter for this player if needed
+	if !tokens_planted_this_turn.has(player_id):
+		tokens_planted_this_turn[player_id] = 0
+		can_plant_on_sigil = true
+		can_plant_on_biome = false  # Start with only sigil planting enabled
+	
+	# Check if player has already planted the maximum tokens this turn
+	if tokens_planted_this_turn[player_id] >= max_tokens_per_turn:
+		print("Maximum tokens for this turn already planted!")
+		is_token_selected = false
+		update_token_ui()
+		return
+	
+	# Toggle selection state
+	is_token_selected = !is_token_selected
+	print("Token selection mode: " + str(is_token_selected))
+	
+	if is_token_selected:
+		print("Can plant on sigil: " + str(can_plant_on_sigil) + ", Can plant on biome: " + str(can_plant_on_biome))
+		
+		# First unhighlight all placements to ensure clean state
+		unhighlight_all_token_placements()
+		
+		# Then highlight ONLY valid placements based on current planting phase
+		for placement in get_parent().get_node("TokenPlacements").get_children():
+			if !placement.is_occupied:
+				# If first token (planting on sigil) and this is a sigil location
+				if tokens_planted_this_turn[player_id] == 0 and placement.place_id == -1:
+					placement.set_highlight(true)
+				# If second token (planting on biome) and this is a biome location
+				elif tokens_planted_this_turn[player_id] == 1 and placement.place_id != -1:
+					placement.set_highlight(true)
+				# If this is an extra token (from card effect) and both sigil and biome are enabled
+				elif tokens_planted_this_turn[player_id] >= 2 and is_plant_extra:
+					placement.set_highlight(true)
+	else:
+		# Unhighlight all placements when deselecting
+		unhighlight_all_token_placements()
+	
+	#if is_plant_extra: 
+		#$"../RightUI/TokenButton".disabled = true
+		#is_plant_extra = false 
+	
+	# Update UI to show selection state
+	update_token_ui()
+	debug_token_state()
+
 func _input(event):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		#print("event : ", event)
 		handle_touch(event.position)
-
 
 func handle_touch(position: Vector2):
 	print("Handle touch")
@@ -291,562 +579,6 @@ func handle_touch(position: Vector2):
 			found_token = null
 			# Always unhighlight after any token action
 			unhighlight_all_token_placements()
-
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ---   Player Token Management ---
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-# Original functions from your token_manager.gd
-func initialize_player_tokens(player_id: int, force_reset: bool = false):
-	# Check if this is initial setup
-	if !player_tokens.has(player_id) or force_reset:
-		# Clear existing tokens
-		player_tokens[player_id] = []
-		
-		# Add exactly 16 tokens (4 of each biome)
-		for biome in range(BiomeType.size()):
-			for i in range(4):  # 4 tokens per biome
-				player_tokens[player_id].append({
-					"biome": biome
-				})
-		
-		print("Initialized tokens for player ", player_id, " with ", TOKENS_PER_PLAYER, " tokens")
-
-func get_placed_tokens_for_player(player_id: int) -> Array:
-	var game = get_tree().get_root().get_node("Game")
-	if !game:
-		return []
-		
-	var placed_tokens = []
-	var tokens_node = game.get_node("Tokens")
-	if tokens_node:
-		for token in tokens_node.get_children():
-			if token.owner_id == player_id:
-				placed_tokens.append(token)
-	
-	return placed_tokens
-
-func can_place_token(player_id: int, token_index: int) -> bool:
-	if not player_tokens.has(player_id) or token_index >= player_tokens[player_id].size():
-		return false
-	return true
-
-func remove_token(player_id: int, token_index: int):
-	if player_tokens.has(player_id) and token_index >= 0 and token_index < player_tokens[player_id].size():
-		# Remove the token
-		player_tokens[player_id].remove_at(token_index)
-		
-		# Debug output
-		print("Removed token for player ", player_id, 
-			  ", remaining tokens: ", player_tokens[player_id].size())
-		
-		return true
-	return false
-
-func set_player_tokens(player_id: int, tokens: Array):
-	if tokens == null:
-		tokens = []
-	player_tokens[player_id] = tokens.duplicate()
-
-func get_player_tokens(player_id: int) -> Array:
-	if !player_tokens.has(player_id):
-		player_tokens[player_id] = []
-	return player_tokens[player_id].duplicate()
-
-func add_token_to_player(player_id: int, biome_type: int):
-	if !player_tokens.has(player_id):
-		player_tokens[player_id] = []
-	
-	# Create a new token data entry with the appropriate biome
-	player_tokens[player_id].append({
-		"biome": biome_type
-	})
-	
-	# Force update to clients
-	var game = get_tree().get_root().get_node("Game")
-	if game and game.multiplayer.is_server():
-		var tokens = get_player_tokens(player_id)
-		game.rpc_id(player_id, "sync_player_tokens", tokens)
-
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ---   Token Synchronization  ---
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-@rpc("any_peer", "call_local")
-func sync_existing_tokens(tokens_data: Array):
-	print("")
-	print("Syncing existing tokens: ", tokens_data)
-	
-	# Clear existing tokens first
-	for token in get_parent().get_node("Tokens").get_children():
-		token.queue_free()
-	
-	# Recreate tokens from data
-	for token_info in tokens_data:
-		var token = token_scene.instantiate()
-		get_parent().get_node("Tokens").add_child(token,true)
-		print("token info biome: ", token_info)
-		token.set_token_data(token_info.biome, token_info.type)
-		token.global_position = token_info.position
-		
-		var placement = get_token_placement_at_position(token_info.position)
-		if placement:
-			placement.set_occupied(true)
-
-func sync_existing_game_state(new_peer_id: int):
-	# Sync tokens
-	var tokens_data = []
-	for token in get_parent().get_node("Tokens").get_children():
-		tokens_data.append({
-			"biome": token.biome_type,
-			"type": token.token_type,
-			"position": token.global_position
-		})
-	
-	# Sync occupied locations
-	var occupied_locations = []
-	for placement in get_parent().get_node("TokenPlacements").get_children():
-		if placement.is_occupied:
-			occupied_locations.append(placement.global_position)
-	
-	get_parent().rpc_id(new_peer_id, "receive_game_state", tokens_data, occupied_locations)
-
-@rpc("any_peer", "call_local")
-func receive_game_state(tokens_data: Array, occupied_locations: Array):
-	#print("Receiving game state")
-	
-	# Clear existing tokens
-	for token in get_parent().get_node("Tokens").get_children():
-		token.queue_free()
-	
-	# Recreate tokens
-	for token_info in tokens_data:
-		var token = token_scene.instantiate()
-		get_parent().get_node("Tokens").add_child(token,true)
-		token.set_token_data(token_info.biome, token_info.type)
-		token.global_position = token_info.position
-	
-	# Mark occupied locations
-	for pos in occupied_locations:
-		var placement = get_token_placement_at_position(pos)
-		if placement:
-			placement.set_occupied(true)
-
-func distribute_initial_tokens_to_client(peer_id: int):
-	if !multiplayer.is_server():
-		return
-		
-	#print("Distributing initial tokens to client: ", peer_id)
-	initialize_player_tokens(peer_id)
-	var tokens = get_player_tokens(peer_id)
-	rpc_id(peer_id, "sync_player_tokens", tokens)
-	#print("Sent initial tokens to client: ", tokens)
-
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ---  Token Placement Setup   ---
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-func setup_token_placements():
-	# Only set up if not already set up
-	if get_parent().get_node("TokenPlacements").get_child_count() > 0:
-		return
-	
-	await get_parent().ready
-	await get_tree().process_frame
-	
-	var token_placement_scene = preload("res://token_placement_location.tscn")
-	
-	# Clear existing placements
-	for child in get_parent().get_node("TokenPlacements").get_children():
-		child.queue_free()
-	
-	var placements_per_biome = {}
-	
-	# Initialize counters for each biome
-	for biome in biome_assignments.keys():
-		placements_per_biome[biome] = 0
-	
-	# Create placements for each biome
-	for biome in biome_assignments.keys():
-		var slice_indices = biome_assignments[biome]
-		
-		# Calculate start and end angles for the entire biome section
-		var start_angle = slice_indices[0] * PI / 4
-		var end_angle = (slice_indices[1] + 1) * PI / 4
-		
-		# Generate positions for this biome section
-		var positions = _generate_slice_positions(
-			radius,
-			start_angle,
-			end_angle
-		)
-		
-		# Create token placements
-		for pos in positions:
-			var token_placement = token_placement_scene.instantiate()
-			token_placement.accepted_biome = biome
-			get_parent().get_node("TokenPlacements").add_child(token_placement, true)
-			token_placement.global_position = pos
-			placements_per_biome[biome] += 1
-	
-	# Set the first 28 token placements as energy placements
-	# We need to determine how many per biome (e.g., 7 per biome for 4 biomes)
-	var energy_count = 0
-	var energy_per_biome = 7  # 7 per biome x 4 biomes = 28 total
-	
-	# Iterate through all placements
-	for placement in get_parent().get_node("TokenPlacements").get_children():
-		# Check if we've already marked enough energy placements for this biome
-		var biome_energy_count = 0
-		for check_placement in get_parent().get_node("TokenPlacements").get_children():
-			if check_placement.accepted_biome == placement.accepted_biome and check_placement.is_energy:
-				biome_energy_count += 1
-		
-		# If we haven't reached the limit for this biome and total energy count is under 28
-		if biome_energy_count < energy_per_biome and energy_count < 28:
-			placement.set_energy_placement(true)
-			energy_count += 1
-		else:
-			placement.set_energy_placement(false)
-
-# ╭──────────────────────────────╮
-# |  Token - Slice Position Gen  |
-# ╰──────────────────────────────╯
-func _generate_slice_positions(radius: float, start_angle: float, end_angle: float) -> Array:
-	var positions = []
-	var hex_size = 1.0  # Increased spacing between tokens
-	
-	# Calculate the center point of this biome section (middle of two slices)
-	var center_angle = (start_angle + end_angle) / 2
-	var center_radius = radius * 0.5
-	var section_center = Vector3(
-		cos(center_angle) * center_radius,
-		0,
-		sin(center_angle) * center_radius
-	)
-	
-	# Define the hexagonal grid
-	var grid_positions = []
-	var rows = 4  # Number of rows in the grid
-	var max_cols = 4  # Maximum columns in the widest row
-	
-	for row in range(rows):
-		var cols = max_cols - abs(row - (rows/2))  # Fewer columns at top and bottom
-		var row_offset = (row - (rows/2)) * hex_size * 0.866  # Vertical spacing
-		var col_offset = -(cols * hex_size * 0.5)  # Center the row
-		
-		for col in range(cols):
-			var x = col_offset + (col * hex_size)
-			var z = row_offset
-			
-			# Rotate position to align with biome angle
-			var rotated_pos = Vector3(
-				x * cos(center_angle) - z * sin(center_angle),
-				0,
-				x * sin(center_angle) + z * cos(center_angle)
-			)
-			
-			grid_positions.append(section_center + rotated_pos)
-	
-	# Filter positions to ensure they're within the biome's slices
-	for pos in grid_positions:
-		var pos_angle = atan2(pos.z, pos.x)
-		if pos_angle < 0:
-			pos_angle += PI * 2
-			
-		# Check if position is within slice angles and radius
-		if pos_angle >= start_angle and pos_angle <= end_angle and pos.length() <= radius * 0.75:
-			# Check minimum distance from other positions
-			var too_close = false
-			for existing_pos in positions:
-				if pos.distance_to(existing_pos) < hex_size * 0.8:
-					too_close = true
-					break
-			
-			if not too_close:
-				# Add small random offset for natural look
-				var random_offset = Vector3(
-					randf_range(-0.05, 0.05),
-					0,
-					randf_range(-0.05, 0.05)
-				)
-				positions.append(pos + random_offset)
-	
-	# Ensure exactly 12 positions
-	positions.sort_custom(func(a, b): return a.length() < b.length())
-	return positions.slice(0, min(positions.size(), MAX_TOKENS_PER_BIOME))
-
-# ╭──────────────────────────────╮
-# |  Token - Biome Border Gen    |
-# ╰──────────────────────────────╯
-
-func setup_biome_borders():
-	var material = StandardMaterial3D.new()
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	
-	# Create octagonal border for each biome region
-	for biome in biome_assignments.keys():
-		var slice_indices = biome_assignments[biome]
-		
-		for slice_idx in slice_indices:
-			var start_angle = slice_idx * PI / 4
-			var points = []
-			
-			# Create border mesh
-			var surface_tool = SurfaceTool.new()
-			surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
-			
-			# Center point
-			var center = Vector3.ZERO
-			
-			# Add vertices for arc
-			var segments = 8
-			var angle_step = PI / (4 * segments)
-			
-			# Create triangles
-			for i in range(segments):
-				var angle1 = start_angle + i * angle_step
-				var angle2 = start_angle + (i + 1) * angle_step
-				
-				var v1 = Vector3(radius * cos(angle1), 0, radius * sin(angle1))
-				var v2 = Vector3(radius * cos(angle2), 0, radius * sin(angle2))
-				
-				# Add triangle (center, v1, v2)
-				surface_tool.add_vertex(center)
-				surface_tool.add_vertex(v1)
-				surface_tool.add_vertex(v2)
-			
-			var mesh_instance = MeshInstance3D.new()
-			mesh_instance.mesh = surface_tool.commit()
-			
-			# Use a neutral color instead of biome color
-			var color = Color(0.7, 0.7, 0.7)  # Light gray
-			color.a = 0.2
-			var region_material = material.duplicate()
-			region_material.albedo_color = color
-			mesh_instance.material_override = region_material
-			
-			# Add to the borders node
-			borders_node.add_child(mesh_instance)
-
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ---    Token UI & Selection  ---
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-func setup_token_ui():
-	var token_button = get_parent().get_node("RightUI/TokenButton")
-	# Clear any existing connections
-	if token_button.pressed.is_connected(_on_token_selected):
-		token_button.pressed.disconnect(_on_token_selected)
-		
-	# Connect the token selection function
-	token_button.pressed.connect(_on_token_selected)
-	
-	# Initialize the UI state
-	update_token_ui()
-
-func update_token_ui():
-	var token_button = get_parent().get_node("RightUI/TokenButton")
-	if !token_button:
-		return
-		
-	var player_id = multiplayer.get_unique_id()
-	
-	# For the host in server mode, always allow token placement
-	var is_my_turn = false
-	if multiplayer.is_server() && get_parent().game_started:
-		is_my_turn = game_state_manager.is_valid_player_turn(player_id)
-	else:
-		is_my_turn = game_state_manager.is_valid_player_turn(player_id)
-	
-	# Get token count
-	var tokens = get_player_tokens(player_id)
-	var token_count = tokens.size()
-	
-	# Check tokens planted this turn
-	if !tokens_planted_this_turn.has(player_id):
-		tokens_planted_this_turn[player_id] = 0
-	
-	# Check if player has reached max tokens for this turn
-	var max_tokens_reached = tokens_planted_this_turn[player_id] >= max_tokens_per_turn
-	
-	# Update button text with current token count
-	token_button.text = "Tokens: " + str(token_count)
-	
-	# Token button is always visible for local player
-	token_button.visible = true
-	
-	# But only enabled during their turn, if they have tokens, and haven't reached max tokens
-	token_button.disabled = !is_my_turn || token_count <= 0 || max_tokens_reached
-	
-	# Visual feedback for selection state
-	if is_token_selected:
-		token_button.modulate = Color(1.2, 1.2, 0.8, 1)
-	else:
-		token_button.modulate = Color(1, 1, 1, 1)
-	
-	print("Token UI updated - Button disabled: " + str(token_button.disabled) + 
-		  ", Is my turn: " + str(is_my_turn) + 
-		  ", Token count: " + str(token_count) +
-		  ", Tokens planted this turn: " + str(tokens_planted_this_turn[player_id]) +
-		  ", Max tokens reached: " + str(max_tokens_reached))
-
-func update_token_indicators():
-	var player_token_indicators = get_parent().get_node("RightUI/PlayerTokenIndicators")
-	var players = get_parent().players
-	
-	for player_id in players:
-		var indicator_name = "Player_" + str(player_id)
-		if player_token_indicators.has_node(indicator_name):
-			var indicator = player_token_indicators.get_node(indicator_name)
-			var label = indicator.get_node("TokenCount")
-			
-			# Get token count for this player
-			var token_count = get_player_tokens(player_id).size()
-			label.text = str(token_count)
-			
-			# Maybe fade out if they have no tokens
-			indicator.modulate.a = 1.0 if token_count > 0 else 0.5
-
-func setup_player_token_indicators():
-	var player_token_indicators = get_parent().get_node("RightUI/PlayerTokenIndicators")
-	var players = get_parent().players
-	var player_colors = get_parent().player_colors
-	
-	# Clear existing indicators
-	for child in player_token_indicators.get_children():
-		child.queue_free()
-	
-	# Create an indicator for each player
-	for player_id in players:
-		var indicator = ColorRect.new()
-		indicator.name = "Player_" + str(player_id)
-		indicator.size = Vector2(30, 30)  # Small square
-		
-		# Set player color
-		if player_colors.has(player_id):
-			indicator.color = player_colors[player_id]
-		else:
-			indicator.color = Color(0.5, 0.5, 0.5)
-		
-		# Create count label
-		var label = Label.new()
-		label.name = "TokenCount"
-		label.text = "0"  # Will be updated later
-		indicator.add_child(label)
-		
-		# Position the label
-		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		label.size = indicator.size
-		
-		# Add to container
-		player_token_indicators.add_child(indicator)
-	
-	# Call initial update
-	update_token_indicators()
-
-func _on_token_selected():
-	print("Token button clicked")
-	
-	var player_id = multiplayer.get_unique_id()
-	if !game_state_manager.is_valid_player_turn(player_id):
-		print("Not your turn!")
-		is_token_selected = false
-		update_token_ui()
-		return
-	
-	var tokens = get_player_tokens(player_id)
-	if tokens.size() <= 0:
-		print("No tokens left!")
-		is_token_selected = false
-		update_token_ui()
-		return
-	
-	var current_time = Time.get_ticks_msec() / 1000.0
-	if current_time - last_token_selection_time < TOKEN_PLACEMENT_COOLDOWN:
-		return
-	
-	last_token_selection_time = current_time
-	
-	# Initialize tokens planted counter for this player if needed
-	if !tokens_planted_this_turn.has(player_id):
-		tokens_planted_this_turn[player_id] = 0
-		can_plant_on_sigil = true
-		can_plant_on_biome = false  # Start with only sigil planting enabled
-	
-	# Check if player has already planted the maximum tokens this turn
-	if tokens_planted_this_turn[player_id] >= max_tokens_per_turn:
-		print("Maximum tokens for this turn already planted!")
-		is_token_selected = false
-		update_token_ui()
-		return
-	
-	# Toggle selection state
-	is_token_selected = !is_token_selected
-	print("Token selection mode: " + str(is_token_selected))
-	
-	if is_token_selected:
-		print("Can plant on sigil: " + str(can_plant_on_sigil) + ", Can plant on biome: " + str(can_plant_on_biome))
-		
-		# First unhighlight all placements to ensure clean state
-		unhighlight_all_token_placements()
-		
-		# Then highlight ONLY valid placements based on current planting phase
-		for placement in get_parent().get_node("TokenPlacements").get_children():
-			if !placement.is_occupied:
-				# If first token (planting on sigil) and this is a sigil location
-				if tokens_planted_this_turn[player_id] == 0 and placement.place_id == -1:
-					placement.set_highlight(true)
-				# If second token (planting on biome) and this is a biome location
-				elif tokens_planted_this_turn[player_id] == 1 and placement.place_id != -1:
-					placement.set_highlight(true)
-				# If this is an extra token (from card effect) and both sigil and biome are enabled
-				elif tokens_planted_this_turn[player_id] >= 2 and is_plant_extra:
-					placement.set_highlight(true)
-	else:
-		# Unhighlight all placements when deselecting
-		unhighlight_all_token_placements()
-	
-	#if is_plant_extra: 
-		#$"../RightUI/TokenButton".disabled = true
-		#is_plant_extra = false 
-	
-	# Update UI to show selection state
-	update_token_ui()
-	debug_token_state()
-
-func unhighlight_all_token_placements():
-	for placement in get_parent().get_node("TokenPlacements").get_children():
-		placement.set_highlight(false)
-
-func debug_token_state():
-	var player_id = multiplayer.get_unique_id()
-	var tokens = get_player_tokens(player_id)
-	
-	print("==== TOKEN DEBUG INFO ====")
-	print("Player ID: " + str(player_id))
-	print("Token count: " + str(tokens.size()))
-	print("Is token selected: " + str(is_token_selected))
-	print("Is valid turn: " + str(game_state_manager.is_valid_player_turn(player_id)))
-	
-	var token_button = get_parent().get_node("RightUI/TokenButton")
-	if token_button:
-		print("Button disabled: " + str(token_button.disabled))
-		print("Button text: " + token_button.text)
-	print("==========================")
-
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ---  Token Placement Logic   ---
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-func get_token_placement_at_position(pos: Vector3) -> Node:
-	for placement in get_parent().get_node("TokenPlacements").get_children():
-		if placement.global_position.distance_to(pos) < 0.1:
-			#print("Found token placement at ", pos)
-			return placement
-	#print("No token placement found at ", pos)
-	return null
 
 @rpc("any_peer")
 func request_token_placement(token_index: int, position: Vector3, biome_type: int):
@@ -1038,133 +770,149 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 		player_token_counts[player_id] = updated_tokens.size()
 		print("Updated player ", player_id, " token count to ", updated_tokens.size())
 
-@rpc("any_peer", "call_local")
-func sync_all_token_placements(token_placement_data: Array):
-	print("Received token placement sync with ", token_placement_data.size(), " tokens")
-	
-	# Clear existing tokens
-	for token in get_parent().get_node("Tokens").get_children():
-		token.queue_free()
-	
-	# Clear placement occupied states
-	for placement in get_parent().get_node("TokenPlacements").get_children():
-		placement.set_occupied(false)
-		placement.current_token = null
-	
-	# Wait a frame to ensure tokens are cleared
-	await get_tree().process_frame
-	
-	# Recreate tokens from data
-	for token_info in token_placement_data:
-		var token = token_scene.instantiate()
-		get_parent().get_node("Tokens").add_child(token, true)
-		
-		# Set token data
-		token.set_token_data(token_info.biome, token_info.owner, token_info.is_energy)
-		token.global_position = token_info.position
-		
-		# Connect to placement
-		var placement = get_token_placement_at_position(token_info.position)
-		if placement:
-			placement.set_occupied(true)
-			placement.current_token = token
-			token.token_placement = placement
-	
-	# Update UI
-	update_token_ui()
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Token Placement Generation
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-func sync_complete_token_state():
-	if !multiplayer.is_server():
-		return
+func _generate_slice_positions(radius: float, start_angle: float, end_angle: float) -> Array:
+	var positions = []
+	var hex_size = 1.0  # Increased spacing between tokens
 	
-	print("Syncing complete token state to all clients")
+	# Calculate the center point of this biome section (middle of two slices)
+	var center_angle = (start_angle + end_angle) / 2
+	var center_radius = radius * 0.5
+	var section_center = Vector3(
+		cos(center_angle) * center_radius,
+		0,
+		sin(center_angle) * center_radius
+	)
 	
-	# 1. Sync token counts for all players
+	# Define the hexagonal grid
+	var grid_positions = []
+	var rows = 4  # Number of rows in the grid
+	var max_cols = 4  # Maximum columns in the widest row
+	
+	for row in range(rows):
+		var cols = max_cols - abs(row - (rows/2))  # Fewer columns at top and bottom
+		var row_offset = (row - (rows/2)) * hex_size * 0.866  # Vertical spacing
+		var col_offset = -(cols * hex_size * 0.5)  # Center the row
+		
+		for col in range(cols):
+			var x = col_offset + (col * hex_size)
+			var z = row_offset
+			
+			# Rotate position to align with biome angle
+			var rotated_pos = Vector3(
+				x * cos(center_angle) - z * sin(center_angle),
+				0,
+				x * sin(center_angle) + z * cos(center_angle)
+			)
+			
+			grid_positions.append(section_center + rotated_pos)
+	
+	# Filter positions to ensure they're within the biome's slices
+	for pos in grid_positions:
+		var pos_angle = atan2(pos.z, pos.x)
+		if pos_angle < 0:
+			pos_angle += PI * 2
+			
+		# Check if position is within slice angles and radius
+		if pos_angle >= start_angle and pos_angle <= end_angle and pos.length() <= radius * 0.75:
+			# Check minimum distance from other positions
+			var too_close = false
+			for existing_pos in positions:
+				if pos.distance_to(existing_pos) < hex_size * 0.8:
+					too_close = true
+					break
+			
+			if not too_close:
+				# Add small random offset for natural look
+				var random_offset = Vector3(
+					randf_range(-0.05, 0.05),
+					0,
+					randf_range(-0.05, 0.05)
+				)
+				positions.append(pos + random_offset)
+	
+	# Ensure exactly 12 positions
+	positions.sort_custom(func(a, b): return a.length() < b.length())
+	return positions.slice(0, min(positions.size(), MAX_TOKENS_PER_BIOME))
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# UI Management
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+func update_token_indicators():
+	var player_token_indicators = get_parent().get_node("RightUI/PlayerTokenIndicators")
 	var players = get_parent().players
-	for pid in players:
-		var tokens = get_player_tokens(pid)
-		player_token_counts[pid] = tokens.size()
-		print("Player ", pid, " has ", tokens.size(), " tokens")
-		rpc("sync_player_tokens", tokens, pid)
 	
-	# 2. Sync token placements
-	var placement_data = []
-	for placement in get_parent().get_node("TokenPlacements").get_children():
-		if placement.is_occupied:
-			placement_data.append({
-				"position": placement.global_position,
-				"occupied": true
-			})
-	
-	# 3. Sync actual tokens
-	var token_data = []
-	for token in get_parent().get_node("Tokens").get_children():
-		token_data.append({
-			"position": token.global_position,
-			"biome": token.biome_type,
-			"owner": token.owner_id,
-			"is_energy": token.is_energy,
-			"is_blighted": token.is_blighted
-		})
-	
-	# Send comprehensive sync to all players
-	rpc("receive_complete_token_state", placement_data, token_data)
+	for player_id in players:
+		var indicator_name = "Player_" + str(player_id)
+		if player_token_indicators.has_node(indicator_name):
+			var indicator = player_token_indicators.get_node(indicator_name)
+			var label = indicator.get_node("TokenCount")
+			
+			# Get token count for this player
+			var token_count = get_player_tokens(player_id).size()
+			label.text = str(token_count)
+			
+			# Maybe fade out if they have no tokens
+			indicator.modulate.a = 1.0 if token_count > 0 else 0.5
 
-@rpc("any_peer", "call_local")
-func receive_complete_token_state(placement_data: Array, token_data: Array):
-	print("Received complete token state")
+func setup_player_token_indicators():
+	var player_token_indicators = get_parent().get_node("RightUI/PlayerTokenIndicators")
+	var players = get_parent().players
+	var player_colors = get_parent().player_colors
 	
-	# 1. Update placement occupied states
-	for placement_info in placement_data:
-		var placement = get_token_placement_at_position(placement_info.position)
-		if placement:
-			placement.set_occupied(placement_info.occupied)
+	# Clear existing indicators
+	for child in player_token_indicators.get_children():
+		child.queue_free()
 	
-	# 2. Remove all existing tokens and recreate from data
-	for token in get_parent().get_node("Tokens").get_children():
-		token.queue_free()
-	
-	# Wait a frame to ensure tokens are fully removed
-	await get_tree().process_frame
-	
-	# 3. Recreate tokens from received data
-	for token_info in token_data:
-		var token = token_scene.instantiate()
-		get_parent().get_node("Tokens").add_child(token, true)
-		token.set_token_data(token_info.biome, token_info.owner, token_info.is_energy)
-		token.is_blighted = token_info.is_blighted
-		token.global_position = token_info.position
+	# Create an indicator for each player
+	for player_id in players:
+		var indicator = ColorRect.new()
+		indicator.name = "Player_" + str(player_id)
+		indicator.size = Vector2(30, 30)  # Small square
 		
-		# Connect token to its placement
-		var placement = get_token_placement_at_position(token_info.position)
-		if placement:
-			token.token_placement = placement
-			placement.current_token = token
+		# Set player color
+		if player_colors.has(player_id):
+			indicator.color = player_colors[player_id]
+		else:
+			indicator.color = Color(0.5, 0.5, 0.5)
+		
+		# Create count label
+		var label = Label.new()
+		label.name = "TokenCount"
+		label.text = "0"  # Will be updated later
+		indicator.add_child(label)
+		
+		# Position the label
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.size = indicator.size
+		
+		# Add to container
+		player_token_indicators.add_child(indicator)
 	
-	# 4. Update UI
-	update_token_ui()
+	# Call initial update
+	update_token_indicators()
 
-func reset_turn_token_counters(player_id: int):
-	# Reset the tokens planted counter for this player
-	if tokens_planted_this_turn.has(player_id):
-		tokens_planted_this_turn[player_id] = 0
+func debug_token_state():
+	var player_id = multiplayer.get_unique_id()
+	var tokens = get_player_tokens(player_id)
 	
-	# Reset the placement type flags
-	can_plant_on_sigil = true
-	can_plant_on_biome = false  # Start with only sigil planting enabled
+	print("==== TOKEN DEBUG INFO ====")
+	print("Player ID: " + str(player_id))
+	print("Token count: " + str(tokens.size()))
+	print("Is token selected: " + str(is_token_selected))
+	print("Is valid turn: " + str(game_state_manager.is_valid_player_turn(player_id)))
 	
-	# Reset card effect flags
-	is_plant_extra = false
-	
-	# Reset max tokens per turn to default
-	max_tokens_per_turn = 2
-	
-	# Sync state to all clients if we're the server
-	if multiplayer.is_server():
-		rpc("sync_token_planting_state", player_id, 0, true, false, 2)
-	
-	# Update UI to reflect new state
-	update_token_ui()
+	var token_button = get_parent().get_node("RightUI/TokenButton")
+	if token_button:
+		print("Button disabled: " + str(token_button.disabled))
+		print("Button text: " + token_button.text)
+	print("==========================")
 
 @rpc("any_peer", "call_local")
 func update_token_ui_remote():
@@ -1187,9 +935,55 @@ func sync_token_planting_state(player_id: int, tokens_planted: int, can_place_si
 			  ", can_plant_on_biome=", can_place_biome,
 			  ", max_tokens_per_turn=", max_tokens)
 
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ---       Card Effects       ---
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Turn Management
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+func reset_turn_token_counters(player_id: int):
+	# Reset the tokens planted counter for this player
+	if tokens_planted_this_turn.has(player_id):
+		tokens_planted_this_turn[player_id] = 0
+	
+	# Reset the placement type flags
+	can_plant_on_sigil = true
+	can_plant_on_biome = false  # Start with only sigil planting enabled
+	
+	# Reset ALL card effect flags - this is important
+	is_plant_extra = false
+	is_take_off_mode = false
+	is_unblight_mode = false
+	is_refresh_energy_mode = false
+	is_swap_energy_mode = false
+	first_swap_token = null
+	
+	# Reset sigil mode if it's the local player's turn ending
+	if player_id == multiplayer.get_unique_id() and sigil_manager != null:
+		sigil_manager.is_sigil_mode = false
+		sigil_manager.is_sigil_c = false
+	
+	# Reset max tokens per turn to default
+	max_tokens_per_turn = 2
+	
+	# IMPORTANT: Do NOT sync these card effect states to other players
+	# Only sync the basic token planting state
+	if multiplayer.is_server():
+		rpc("sync_token_planting_state", player_id, 0, true, false, 2)
+	
+	# Update UI to reflect new state
+	update_token_ui()
+	
+	# Reset any UI highlights
+	unhighlight_all_token_placements()
+	
+	# Reset any highlighting on tokens
+	if first_swap_token:
+		first_swap_token.highlight(false)
+		first_swap_token = null
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Card Effects
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 func _on_take_off_energy():
 	print("Take Off Energy mode activate")
 	is_take_off_mode = true
@@ -1256,6 +1050,12 @@ func _on_plant_extra_token():
 	# Update UI to show token button as active
 	update_token_ui()
 
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Card Effect Implementation
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Extra Plant TOken
 @rpc("any_peer")
 func request_token_planting_state_update(player_id: int, can_place_sigil: bool, can_place_biome: bool, max_tokens: int):
 	if !multiplayer.is_server():
@@ -1280,23 +1080,8 @@ func request_token_planting_state_update(player_id: int, can_place_sigil: bool, 
 	rpc("sync_token_planting_state", player_id, tokens_planted_this_turn[player_id], 
 		can_place_sigil, can_place_biome, max_tokens)
 
-@rpc("any_peer")
-func request_take_off_energy(token_position: Vector3):
-	if !multiplayer.is_server():
-		return
-	
-	var player_id = multiplayer.get_remote_sender_id()
-	if player_id == 0:  # Local server call
-		player_id = multiplayer.get_unique_id()
-	
-	# Validate it's the player's turn
-	if !game_state_manager.is_valid_player_turn(player_id):
-		return
-	
-	# Process the token removal
-	take_off_energy(token_position)
-	print("Server processed token removal at: " + str(token_position))
 
+# Swap Energy
 @rpc("any_peer")
 func request_swap_energy_tokens(first_token_position: Vector3, second_token_position: Vector3):
 	if !multiplayer.is_server():
@@ -1365,7 +1150,6 @@ func swap_energy_tokens(first_token_position: Vector3, second_token_position: Ve
 	# Always unhighlight after swap
 	unhighlight_all_token_placements()
 
-
 @rpc("any_peer", "call_local")
 func sync_energy_token_swap(first_token_position: Vector3, second_token_position: Vector3, 
 						   first_token_owner: int, second_token_owner: int,
@@ -1401,6 +1185,8 @@ func sync_energy_token_swap(first_token_position: Vector3, second_token_position
 	# Always unhighlight token placements after any token action
 	unhighlight_all_token_placements()
 
+
+## Refresh Energy
 func request_refresh_energy(token_position: Vector3):
 	if !multiplayer.is_server():
 		return
@@ -1446,6 +1232,24 @@ func refresh_energy(token_position: Vector3):
 	
 	else:
 		print("No token found at position: " + str(token_position))
+
+## Take OFF
+@rpc("any_peer")
+func request_take_off_energy(token_position: Vector3):
+	if !multiplayer.is_server():
+		return
+	
+	var player_id = multiplayer.get_remote_sender_id()
+	if player_id == 0:  # Local server call
+		player_id = multiplayer.get_unique_id()
+	
+	# Validate it's the player's turn
+	if !game_state_manager.is_valid_player_turn(player_id):
+		return
+	
+	# Process the token removal
+	take_off_energy(token_position)
+	print("Server processed token removal at: " + str(token_position))
 
 func take_off_energy(token_position: Vector3):
 	# Find the token at this position
@@ -1534,30 +1338,7 @@ func sync_token_removal_at_position(token_position: Vector3, player_id: int, bio
 	if blight_button:
 		blight_button.modulate = Color(1, 1, 1, 1)
 
-# Add this function to your token_manager.gd script
-@rpc("any_peer", "call_local")
-func sync_player_tokens(tokens_data, target_player_id: int = -1):
-	print("Sync player tokens called with ", tokens_data.size(), " tokens, target=", target_player_id)
-	
-	var player_id = multiplayer.get_unique_id()
-	
-	# Only update if this is for our player ID
-	if target_player_id == -1 || player_id == target_player_id:
-		# Update the local token data
-		player_tokens[player_id] = tokens_data.duplicate()
-		
-		print("Updated token count for player ", player_id, 
-			  " to ", player_tokens[player_id].size())
-		
-		# Update token count UI
-		var token_button = get_parent().get_node("RightUI/TokenButton")
-		if token_button:
-			token_button.text = "Tokens: " + str(tokens_data.size())
-			token_button.disabled = tokens_data.size() <= 0 || !game_state_manager.is_valid_player_turn(player_id) || tokens_planted_this_turn.get(player_id, 0) >= max_tokens_per_turn
-		
-		# Update UI
-		update_token_ui()
-
+## Unblight 
 @rpc("any_peer")
 func request_unblight_token(token_position: Vector3):
 	if !multiplayer.is_server():
@@ -1606,6 +1387,55 @@ func unblight_token(token_position):
 	else:
 		print("No token found")
 
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Network Synchronization
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@rpc("any_peer", "call_local")
+func sync_existing_tokens(tokens_data: Array):
+	print("")
+	print("Syncing existing tokens: ", tokens_data)
+	
+	# Clear existing tokens first
+	for token in get_parent().get_node("Tokens").get_children():
+		token.queue_free()
+	
+	# Recreate tokens from data
+	for token_info in tokens_data:
+		var token = token_scene.instantiate()
+		get_parent().get_node("Tokens").add_child(token,true)
+		print("token info biome: ", token_info)
+		token.set_token_data(token_info.biome, token_info.type)
+		token.global_position = token_info.position
+		
+		var placement = get_token_placement_at_position(token_info.position)
+		if placement:
+			placement.set_occupied(true)
+
+@rpc("any_peer", "call_local")
+func sync_player_tokens(tokens_data, target_player_id: int = -1):
+	print("Sync player tokens called with ", tokens_data.size(), " tokens, target=", target_player_id)
+	
+	var player_id = multiplayer.get_unique_id()
+	
+	# Only update if this is for our player ID
+	if target_player_id == -1 || player_id == target_player_id:
+		# Update the local token data
+		player_tokens[player_id] = tokens_data.duplicate()
+		
+		print("Updated token count for player ", player_id, 
+			  " to ", player_tokens[player_id].size())
+		
+		# Update token count UI
+		var token_button = get_parent().get_node("RightUI/TokenButton")
+		if token_button:
+			token_button.text = "Tokens: " + str(tokens_data.size())
+			token_button.disabled = tokens_data.size() <= 0 || !game_state_manager.is_valid_player_turn(player_id) || tokens_planted_this_turn.get(player_id, 0) >= max_tokens_per_turn
+		
+		# Update UI
+		update_token_ui()
+
 @rpc("any_peer", "call_local")
 func sync_token_blight(token_position: Vector3, is_blighted: bool):
 	print("Syncing token blight at: " + str(token_position) + ", blighted: " + str(is_blighted))
@@ -1645,17 +1475,196 @@ func sync_token_blight(token_position: Vector3, is_blighted: bool):
 	else:
 		print("No token found at position for blight sync: " + str(token_position))
 
+@rpc("any_peer", "call_local")
+func sync_token_movement(from_position: Vector3, to_position: Vector3):
+	var token = find_token_at_position(from_position)
+	if !token:
+		return
+	
+	var from_placement = get_token_placement_at_position(from_position)
+	var to_placement = get_token_placement_at_position(to_position)
+	
+	if !from_placement or !to_placement:
+		return
+
+	# Update placements
+	from_placement.set_occupied(false)
+	from_placement.current_token = null
+
+	token.biome_type = to_placement.accepted_biome
+	to_placement.set_occupied(true)
+	to_placement.current_token = token
+
+	# Move the token
+	token.global_position = to_placement.global_position
+
+func sync_existing_game_state(new_peer_id: int):
+	# Sync tokens
+	var tokens_data = []
+	for token in get_parent().get_node("Tokens").get_children():
+		tokens_data.append({
+			"biome": token.biome_type,
+			"type": token.token_type,
+			"position": token.global_position
+		})
+	
+	# Sync occupied locations
+	var occupied_locations = []
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if placement.is_occupied:
+			occupied_locations.append(placement.global_position)
+	
+	get_parent().rpc_id(new_peer_id, "receive_game_state", tokens_data, occupied_locations)
+
+@rpc("any_peer", "call_local")
+func receive_game_state(tokens_data: Array, occupied_locations: Array):
+	#print("Receiving game state")
+	
+	# Clear existing tokens
+	for token in get_parent().get_node("Tokens").get_children():
+		token.queue_free()
+	
+	# Recreate tokens
+	for token_info in tokens_data:
+		var token = token_scene.instantiate()
+		get_parent().get_node("Tokens").add_child(token,true)
+		token.set_token_data(token_info.biome, token_info.type)
+		token.global_position = token_info.position
+	
+	# Mark occupied locations
+	for pos in occupied_locations:
+		var placement = get_token_placement_at_position(pos)
+		if placement:
+			placement.set_occupied(true)
+
+func distribute_initial_tokens_to_client(peer_id: int):
+	if !multiplayer.is_server():
+		return
+		
+	#print("Distributing initial tokens to client: ", peer_id)
+	initialize_player_tokens(peer_id)
+	var tokens = get_player_tokens(peer_id)
+	rpc_id(peer_id, "sync_player_tokens", tokens)
+	#print("Sent initial tokens to client: ", tokens)
+
+func sync_complete_token_state():
+	if !multiplayer.is_server():
+		return
+	
+	print("Syncing complete token state to all clients")
+	
+	# 1. Sync token counts for all players
+	var players = get_parent().players
+	for pid in players:
+		var tokens = get_player_tokens(pid)
+		player_token_counts[pid] = tokens.size()
+		print("Player ", pid, " has ", tokens.size(), " tokens")
+		rpc("sync_player_tokens", tokens, pid)
+	
+	# 2. Sync token placements
+	var placement_data = []
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if placement.is_occupied:
+			placement_data.append({
+				"position": placement.global_position,
+				"occupied": true
+			})
+	
+	# 3. Sync actual tokens
+	var token_data = []
+	for token in get_parent().get_node("Tokens").get_children():
+		token_data.append({
+			"position": token.global_position,
+			"biome": token.biome_type,
+			"owner": token.owner_id,
+			"is_energy": token.is_energy,
+			"is_blighted": token.is_blighted
+		})
+	
+	# Send comprehensive sync to all players
+	rpc("receive_complete_token_state", placement_data, token_data)
+
+@rpc("any_peer", "call_local")
+func receive_complete_token_state(placement_data: Array, token_data: Array):
+	print("Received complete token state")
+	
+	# 1. Update placement occupied states
+	for placement_info in placement_data:
+		var placement = get_token_placement_at_position(placement_info.position)
+		if placement:
+			placement.set_occupied(placement_info.occupied)
+	
+	# 2. Remove all existing tokens and recreate from data
+	for token in get_parent().get_node("Tokens").get_children():
+		token.queue_free()
+	
+	# Wait a frame to ensure tokens are fully removed
+	await get_tree().process_frame
+	
+	# 3. Recreate tokens from received data
+	for token_info in token_data:
+		var token = token_scene.instantiate()
+		get_parent().get_node("Tokens").add_child(token, true)
+		token.set_token_data(token_info.biome, token_info.owner, token_info.is_energy)
+		token.is_blighted = token_info.is_blighted
+		token.global_position = token_info.position
+		
+		# Connect token to its placement
+		var placement = get_token_placement_at_position(token_info.position)
+		if placement:
+			token.token_placement = placement
+			placement.current_token = token
+	
+	# 4. Update UI
+	update_token_ui()
+
+@rpc("any_peer", "call_local")
+func sync_all_token_placements(token_placement_data: Array):
+	print("Received token placement sync with ", token_placement_data.size(), " tokens")
+	
+	# Clear existing tokens
+	for token in get_parent().get_node("Tokens").get_children():
+		token.queue_free()
+	
+	# Clear placement occupied states
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		placement.set_occupied(false)
+		placement.current_token = null
+	
+	# Wait a frame to ensure tokens are cleared
+	await get_tree().process_frame
+	
+	# Recreate tokens from data
+	for token_info in token_placement_data:
+		var token = token_scene.instantiate()
+		get_parent().get_node("Tokens").add_child(token, true)
+		
+		# Set token data
+		token.set_token_data(token_info.biome, token_info.owner, token_info.is_energy)
+		token.global_position = token_info.position
+		
+		# Connect to placement
+		var placement = get_token_placement_at_position(token_info.position)
+		if placement:
+			placement.set_occupied(true)
+			placement.current_token = token
+			token.token_placement = placement
+	
+	# Update UI
+	update_token_ui()
 
 
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Helper Functions
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ---   Token Helper Methods   ---
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-func save_player_token_count(player_id: int):
-	var tokens = get_player_tokens(player_id)
-	player_token_counts[player_id] = tokens.size()
-	print("Saved token count for player ", player_id, ": ", tokens.size())
+func get_token_placement_at_position(pos: Vector3) -> Node:
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if placement.global_position.distance_to(pos) < 0.1:
+			#print("Found token placement at ", pos)
+			return placement
+	#print("No token placement found at ", pos)
+	return null
 
 func find_token_at_position(position: Vector3) -> Node:
 	for token in get_parent().get_node("Tokens").get_children():
@@ -1663,8 +1672,60 @@ func find_token_at_position(position: Vector3) -> Node:
 			return token
 	return null
 
-func find_token_by_collision():
-	pass
+func unhighlight_all_token_placements():
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		placement.set_highlight(false)
+
+func update_token_ui():
+	var token_button = get_parent().get_node("RightUI/TokenButton")
+	if !token_button:
+		return
+		
+	var player_id = multiplayer.get_unique_id()
+	
+	# For the host in server mode, always allow token placement
+	var is_my_turn = false
+	if multiplayer.is_server() && get_parent().game_started:
+		is_my_turn = game_state_manager.is_valid_player_turn(player_id)
+	else:
+		is_my_turn = game_state_manager.is_valid_player_turn(player_id)
+	
+	# Get token count
+	var tokens = get_player_tokens(player_id)
+	var token_count = tokens.size()
+	
+	# Check tokens planted this turn
+	if !tokens_planted_this_turn.has(player_id):
+		tokens_planted_this_turn[player_id] = 0
+	
+	# Check if player has reached max tokens for this turn
+	var max_tokens_reached = tokens_planted_this_turn[player_id] >= max_tokens_per_turn
+	
+	# Update button text with current token count
+	token_button.text = "Tokens: " + str(token_count)
+	
+	# Token button is always visible for local player
+	token_button.visible = true
+	
+	# But only enabled during their turn, if they have tokens, and haven't reached max tokens
+	token_button.disabled = !is_my_turn || token_count <= 0 || max_tokens_reached
+	
+	# Visual feedback for selection state
+	if is_token_selected:
+		token_button.modulate = Color(1.2, 1.2, 0.8, 1)
+	else:
+		token_button.modulate = Color(1, 1, 1, 1)
+	
+	print("Token UI updated - Button disabled: " + str(token_button.disabled) + 
+		  ", Is my turn: " + str(is_my_turn) + 
+		  ", Token count: " + str(token_count) +
+		  ", Tokens planted this turn: " + str(tokens_planted_this_turn[player_id]) +
+		  ", Max tokens reached: " + str(max_tokens_reached))
+
+func save_player_token_count(player_id: int):
+	var tokens = get_player_tokens(player_id)
+	player_token_counts[player_id] = tokens.size()
+	print("Saved token count for player ", player_id, ": ", tokens.size())
 
 func reset_token_buttons():
 	var token_button = get_parent().get_node("RightUI/TokenButton")
@@ -1732,7 +1793,6 @@ func request_token_refresh():
 		var tokens = get_player_tokens(requesting_player)
 		rpc_id(requesting_player, "sync_player_tokens", tokens)
 
-
 @rpc("any_peer")
 func request_token_movement(from_position: Vector3, to_position: Vector3):
 	if !multiplayer.is_server():
@@ -1767,26 +1827,3 @@ func request_token_movement(from_position: Vector3, to_position: Vector3):
 	
 	# Sync to all clients
 	rpc("sync_token_movement", from_position, to_position)
-
-@rpc("any_peer", "call_local")
-func sync_token_movement(from_position: Vector3, to_position: Vector3):
-	var token = find_token_at_position(from_position)
-	if !token:
-		return
-	
-	var from_placement = get_token_placement_at_position(from_position)
-	var to_placement = get_token_placement_at_position(to_position)
-	
-	if !from_placement or !to_placement:
-		return
-
-	# Update placements
-	from_placement.set_occupied(false)
-	from_placement.current_token = null
-
-	token.biome_type = to_placement.accepted_biome
-	to_placement.set_occupied(true)
-	to_placement.current_token = token
-
-	# Move the token
-	token.global_position = to_placement.global_position
