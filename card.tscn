@@ -22,7 +22,7 @@ offset_right = -1063.0
 offset_bottom = -518.0
 grow_horizontal = 2
 grow_vertical = 2
-pivot_offset = Vector2(50, 70)
+pivot_offset = Vector2(44.5, 65)
 theme_override_styles/panel = SubResource("StyleBoxEmpty_2p5m1")
 script = ExtResource("1_4sblk")
 
@@ -37,6 +37,7 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="Label" type="Label" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -51,6 +52,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="CostLabel" type="Label" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
@@ -61,6 +63,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Effect1Label" type="Label" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 14
 anchor_top = 0.5
@@ -70,12 +73,12 @@ offset_top = 14.0
 offset_bottom = 31.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Effect #2"
 label_settings = SubResource("LabelSettings_small")
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Effect2Label" type="Label" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -85,7 +88,6 @@ offset_top = -35.0
 offset_bottom = -18.0
 grow_horizontal = 2
 grow_vertical = 0
-text = "Effect #1"
 label_settings = SubResource("LabelSettings_small")
 horizontal_alignment = 1
 vertical_alignment = 1

@@ -5,11 +5,12 @@
 [resource]
 script = ExtResource("1_oth5w")
 card_id = 2
+card_on_biome = -1
 card_name = "Swap Energy"
 card_type = 0
 cost_to_draw = 1
 effect1 = "Swap your energy position with other player energy on the same sigil magic"
 effect2 = ""
 revealed = true
-tex3D_path = "res://assets/cards/action_card_05.png"
-image_path = "res://assets/cards/2D/tile005.png"
+tex3D_path = "res://assets/cards/action_card_03.png"
+image_path = "res://assets/cards/2D/card_03.png"

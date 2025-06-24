@@ -21,7 +21,7 @@
 [ext_resource type="Shape3D" uid="uid://gjjokcof6ivg" path="res://cards/card_3d_collision.tres" id="11_1ew6f"]
 [ext_resource type="PackedScene" uid="uid://bfh8j800mc1uq" path="res://assets/meshes/biome_slice_4.glb" id="11_36jdj"]
 [ext_resource type="Script" uid="uid://inns47cokwch" path="res://point_counter.gd" id="11_beb7m"]
-[ext_resource type="Script" uid="uid://cfsntbrmww4pn" path="res://deck_location.gd" id="12_8ltkn"]
+[ext_resource type="Script" uid="uid://oigll5nbfhgy" path="res://deck_location.gd" id="12_8ltkn"]
 [ext_resource type="Script" uid="uid://dao6ito3qdqs4" path="res://planting_location.gd" id="13_u747q"]
 [ext_resource type="PackedScene" uid="uid://dcowk0qhpovrj" path="res://assets/meshes/sigil_slot_1.glb" id="15_xfvwf"]
 [ext_resource type="PackedScene" uid="uid://ckc5fe52hxbo7" path="res://assets/meshes/sigil_slot_2.glb" id="16_dhpj7"]
@@ -1057,6 +1057,7 @@ theme_override_font_sizes/font_size = 10
 text = "00"
 
 [node name="RollResultLabel" type="Label" parent="RightUI"]
+visible = false
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
