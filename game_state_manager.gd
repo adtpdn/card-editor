@@ -10,6 +10,7 @@ extends Node
 @onready var card_manager = $"../CardManager"
 @onready var ui_manager = $"../UIManager"
 @onready var point_counter = $"../PointCounter"
+@onready var turn_phase_manager = $"../TurnPhaseManager"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Game State Variables
@@ -311,10 +312,9 @@ func set_current_turn(player_id: int):
 	# Important: Enable/disable hand interaction based on whose turn it is
 	var player_hand = get_parent().get_node("HandAreas/PlayerHand")
 	if player_hand:
-		var is_my_turn = (multiplayer.get_unique_id() == player_id)
-		player_hand.set_interaction_enabled(is_my_turn)
-		print("Hand interaction " + ("enabled" if is_my_turn else "disabled") + 
-			  " for local player (ID: " + str(multiplayer.get_unique_id()) + ")")
+		# We'll let the turn_phase_manager handle this instead
+		player_hand.set_interaction_enabled(false)
+		print("Hand interaction initially disabled for local player (ID: " + str(multiplayer.get_unique_id()) + ")")
 	
 	if point_counter:
 		var is_my_turn = (multiplayer.get_unique_id() == player_id)
@@ -323,6 +323,13 @@ func set_current_turn(player_id: int):
 	# Update turn controls
 	update_turn_controls()
 	debug_turn_state()
+	
+	# Reset phase system for new turn - CRITICAL
+	if turn_phase_manager:
+		print("Resetting turn phase manager")
+		turn_phase_manager.reset_phases()
+	else:
+		print("Warning: turn_phase_manager not found!")
 	
 	if player_id == multiplayer.get_unique_id():
 		print("My turn started, requesting token sync")

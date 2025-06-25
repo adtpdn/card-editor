@@ -3,6 +3,9 @@ extends Node
 
 #SIGNAL
 signal signal_other_player_token
+signal sigil_activated(sigil_type, token)
+signal sigil_mode_changed(enabled)
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # References to other managers
@@ -26,6 +29,8 @@ var _selected_token = null
 var _selected_token_is_other_player = false
 var is_blight_mode = false
 
+var is_sigil_a = false
+var is_sigil_b = false
 var is_sigil_c := false
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -917,3 +922,38 @@ func _on_push_pull_input(_placement_pos):
 
 # Request token movement (for RPC)
 func request_token_movement(from_position: Vector3, to_position: Vector3):	token_manager.request_token_movement(from_position, to_position)
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Phase Management
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Enable sigil activation mode
+func enable_sigil_mode():
+	is_sigil_mode = true
+	
+	# Update the UI to show sigil is active
+	var sigil_container = get_parent().get_node("LeftUI/SigilContainer")
+	if sigil_container:
+		for child in sigil_container.get_children():
+			if child is Button:
+				child.disabled = false
+				child.modulate = Color(1, 1, 1, 1)
+				
+	# Emit signal for tracking
+	sigil_mode_changed.emit(true)
+
+# Disable sigil activation mode
+func disable_sigil_mode():
+	is_sigil_mode = false
+	is_sigil_c = false
+	
+	# Update the UI
+	var sigil_container = get_parent().get_node("LeftUI/SigilContainer")
+	if sigil_container:
+		for child in sigil_container.get_children():
+			if child is Button:
+				child.disabled = true
+				child.modulate = Color(0.5, 0.5, 0.5, 0.5)
+	
+	# Emit signal for tracking
+	sigil_mode_changed.emit(false)

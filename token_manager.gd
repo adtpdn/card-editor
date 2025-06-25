@@ -769,6 +769,10 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 		var updated_tokens = get_player_tokens(player_id)
 		player_token_counts[player_id] = updated_tokens.size()
 		print("Updated player ", player_id, " token count to ", updated_tokens.size())
+	
+	# Make sure to emit the token_placed signal
+	emit_signal("token_placed", player_id, token_data.biome, position)
+	print("Token manager emitted token_placed signal for player ", player_id, " at position ", position)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Token Placement Generation
@@ -1661,9 +1665,9 @@ func sync_all_token_placements(token_placement_data: Array):
 func get_token_placement_at_position(pos: Vector3) -> Node:
 	for placement in get_parent().get_node("TokenPlacements").get_children():
 		if placement.global_position.distance_to(pos) < 0.1:
-			#print("Found token placement at ", pos)
+			print("Found token placement at ", pos, " with place_id: ", placement.place_id)
 			return placement
-	#print("No token placement found at ", pos)
+	print("No token placement found at ", pos)
 	return null
 
 func find_token_at_position(position: Vector3) -> Node:
@@ -1827,3 +1831,50 @@ func request_token_movement(from_position: Vector3, to_position: Vector3):
 	
 	# Sync to all clients
 	rpc("sync_token_movement", from_position, to_position)
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Phase Management
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Enable only sigil placement locations
+func enable_sigil_placement():
+	is_token_selected = true
+	
+	# Unhighlight all first
+	unhighlight_all_token_placements()
+	
+	# Highlight only sigil locations (place_id == -1)
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if !placement.is_occupied and placement.place_id == -1:
+			placement.set_highlight(true)
+	
+	# Update the UI
+	update_token_ui()
+
+# Enable only biome placement locations
+func enable_biome_placement():
+	is_token_selected = true
+	
+	# Unhighlight all first
+	unhighlight_all_token_placements()
+	
+	# Highlight only biome locations (place_id != -1)
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if !placement.is_occupied and placement.place_id != -1:
+			placement.set_highlight(true)
+	
+	# Update the UI
+	update_token_ui()
+
+# Disable sigil placement
+func disable_sigil_placement():
+	if is_token_selected:
+		is_token_selected = false
+		unhighlight_all_token_placements()
+		update_token_ui()
+
+# Disable biome placement
+func disable_biome_placement():
+	if is_token_selected:
+		is_token_selected = false
+		unhighlight_all_token_placements()
+		update_token_ui()
