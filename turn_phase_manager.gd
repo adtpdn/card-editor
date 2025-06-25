@@ -18,6 +18,8 @@ enum Phase {
 @onready var sigil_manager = $"../SigilManager"
 
 @onready var end_phase_button = $"../RightUI/EndPhaseButton"
+@onready var token_button = $"../RightUI/TokenButton"
+
 
 # Phase tracking
 var current_phase: Phase = Phase.NONE
@@ -193,6 +195,7 @@ func enter_current_phase():
 			token_manager.can_plant_on_biome = false
 			token_manager.can_plant_on_sigil = false
 			disable_card_play()
+			token_button.disabled = true
 		Phase.END_TURN:
 			print("TurnPhaseManager: Setting up END_TURN phase")
 			if game_state_manager:
@@ -268,23 +271,51 @@ func show_phase_two_progress():
 	if current_phase != Phase.PLANT_SIGIL_AND_CARD:
 		return
 		
-	# Set notification text with progress
+	# Create progress text
 	var progress_text = "PROGRESS:\n"
 	progress_text += "• Place token in sigil: " + ("✓" if sigil_placed else "□") + "\n"
 	progress_text += "• Play a card: " + ("✓" if card_played else "□")
 	
-	# Display a simple popup
-	var dialog = AcceptDialog.new()
-	dialog.title = phase_names[current_phase]
-	dialog.dialog_text = progress_text
-	dialog.size = Vector2(300, 150)
-	get_parent().add_child(dialog)
-	dialog.popup_centered()
+	# Create a custom popup without buttons
+	var panel = Panel.new()
+	panel.name = "ProgressPanel"
 	
-	# Auto-close after 1.5 seconds
+	# Set up the panel size
+	panel.size = Vector2(300, 150)
+	
+	# Position in the center of the screen
+	var viewport_size = get_viewport().size
+	panel.position = Vector2(
+		(viewport_size.x - panel.size.x) / 2,
+		(viewport_size.y - panel.size.y) / 2
+	)
+	
+	# Add a title label
+	var title_label = Label.new()
+	title_label.text = phase_names[current_phase]
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_label.add_theme_font_size_override("font_size", 16)
+	title_label.add_theme_color_override("font_color", Color(1, 1, 1))
+	title_label.position = Vector2(10, 10)
+	title_label.size = Vector2(panel.size.x - 20, 30)
+	panel.add_child(title_label)
+	
+	# Add a progress label
+	var progress_label = Label.new()
+	progress_label.text = progress_text
+	progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	progress_label.position = Vector2(10, 50)
+	progress_label.size = Vector2(panel.size.x - 20, 90)
+	panel.add_child(progress_label)
+	
+	# Add to scene
+	get_parent().add_child(panel)
+	
+	# Auto-close after 3 seconds
 	await get_tree().create_timer(3.0).timeout
-	if is_instance_valid(dialog) and dialog.visible:
-		dialog.queue_free()
+	if is_instance_valid(panel):
+		panel.queue_free()
+
 
 # Advances to the next phase in sequence
 func advance_to_next_phase():
@@ -363,17 +394,46 @@ func enable_sigil_buttons(enabled: bool):
 		print("TurnPhaseManager: Sigil container not found!")
 
 func show_requirement_notification(message: String):
-	var dialog = AcceptDialog.new()
-	dialog.dialog_text = message
-	dialog.title = "Cannot End Phase"
-	dialog.size = Vector2(300, 150)
-	get_parent().add_child(dialog)
-	dialog.popup_centered()
+	# Create a custom popup without buttons
+	var panel = Panel.new()
+	panel.name = "RequirementPanel"
+	
+	# Set up the panel size
+	panel.size = Vector2(300, 120)
+	
+	# Position in the center of the screen
+	var viewport_size = get_viewport().size
+	panel.position = Vector2(
+		(viewport_size.x - panel.size.x) / 2,
+		(viewport_size.y - panel.size.y) / 2
+	)
+	
+	# Add a title label
+	var title_label = Label.new()
+	title_label.text = "Cannot End Phase"
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_label.add_theme_font_size_override("font_size", 16)
+	title_label.add_theme_color_override("font_color", Color(1, 1, 1))
+	title_label.position = Vector2(10, 10)
+	title_label.size = Vector2(panel.size.x - 20, 30)
+	panel.add_child(title_label)
+	
+	# Add a message label
+	var message_label = Label.new()
+	message_label.text = message
+	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	message_label.position = Vector2(10, 40)
+	message_label.size = Vector2(panel.size.x - 20, 80)
+	panel.add_child(message_label)
+	
+	# Add to scene
+	get_parent().add_child(panel)
 	
 	# Auto-close after 3 seconds
 	await get_tree().create_timer(3.0).timeout
-	if is_instance_valid(dialog) and dialog.visible:
-		dialog.queue_free()
+	if is_instance_valid(panel):
+		panel.queue_free()
 
 # Displays a notification about the current phase
 func show_phase_notification():
@@ -382,19 +442,47 @@ func show_phase_notification():
 		print("TurnPhaseManager: Not showing notification for NONE phase")
 		return
 	
-	# Create a fresh notification each time to avoid issues
-	var dialog = AcceptDialog.new()
-	dialog.title = "Turn Phase"
-	dialog.dialog_text = phase_names[current_phase] + "\n\n" + phase_descriptions[current_phase]
-	dialog.size = Vector2(350, 180)
-	get_parent().add_child(dialog)
-	dialog.popup_centered()
-	print("TurnPhaseManager: Notification displayed")
+	# Create a custom popup without buttons
+	var panel = Panel.new()
+	panel.name = "PhaseNotificationPanel"
 	
-	# Auto-close after 1.5 seconds
+	# Set up the panel size
+	panel.size = Vector2(350, 150)
+	
+	# Position in the center of the screen
+	var viewport_size = get_viewport().size
+	panel.position = Vector2(
+		(viewport_size.x - panel.size.x) / 2,
+		(viewport_size.y - panel.size.y) / 2
+	)
+	
+	# Add a title label
+	var title_label = Label.new()
+	title_label.text = phase_names[current_phase]
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_label.add_theme_font_size_override("font_size", 16)
+	title_label.add_theme_color_override("font_color", Color(1, 1, 1))
+	title_label.position = Vector2(10, 10)
+	title_label.size = Vector2(panel.size.x - 20, 30)
+	panel.add_child(title_label)
+	
+	# Add a description label
+	var desc_label = Label.new()
+	desc_label.text = phase_descriptions[current_phase]
+	desc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc_label.position = Vector2(10, 50)
+	desc_label.size = Vector2(panel.size.x - 20, 90)
+	panel.add_child(desc_label)
+	
+	# Add to scene
+	get_parent().add_child(panel)
+	print("TurnPhaseManager: Custom notification displayed")
+	
+	# Auto-close after 3 seconds
 	await get_tree().create_timer(3.0).timeout
-	if is_instance_valid(dialog) and dialog.visible:
-		dialog.queue_free()
+	if is_instance_valid(panel):
+		panel.queue_free()
 		print("TurnPhaseManager: Notification auto-closed")
 
 # --------------------------------
