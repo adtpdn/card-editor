@@ -120,7 +120,7 @@ func plant_card(card_resource: CardResource, slot_index: int) -> void:
 		3: # Refresh Energy
 			card_manager.refresh_energy_card_effect()
 		4: # Plant Extra Token or Energy
-			pass
+			card_manager.plant_extra_card_effect()
 
 func update_card_biome_type(card_instance):
 	var card_position = card_instance.position # Return Vector3

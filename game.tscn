@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://game.gd" id="1_0rb8f"]
 [ext_resource type="Script" uid="uid://61ovdinil8mj" path="res://hand.gd" id="2_drdp6"]
+[ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://turn_phase_manager.gd" id="2_e36ub"]
 [ext_resource type="Script" uid="uid://ckodjk0ue4j3n" path="res://token_manager.gd" id="2_njql7"]
 [ext_resource type="Script" uid="uid://b51yqiry8444l" path="res://network_manager.gd" id="3_boyg6"]
 [ext_resource type="Curve" uid="uid://dtskme7prx4g5" path="res://hand_y_curve.tres" id="3_jwe8m"]
@@ -41,6 +42,9 @@ radial_segments = 8
 
 [node name="Game" type="Node"]
 script = ExtResource("1_0rb8f")
+
+[node name="TurnPhaseManager" type="Node" parent="."]
+script = ExtResource("2_e36ub")
 
 [node name="TokenManager" type="Node" parent="."]
 script = ExtResource("2_njql7")
@@ -1031,7 +1035,7 @@ text = "Not Connected"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="EndTurnButton" type="Button" parent="RightUI"]
+[node name="EndPhaseButton" type="Button" parent="RightUI"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -1042,6 +1046,22 @@ offset_left = -20.0
 offset_top = 158.5
 offset_right = 58.0
 offset_bottom = 189.5
+grow_horizontal = 2
+grow_vertical = 2
+disabled = true
+text = "End Phase"
+
+[node name="EndTurnButton" type="Button" parent="RightUI"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = 201.5
+offset_right = 58.0
+offset_bottom = 232.5
 grow_horizontal = 2
 grow_vertical = 2
 disabled = true
@@ -1328,7 +1348,6 @@ hand_curve = ExtResource("3_jwe8m")
 rotation_curve = ExtResource("4_lbysu")
 
 [node name="DrawActionButton" type="Button" parent="."]
-visible = false
 offset_left = 17.0
 offset_top = 319.0
 offset_right = 160.0
@@ -1336,7 +1355,6 @@ offset_bottom = 350.0
 text = "Draw Action Card"
 
 [node name="DrawAreaButton" type="Button" parent="."]
-visible = false
 offset_left = 17.0
 offset_top = 364.0
 offset_right = 147.0
