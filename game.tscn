@@ -1316,7 +1316,6 @@ hand_curve = ExtResource("3_jwe8m")
 rotation_curve = ExtResource("4_lbysu")
 
 [node name="DrawActionButton" type="Button" parent="."]
-visible = false
 offset_left = 17.0
 offset_top = 319.0
 offset_right = 160.0
@@ -1324,7 +1323,6 @@ offset_bottom = 350.0
 text = "Draw Action Card"
 
 [node name="DrawAreaButton" type="Button" parent="."]
-visible = false
 offset_left = 17.0
 offset_top = 364.0
 offset_right = 147.0
