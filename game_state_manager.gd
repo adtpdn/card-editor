@@ -316,9 +316,9 @@ func set_current_turn(player_id: int):
 		player_hand.set_interaction_enabled(false)
 		print("Hand interaction initially disabled for local player (ID: " + str(multiplayer.get_unique_id()) + ")")
 	
-	if point_counter:
-		var is_my_turn = (multiplayer.get_unique_id() == player_id)
-		point_counter.set_buttons_enabled(is_my_turn)
+	#if point_counter:
+		#var is_my_turn = (multiplayer.get_unique_id() == player_id)
+		#point_counter.set_buttons_enabled(is_my_turn)
 	
 	# Update turn controls
 	update_turn_controls()

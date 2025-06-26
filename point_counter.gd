@@ -63,69 +63,11 @@ const BUTTON_PRESS_COOLDOWN = 0.25
 		set_multiplayer_authority(1)
 
 func _ready():
-	connect_signals()
 	set_multiplayer_authority(1)
-	
-	# Initialize magic points to 1 if this is the server
-	if multiplayer.is_server() or multiplayer.get_unique_id() == 1:
-		var point_count = 3
-		forest_magic_points = point_count
-		desert_magic_points = point_count
-		mountain_magic_points = point_count
-		water_magic_points = point_count
-		
-		# Sync to all clients
-		rpc("sync_point_values", 
-			forest_points,
-			desert_points,
-			mountain_points,
-			water_points,
-			forest_magic_points,
-			desert_magic_points,
-			mountain_magic_points,
-			water_magic_points
-		)
 	
 	create_stack_labels()
 	update_all_stacks()
 
-func connect_signals():
-	var buttons = [
-		[btn_forest_plus, btn_forest_min],
-		[btn_desert_plus, btn_desert_min],
-		[btn_mountain_plus, btn_mountain_min],
-		[btn_water_plus, btn_water_min],
-		[btn_forest_magic_plus, btn_forest_magic_min],
-		[btn_desert_magic_plus, btn_desert_magic_min],
-		[btn_mountain_magic_plus, btn_mountain_magic_min],
-		[btn_water_magic_plus, btn_desert_magic_min]
-	]
-	
-	# Disconnect existing connections
-	for button_pair in buttons:
-		for button in button_pair:
-			if button.pressed.is_connected(on_button_pressed):
-				button.pressed.disconnect(on_button_pressed)
-	
-	# Connect new signals
-	btn_forest_plus.pressed.connect(func(): on_button_pressed("forest", 1))
-	btn_forest_min.pressed.connect(func(): on_button_pressed("forest", -1))
-	btn_desert_plus.pressed.connect(func(): on_button_pressed("desert", 1))
-	btn_desert_min.pressed.connect(func(): on_button_pressed("desert", -1))
-	btn_mountain_plus.pressed.connect(func(): on_button_pressed("mountain", 1))
-	btn_mountain_min.pressed.connect(func(): on_button_pressed("mountain", -1))
-	btn_water_plus.pressed.connect(func(): on_button_pressed("water", 1))
-	btn_water_min.pressed.connect(func(): on_button_pressed("water", -1))
-	
-	# Magic biome buttons
-	btn_forest_magic_plus.pressed.connect(func(): on_button_pressed("forest_magic", 1))
-	btn_forest_magic_min.pressed.connect(func(): on_button_pressed("forest_magic", -1))
-	btn_desert_magic_plus.pressed.connect(func(): on_button_pressed("desert_magic", 1))
-	btn_desert_magic_min.pressed.connect(func(): on_button_pressed("desert_magic", -1))
-	btn_mountain_magic_plus.pressed.connect(func(): on_button_pressed("mountain_magic", 1))
-	btn_mountain_magic_min.pressed.connect(func(): on_button_pressed("mountain_magic", -1))
-	btn_water_magic_plus.pressed.connect(func(): on_button_pressed("water_magic", 1))
-	btn_water_magic_min.pressed.connect(func(): on_button_pressed("water_magic", -1))
 
 func on_button_pressed(biome: String, delta: int):
 	# Implement cooldown to prevent rapid button presses
@@ -230,25 +172,3 @@ func set_points(biome: String, value: int):
 
 func validate_points(value: int) -> int:
 	return clampi(value, 0, TOTAL_POINTS)
-
-
-func set_buttons_enabled(enabled: bool):
-	var buttons = [
-		# Regular biome buttons
-		btn_forest_plus, btn_forest_min,
-		btn_desert_plus, btn_desert_min,
-		btn_mountain_plus, btn_mountain_min,
-		btn_water_plus, btn_water_min,
-		# Magic biome buttons
-		btn_forest_magic_plus, btn_forest_magic_min,
-		btn_desert_magic_plus, btn_desert_magic_min,
-		btn_mountain_magic_plus, btn_mountain_magic_min,
-		btn_water_magic_plus, btn_water_magic_min
-	]
-	
-	for button in buttons:
-		if is_instance_valid(button):
-			button.disabled = !enabled
-	
-	if enabled:
-		connect_signals()

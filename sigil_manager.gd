@@ -15,6 +15,7 @@ signal sigil_mode_changed(enabled)
 @onready var network_manager = $"../NetworkManager"
 @onready var game_state_manager = $"../GameStateManager" 
 @onready var point_counter = $"../PointCounter"
+@onready var deck = $"../Deck"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Sigil Pattern Constants
@@ -78,6 +79,7 @@ func handle_sigil_input(position: Vector2):
 	var query = PhysicsRayQueryParameters3D.create(from, to)
 	var result = space_state.intersect_ray(query)
 	
+	
 	if !is_sigil_mode and !token_manager.is_take_off_mode and !token_manager.is_unblight_mode and !token_manager.is_refresh_energy_mode and !token_manager.is_swap_energy_mode and !token_manager.is_plant_extra:
 		if result :
 			print("")
@@ -86,10 +88,13 @@ func handle_sigil_input(position: Vector2):
 			
 			var found_token = result.collider.get_parent().get_parent()
 			print("found token : ", found_token)
-			
-			if found_token and found_token.is_energy:
-				_on_token_clicked(found_token)
-				return true  # Token was handled
+			## FIX THIS 
+			if found_token:
+				if found_token.is_energy:
+					_on_token_clicked(found_token)
+					return true  # Token was handled
+			else: 
+				return false
 			
 	return false  # No token was handled
 
@@ -99,9 +104,9 @@ func _connect_to_new_token(token):
 		token.connect("token_clicked", _on_token_clicked)
 
 func connect_sigil_buttons():
-	var sigil_a_button = game.get_node("LeftUI/SigilContainer/SigilAButton")
-	var sigil_b_button = game.get_node("LeftUI/SigilContainer/SigilBButton")
-	var sigil_c_button = game.get_node("LeftUI/SigilContainer/SigilCButton")
+	var sigil_a_button = game.get_node("SigilContainer/SigilAButton")
+	var sigil_b_button = game.get_node("SigilContainer/SigilBButton")
+	var sigil_c_button = game.get_node("SigilContainer/SigilCButton")
 	
 	# Connect new signals
 	sigil_a_button.pressed.connect(_on_sigil_a_pressed)
@@ -202,9 +207,9 @@ func update_sigil_button_states(token):
 	sigil_c_button.modulate = Color(1, 1, 1, 1.0 if !sigil_c_button.disabled else 0.5)
 
 func disable_all_sigil_buttons():
-	var sigil_a_button = game.get_node("LeftUI/SigilContainer/SigilAButton")
-	var sigil_b_button = game.get_node("LeftUI/SigilContainer/SigilBButton")
-	var sigil_c_button = game.get_node("LeftUI/SigilContainer/SigilCButton")
+	var sigil_a_button = game.get_node("SigilContainer/SigilAButton")
+	var sigil_b_button = game.get_node("SigilContainer/SigilBButton")
+	var sigil_c_button = game.get_node("SigilContainer/SigilCButton")
 	
 	sigil_a_button.disabled = true
 	sigil_b_button.disabled = true
