@@ -1,18 +1,36 @@
-[gd_scene load_steps=12 format=3 uid="uid://cy8dmfciur8g6"]
+[gd_scene load_steps=15 format=3 uid="uid://cy8dmfciur8g6"]
 
 [ext_resource type="Script" uid="uid://bsgfqt7bst4o6" path="res://example/table.gd" id="1_3x582"]
 [ext_resource type="Script" uid="uid://bfmtf7hh4lc0h" path="res://addons/card_3d/scripts/drag_controller.gd" id="2_rgf87"]
 [ext_resource type="PackedScene" uid="uid://d1uvcisduvvj" path="res://addons/card_3d/scenes/card_collection_3d.tscn" id="3_tbve4"]
-[ext_resource type="Script" uid="uid://byo1dipcckvtb" path="res://addons/card_3d/scripts/card_layouts/line_card_layout.gd" id="4_28kt0"]
+[ext_resource type="Script" uid="uid://dauol4rysxcqw" path="res://addons/card_3d/scripts/card_layouts/pile_card_layout.gd" id="4_28kt0"]
 [ext_resource type="Script" uid="uid://8v3bpke27xiw" path="res://addons/card_3d/scripts/card_layouts/fan_card_layout.gd" id="5_nrrdr"]
 [ext_resource type="PackedScene" uid="uid://bjx4ugu14qx3w" path="res://example/face_card_3d.tscn" id="6_4uqre"]
 
-[sub_resource type="Resource" id="Resource_3x582"]
+[sub_resource type="Resource" id="Resource_nrrdr"]
 script = ExtResource("4_28kt0")
+pile_y_offset = 0.0
+metadata/_custom_type_script = "uid://dauol4rysxcqw"
 
-[sub_resource type="Resource" id="Resource_rgf87"]
+[sub_resource type="Resource" id="Resource_4uqre"]
+script = ExtResource("4_28kt0")
+pile_y_offset = 0.0
+metadata/_custom_type_script = "uid://dauol4rysxcqw"
+
+[sub_resource type="Resource" id="Resource_vlwyr"]
+script = ExtResource("4_28kt0")
+pile_y_offset = 0.0
+metadata/_custom_type_script = "uid://dauol4rysxcqw"
+
+[sub_resource type="Resource" id="Resource_taw8e"]
+script = ExtResource("4_28kt0")
+pile_y_offset = 0.0
+metadata/_custom_type_script = "uid://dauol4rysxcqw"
+
+[sub_resource type="Resource" id="Resource_b2mrn"]
 script = ExtResource("5_nrrdr")
 direction = 0
+metadata/_custom_type_script = "uid://8v3bpke27xiw"
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_tbve4"]
 size = Vector2(40, 20)
@@ -24,6 +42,7 @@ albedo_color = Color(0.207843, 0.396078, 0.301961, 1)
 size = Vector3(2.5, 3.5, 0.2)
 
 [node name="Deck" type="Node3D"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.0885658)
@@ -33,6 +52,7 @@ shadow_blur = 5.0
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 9)
+visible = false
 current = true
 fov = 84.375
 
@@ -42,12 +62,29 @@ script = ExtResource("1_3x582")
 [node name="DragController" type="Node3D" parent="Table"]
 script = ExtResource("2_rgf87")
 
-[node name="TableCards" parent="Table/DragController" instance=ExtResource("3_tbve4")]
-card_layout_strategy = SubResource("Resource_3x582")
+[node name="CardSlotBiome1" parent="Table/DragController" instance=ExtResource("3_tbve4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.75347, 4.7498, 1.3079e-07)
+card_slot_biome = 1
+card_layout_strategy = SubResource("Resource_nrrdr")
+
+[node name="CardSlotBiome2" parent="Table/DragController" instance=ExtResource("3_tbve4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.76025, -4.79842, -2.8659e-07)
+card_slot_biome = 2
+card_layout_strategy = SubResource("Resource_4uqre")
+
+[node name="CardSlotBiome3" parent="Table/DragController" instance=ExtResource("3_tbve4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.7403, -4.84837, -2.88774e-07)
+card_slot_biome = 3
+card_layout_strategy = SubResource("Resource_vlwyr")
+
+[node name="CardSlotBiome4" parent="Table/DragController" instance=ExtResource("3_tbve4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.73153, 4.73637, 1.30189e-07)
+card_slot_biome = 4
+card_layout_strategy = SubResource("Resource_taw8e")
 
 [node name="Hand" parent="Table/DragController" instance=ExtResource("3_tbve4")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5, -0.546119)
-card_layout_strategy = SubResource("Resource_rgf87")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5, 0)
+card_layout_strategy = SubResource("Resource_b2mrn")
 
 [node name="TableSurface" type="MeshInstance3D" parent="Table"]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, -1)
@@ -57,11 +94,6 @@ surface_material_override/0 = SubResource("StandardMaterial3D_28kt0")
 
 [node name="Deck" parent="." instance=ExtResource("6_4uqre")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 11.0863, 4.88531, -0.686903)
-hover_scale_factor = 1.15
-hover_pos_move = Vector3(0, 0.7, 0)
-move_tween_duration = 0.08
-rotate_tween_duration = 0.15
-face_down = false
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Deck"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.111376)

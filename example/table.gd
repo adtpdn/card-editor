@@ -5,7 +5,7 @@ var actions_cards = preload("res://cards/action_cards.tres")
 var available_cards = [] # Will store indices of available cards
 
 @onready var hand: CardCollection3D = $DragController/Hand
-@onready var pile: CardCollection3D = $DragController/TableCards
+#@onready var pile: CardCollection3D = $DragController/CardSlotBiome1
 
 func _ready():
 	# Initialize available cards
@@ -23,16 +23,16 @@ func _input(event):
 		remove_card()
 	elif event.is_action_pressed("ui_left"):
 		clear_cards()
-	elif event.is_action_pressed("ui_right"):
-		if pile.card_layout_strategy is PileCardLayout and hand.card_layout_strategy is LineCardLayout:
-			var layout := LineCardLayout.new()
-			pile.card_layout_strategy = layout
-		elif hand.card_layout_strategy is LineCardLayout:
-			hand.card_layout_strategy = FanCardLayout.new()
-		elif pile.card_layout_strategy is LineCardLayout:
-			pile.card_layout_strategy = PileCardLayout.new()
-		elif hand.card_layout_strategy is FanCardLayout:
-			hand.card_layout_strategy = LineCardLayout.new()
+	#elif event.is_action_pressed("ui_right"):
+		#if pile.card_layout_strategy is PileCardLayout and hand.card_layout_strategy is LineCardLayout:
+			#var layout := LineCardLayout.new()
+			#pile.card_layout_strategy = layout
+		#elif hand.card_layout_strategy is LineCardLayout:
+			#hand.card_layout_strategy = FanCardLayout.new()
+		#elif pile.card_layout_strategy is LineCardLayout:
+			#pile.card_layout_strategy = PileCardLayout.new()
+		#elif hand.card_layout_strategy is FanCardLayout:
+			#hand.card_layout_strategy = LineCardLayout.new()
 
 func instantiate_face_card(card_index) -> FaceCard3D:
 	var scene = load("res://example/face_card_3d.tscn")
@@ -43,7 +43,6 @@ func instantiate_face_card(card_index) -> FaceCard3D:
 	
 	# Set the card data
 	face_card_3d.card_id = card_resource.card_id
-	face_card_3d.card_on_biome = card_resource.card_on_biome
 	face_card_3d.card_name = card_resource.card_name
 	face_card_3d.card_type = card_resource.card_type
 	
@@ -65,6 +64,7 @@ func add_card():
 	if data:
 		var card = instantiate_face_card(data["id"])
 		hand.append_card(card)
+		
 		card.global_position = $"../Deck".global_position
 
 func next_card():
@@ -96,19 +96,19 @@ func play_card(card):
 	var card_global_position = hand.cards[card_index].global_position
 	var c = hand.remove_card(card_index)
 	
-	pile.append_card(c)
+	#pile.append_card(c)
 	c.remove_hovered()
 	c.global_position = card_global_position
 
 func clear_cards():
 	var hand_cards = hand.remove_all()
-	var pile_cards = pile.remove_all()
+	#var pile_cards = pile.remove_all()
 	
 	for c in hand_cards:
 		c.queue_free()
 	
-	for c in pile_cards:
-		c.queue_free()
+	#for c in pile_cards:
+		#c.queue_free()
 
 func _on_face_card_3d_card_3d_mouse_up():
 	add_card()

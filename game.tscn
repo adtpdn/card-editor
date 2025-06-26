@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=26 format=3 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://game.gd" id="1_0rb8f"]
 [ext_resource type="Script" uid="uid://61ovdinil8mj" path="res://hand.gd" id="2_drdp6"]
@@ -20,6 +20,7 @@
 [ext_resource type="Script" uid="uid://inns47cokwch" path="res://point_counter.gd" id="11_beb7m"]
 [ext_resource type="Script" uid="uid://oigll5nbfhgy" path="res://deck_location.gd" id="12_8ltkn"]
 [ext_resource type="Script" uid="uid://dao6ito3qdqs4" path="res://planting_location.gd" id="13_u747q"]
+[ext_resource type="PackedScene" uid="uid://cy8dmfciur8g6" path="res://deck.tscn" id="21_hb5m1"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cu6c3"]
 albedo_color = Color(0.42, 0.42, 0.42, 1)
@@ -71,6 +72,7 @@ transform = Transform3D(11, 0, -9.61651e-07, 0, -0.08, 0, 9.61651e-07, 0, 11, 0,
 mesh = SubResource("CylinderMesh_yl3nv")
 
 [node name="DeckLocations" type="Node3D" parent="."]
+visible = false
 
 [node name="ActionDeck" type="Node3D" parent="DeckLocations"]
 script = ExtResource("12_8ltkn")
@@ -911,6 +913,8 @@ transform = Transform3D(1, 0, 7.45058e-09, 0, 0.03, 0, 0, 0, 1, -0.00149435, 0, 
 mesh = SubResource("BoxMesh_nfgrx")
 surface_material_override/0 = ExtResource("7_l1bdx")
 
+[node name="Deck" parent="." instance=ExtResource("21_hb5m1")]
+
 [node name="ResetButton" type="Button" parent="."]
 visible = false
 anchors_preset = 5
@@ -1284,6 +1288,7 @@ layout_mode = 2
 text = "Push"
 
 [node name="HandAreas" type="Control" parent="."]
+visible = false
 clip_contents = true
 layout_mode = 3
 anchors_preset = 12
@@ -1316,6 +1321,7 @@ hand_curve = ExtResource("3_jwe8m")
 rotation_curve = ExtResource("4_lbysu")
 
 [node name="DrawActionButton" type="Button" parent="."]
+visible = false
 offset_left = 17.0
 offset_top = 319.0
 offset_right = 160.0
@@ -1323,6 +1329,7 @@ offset_bottom = 350.0
 text = "Draw Action Card"
 
 [node name="DrawAreaButton" type="Button" parent="."]
+visible = false
 offset_left = 17.0
 offset_top = 364.0
 offset_right = 147.0

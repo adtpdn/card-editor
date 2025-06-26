@@ -25,10 +25,11 @@ signal card_added(card)
 
 @onready var dropzone_collision: CollisionShape3D = $DropZone/CollisionShape3D
 
+@export var card_slot_biome = -1
 @export var highlight_on_hover: bool = true
 @export var card_move_tween_duration: float = .25
 @export var card_swap_tween_duration: float = .25
-@export var card_layout_strategy: CardLayout = LineCardLayout.new():
+@export var card_layout_strategy: CardLayout = FanCardLayout.new():
 	set(strategy):
 		card_layout_strategy = strategy
 		apply_card_layout()
@@ -64,7 +65,8 @@ func insert_card(card: Card3D, index: int):
 	card.card_3d_mouse_up.connect(_on_card_clicked.bind(card))
 	card.card_3d_mouse_over.connect(_on_card_hover.bind(card))
 	card.card_3d_mouse_exit.connect(_on_card_exit.bind(card))
-		
+	
+	card.card_on_biome = card_slot_biome
 	cards.insert(index, card)
 	add_child(card)
 	
