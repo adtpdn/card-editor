@@ -1,15 +1,18 @@
+<<<<<<< HEAD
 [gd_scene load_steps=32 format=3 uid="uid://dpmxlw8f4fyvd"]
+=======
+[gd_scene load_steps=23 format=3 uid="uid://dpmxlw8f4fyvd"]
+>>>>>>> 305905c22058a639379ae4535968502694d8e2f1
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://game.gd" id="1_0rb8f"]
 [ext_resource type="Script" uid="uid://61ovdinil8mj" path="res://hand.gd" id="2_drdp6"]
+[ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://turn_phase_manager.gd" id="2_e36ub"]
 [ext_resource type="Script" uid="uid://ckodjk0ue4j3n" path="res://token_manager.gd" id="2_njql7"]
 [ext_resource type="Script" uid="uid://b51yqiry8444l" path="res://network_manager.gd" id="3_boyg6"]
 [ext_resource type="Curve" uid="uid://dtskme7prx4g5" path="res://hand_y_curve.tres" id="3_jwe8m"]
 [ext_resource type="Script" uid="uid://crljukaucgphk" path="res://game_state_manager.gd" id="4_e36ub"]
 [ext_resource type="Curve" uid="uid://dwkwcluylhkq0" path="res://hand_rotation_curve.tres" id="4_lbysu"]
-[ext_resource type="Resource" uid="uid://jby5l2ek6uel" path="res://cards/action_cards.tres" id="4_tg8ug"]
 [ext_resource type="Script" uid="uid://dpaobk3mip7va" path="res://card_manager.gd" id="5_hb5m1"]
-[ext_resource type="Resource" uid="uid://dvmue13fxi5od" path="res://cards/area_cards.tres" id="5_ti4wn"]
 [ext_resource type="PackedScene" uid="uid://cqkw6uj4kgxav" path="res://token_placement_location_magic.tscn" id="6_aclfe"]
 [ext_resource type="Script" uid="uid://22sqj66kc86h" path="res://ui_manager.gd" id="6_x5p1p"]
 [ext_resource type="Script" uid="uid://b33jfe6s6f3g4" path="res://sigil_manager.gd" id="7_boyg6"]
@@ -21,12 +24,17 @@
 [ext_resource type="Shape3D" uid="uid://gjjokcof6ivg" path="res://cards/card_3d_collision.tres" id="11_1ew6f"]
 [ext_resource type="PackedScene" uid="uid://bfh8j800mc1uq" path="res://assets/meshes/biome_slice_4.glb" id="11_36jdj"]
 [ext_resource type="Script" uid="uid://inns47cokwch" path="res://point_counter.gd" id="11_beb7m"]
+<<<<<<< HEAD
 [ext_resource type="Script" uid="uid://cfsntbrmww4pn" path="res://deck_location.gd" id="12_8ltkn"]
 [ext_resource type="Script" uid="uid://dao6ito3qdqs4" path="res://planting_location.gd" id="13_u747q"]
 [ext_resource type="PackedScene" uid="uid://dcowk0qhpovrj" path="res://assets/meshes/sigil_slot_1.glb" id="15_xfvwf"]
 [ext_resource type="PackedScene" uid="uid://ckc5fe52hxbo7" path="res://assets/meshes/sigil_slot_2.glb" id="16_dhpj7"]
 [ext_resource type="PackedScene" uid="uid://dy1jahwg10ltr" path="res://assets/meshes/sigil_slot_3.glb" id="17_7knny"]
 [ext_resource type="PackedScene" uid="uid://c75jlfpiagn3a" path="res://assets/meshes/sigil_slot_4.glb" id="18_082n1"]
+=======
+[ext_resource type="Script" uid="uid://dao6ito3qdqs4" path="res://planting_location.gd" id="13_u747q"]
+[ext_resource type="PackedScene" uid="uid://cy8dmfciur8g6" path="res://deck.tscn" id="21_hb5m1"]
+>>>>>>> 305905c22058a639379ae4535968502694d8e2f1
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cu6c3"]
 albedo_color = Color(0.42, 0.42, 0.42, 1)
@@ -41,6 +49,9 @@ radial_segments = 8
 
 [node name="Game" type="Node"]
 script = ExtResource("1_0rb8f")
+
+[node name="TurnPhaseManager" type="Node" parent="."]
+script = ExtResource("2_e36ub")
 
 [node name="TokenManager" type="Node" parent="."]
 script = ExtResource("2_njql7")
@@ -86,6 +97,7 @@ transform = Transform3D(11, 0, -9.61651e-07, 0, -0.08, 0, 9.61651e-07, 0, 11, 0,
 visible = false
 mesh = SubResource("CylinderMesh_yl3nv")
 
+<<<<<<< HEAD
 [node name="DeckLocations" type="Node3D" parent="."]
 
 [node name="ActionDeck" type="Node3D" parent="DeckLocations"]
@@ -108,6 +120,8 @@ deck_name = "Area Cards"
 
 [node name="sigil_slot_4" parent="TokenPlacementsMat" instance=ExtResource("18_082n1")]
 
+=======
+>>>>>>> 305905c22058a639379ae4535968502694d8e2f1
 [node name="TokenPlacements" type="Node3D" parent="."]
 
 [node name="TokenPlacementLocation_M_1" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
@@ -937,6 +951,8 @@ transform = Transform3D(1, 0, 7.45058e-09, 0, 0.03, 0, 0, 0, 1, -0.00149435, 0, 
 mesh = SubResource("BoxMesh_nfgrx")
 surface_material_override/0 = ExtResource("7_l1bdx")
 
+[node name="Deck" parent="." instance=ExtResource("21_hb5m1")]
+
 [node name="ResetButton" type="Button" parent="."]
 visible = false
 anchors_preset = 5
@@ -1030,7 +1046,7 @@ text = "Not Connected"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="EndTurnButton" type="Button" parent="RightUI"]
+[node name="EndPhaseButton" type="Button" parent="RightUI"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -1041,6 +1057,22 @@ offset_left = -20.0
 offset_top = 158.5
 offset_right = 58.0
 offset_bottom = 189.5
+grow_horizontal = 2
+grow_vertical = 2
+disabled = true
+text = "End Phase"
+
+[node name="EndTurnButton" type="Button" parent="RightUI"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = 201.5
+offset_right = 58.0
+offset_bottom = 232.5
 grow_horizontal = 2
 grow_vertical = 2
 disabled = true
@@ -1097,203 +1129,49 @@ offset_bottom = 179.0
 grow_horizontal = 0
 text = "Blight Token"
 
+[node name="SigilContainer" type="VBoxContainer" parent="."]
+offset_left = 34.0
+offset_top = 42.0
+offset_right = 92.0
+offset_bottom = 143.0
+
+[node name="SigilAButton" type="Button" parent="SigilContainer"]
+layout_mode = 2
+text = "Sigil A "
+
+[node name="SigilBButton" type="Button" parent="SigilContainer"]
+layout_mode = 2
+text = "Sigil B"
+
+[node name="SigilCButton" type="Button" parent="SigilContainer"]
+layout_mode = 2
+text = "Sigil C"
+
 [node name="LeftUI" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 9
 anchor_bottom = 1.0
-offset_right = 256.0
+offset_top = 460.0
+offset_right = 243.0
 grow_vertical = 2
 size_flags_horizontal = 4
 
-[node name="VBoxContainer" type="VBoxContainer" parent="LeftUI"]
-visible = false
-layout_mode = 1
-offset_left = 27.0
-offset_top = 22.0
-offset_right = 147.0
-offset_bottom = 123.0
-
-[node name="ForestButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="LeftUI/VBoxContainer/ForestButtons"]
-layout_mode = 2
-text = "Forest                       "
-
-[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/ForestButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/ForestButtons"]
-layout_mode = 2
-text = " - "
-
-[node name="ForestMagicButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="LeftUI/VBoxContainer/ForestMagicButtons"]
-layout_mode = 2
-text = "Forest  Magic          "
-
-[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/ForestMagicButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/ForestMagicButtons"]
-layout_mode = 2
-text = " - "
-
-[node name="DesertButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label2" type="Label" parent="LeftUI/VBoxContainer/DesertButtons"]
-layout_mode = 2
-text = "Desert                      "
-
-[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/DesertButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/DesertButtons"]
-layout_mode = 2
-text = " - "
-
-[node name="DesertMagicButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label2" type="Label" parent="LeftUI/VBoxContainer/DesertMagicButtons"]
-layout_mode = 2
-text = "Desert Magic          "
-
-[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/DesertMagicButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/DesertMagicButtons"]
-layout_mode = 2
-text = " - "
-
-[node name="MountainButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label3" type="Label" parent="LeftUI/VBoxContainer/MountainButtons"]
-layout_mode = 2
-text = "Mountain                "
-
-[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/MountainButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/MountainButtons"]
-layout_mode = 2
-text = " - "
-
-[node name="MountainMagicButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label3" type="Label" parent="LeftUI/VBoxContainer/MountainMagicButtons"]
-layout_mode = 2
-text = "Mountain Magic    "
-
-[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/MountainMagicButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/MountainMagicButtons"]
-layout_mode = 2
-text = " - "
-
-[node name="WaterButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label3" type="Label" parent="LeftUI/VBoxContainer/WaterButtons"]
-layout_mode = 2
-text = "Water                       "
-
-[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/WaterButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/WaterButtons"]
-layout_mode = 2
-text = " - "
-
-[node name="WaterMagicButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label3" type="Label" parent="LeftUI/VBoxContainer/WaterMagicButtons"]
-layout_mode = 2
-text = "Water Magic           "
-
-[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/WaterMagicButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/WaterMagicButtons"]
-layout_mode = 2
-text = " - "
-
-[node name="StartGameButton" type="Button" parent="LeftUI"]
-visible = false
-layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 25.0
-offset_top = -76.0
-offset_right = 157.0
-offset_bottom = -25.0
-grow_vertical = 0
-text = "Start Game"
-
 [node name="PlayerList" type="ItemList" parent="LeftUI"]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 26.0
-offset_top = 393.0
-offset_right = -10.0
-offset_bottom = -135.0
+anchors_preset = -1
+anchor_left = 0.107
+anchor_top = 0.539
+anchor_right = 0.959
+anchor_bottom = 0.749
+offset_left = -5.001
+offset_top = -65.332
+offset_right = -5.03702
+offset_bottom = 26.188
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="SigilContainer" type="VBoxContainer" parent="LeftUI"]
-layout_mode = 1
-offset_left = 29.0
-offset_top = 85.0
-offset_right = 87.0
-offset_bottom = 186.0
-
-[node name="SigilAButton" type="Button" parent="LeftUI/SigilContainer"]
-layout_mode = 2
-text = "Sigil A "
-
-[node name="SigilBButton" type="Button" parent="LeftUI/SigilContainer"]
-layout_mode = 2
-text = "Sigil B"
-
-[node name="SigilCButton" type="Button" parent="LeftUI/SigilContainer"]
-layout_mode = 2
-text = "Sigil C"
-
-[node name="PullorPushContainer" type="VBoxContainer" parent="LeftUI"]
-visible = false
-layout_mode = 0
-offset_left = 108.0
-offset_top = 101.0
-offset_right = 154.0
-offset_bottom = 167.0
-
-[node name="Pull" type="Button" parent="LeftUI/PullorPushContainer"]
-layout_mode = 2
-text = "Pull"
-
-[node name="Push" type="Button" parent="LeftUI/PullorPushContainer"]
-layout_mode = 2
-text = "Push"
-
 [node name="HandAreas" type="Control" parent="."]
+visible = false
 clip_contents = true
 layout_mode = 3
 anchors_preset = 12

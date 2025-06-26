@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_oth5w")
 card_id = 2
+card_on_biome = -1
 card_name = "Swap Energy"
 card_type = 0
 cost_to_draw = 1

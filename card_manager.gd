@@ -114,35 +114,35 @@ func distribute_initial_hand():
 	game.player_hands[host_id].clear()
 	
 	# Track drawn cards to prevent duplicates
-	var drawn_cards = []
+	#var drawn_cards = []
 	
 	# Draw initial cards with validation
-	for i in range(INITIAL_ACTION_CARDS):
-		var card = action_deck.draw_card()
-		while card and is_card_in_array(card, drawn_cards):
-			action_deck.cards.append(card)  # Put the card back
-			action_deck.shuffle()
-			card = action_deck.draw_card()
-		
-		if card:
-			drawn_cards.append(card)
-			game.player_hands[host_id].append(card)
-			player_hand.draw(card)
-	
-	for i in range(INITIAL_AREA_CARDS):
-		var card = area_deck.draw_card()
-		while card and is_card_in_array(card, drawn_cards):
-			area_deck.cards.append(card)  # Put the card back
-			area_deck.shuffle()
-			card = area_deck.draw_card()
-			
-		if card:
-			drawn_cards.append(card)
-			game.player_hands[host_id].append(card)
-			player_hand.draw(card)
+	#for i in range(INITIAL_ACTION_CARDS):
+		#var card = action_deck.draw_card()
+		#while card and is_card_in_array(card, drawn_cards):
+			#action_deck.cards.append(card)  # Put the card back
+			#action_deck.shuffle()
+			#card = action_deck.draw_card()
+		#
+		#if card:
+			#drawn_cards.append(card)
+			#game.player_hands[host_id].append(card)
+			#player_hand.draw(card)
+	#
+	#for i in range(INITIAL_AREA_CARDS):
+		#var card = area_deck.draw_card()
+		#while card and is_card_in_array(card, drawn_cards):
+			#area_deck.cards.append(card)  # Put the card back
+			#area_deck.shuffle()
+			#card = area_deck.draw_card()
+			#
+		#if card:
+			#drawn_cards.append(card)
+			#game.player_hands[host_id].append(card)
+			#player_hand.draw(card)
 			
 	# Ensure the hand is synced with the game state
-	player_hand.sync_with_game_state()
+	#player_hand.sync_with_game_state()
 
 # Modify the distribute_initial_hand_to_client function
 func distribute_initial_hand_to_client(peer_id: int):
@@ -168,33 +168,33 @@ func distribute_initial_hand_to_client(peer_id: int):
 	var area_count = 0
 	
 	# Draw initial action cards
-	while action_count < INITIAL_ACTION_CARDS:
-		var card = action_deck.draw_card()
-		if card:
-			if !is_card_duplicate(cards_data, card):
-				# ONLY add to server's tracking of client's hand
-				game.player_hands[peer_id].append(card)
-				cards_data.append(card.to_dictionary())
-				action_count += 1
-	
-	# Draw initial area cards
-	while area_count < INITIAL_AREA_CARDS:
-		var card = area_deck.draw_card()
-		if card:
-			if !is_card_duplicate(cards_data, card):
-				# ONLY add to server's tracking of client's hand
-				game.player_hands[peer_id].append(card)
-				cards_data.append(card.to_dictionary())
-				area_count += 1
+	#while action_count < INITIAL_ACTION_CARDS:
+		#var card = action_deck.draw_card()
+		#if card:
+			#if !is_card_duplicate(cards_data, card):
+				## ONLY add to server's tracking of client's hand
+				#game.player_hands[peer_id].append(card)
+				#cards_data.append(card.to_dictionary())
+				#action_count += 1
+	#
+	## Draw initial area cards
+	#while area_count < INITIAL_AREA_CARDS:
+		#var card = area_deck.draw_card()
+		#if card:
+			#if !is_card_duplicate(cards_data, card):
+				## ONLY add to server's tracking of client's hand
+				#game.player_hands[peer_id].append(card)
+				#cards_data.append(card.to_dictionary())
+				#area_count += 1
 	
 	# Send cards to client only if we have the correct number
-	if cards_data.size() == (INITIAL_ACTION_CARDS + INITIAL_AREA_CARDS):
-		print("Sending initial hand to client ", peer_id, ": ", cards_data.size(), " cards")
-		get_parent().rpc_id(peer_id, "receive_initial_hand", cards_data)
-		
-		# Re-sync host's hand after giving cards to client
-		if player_hand and player_hand.has_method("sync_with_game_state"):
-			player_hand.sync_with_game_state()
+	#if cards_data.size() == (INITIAL_ACTION_CARDS + INITIAL_AREA_CARDS):
+		#print("Sending initial hand to client ", peer_id, ": ", cards_data.size(), " cards")
+		#get_parent().rpc_id(peer_id, "receive_initial_hand", cards_data)
+		#
+		## Re-sync host's hand after giving cards to client
+		#if player_hand and player_hand.has_method("sync_with_game_state"):
+			#player_hand.sync_with_game_state()
 
 func is_card_in_array(card: CardResource, array: Array) -> bool:
 	for existing_card in array:
@@ -624,3 +624,7 @@ func refresh_energy_card_effect():
 func swap_energy_card_effect():
 	print("swap energy card effect")
 	token_manager._on_swap_energy()
+
+func plant_extra_card_effect():
+	print("plant extra token card effect")
+	token_manager._on_plant_extra_token()

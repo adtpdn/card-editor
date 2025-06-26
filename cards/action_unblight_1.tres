@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_62vsr")
 card_id = 0
+card_on_biome = -1
 card_name = "Unblight"
 card_type = 0
 cost_to_draw = 1

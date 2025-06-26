@@ -10,6 +10,7 @@ extends Node
 @onready var card_manager = $CardManager
 @onready var ui_manager = $UIManager
 @onready var sigil_manager = $SigilManager
+@onready var turn_phase_manager = $TurnPhaseManager
 
 
 @onready var point_counter = $PointCounter
@@ -43,8 +44,8 @@ func _ready():
 	token_manager.initialize()
 	network_manager.initialize()
 	game_state_manager.initialize()
-	#ui_manager.initialize()
-	
+	if has_node("TurnPhaseManager"):
+		turn_phase_manager.initialize()
 	if has_node("SigilManager"):
 		$SigilManager.initialize()
 	
