@@ -1,13 +1,18 @@
-[gd_resource type="Resource" script_class="DeckResource" load_steps=8 format=3 uid="uid://jby5l2ek6uel"]
+[gd_resource type="Resource" script_class="DeckResource" load_steps=13 format=3 uid="uid://jby5l2ek6uel"]
 
 [ext_resource type="Script" uid="uid://cnsjqdceew03f" path="res://card_resource.gd" id="1_kdq4i"]
 [ext_resource type="Script" uid="uid://cg5w6ppij4h5v" path="res://deck_resource.gd" id="2_prun6"]
 [ext_resource type="Resource" uid="uid://dhf8f1v1nt20h" path="res://cards/action_plant_extra_token_energy_1.tres" id="3_bitgn"]
+[ext_resource type="Resource" uid="uid://45nqojvfbhyg" path="res://cards/action_unblight_2.tres" id="3_xdpuw"]
 [ext_resource type="Resource" uid="uid://qefl3yobjvbs" path="res://cards/action_refresh_energy_1.tres" id="4_xdpuw"]
 [ext_resource type="Resource" uid="uid://0r5wpa5dfhhm" path="res://cards/action_take_off_1.tres" id="5_6j46m"]
+[ext_resource type="Resource" uid="uid://ckmcpk45kuwrv" path="res://cards/action_plant_extra_token_energy_2.tres" id="5_r4bn5"]
 [ext_resource type="Resource" uid="uid://nk1emmfrhnqn" path="res://cards/action_swap_energy_1.tres" id="6_r4bn5"]
+[ext_resource type="Resource" uid="uid://s85sik1rvlmn" path="res://cards/action_refresh_energy_2.tres" id="7_r4bn5"]
 [ext_resource type="Resource" uid="uid://ry0bcq5phfq2" path="res://cards/action_unblight_1.tres" id="8_6j46m"]
+[ext_resource type="Resource" uid="uid://d215hsqvp4m6m" path="res://cards/action_take_off_2.tres" id="9_hoh1n"]
+[ext_resource type="Resource" uid="uid://c5wrctcbje404" path="res://cards/action_swap_energy_2.tres" id="11_swpa5"]
 
 [resource]
 script = ExtResource("2_prun6")
-cards = Array[ExtResource("1_kdq4i")]([ExtResource("8_6j46m"), ExtResource("8_6j46m"), ExtResource("3_bitgn"), ExtResource("3_bitgn"), ExtResource("4_xdpuw"), ExtResource("4_xdpuw"), ExtResource("5_6j46m"), ExtResource("5_6j46m"), ExtResource("6_r4bn5"), ExtResource("6_r4bn5")])
+cards = Array[ExtResource("1_kdq4i")]([ExtResource("8_6j46m"), ExtResource("3_xdpuw"), ExtResource("3_bitgn"), ExtResource("5_r4bn5"), ExtResource("4_xdpuw"), ExtResource("7_r4bn5"), ExtResource("5_6j46m"), ExtResource("9_hoh1n"), ExtResource("6_r4bn5"), ExtResource("11_swpa5")])

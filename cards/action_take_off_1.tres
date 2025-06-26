@@ -12,5 +12,5 @@ cost_to_draw = 1
 effect1 = "Take off 1 energy your or other player energy on a sigil magic "
 effect2 = ""
 revealed = true
-tex3D_path = "res://assets/cards/action_card_04.png"
-image_path = "res://assets/cards/2D/tile004.png"
+tex3D_path = "res://assets/cards/action_card_07.png"
+image_path = "res://assets/cards/2D/card_07.png"

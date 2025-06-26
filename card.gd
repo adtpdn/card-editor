@@ -40,8 +40,8 @@ func update_card_display() -> void:
 			# Show all card elements
 			label.visible = true
 			cost_label.visible = true
-			effect1_label.visible = true
-			effect2_label.visible = true
+			#effect1_label.visible = true
+			#effect2_label.visible = true
 		else:
 			# Show card back
 			image.texture = CARD_BACK_TEXTURE
