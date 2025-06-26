@@ -22,7 +22,7 @@ offset_right = -1063.0
 offset_bottom = -518.0
 grow_horizontal = 2
 grow_vertical = 2
-pivot_offset = Vector2(44.5, 65)
+pivot_offset = Vector2(428.5, 281)
 theme_override_styles/panel = SubResource("StyleBoxEmpty_2p5m1")
 script = ExtResource("1_4sblk")
 
