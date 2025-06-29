@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-[gd_scene load_steps=32 format=3 uid="uid://dpmxlw8f4fyvd"]
-=======
-[gd_scene load_steps=23 format=3 uid="uid://dpmxlw8f4fyvd"]
->>>>>>> 305905c22058a639379ae4535968502694d8e2f1
+[gd_scene load_steps=27 format=3 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://game.gd" id="1_0rb8f"]
 [ext_resource type="Script" uid="uid://61ovdinil8mj" path="res://hand.gd" id="2_drdp6"]
@@ -24,17 +20,8 @@
 [ext_resource type="Shape3D" uid="uid://gjjokcof6ivg" path="res://cards/card_3d_collision.tres" id="11_1ew6f"]
 [ext_resource type="PackedScene" uid="uid://bfh8j800mc1uq" path="res://assets/meshes/biome_slice_4.glb" id="11_36jdj"]
 [ext_resource type="Script" uid="uid://inns47cokwch" path="res://point_counter.gd" id="11_beb7m"]
-<<<<<<< HEAD
-[ext_resource type="Script" uid="uid://cfsntbrmww4pn" path="res://deck_location.gd" id="12_8ltkn"]
-[ext_resource type="Script" uid="uid://dao6ito3qdqs4" path="res://planting_location.gd" id="13_u747q"]
-[ext_resource type="PackedScene" uid="uid://dcowk0qhpovrj" path="res://assets/meshes/sigil_slot_1.glb" id="15_xfvwf"]
-[ext_resource type="PackedScene" uid="uid://ckc5fe52hxbo7" path="res://assets/meshes/sigil_slot_2.glb" id="16_dhpj7"]
-[ext_resource type="PackedScene" uid="uid://dy1jahwg10ltr" path="res://assets/meshes/sigil_slot_3.glb" id="17_7knny"]
-[ext_resource type="PackedScene" uid="uid://c75jlfpiagn3a" path="res://assets/meshes/sigil_slot_4.glb" id="18_082n1"]
-=======
 [ext_resource type="Script" uid="uid://dao6ito3qdqs4" path="res://planting_location.gd" id="13_u747q"]
 [ext_resource type="PackedScene" uid="uid://cy8dmfciur8g6" path="res://deck.tscn" id="21_hb5m1"]
->>>>>>> 305905c22058a639379ae4535968502694d8e2f1
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cu6c3"]
 albedo_color = Color(0.42, 0.42, 0.42, 1)
@@ -73,19 +60,22 @@ script = ExtResource("7_boyg6")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 17, 0)
-projection = 1
 fov = 50.0
 size = 14.966
 
 [node name="Node" type="Node" parent="."]
 
 [node name="biome_slice_1" parent="Node" instance=ExtResource("8_xa8c5")]
+visible = false
 
 [node name="biome_slice_22" parent="Node" instance=ExtResource("9_5b14r")]
+visible = false
 
 [node name="biome_slice_32" parent="Node" instance=ExtResource("10_bnpwn")]
+visible = false
 
 [node name="biome_slice_42" parent="Node" instance=ExtResource("11_36jdj")]
+visible = false
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(8, 0, 0, 0, -0.05, 0, 0, 0, 8, 0, -0.0680389, 0)
@@ -97,31 +87,6 @@ transform = Transform3D(11, 0, -9.61651e-07, 0, -0.08, 0, 9.61651e-07, 0, 11, 0,
 visible = false
 mesh = SubResource("CylinderMesh_yl3nv")
 
-<<<<<<< HEAD
-[node name="DeckLocations" type="Node3D" parent="."]
-
-[node name="ActionDeck" type="Node3D" parent="DeckLocations"]
-script = ExtResource("12_8ltkn")
-deck_resource = ExtResource("4_tg8ug")
-deck_name = "Action Cards"
-
-[node name="AreaDeck" type="Node3D" parent="DeckLocations"]
-script = ExtResource("12_8ltkn")
-deck_resource = ExtResource("5_ti4wn")
-deck_name = "Area Cards"
-
-[node name="TokenPlacementsMat" type="Node" parent="."]
-
-[node name="sigil_slot_1" parent="TokenPlacementsMat" instance=ExtResource("15_xfvwf")]
-
-[node name="sigil_slot_2" parent="TokenPlacementsMat" instance=ExtResource("16_dhpj7")]
-
-[node name="sigil_slot_3" parent="TokenPlacementsMat" instance=ExtResource("17_7knny")]
-
-[node name="sigil_slot_4" parent="TokenPlacementsMat" instance=ExtResource("18_082n1")]
-
-=======
->>>>>>> 305905c22058a639379ae4535968502694d8e2f1
 [node name="TokenPlacements" type="Node3D" parent="."]
 
 [node name="TokenPlacementLocation_M_1" parent="TokenPlacements" instance=ExtResource("6_aclfe")]
@@ -770,6 +735,7 @@ accepted_biome = 1
 [node name="Tokens" type="Node3D" parent="."]
 
 [node name="PlantingLocations" type="Node3D" parent="."]
+visible = false
 
 [node name="ActionArea" type="Node3D" parent="PlantingLocations"]
 script = ExtResource("13_u747q")
@@ -1221,6 +1187,7 @@ text = "Draw Area Card"
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 5, 0)
+visible = false
 sky_mode = 1
 
 [node name="PointCounter" type="Node3D" parent="."]

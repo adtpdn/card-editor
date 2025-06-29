@@ -10,10 +10,10 @@ var mountain_points = 0
 var water_points = 0
 
 # Magic biome points
-var forest_magic_points = 0
-var desert_magic_points = 0
-var mountain_magic_points = 0
-var water_magic_points = 0
+var forest_magic_points = 3
+var desert_magic_points = 3
+var mountain_magic_points = 3
+var water_magic_points = 3
 
 const BLOCK_HEIGHT = 0.2
 const BLOCK_SPACING = 0.05
@@ -32,26 +32,6 @@ var block_scene = preload("res://point_block.tscn")
 @onready var desert_magic_stack = $DesertMagicStack
 @onready var mountain_magic_stack = $MountainMagicStack
 @onready var water_magic_stack = $WaterMagicStack
-
-# Regular biome buttons
-@onready var btn_forest_plus = $"../LeftUI/VBoxContainer/ForestButtons/PlusButton"
-@onready var btn_forest_min = $"../LeftUI/VBoxContainer/ForestButtons/MinusButton"
-@onready var btn_desert_plus = $"../LeftUI/VBoxContainer/DesertButtons/PlusButton"
-@onready var btn_desert_min = $"../LeftUI/VBoxContainer/DesertButtons/MinusButton"
-@onready var btn_mountain_plus = $"../LeftUI/VBoxContainer/MountainButtons/PlusButton"
-@onready var btn_mountain_min = $"../LeftUI/VBoxContainer/MountainButtons/MinusButton"
-@onready var btn_water_plus = $"../LeftUI/VBoxContainer/WaterButtons/PlusButton"
-@onready var btn_water_min = $"../LeftUI/VBoxContainer/WaterButtons/MinusButton"
-
-# Magic biome buttons
-@onready var btn_forest_magic_plus = $"../LeftUI/VBoxContainer/ForestMagicButtons/PlusButton"
-@onready var btn_forest_magic_min = $"../LeftUI/VBoxContainer/ForestMagicButtons/MinusButton"
-@onready var btn_desert_magic_plus = $"../LeftUI/VBoxContainer/DesertMagicButtons/PlusButton"
-@onready var btn_desert_magic_min = $"../LeftUI/VBoxContainer/DesertMagicButtons/MinusButton"
-@onready var btn_mountain_magic_plus = $"../LeftUI/VBoxContainer/MountainMagicButtons/PlusButton"
-@onready var btn_mountain_magic_min = $"../LeftUI/VBoxContainer/MountainMagicButtons/MinusButton"
-@onready var btn_water_magic_plus = $"../LeftUI/VBoxContainer/WaterMagicButtons/PlusButton"
-@onready var btn_water_magic_min = $"../LeftUI/VBoxContainer/WaterMagicButtons/MinusButton"
 
 var current_turn_player_id: int = 1
 var last_button_press_time = 0.0

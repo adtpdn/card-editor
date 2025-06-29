@@ -15,6 +15,10 @@ extends Node
 
 @onready var point_counter = $PointCounter
 
+@onready var sigil_a_button = $SigilContainer/SigilAButton
+@onready var sigil_b_button = $SigilContainer/SigilBButton
+@onready var sigil_c_button = $SigilContainer/SigilCButton
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Core Game State
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

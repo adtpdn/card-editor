@@ -81,7 +81,7 @@ func _ready():
 		print("TurnPhaseManager: Available signals in token_manager: ", token_manager.get_signal_list() if token_manager else "token_manager not found")
 	
 	# Connect to sigil buttons
-	var sigil_container = game.get_node("LeftUI/SigilContainer")
+	var sigil_container = game.get_node("SigilContainer")
 	if sigil_container:
 		print("TurnPhaseManager: Found sigil container")
 		for child in sigil_container.get_children():
@@ -136,7 +136,7 @@ func create_phase_popup():
 	phase_notification.size = Vector2(350, 180)
 	phase_notification.exclusive = false  # Allow interaction with the game while notification is shown
 	phase_notification.dialog_text = "Initialize notification"
-	game.add_child(phase_notification)
+	game.add_child.call_deferred(phase_notification)
 	
 	# End phase button
 	end_phase_button.pressed.connect(_on_end_phase_button_pressed)
@@ -383,7 +383,7 @@ func disable_card_play():
 # Helper function to enable/disable sigil buttons
 func enable_sigil_buttons(enabled: bool):
 	print("TurnPhaseManager: ", "Enabling" if enabled else "Disabling", " sigil buttons")
-	var sigil_container = game.get_node("LeftUI/SigilContainer")
+	var sigil_container = game.get_node("SigilContainer")
 	if sigil_container:
 		for child in sigil_container.get_children():
 			if child is Button:

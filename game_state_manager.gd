@@ -41,11 +41,11 @@ func _ready():
 		end_turn_button.pressed.connect(_on_end_turn_pressed)
 	
 	# Connect start game button
-	var start_game_button = get_parent().get_node("LeftUI/StartGameButton")
-	if start_game_button:
-		if start_game_button.pressed.is_connected(_on_start_game_pressed):
-			start_game_button.pressed.disconnect(_on_start_game_pressed)
-		start_game_button.pressed.connect(_on_start_game_pressed)
+	#var start_game_button = get_parent().get_node("LeftUI/StartGameButton")
+	#if start_game_button:
+		#if start_game_button.pressed.is_connected(_on_start_game_pressed):
+			#start_game_button.pressed.disconnect(_on_start_game_pressed)
+		#start_game_button.pressed.connect(_on_start_game_pressed)
 
 func initialize():
 	# Initial setup
@@ -53,9 +53,9 @@ func initialize():
 	current_turn_index = 0
 	
 	# Hide the start game button initially
-	var start_game_button = get_parent().get_node("LeftUI/StartGameButton")
-	if start_game_button:
-		start_game_button.visible = false
+	#var start_game_button = get_parent().get_node("LeftUI/StartGameButton")
+	#if start_game_button:
+		#start_game_button.visible = false
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---     Game Start/Setup     ---
@@ -451,10 +451,8 @@ func _on_end_turn_pressed():
 		if end_turn_button:
 			end_turn_button.disabled = true
 		
-		if point_counter:
-			point_counter.set_buttons_enabled(false)
-	
-	
+		#if point_counter:
+			#point_counter.set_buttons_enabled(false)
 	
 	if multiplayer.is_server():
 		next_turn()

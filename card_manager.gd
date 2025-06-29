@@ -48,10 +48,10 @@ var active_card
 func _ready():
 	# Get references to card-related nodes
 	player_hand = get_parent().get_node("HandAreas/PlayerHand")
-	action_deck = get_parent().get_node("DeckLocations/ActionDeck")
-	area_deck = get_parent().get_node("DeckLocations/AreaDeck")
-	action_area = get_parent().get_node("PlantingLocations/ActionArea")
-	area_zone = get_parent().get_node("PlantingLocations/AreaZone")
+	#action_deck = get_parent().get_node("DeckLocations/ActionDeck")
+	#area_deck = get_parent().get_node("DeckLocations/AreaDeck")
+	#action_area = get_parent().get_node("PlantingLocations/ActionArea")
+	#area_zone = get_parent().get_node("PlantingLocations/AreaZone")
 	
 	# Setup planting locations
 	if action_area:
