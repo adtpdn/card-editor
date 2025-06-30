@@ -27,6 +27,8 @@ extends Node
 @onready var ui_manager = $"../UIManager"
 @onready var point_counter = $"../PointCounter"
 @onready var sigil_manager = $"../SigilManager"
+@onready var turn_phase_manager = $"../TurnPhaseManager"
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Enums and Constants
@@ -578,7 +580,7 @@ func handle_touch(position: Vector2):
 								# Reset swap mode after attempt
 								first_swap_token = null
 								is_swap_energy_mode = false
-				
+				turn_phase_manager.card_played = true 
 				
 				
 			found_token = null

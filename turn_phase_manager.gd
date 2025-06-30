@@ -16,6 +16,7 @@ enum Phase {
 @onready var card_manager = $"../CardManager"
 @onready var ui_manager = $"../UIManager"
 @onready var sigil_manager = $"../SigilManager"
+@onready var deck = $"../Deck"
 
 @onready var end_phase_button = $"../RightUI/EndPhaseButton"
 @onready var token_button = $"../RightUI/TokenButton"
@@ -101,25 +102,6 @@ func _ready():
 		end_turn_button.pressed.connect(_on_end_turn_pressed)
 	else:
 		print("TurnPhaseManager: End turn button not found!")
-
-	# Connect to card manager signals
-	var action_area = game.get_node("PlantingLocations/ActionArea")
-	if action_area and action_area.has_signal("card_placed"):
-		print("TurnPhaseManager: Connecting to action_area card_placed signal")
-		if action_area.card_placed.is_connected(_on_card_placed):
-			action_area.card_placed.disconnect(_on_card_placed)
-		action_area.card_placed.connect(_on_card_placed)
-	else:
-		print("TurnPhaseManager: action_area card_placed signal not found!")
-		
-	var area_zone = game.get_node("PlantingLocations/AreaZone")
-	if area_zone and area_zone.has_signal("card_placed"):
-		print("TurnPhaseManager: Connecting to area_zone card_placed signal")
-		if area_zone.card_placed.is_connected(_on_card_placed):
-			area_zone.card_placed.disconnect(_on_card_placed)
-		area_zone.card_placed.connect(_on_card_placed)
-	else:
-		print("TurnPhaseManager: area_zone card_placed signal not found!")
 
 func initialize():
 	print("")
@@ -330,8 +312,6 @@ func advance_to_next_phase():
 	
 	# Determine the next phase
 	var next_phase
-	print("")
-	print("current phase ")
 	match current_phase:
 		Phase.PLANT_BIOME:
 			next_phase = Phase.PLANT_SIGIL_AND_CARD
@@ -369,9 +349,9 @@ func advance_to_next_phase():
 # Helper function to enable card play
 func enable_card_play():
 	print("TurnPhaseManager: Enabling card play")
-	var player_hand = get_parent().get_node("HandAreas/PlayerHand")
+	var player_hand = deck.hand
 	if player_hand:
-		player_hand.set_interaction_enabled(true)
+		#player_hand.set_interaction_enabled(true)
 		print("TurnPhaseManager: Card play enabled")
 	else:
 		print("TurnPhaseManager: Player hand not found!")
@@ -379,9 +359,9 @@ func enable_card_play():
 # Helper function to disable card play
 func disable_card_play():
 	print("TurnPhaseManager: Disabling card play")
-	var player_hand = get_parent().get_node("HandAreas/PlayerHand")
+	var player_hand = deck.hand
 	if player_hand:
-		player_hand.set_interaction_enabled(false)
+		#player_hand.set_interaction_enabled(false)
 		print("TurnPhaseManager: Card play disabled")
 	else:
 		print("TurnPhaseManager: Player hand not found!")

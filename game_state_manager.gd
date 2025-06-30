@@ -11,6 +11,7 @@ extends Node
 @onready var ui_manager = $"../UIManager"
 @onready var point_counter = $"../PointCounter"
 @onready var turn_phase_manager = $"../TurnPhaseManager"
+@onready var deck = $"../Deck"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Game State Variables
@@ -151,13 +152,13 @@ func sync_game_start(current_players):
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 func setup_player(player_id: int) -> void:
-	var player_hand = game.get_node("HandAreas/PlayerHand")
+	var player_hand = deck.hand
 	
 	if player_id == multiplayer.get_unique_id():
 		# Enable interaction for the local player
-		if player_hand:
-			player_hand.set_interaction_enabled(true)
-			player_hand.player_id = player_id
+		#if player_hand:
+			#player_hand.set_interaction_enabled(true)
+			#player_hand.player_id = player_id
 		
 		# Initialize tokens only if this is the first setup
 		if multiplayer.is_server() and !token_manager.player_tokens.has(player_id):
@@ -310,10 +311,10 @@ func set_current_turn(player_id: int):
 	token_manager.update_token_ui()
 	
 	# Important: Enable/disable hand interaction based on whose turn it is
-	var player_hand = get_parent().get_node("HandAreas/PlayerHand")
+	var player_hand = deck.hand
 	if player_hand:
 		# We'll let the turn_phase_manager handle this instead
-		player_hand.set_interaction_enabled(false)
+		#player_hand.set_interaction_enabled(false)
 		print("Hand interaction initially disabled for local player (ID: " + str(multiplayer.get_unique_id()) + ")")
 	
 	#if point_counter:
@@ -437,19 +438,24 @@ func _on_end_turn_pressed():
 	# Save the token count before ending turn
 	token_manager.save_player_token_count(current_player)
 	
-	var player_hand = get_parent().get_node("HandAreas/PlayerHand")
+	#var player_hand = get_parent().get_node("HandAreas/PlayerHand")
 	var end_turn_button = get_parent().get_node("RightUI/EndTurnButton")
+	var end_phase_button = get_parent().get_node("RightUI/EndPhaseButton")
 	
+	print("end phase button : ", end_phase_button)
 	# Only disable controls if this is the local player's turn
 	var local_player_id = multiplayer.get_unique_id()
 	if local_player_id == current_player:
 		print("Disabling controls for current player: " + str(local_player_id))
 		# Disable current player's controls immediately
-		if player_hand:
-			player_hand.set_interaction_enabled(false)
+		#if player_hand:
+			#player_hand.set_interaction_enabled(false)
 		
 		if end_turn_button:
 			end_turn_button.disabled = true
+		
+		if end_phase_button:
+			end_phase_button.disabled = true
 		
 		#if point_counter:
 			#point_counter.set_buttons_enabled(false)
@@ -464,14 +470,14 @@ func _on_end_turn_pressed():
 
 # Add this new function to game_state_manager.gd
 func update_player_hand_interaction():
-	var player_hand = get_parent().get_node("HandAreas/PlayerHand")
+	var player_hand = deck.hand
 	if !player_hand:
 		return
 		
 	var local_player_id = multiplayer.get_unique_id()
 	var is_my_turn = is_valid_player_turn(local_player_id)
 	
-	player_hand.set_interaction_enabled(is_my_turn)
+	#player_hand.set_interaction_enabled(is_my_turn)
 	print("Updated hand interaction: " + ("enabled" if is_my_turn else "disabled"))
 
 func reset_game():
