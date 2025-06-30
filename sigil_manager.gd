@@ -16,6 +16,8 @@ signal sigil_mode_changed(enabled)
 @onready var game_state_manager = $"../GameStateManager" 
 @onready var point_counter = $"../PointCounter"
 @onready var deck = $"../Deck"
+@onready var turn_phase_manager = $"../TurnPhaseManager"
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Sigil Pattern Constants
@@ -90,9 +92,9 @@ func handle_sigil_input(position: Vector2):
 			
 			var found_token = result.collider.get_parent().get_parent()
 			print("found token : ", found_token)
-			## FIX THIS 
+			
 			if found_token.name != "Hand":
-				if found_token.is_energy:
+				if found_token.is_energy and turn_phase_manager.current_phase == turn_phase_manager.Phase.PLAY_SIGIL:
 					_on_token_clicked(found_token)
 					return true  # Token was handled
 			
@@ -645,13 +647,11 @@ func show_pull_push_ui(energy_token, is_other_player: bool):
 	
 	# Set game to token selection mode for push/pull
 	token_manager.is_token_selected = false  # Turn off normal token placement mode
-	#is_sigil_mode = true
 	
 	# Store information about which sigil is being used
 	_selected_token_is_other_player = is_other_player
 	
 	show_push_pull_direction_ui(energy_token)
-	#_on_push_pull_perform()
 
 
 # UI for Sigil C effect (blight/unblight)
@@ -668,9 +668,6 @@ func show_blight_unblight_ui(energy_token):
 	token_manager.is_token_selected = false  # Turn off normal token placement mode
 	is_blight_mode = true
 	
-	# Store information about which sigil is being used
-	#_selected_token = token
-	
 	show_blight_unblight_direction_ui(energy_token)
 
 func show_blight_unblight_direction_ui(energy_token):
@@ -684,10 +681,10 @@ func show_blight_unblight_direction_ui(energy_token):
 
 	# Add direction options
 	if target_token.biome_type == energy_token.biome_type :
-		print("show option blight and unblight")
-		print("target token : ", target_token)
-		print("target token owner id : ", target_token.owner_id)
-		print("energy token owner id : ", energy_token.owner_id)
+		#print("show option blight and unblight")
+		#print("target token : ", target_token)
+		#print("target token owner id : ", target_token.owner_id)
+		#print("energy token owner id : ", energy_token.owner_id)
 		if !target_token.is_blighted and target_token.owner_id != energy_token.owner_id:
 			popup.add_item("Blight", 0)
 		elif target_token.is_blighted and target_token.owner_id == energy_token.owner_id:
@@ -711,16 +708,17 @@ func show_push_pull_direction_ui(energy_token):
 
 	await signal_other_player_token
 	var target_token = _selected_token
+	energy_token = selected_energy_token
 	
 	# Checking if the true than sigil a active
 	if _selected_token_is_other_player:
 		if target_token.owner_id == energy_token.owner_id:
-			print("sigil A with the same owner id cant run")
+			#print("sigil A with the same owner id cant run")
 			return
 	# Checking if the true than sigil b active
 	else:
 		if target_token.owner_id != energy_token.owner_id:
-			print("sigil B with the different owner id cant run")
+			#print("sigil B with the different owner id cant run")
 			return
 	
 	# Add direction options

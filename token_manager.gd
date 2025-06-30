@@ -15,6 +15,7 @@ extends Node
 # - Card Effect Implementation
 # - Network Synchronization
 # - Helper Functions
+# - Phase Management
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # References to other managers

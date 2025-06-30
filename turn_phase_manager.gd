@@ -122,6 +122,7 @@ func _ready():
 		print("TurnPhaseManager: area_zone card_placed signal not found!")
 
 func initialize():
+	print("")
 	print("TurnPhaseManager: initialize called")
 	reset_phases()
 
@@ -247,7 +248,10 @@ func reset_phases():
 # Complete the current phase
 func complete_current_phase():
 	print("TurnPhaseManager: Completing phase: ", current_phase)
-	if current_phase != Phase.NONE:
+	
+	if current_phase == Phase.PLAY_SIGIL:
+		end_phase_button.disabled = true
+	elif current_phase != Phase.NONE:
 		completed_phases[current_phase] = true
 		emit_signal("turn_action_completed", current_phase)
 		
@@ -326,6 +330,8 @@ func advance_to_next_phase():
 	
 	# Determine the next phase
 	var next_phase
+	print("")
+	print("current phase ")
 	match current_phase:
 		Phase.PLANT_BIOME:
 			next_phase = Phase.PLANT_SIGIL_AND_CARD
@@ -544,6 +550,7 @@ func _on_end_phase_button_pressed():
 				show_requirement_notification("You must place at least one token in a sigil before ending this phase.")
 		
 		Phase.PLAY_SIGIL:
+			print("END PHASE PLAY SIGIL")
 			# Allow skipping sigil activation entirely
 			completed_phases[Phase.PLAY_SIGIL] = true
 			advance_to_next_phase()
