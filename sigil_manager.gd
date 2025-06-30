@@ -93,7 +93,9 @@ func handle_sigil_input(position: Vector2):
 			var found_token = result.collider.get_parent().get_parent()
 			print("found token : ", found_token)
 			
-			if found_token.name != "Hand":
+			if found_token.name == "Deck" or found_token.name.begins_with("CardSlotBiome"):
+				pass
+			elif found_token.name != "Hand":
 				if found_token.is_energy and turn_phase_manager.current_phase == turn_phase_manager.Phase.PLAY_SIGIL:
 					_on_token_clicked(found_token)
 					return true  # Token was handled

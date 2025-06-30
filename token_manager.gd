@@ -405,14 +405,11 @@ func _on_token_selected():
 					placement.set_highlight(true)
 				# If this is an extra token (from card effect) and both sigil and biome are enabled
 				elif tokens_planted_this_turn[player_id] >= 2 and is_plant_extra:
-					placement.set_highlight(true)
+					if placement.accepted_biome == card_manager.active_card.card_on_biome:
+						placement.set_highlight(true)
 	else:
 		# Unhighlight all placements when deselecting
 		unhighlight_all_token_placements()
-	
-	#if is_plant_extra: 
-		#$"../RightUI/TokenButton".disabled = true
-		#is_plant_extra = false 
 	
 	# Update UI to show selection state
 	update_token_ui()
@@ -492,7 +489,7 @@ func handle_touch(position: Vector2):
 		# Find the token at this position with improved detection
 		var found_token = collider.get_parent().get_parent()
 
-		if found_token:
+		if found_token and found_token.name.begins_with("Token3D"):
 			print("Processing token: " + str(found_token.name))
 			# Sigil Effects
 			if sigil_manager.is_sigil_mode and !found_token.is_energy:
@@ -503,8 +500,15 @@ func handle_touch(position: Vector2):
 			## Card Effects
 			var active_card = card_manager.active_card
 			if active_card != null:
-				print("card active : ", active_card.card_resource.card_name)
-				var card_on_biome = active_card.card_resource.card_on_biome
+				print("card active : ", active_card.card_name)
+				var card_on_biome = active_card.card_on_biome
+				
+				print("is take off mode : ", is_take_off_mode)
+				print("is energy : ", found_token.is_energy)
+				print("is biome type : ", found_token.biome_type)
+				print("is blighted : ", found_token.is_blighted)
+				print("card on biome : ", card_on_biome)
+				
 				# Take Off Energy 
 				if is_take_off_mode and found_token.is_energy and found_token.biome_type == card_on_biome:
 					print("Take Off Energy Card Effect")

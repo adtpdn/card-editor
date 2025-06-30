@@ -41,7 +41,6 @@ signal card_added(card)
 	set(offset):
 		$DropZone.position.z = offset
 
-
 var cards: Array[Card3D] = []
 var card_indicies = {}
 
@@ -69,6 +68,11 @@ func insert_card(card: Card3D, index: int):
 	card.card_on_biome = card_slot_biome
 	cards.insert(index, card)
 	add_child(card)
+	print("node name : ", self.name)
+	
+	# Card will active if player plant a card
+	if self.name != "Hand":
+		plant_card(card)
 	
 	for i in range(index, cards.size()):
 		card_indicies[cards[i]] = i
@@ -76,6 +80,22 @@ func insert_card(card: Card3D, index: int):
 	apply_card_layout()
 	card_added.emit(card)
 
+func plant_card(card):
+	var game = get_node("/root/Game/")
+	var card_manager = game.card_manager
+	card_manager.active_card = card
+	
+	match card.card_id:
+		0: # Unblight Our Own Token
+			card_manager.unblight_card_effect()
+		1: # Tak Off enemy or our energy token
+			card_manager.take_off_card_effect()
+		2: # Swap Energy
+			card_manager.swap_energy_card_effect()
+		3: # Refresh Energy
+			card_manager.refresh_energy_card_effect()
+		4: # Plant Extra Token or Energy
+			card_manager.plant_extra_card_effect()
 
 # remove and return card from the end of the list
 func pop_card() -> Card3D:

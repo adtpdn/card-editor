@@ -1,6 +1,7 @@
-[gd_scene load_steps=15 format=3 uid="uid://cy8dmfciur8g6"]
+[gd_scene load_steps=16 format=3 uid="uid://cy8dmfciur8g6"]
 
 [ext_resource type="Script" uid="uid://bsgfqt7bst4o6" path="res://card_deck/table.gd" id="1_3x582"]
+[ext_resource type="Script" uid="uid://df58sxxtmutdf" path="res://deck_pile.gd" id="1_rgf87"]
 [ext_resource type="Script" uid="uid://bfmtf7hh4lc0h" path="res://card_deck/card_3d/scripts/drag_controller.gd" id="2_rgf87"]
 [ext_resource type="PackedScene" uid="uid://d1uvcisduvvj" path="res://card_deck/card_3d/scenes/card_collection_3d.tscn" id="3_tbve4"]
 [ext_resource type="Script" uid="uid://dauol4rysxcqw" path="res://card_deck/card_3d/scripts/card_layouts/pile_card_layout.gd" id="4_28kt0"]
@@ -43,6 +44,7 @@ size = Vector3(2.5, 3.5, 0.2)
 
 [node name="Deck" type="Node3D"]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0)
+script = ExtResource("1_rgf87")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.0885658)
@@ -64,22 +66,22 @@ script = ExtResource("2_rgf87")
 
 [node name="CardSlotBiome1" parent="Table/DragController" instance=ExtResource("3_tbve4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.75347, 4.7498, 1.3079e-07)
-card_slot_biome = 1
+card_slot_biome = 0
 card_layout_strategy = SubResource("Resource_nrrdr")
 
 [node name="CardSlotBiome2" parent="Table/DragController" instance=ExtResource("3_tbve4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.76025, -4.79842, -2.8659e-07)
-card_slot_biome = 2
+card_slot_biome = 1
 card_layout_strategy = SubResource("Resource_4uqre")
 
 [node name="CardSlotBiome3" parent="Table/DragController" instance=ExtResource("3_tbve4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.7403, -4.84837, -2.88774e-07)
-card_slot_biome = 3
+card_slot_biome = 2
 card_layout_strategy = SubResource("Resource_vlwyr")
 
 [node name="CardSlotBiome4" parent="Table/DragController" instance=ExtResource("3_tbve4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.73153, 4.73637, 1.30189e-07)
-card_slot_biome = 4
+card_slot_biome = 3
 card_layout_strategy = SubResource("Resource_taw8e")
 
 [node name="Hand" parent="Table/DragController" instance=ExtResource("3_tbve4")]
