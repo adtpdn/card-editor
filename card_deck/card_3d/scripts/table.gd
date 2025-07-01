@@ -4,16 +4,50 @@ var card_database = CardResource.new()
 var actions_cards = preload("res://cards/action_cards.tres")
 var available_cards = [] # Will store indices of available cards
 
+var deck_seed: int = 0
+var rng = RandomNumberGenerator.new()
+
 @onready var hand: CardCollection3D = $DragController/Hand
 
 func _ready():
 	# Initialize available cards
 	reset_available_cards()
+	
+	# If we're the server, generate a seed and sync it
+	var game = get_node("/root/Game/")
+	if game.network_manager and game.network_manager.multiplayer.is_server():
+		deck_seed = randi()
+		# Sync the seed to all clients
+		game.network_manager.sync_deck_seed(deck_seed)
+
+func initialize_deck_with_seed(seed_value: int):
+	deck_seed = seed_value
+	rng.seed = deck_seed
+	
+	# Re-initialize available cards with the seeded RNG
+	reset_available_cards()
+	
+	# Shuffle the deck using the seeded RNG
+	shuffle_deck()
+	
+	print("Deck initialized with seed:", deck_seed)
+
+func shuffle_deck():
+	# Use Fisher-Yates shuffle algorithm with our seeded RNG
+	for i in range(available_cards.size() - 1, 0, -1):
+		var j = rng.randi_range(0, i)
+		var temp = available_cards[i]
+		available_cards[i] = available_cards[j]
+		available_cards[j] = temp
 
 func reset_available_cards():
 	available_cards = []
 	for i in range(actions_cards.cards.size()):
 		available_cards.append(i)
+	
+	# If we have a seed, shuffle the deck
+	if deck_seed != 0:
+		shuffle_deck()
 
 #func _input(event):
 	#if event.is_action_pressed("ui_down"):
@@ -56,7 +90,7 @@ func add_card():
 	# Check if the hand is full
 	var game = get_node("/root/Game/")
 	if game.card_manager.is_hand_full():
-		print("Hand is full! Maximum cards: " + str(game.card_manager.max_hand_size))
+		print("Hand is full! Maximum cards:", game.card_manager.max_hand_size)
 		return false
 		
 	if available_cards.size() == 0:
@@ -69,6 +103,11 @@ func add_card():
 		hand.append_card(card)
 		
 		card.global_position = $"../Deck".global_position
+		
+		# Only sync the available_cards state, don't make the client draw a card
+		if game.network_manager and game.network_manager.multiplayer and game.network_manager.multiplayer.get_peers().size() > 0:
+			game.network_manager.sync_card_drawn(data["id"])  # This now just syncs available_cards
+			
 		return true
 	
 	return false
@@ -77,14 +116,14 @@ func next_card():
 	if available_cards.size() == 0:
 		return null
 		
-	# Select a random index from available cards
-	var random_index_position = randi() % available_cards.size()
+	# Use our seeded RNG instead of randi()
+	var random_index_position = rng.randi() % available_cards.size() if deck_seed != 0 else randi() % available_cards.size()
 	var card_index = available_cards[random_index_position]
 	
 	# Remove this card from available cards
 	available_cards.remove_at(random_index_position)
 	
-	print("Drawing card index ", card_index, " (", available_cards.size(), " cards left)")
+	print("Drawing card index", card_index, "(", available_cards.size(), "cards left)")
 	
 	return {"id": card_index}
 
@@ -113,3 +152,9 @@ func clear_cards():
 
 func _on_face_card_3d_card_3d_mouse_up():
 	add_card()
+
+# Function to request a sync of the deck state (called by clients)
+func request_deck_sync():
+	var network_manager = get_node("/root/Game/NetworkManager")
+	if network_manager:
+		network_manager.request_deck_sync()

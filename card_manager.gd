@@ -20,15 +20,29 @@ extends Node
 @onready var player_hand
 
 var active_card 
-var max_hand_size = 3
+var max_hand_size = 3  # Maximum cards a player can hold
+var initial_hand_size = 2  # Starting cards for each player
 var network_synced = true
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+func _ready():
+	# Get references to card-related nodes
+	player_hand = deck.hand
+
 func initialize_starting_hand():
-	# Draw 2 cards for the starting hand
-	for i in range(1):
+	print("Initializing starting hand with", initial_hand_size, "cards")
+	# Get a reference to the player's hand
+	player_hand = deck.hand
+	
+	# Make sure hand is empty before initializing
+	if player_hand and player_hand.cards.size() > 0:
+		print("Hand already has cards, skipping initialization")
+		return
+	
+	# Draw the initial cards - should be 2
+	for i in range(initial_hand_size):
 		draw_card()
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -48,13 +62,31 @@ func is_hand_full():
 func draw_card():
 	player_hand = deck.hand
 	if player_hand.cards.size() < max_hand_size:
-		deck.table.add_card()
-		if network_synced and network_manager:
-			network_manager.sync_card_draw()
-		return true
+		# Use the table's add_card method to draw a card
+		# The network sync is handled inside add_card(), so we don't need to do it here
+		var success = deck.table.add_card()
+		return success
+	else:
+		print("Hand is full! Maximum cards:", max_hand_size)
+		return false
+
+func draw_specific_card(card_index: int):
+	player_hand = deck.hand
+	if player_hand.cards.size() < max_hand_size:
+		var card = deck.table.instantiate_face_card(card_index)
+		if card:
+			player_hand.append_card(card)
+			card.global_position = deck.global_position
+			return true
+		return false
 	else:
 		print("Hand is full! Cannot draw more cards.")
 		return false
+
+# Add this method for when a card is actually drawn
+func sync_card_drawn(card_index: int):
+	if network_synced and network_manager:
+		network_manager.sync_card_drawn(card_index)
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---   Card Event Handlers    ---
