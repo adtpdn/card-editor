@@ -96,7 +96,7 @@ skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_28kt0")
 
 [node name="Deck" parent="." instance=ExtResource("6_4uqre")]
-transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -12.3697, 2.64642, -0.686903)
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -9.0197, 0.0964201, -0.686903)
 script = ExtResource("8_v3qdk")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Deck"]

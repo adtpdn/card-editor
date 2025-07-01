@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=18 format=3 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://game.gd" id="1_0rb8f"]
 [ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://turn_phase_manager.gd" id="2_e36ub"]
@@ -10,10 +10,9 @@
 [ext_resource type="Script" uid="uid://22sqj66kc86h" path="res://ui_manager.gd" id="6_x5p1p"]
 [ext_resource type="Script" uid="uid://b33jfe6s6f3g4" path="res://sigil_manager.gd" id="7_boyg6"]
 [ext_resource type="PackedScene" uid="uid://u5swx58xo14j" path="res://token_placement_location.tscn" id="7_i0rid"]
-[ext_resource type="PackedScene" uid="uid://r5nd8a37k5q5" path="res://assets/meshes/biome_slice_1.glb" id="8_xa8c5"]
-[ext_resource type="PackedScene" uid="uid://bad2hf3m5gwb2" path="res://assets/meshes/biome_slice_2.glb" id="9_5b14r"]
-[ext_resource type="PackedScene" uid="uid://b3d2en7dx48os" path="res://assets/meshes/biome_slice_3.glb" id="10_bnpwn"]
-[ext_resource type="PackedScene" uid="uid://bfh8j800mc1uq" path="res://assets/meshes/biome_slice_4.glb" id="11_36jdj"]
+[ext_resource type="PackedScene" uid="uid://j5dwjwxb7bas" path="res://assets/meshes/animagic_slice.glb" id="9_215e1"]
+[ext_resource type="PackedScene" uid="uid://dxy84rgsbiaih" path="res://assets/meshes/corner_slice.glb" id="10_7sc4i"]
+[ext_resource type="PackedScene" uid="uid://cj4b00y883ujc" path="res://assets/meshes/game_board.glb" id="11_7sc4i"]
 [ext_resource type="Script" uid="uid://inns47cokwch" path="res://point_counter.gd" id="11_beb7m"]
 [ext_resource type="PackedScene" uid="uid://cogovef2ukws3" path="res://card_deck/deck.tscn" id="21_hb5m1"]
 
@@ -53,19 +52,46 @@ transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 17,
 fov = 50.0
 size = 14.966
 
-[node name="Node" type="Node" parent="."]
+[node name="Biomes" type="Node" parent="."]
 
-[node name="biome_slice_1" parent="Node" instance=ExtResource("8_xa8c5")]
-visible = false
+[node name="animagic_slice_1" parent="Biomes" instance=ExtResource("9_215e1")]
+transform = Transform3D(19.7909, 0, 8.40072, 0, 21.5, 0, -8.40072, 0, 19.7909, -1.86, -0.05, -4.359)
 
-[node name="biome_slice_22" parent="Node" instance=ExtResource("9_5b14r")]
-visible = false
+[node name="animagic_slice_2" parent="Biomes" instance=ExtResource("9_215e1")]
+transform = Transform3D(8.05404, 0, 19.9345, 0, 21.5, 0, -19.9345, 0, 8.05404, -4.4, -0.05, -1.777)
 
-[node name="biome_slice_32" parent="Node" instance=ExtResource("10_bnpwn")]
-visible = false
+[node name="animagic_slice_3" parent="Biomes" instance=ExtResource("9_215e1")]
+transform = Transform3D(-8.65322, 0, 19.6818, 0, 21.5, 0, -19.6818, 0, -8.65322, -4.34302, -0.05, 1.87676)
 
-[node name="biome_slice_42" parent="Node" instance=ExtResource("11_36jdj")]
-visible = false
+[node name="animagic_slice_4" parent="Biomes" instance=ExtResource("9_215e1")]
+transform = Transform3D(-19.9482, 0, 8.01993, 0, 21.5, 0, -8.01993, 0, -19.9482, -1.77623, -0.05, 4.38778)
+
+[node name="animagic_slice_5" parent="Biomes" instance=ExtResource("9_215e1")]
+transform = Transform3D(-19.7174, 0, -8.57173, 0, 21.5, 0, 8.57173, 0, -19.7174, 1.86888, -0.0499998, 4.35084)
+
+[node name="animagic_slice_6" parent="Biomes" instance=ExtResource("9_215e1")]
+transform = Transform3D(-8.11871, 0, -19.9082, 0, 21.5, 0, 19.9082, 0, -8.11871, 4.39151, -0.0499998, 1.78868)
+
+[node name="animagic_slice_7" parent="Biomes" instance=ExtResource("9_215e1")]
+transform = Transform3D(8.40279, 0, -19.79, 0, 21.5, 0, 19.79, 0, 8.40279, 4.3393, -0.0499988, -1.86926)
+
+[node name="animagic_slice_8" parent="Biomes" instance=ExtResource("9_215e1")]
+transform = Transform3D(19.9719, 0, -7.96071, 0, 21.5, 0, 7.96071, 0, 19.9719, 1.7631, -0.0499988, -4.38707)
+
+[node name="corner_slice" parent="Biomes" instance=ExtResource("10_7sc4i")]
+transform = Transform3D(21.5, 0, 0, 0, 21.5, 0, 0, 0, 21.5, 0, -0.15, 0)
+
+[node name="corner_slice2" parent="Biomes" instance=ExtResource("10_7sc4i")]
+transform = Transform3D(-9.39795e-07, 0, -21.5, 0, 21.5, 0, 21.5, 0, -9.39795e-07, 0, -0.15, 0)
+
+[node name="corner_slice3" parent="Biomes" instance=ExtResource("10_7sc4i")]
+transform = Transform3D(-21.5, 0, 1.87959e-06, 0, 21.5, 0, -1.87959e-06, 0, -21.5, 0, -0.15, 0)
+
+[node name="corner_slice4" parent="Biomes" instance=ExtResource("10_7sc4i")]
+transform = Transform3D(2.81938e-06, 0, 21.5, 0, 21.5, 0, -21.5, 0, 2.81938e-06, 0, -0.15, 0)
+
+[node name="game_board" parent="." instance=ExtResource("11_7sc4i")]
+transform = Transform3D(22, 0, 0, 0, 22, 0, 0, 0, 22, 0, -0.132328, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(8, 0, 0, 0, -0.05, 0, 0, 0, 8, 0, -0.0680389, 0)
