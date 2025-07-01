@@ -78,8 +78,13 @@ func insert_card(card: Card3D, index: int):
 	print("node name : ", self.name)
 	
 	# Card will active if player plant a card
-	if self.name != "Hand":
+	# Skip triggering effects if this was remotely planted
+	if self.name != "Hand" and not card.has_meta("remote_planted"):
 		plant_card(card)
+	
+	# If it was remotely planted, remove the flag
+	if card.has_meta("remote_planted"):
+		card.remove_meta("remote_planted")
 	
 	for i in range(index, cards.size()):
 		card_indicies[cards[i]] = i
@@ -92,10 +97,32 @@ func plant_card(card):
 	var card_manager = game.card_manager
 	card_manager.active_card = card
 	
-	match card.card_id:
+	# Get the explicit resource card_id (not an index)
+	var resource_card_id = card.card_id
+	
+	print("Planting card with resource card_id:", resource_card_id, "to biome slot:", card_slot_biome)
+	
+	# Sync the card planting across the network
+	if game.network_manager and game.network_manager.multiplayer and game.network_manager.multiplayer.get_peers().size() > 0:
+		# Get the player ID
+		var player_id = game.network_manager.multiplayer.get_unique_id()
+		
+		# Send resource card_id, biome slot info, and player ID to all clients
+		game.network_manager.sync_card_planted(resource_card_id, card_slot_biome, player_id)
+	
+	# Then trigger the local effect based on the card's actual resource card_id
+	execute_card_effect(resource_card_id)
+
+func execute_card_effect(card_id: int):
+	var game = get_node("/root/Game/")
+	var card_manager = game.card_manager
+	
+	print("Executing effect for resource card_id:", card_id)
+	
+	match card_id:
 		0: # Unblight Our Own Token
 			card_manager.unblight_card_effect()
-		1: # Tak Off enemy or our energy token
+		1: # Take Off enemy or our energy token
 			card_manager.take_off_card_effect()
 		2: # Swap Energy
 			card_manager.swap_energy_card_effect()
@@ -103,6 +130,8 @@ func plant_card(card):
 			card_manager.refresh_energy_card_effect()
 		4: # Plant Extra Token or Energy
 			card_manager.plant_extra_card_effect()
+		_:
+			print("Unknown resource card_id:", card_id)
 
 # remove and return card from the end of the list
 func pop_card() -> Card3D:
