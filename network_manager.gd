@@ -256,7 +256,7 @@ func _on_peer_connected(new_peer_id):
 			game.player_slots[slot_index] = true
 			
 		# Sync game state to new player
-		game.rpc_id(new_peer_id, "sync_game_state", game.players, game.game_started, game.card_manager.placed_cards)
+		game.rpc_id(new_peer_id, "sync_game_state", game.players, game.game_started)
 		
 		# Initialize player's tokens and hand
 		if game.game_started:
@@ -264,7 +264,7 @@ func _on_peer_connected(new_peer_id):
 			var host_id = multiplayer.get_unique_id()
 			if new_peer_id != host_id:
 				#card_manager.distribute_initial_hand_to_client(new_peer_id)
-				game.rpc_id(new_peer_id, "sync_game_state", game.players, game.game_started, game.card_manager.placed_cards, game.player_hands)
+				game.rpc_id(new_peer_id, "sync_game_state", game.players, game.game_started)
 		
 		token_manager.initialize_player_tokens(new_peer_id)
 		var player_tokens = token_manager.get_player_tokens(new_peer_id)

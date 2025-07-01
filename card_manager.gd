@@ -11,92 +11,23 @@ extends Node
 @onready var game_state_manager = $"../GameStateManager" 
 @onready var ui_manager = $"../UIManager"
 @onready var point_counter = $"../PointCounter"
+@onready var deck = $"../Deck"
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Card System Variables
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 @onready var player_hand
-@onready var action_deck
-@onready var area_deck
-@onready var action_area
-@onready var area_zone
-
-const MAX_ACTION_CARDS = 3
-const MAX_AREA_CARDS = 1
-const INITIAL_ACTION_CARDS = 2
-const INITIAL_AREA_CARDS = 0
-
-var deck: Array[CardResource] = [] # Structure to track placed cards
-var placed_cards = []  # Array of dictionaries containing placement info
-
-const INITIAL_HAND_SIZE = {
-	"action": 0,  # Adjust these numbers as needed
-	"area": 0
-}
-
-# Make sure these are consistent with the card types in CardResource
-const CARD_TYPES = {
-	"ACTION": 0,
-	"AREA": 1
-}
 
 var active_card 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-#func _ready():
+func _ready():
 	# Get references to card-related nodes
-	#player_hand = get_parent().get_node("HandAreas/PlayerHand")
-	#action_deck = get_parent().get_node("DeckLocations/ActionDeck")
-	#area_deck = get_parent().get_node("DeckLocations/AreaDeck")
-	#action_area = get_parent().get_node("PlantingLocations/ActionArea")
-	#area_zone = get_parent().get_node("PlantingLocations/AreaZone")
-	
-	# Setup planting locations
-	#if action_area:
-		#action_area.accepted_card_types = PackedInt32Array([CardResource.CardType.ACTION])
-		#action_area.location_name = "Action Area"
-		#action_area.card_placed.connect(_on_card_placed)
-	#
-	#if area_zone:
-		#area_zone.accepted_card_types = PackedInt32Array([CardResource.CardType.AREA])
-		#area_zone.location_name = "Area Zone"
-		#area_zone.card_placed.connect(_on_card_placed)
-	
-	# Connect to deck signals
-	#if action_deck:
-		#action_deck.card_drawn.connect(_on_action_card_drawn)
-	#
-	#if area_deck:
-		#area_deck.card_drawn.connect(_on_area_card_drawn)
-	
-	# Connect discard button if it exists
-	#var discard_button = get_parent().get_node("DiscardCardButton")
-	#if discard_button:
-		#if discard_button.pressed.is_connected(_on_discard_card_button_pressed):
-			#discard_button.pressed.disconnect(_on_discard_card_button_pressed)
-		#discard_button.pressed.connect(_on_discard_card_button_pressed)
-	
-	# Connect draw buttons if they exist
-	#var draw_action_button = get_parent().get_node("DrawActionButton")
-	#if draw_action_button:
-		#if draw_action_button.pressed.is_connected(_on_draw_action_button_pressed):
-			#draw_action_button.pressed.disconnect(_on_draw_action_button_pressed)
-		#draw_action_button.pressed.connect(_on_draw_action_button_pressed)
-	
-	#var draw_area_button = get_parent().get_node("DrawAreaButton")
-	#if draw_area_button:
-		#if draw_area_button.pressed.is_connected(_on_draw_area_button_pressed):
-			#draw_area_button.pressed.disconnect(_on_draw_area_button_pressed)
-		#draw_area_button.pressed.connect(_on_draw_area_button_pressed)
-	
-	# Setup area picking
-	#if action_area:
-		#_setup_area_picking(action_area)
-	#
-	#if area_zone:
-		#_setup_area_picking(area_zone)
+	player_hand = deck.hand
+
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # --- Card Distribution & Deck  ---

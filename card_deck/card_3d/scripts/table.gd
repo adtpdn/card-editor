@@ -35,7 +35,7 @@ func _input(event):
 			#hand.card_layout_strategy = LineCardLayout.new()
 
 func instantiate_face_card(card_index) -> FaceCard3D:
-	var scene = load("res://card_deck/face_card_3d.tscn")
+	var scene = load("res://card_deck/card_3d/scenes/face_card_3d.tscn")
 	var face_card_3d: FaceCard3D = scene.instantiate()
 	
 	# Get the card from the action cards deck
