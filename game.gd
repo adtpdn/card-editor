@@ -15,6 +15,10 @@ extends Node
 
 @onready var point_counter = $PointCounter
 
+@onready var sigil_a_button = $SigilContainer/SigilAButton
+@onready var sigil_b_button = $SigilContainer/SigilBButton
+@onready var sigil_c_button = $SigilContainer/SigilCButton
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Core Game State
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -78,7 +82,8 @@ func sync_game_state(game_players, has_started, placed, player_hand_data = null)
 	if !multiplayer.is_server() and game_started:
 		var local_id = multiplayer.get_unique_id()
 		if !player_hands.has(local_id) or player_hands[local_id].size() == 0:
-			card_manager.rpc_id(1, "request_initial_cards")
+			#card_manager.rpc_id(1, "request_initial_cards")
+			pass
 
 @rpc("any_peer", "call_local")
 func sync_game_start(current_players):
@@ -120,22 +125,22 @@ func request_token_refresh():
 	var tokens = token_manager.get_player_tokens(requesting_peer)
 	rpc_id(requesting_peer, "sync_player_tokens", tokens)
 
-@rpc("any_peer", "call_local")
-func sync_card_played(card_data: Dictionary, slot_index: int, location_name: String, player_id: int):
-	card_manager.sync_card_played(card_data, slot_index, location_name, player_id)
-
-
-@rpc("any_peer", "call_local")
-func sync_draw_card(card_data: Dictionary):
-	card_manager.sync_draw_card(card_data)
-
-@rpc("any_peer", "call_local")
-func receive_initial_hand(cards_data: Array):
-	card_manager.receive_initial_hand(cards_data)
-
-@rpc("any_peer")
-func request_hand_resync():
-	card_manager.request_hand_resync()
+#@rpc("any_peer", "call_local")
+#func sync_card_played(card_data: Dictionary, slot_index: int, location_name: String, player_id: int):
+	#card_manager.sync_card_played(card_data, slot_index, location_name, player_id)
+#
+#
+#@rpc("any_peer", "call_local")
+#func sync_draw_card(card_data: Dictionary):
+	#card_manager.sync_draw_card(card_data)
+#
+#@rpc("any_peer", "call_local")
+#func receive_initial_hand(cards_data: Array):
+	#card_manager.receive_initial_hand(cards_data)
+#
+#@rpc("any_peer")
+#func request_hand_resync():
+	#card_manager.request_hand_resync()
 
 @rpc("any_peer")
 func request_card_placement(card_data: Dictionary, slot_index: int, location_name: String, player_id: int):
@@ -160,7 +165,7 @@ func request_game_state_sync(requesting_peer_id):
 		var cards_data = []
 		for card in player_hands[actual_requesting_peer]:
 			cards_data.append(card.to_dictionary())
-		rpc_id(actual_requesting_peer, "receive_initial_hand", cards_data)
+		#rpc_id(actual_requesting_peer, "receive_initial_hand", cards_data)
 
 @rpc("any_peer")
 func request_draw_card(is_action: bool):

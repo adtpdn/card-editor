@@ -142,7 +142,7 @@ func _on_host_pressed():
 		token_manager.initialize_player_tokens(host_id)
 		var tokens = token_manager.get_player_tokens(host_id)
 		token_manager.update_token_ui()
-		card_manager.distribute_initial_hand()
+		#card_manager.distribute_initial_hand()
 		game_state_manager.setup_player(host_id)
 		game_state_manager.start_game()
 		
@@ -210,7 +210,7 @@ func attempt_connection(target_ip: String):
 				# Request initial game state
 				game.rpc_id(1, "request_game_state_sync", local_id)
 				# Request initial cards
-				game.card_manager.rpc_id(1, "request_initial_cards")
+				#game.card_manager.rpc_id(1, "request_initial_cards")
 		)
 		
 		var network_display = get_parent().get_node("RightUI/NetworkInfo/NetworkSideDisplay")
@@ -263,7 +263,7 @@ func _on_peer_connected(new_peer_id):
 			# IMPORTANT: Skip card distribution for host - only give cards to the new peer
 			var host_id = multiplayer.get_unique_id()
 			if new_peer_id != host_id:
-				card_manager.distribute_initial_hand_to_client(new_peer_id)
+				#card_manager.distribute_initial_hand_to_client(new_peer_id)
 				game.rpc_id(new_peer_id, "sync_game_state", game.players, game.game_started, game.card_manager.placed_cards, game.player_hands)
 		
 		token_manager.initialize_player_tokens(new_peer_id)

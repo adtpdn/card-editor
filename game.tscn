@@ -3,24 +3,23 @@
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://game.gd" id="1_0rb8f"]
 [ext_resource type="Script" uid="uid://61ovdinil8mj" path="res://hand.gd" id="2_drdp6"]
 [ext_resource type="Script" path="res://turn_phase_manager.gd" id="2_e36ub"]
+
 [ext_resource type="Script" uid="uid://ckodjk0ue4j3n" path="res://token_manager.gd" id="2_njql7"]
 [ext_resource type="Script" uid="uid://b51yqiry8444l" path="res://network_manager.gd" id="3_boyg6"]
-[ext_resource type="Curve" uid="uid://dtskme7prx4g5" path="res://hand_y_curve.tres" id="3_jwe8m"]
 [ext_resource type="Script" uid="uid://crljukaucgphk" path="res://game_state_manager.gd" id="4_e36ub"]
-[ext_resource type="Curve" uid="uid://dwkwcluylhkq0" path="res://hand_rotation_curve.tres" id="4_lbysu"]
-[ext_resource type="Resource" uid="uid://jby5l2ek6uel" path="res://cards/action_cards.tres" id="4_tg8ug"]
 [ext_resource type="Script" uid="uid://dpaobk3mip7va" path="res://card_manager.gd" id="5_hb5m1"]
-[ext_resource type="Resource" uid="uid://dvmue13fxi5od" path="res://cards/area_cards.tres" id="5_ti4wn"]
 [ext_resource type="PackedScene" uid="uid://cqkw6uj4kgxav" path="res://token_placement_location_magic.tscn" id="6_aclfe"]
 [ext_resource type="Script" uid="uid://22sqj66kc86h" path="res://ui_manager.gd" id="6_x5p1p"]
 [ext_resource type="Script" uid="uid://b33jfe6s6f3g4" path="res://sigil_manager.gd" id="7_boyg6"]
 [ext_resource type="PackedScene" uid="uid://u5swx58xo14j" path="res://token_placement_location.tscn" id="7_i0rid"]
+
+[ext_resource type="PackedScene" uid="uid://cy8dmfciur8g6" path="res://deck.tscn" id="21_hb5m1"]
 [ext_resource type="Material" uid="uid://l6qa3myb6cds" path="res://assets/transparent_material.tres" id="7_l1bdx"]
 [ext_resource type="PackedScene" uid="uid://r5nd8a37k5q5" path="res://assets/meshes/biome_slice_1.glb" id="8_xa8c5"]
 [ext_resource type="PackedScene" uid="uid://bad2hf3m5gwb2" path="res://assets/meshes/biome_slice_2.glb" id="9_5b14r"]
 [ext_resource type="PackedScene" uid="uid://b3d2en7dx48os" path="res://assets/meshes/biome_slice_3.glb" id="10_bnpwn"]
-[ext_resource type="Shape3D" uid="uid://gjjokcof6ivg" path="res://cards/card_3d_collision.tres" id="11_1ew6f"]
 [ext_resource type="PackedScene" uid="uid://bfh8j800mc1uq" path="res://assets/meshes/biome_slice_4.glb" id="11_36jdj"]
+[ext_resource type="Shape3D" uid="uid://gjjokcof6ivg" path="res://cards/card_3d_collision.tres" id="11_1ew6f"]
 [ext_resource type="Script" uid="uid://inns47cokwch" path="res://point_counter.gd" id="11_beb7m"]
 [ext_resource type="Script" uid="uid://oigll5nbfhgy" path="res://deck_location.gd" id="12_8ltkn"]
 [ext_resource type="Script" uid="uid://dao6ito3qdqs4" path="res://planting_location.gd" id="13_u747q"]
@@ -31,12 +30,14 @@
 [ext_resource type="Texture2D" uid="uid://dsqollilseoyt" path="res://assets/meshes/animagic_slice_elemental_blue_back.png" id="29_36jdj"]
 [ext_resource type="Texture2D" uid="uid://b2pgilhnxrgc3" path="res://assets/meshes/corner_slice_4.png" id="30_xfvwf"]
 
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cu6c3"]
 albedo_color = Color(0.42, 0.42, 0.42, 1)
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_yl3nv"]
 material = SubResource("StandardMaterial3D_cu6c3")
 radial_segments = 8
+
 
 [sub_resource type="BoxMesh" id="BoxMesh_nfgrx"]
 
@@ -146,7 +147,6 @@ script = ExtResource("7_boyg6")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 17, 0)
-projection = 1
 fov = 50.0
 size = 20.0
 far = 5000.0
@@ -160,6 +160,20 @@ far = 5000.0
 [node name="biome_slice_32" parent="Node" instance=ExtResource("10_bnpwn")]
 
 [node name="biome_slice_42" parent="Node" instance=ExtResource("11_36jdj")]
+
+[node name="Node" type="Node" parent="."]
+
+[node name="biome_slice_1" parent="Node" instance=ExtResource("8_xa8c5")]
+visible = false
+
+[node name="biome_slice_22" parent="Node" instance=ExtResource("9_5b14r")]
+visible = false
+
+[node name="biome_slice_32" parent="Node" instance=ExtResource("10_bnpwn")]
+visible = false
+
+[node name="biome_slice_42" parent="Node" instance=ExtResource("11_36jdj")]
+visible = false
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(8, 0, 0, 0, -0.05, 0, 0, 0, 8, 0, -0.0680389, 0)
@@ -840,6 +854,7 @@ accepted_biome = 1
 
 [node name="Tokens" type="Node3D" parent="."]
 
+
 [node name="PlantingLocations" type="Node3D" parent="."]
 
 [node name="ActionArea" type="Node3D" parent="PlantingLocations"]
@@ -1022,6 +1037,9 @@ transform = Transform3D(1, 0, 7.45058e-09, 0, 0.03, 0, 0, 0, 1, -0.00149435, 0, 
 mesh = SubResource("BoxMesh_nfgrx")
 surface_material_override/0 = ExtResource("7_l1bdx")
 
+[node name="Deck" parent="." instance=ExtResource("21_hb5m1")]
+
+
 [node name="ResetButton" type="Button" parent="."]
 visible = false
 anchors_preset = 5
@@ -1033,18 +1051,6 @@ offset_right = 45.0
 offset_bottom = 69.0
 grow_horizontal = 2
 text = "Reset"
-
-[node name="DiscardCardButton" type="Button" parent="."]
-visible = false
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -146.0
-offset_top = 39.0
-offset_right = -39.0
-offset_bottom = 70.0
-grow_horizontal = 0
-text = "Discard Card"
 
 [node name="RightUI" type="Control" parent="."]
 layout_mode = 3
@@ -1199,118 +1205,11 @@ offset_bottom = 179.0
 grow_horizontal = 0
 text = "Blight Token"
 
-[node name="LeftUI" type="Control" parent="."]
-layout_mode = 3
-anchors_preset = 9
-anchor_bottom = 1.0
-offset_right = 256.0
-grow_vertical = 2
-size_flags_horizontal = 4
-
-[node name="VBoxContainer" type="VBoxContainer" parent="LeftUI"]
-visible = false
-layout_mode = 1
-offset_left = 27.0
-offset_top = 22.0
-offset_right = 147.0
-offset_bottom = 123.0
-
-[node name="ForestButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="LeftUI/VBoxContainer/ForestButtons"]
-layout_mode = 2
-text = "Forest                       "
-
-[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/ForestButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/ForestButtons"]
-layout_mode = 2
-text = " - "
-
-[node name="ForestMagicButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="LeftUI/VBoxContainer/ForestMagicButtons"]
-layout_mode = 2
-text = "Forest  Magic          "
-
-[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/ForestMagicButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/ForestMagicButtons"]
-layout_mode = 2
-text = " - "
-
-[node name="DesertButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label2" type="Label" parent="LeftUI/VBoxContainer/DesertButtons"]
-layout_mode = 2
-text = "Desert                      "
-
-[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/DesertButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/DesertButtons"]
-layout_mode = 2
-text = " - "
-
-[node name="DesertMagicButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label2" type="Label" parent="LeftUI/VBoxContainer/DesertMagicButtons"]
-layout_mode = 2
-text = "Desert Magic          "
-
-[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/DesertMagicButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/DesertMagicButtons"]
-layout_mode = 2
-text = " - "
-
-[node name="MountainButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label3" type="Label" parent="LeftUI/VBoxContainer/MountainButtons"]
-layout_mode = 2
-text = "Mountain                "
-
-[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/MountainButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/MountainButtons"]
-layout_mode = 2
-text = " - "
-
-[node name="MountainMagicButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label3" type="Label" parent="LeftUI/VBoxContainer/MountainMagicButtons"]
-layout_mode = 2
-text = "Mountain Magic    "
-
-[node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/MountainMagicButtons"]
-layout_mode = 2
-text = " + "
-
-[node name="MinusButton" type="Button" parent="LeftUI/VBoxContainer/MountainMagicButtons"]
-layout_mode = 2
-text = " - "
-
-[node name="WaterButtons" type="HBoxContainer" parent="LeftUI/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label3" type="Label" parent="LeftUI/VBoxContainer/WaterButtons"]
-layout_mode = 2
-text = "Water                       "
+[node name="SigilContainer" type="VBoxContainer" parent="."]
+offset_left = 34.0
+offset_top = 42.0
+offset_right = 92.0
+offset_bottom = 143.0
 
 [node name="PlusButton" type="Button" parent="LeftUI/VBoxContainer/WaterButtons"]
 layout_mode = 2
@@ -1367,82 +1266,49 @@ offset_top = 85.0
 offset_right = 87.0
 offset_bottom = 186.0
 
-[node name="SigilAButton" type="Button" parent="LeftUI/SigilContainer"]
+[node name="SigilAButton" type="Button" parent="SigilContainer"]
+
 layout_mode = 2
 text = "Sigil A "
 
-[node name="SigilBButton" type="Button" parent="LeftUI/SigilContainer"]
+[node name="SigilBButton" type="Button" parent="SigilContainer"]
 layout_mode = 2
 text = "Sigil B"
 
-[node name="SigilCButton" type="Button" parent="LeftUI/SigilContainer"]
+[node name="SigilCButton" type="Button" parent="SigilContainer"]
 layout_mode = 2
 text = "Sigil C"
 
-[node name="PullorPushContainer" type="VBoxContainer" parent="LeftUI"]
-visible = false
-layout_mode = 0
-offset_left = 108.0
-offset_top = 101.0
-offset_right = 154.0
-offset_bottom = 167.0
-
-[node name="Pull" type="Button" parent="LeftUI/PullorPushContainer"]
-layout_mode = 2
-text = "Pull"
-
-[node name="Push" type="Button" parent="LeftUI/PullorPushContainer"]
-layout_mode = 2
-text = "Push"
-
-[node name="HandAreas" type="Control" parent="."]
-clip_contents = true
+[node name="LeftUI" type="Control" parent="."]
 layout_mode = 3
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
+anchors_preset = 9
 anchor_bottom = 1.0
+
 offset_left = 626.0
-offset_top = -140.0
-offset_right = -626.0
+offset_top = 460.0
+offset_right = 243.0
 grow_horizontal = 2
-grow_vertical = 0
+grow_vertical = 2
+size_flags_horizontal = 4
 
-[node name="PlayerHand" type="ColorRect" parent="HandAreas"]
-custom_minimum_size = Vector2(800, 140)
+
+[node name="PlayerList" type="ItemList" parent="LeftUI"]
 layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -400.0
-offset_top = -141.0
-offset_right = 400.0
-offset_bottom = 61.0
+anchors_preset = -1
+anchor_left = 0.107
+anchor_top = 0.539
+anchor_right = 0.959
+anchor_bottom = 0.749
+offset_left = -5.001
+offset_top = -65.332
+offset_right = -5.03702
+offset_bottom = 26.188
 grow_horizontal = 2
-grow_vertical = 0
-color = Color(1, 1, 1, 0)
-script = ExtResource("2_drdp6")
-hand_curve = ExtResource("3_jwe8m")
-rotation_curve = ExtResource("4_lbysu")
-
-[node name="DrawActionButton" type="Button" parent="."]
-offset_left = 17.0
-offset_top = 319.0
-offset_right = 160.0
-offset_bottom = 350.0
-text = "Draw Action Card"
-
-[node name="DrawAreaButton" type="Button" parent="."]
-offset_left = 17.0
-offset_top = 364.0
-offset_right = 147.0
-offset_bottom = 395.0
-text = "Draw Area Card"
+grow_vertical = 2
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 5, 0)
+visible = false
 sky_mode = 1
 
 [node name="PointCounter" type="Node3D" parent="."]
@@ -1487,6 +1353,3 @@ skeleton = NodePath("")
 transform = Transform3D(21.5, 0, 0, 0, 21.5, 0, 0, 0, 21.5, 0, 0, 0)
 
 [connection signal="pressed" from="ResetButton" to="." method="_on_reset_button_pressed"]
-[connection signal="pressed" from="DiscardCardButton" to="." method="_on_discard_card_button_pressed"]
-[connection signal="pressed" from="DrawActionButton" to="." method="_on_draw_action_button_pressed"]
-[connection signal="pressed" from="DrawAreaButton" to="." method="_on_draw_area_button_pressed"]

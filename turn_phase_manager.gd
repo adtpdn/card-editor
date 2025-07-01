@@ -16,6 +16,7 @@ enum Phase {
 @onready var card_manager = $"../CardManager"
 @onready var ui_manager = $"../UIManager"
 @onready var sigil_manager = $"../SigilManager"
+@onready var deck = $"../Deck"
 
 @onready var end_phase_button = $"../RightUI/EndPhaseButton"
 @onready var token_button = $"../RightUI/TokenButton"
@@ -81,7 +82,7 @@ func _ready():
 		print("TurnPhaseManager: Available signals in token_manager: ", token_manager.get_signal_list() if token_manager else "token_manager not found")
 	
 	# Connect to sigil buttons
-	var sigil_container = game.get_node("LeftUI/SigilContainer")
+	var sigil_container = game.get_node("SigilContainer")
 	if sigil_container:
 		print("TurnPhaseManager: Found sigil container")
 		for child in sigil_container.get_children():
@@ -102,26 +103,8 @@ func _ready():
 	else:
 		print("TurnPhaseManager: End turn button not found!")
 
-	# Connect to card manager signals
-	var action_area = game.get_node("PlantingLocations/ActionArea")
-	if action_area and action_area.has_signal("card_placed"):
-		print("TurnPhaseManager: Connecting to action_area card_placed signal")
-		if action_area.card_placed.is_connected(_on_card_placed):
-			action_area.card_placed.disconnect(_on_card_placed)
-		action_area.card_placed.connect(_on_card_placed)
-	else:
-		print("TurnPhaseManager: action_area card_placed signal not found!")
-		
-	var area_zone = game.get_node("PlantingLocations/AreaZone")
-	if area_zone and area_zone.has_signal("card_placed"):
-		print("TurnPhaseManager: Connecting to area_zone card_placed signal")
-		if area_zone.card_placed.is_connected(_on_card_placed):
-			area_zone.card_placed.disconnect(_on_card_placed)
-		area_zone.card_placed.connect(_on_card_placed)
-	else:
-		print("TurnPhaseManager: area_zone card_placed signal not found!")
-
 func initialize():
+	print("")
 	print("TurnPhaseManager: initialize called")
 	reset_phases()
 
@@ -136,7 +119,7 @@ func create_phase_popup():
 	phase_notification.size = Vector2(350, 180)
 	phase_notification.exclusive = false  # Allow interaction with the game while notification is shown
 	phase_notification.dialog_text = "Initialize notification"
-	game.add_child(phase_notification)
+	game.add_child.call_deferred(phase_notification)
 	
 	# End phase button
 	end_phase_button.pressed.connect(_on_end_phase_button_pressed)
@@ -247,7 +230,10 @@ func reset_phases():
 # Complete the current phase
 func complete_current_phase():
 	print("TurnPhaseManager: Completing phase: ", current_phase)
-	if current_phase != Phase.NONE:
+	
+	if current_phase == Phase.PLAY_SIGIL:
+		end_phase_button.disabled = true
+	elif current_phase != Phase.NONE:
 		completed_phases[current_phase] = true
 		emit_signal("turn_action_completed", current_phase)
 		
@@ -363,9 +349,9 @@ func advance_to_next_phase():
 # Helper function to enable card play
 func enable_card_play():
 	print("TurnPhaseManager: Enabling card play")
-	var player_hand = get_parent().get_node("HandAreas/PlayerHand")
+	var player_hand = deck.hand
 	if player_hand:
-		player_hand.set_interaction_enabled(true)
+		#player_hand.set_interaction_enabled(true)
 		print("TurnPhaseManager: Card play enabled")
 	else:
 		print("TurnPhaseManager: Player hand not found!")
@@ -373,9 +359,9 @@ func enable_card_play():
 # Helper function to disable card play
 func disable_card_play():
 	print("TurnPhaseManager: Disabling card play")
-	var player_hand = get_parent().get_node("HandAreas/PlayerHand")
+	var player_hand = deck.hand
 	if player_hand:
-		player_hand.set_interaction_enabled(false)
+		#player_hand.set_interaction_enabled(false)
 		print("TurnPhaseManager: Card play disabled")
 	else:
 		print("TurnPhaseManager: Player hand not found!")
@@ -383,7 +369,7 @@ func disable_card_play():
 # Helper function to enable/disable sigil buttons
 func enable_sigil_buttons(enabled: bool):
 	print("TurnPhaseManager: ", "Enabling" if enabled else "Disabling", " sigil buttons")
-	var sigil_container = game.get_node("LeftUI/SigilContainer")
+	var sigil_container = game.get_node("SigilContainer")
 	if sigil_container:
 		for child in sigil_container.get_children():
 			if child is Button:
@@ -544,6 +530,7 @@ func _on_end_phase_button_pressed():
 				show_requirement_notification("You must place at least one token in a sigil before ending this phase.")
 		
 		Phase.PLAY_SIGIL:
+			print("END PHASE PLAY SIGIL")
 			# Allow skipping sigil activation entirely
 			completed_phases[Phase.PLAY_SIGIL] = true
 			advance_to_next_phase()
