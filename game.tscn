@@ -15,7 +15,7 @@
 [ext_resource type="PackedScene" uid="uid://b3d2en7dx48os" path="res://assets/meshes/biome_slice_3.glb" id="10_bnpwn"]
 [ext_resource type="PackedScene" uid="uid://bfh8j800mc1uq" path="res://assets/meshes/biome_slice_4.glb" id="11_36jdj"]
 [ext_resource type="Script" uid="uid://inns47cokwch" path="res://point_counter.gd" id="11_beb7m"]
-[ext_resource type="PackedScene" uid="uid://cy8dmfciur8g6" path="res://deck.tscn" id="21_hb5m1"]
+[ext_resource type="PackedScene" uid="uid://cogovef2ukws3" path="res://card_deck/deck.tscn" id="21_hb5m1"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cu6c3"]
 albedo_color = Color(0.42, 0.42, 0.42, 1)

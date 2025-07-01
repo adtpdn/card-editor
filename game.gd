@@ -64,15 +64,12 @@ func _ready():
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 @rpc("any_peer", "call_local") 
-func sync_game_state(game_players, has_started, placed, player_hand_data = null):
+func sync_game_state(game_players, has_started):
 	print("Syncing game state from server")
 	players = game_players
 	game_started = has_started
 	
 	# Sync player_hands if data is provided
-	if player_hand_data != null:
-		player_hands = player_hand_data
-		print("Received player_hands data: ", player_hands)
 	
 	# Update UI to reflect state
 	ui_manager.update_player_list()
@@ -155,7 +152,7 @@ func request_game_state_sync(requesting_peer_id):
 	print("Client ", actual_requesting_peer, " requested game state sync")
 	
 	# Send full game state to the requesting client
-	rpc_id(actual_requesting_peer, "sync_game_state", players, game_started, card_manager.placed_cards, player_hands)
+	rpc_id(actual_requesting_peer, "sync_game_state", players, game_started)
 	
 	# Also send turn state
 	rpc_id(actual_requesting_peer, "sync_turn_state", game_state_manager.current_turn_index)

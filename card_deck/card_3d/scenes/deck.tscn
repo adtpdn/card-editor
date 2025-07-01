@@ -1,7 +1,7 @@
 [gd_scene load_steps=16 format=3 uid="uid://cy8dmfciur8g6"]
 
 [ext_resource type="Script" uid="uid://bsgfqt7bst4o6" path="res://card_deck/table.gd" id="1_3x582"]
-[ext_resource type="Script" uid="uid://df58sxxtmutdf" path="res://deck_pile.gd" id="1_rgf87"]
+[ext_resource type="Script" uid="uid://df58sxxtmutdf" path="res://card_deck/deck_pile.gd" id="1_rgf87"]
 [ext_resource type="Script" uid="uid://bfmtf7hh4lc0h" path="res://card_deck/card_3d/scripts/drag_controller.gd" id="2_rgf87"]
 [ext_resource type="PackedScene" uid="uid://d1uvcisduvvj" path="res://card_deck/card_3d/scenes/card_collection_3d.tscn" id="3_tbve4"]
 [ext_resource type="Script" uid="uid://dauol4rysxcqw" path="res://card_deck/card_3d/scripts/card_layouts/pile_card_layout.gd" id="4_28kt0"]
