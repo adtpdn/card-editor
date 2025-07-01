@@ -12,5 +12,5 @@ cost_to_draw = 1
 effect1 = "Plant 1 extra token on biome or plant 1 extra energy on a sigil magic"
 effect2 = ""
 revealed = true
-tex3D_path = "res://assets/cards/action_card_05.png"
-image_path = "res://assets/cards/2D/card_05.png"
+tex3D_path = ""
+image_path = ""

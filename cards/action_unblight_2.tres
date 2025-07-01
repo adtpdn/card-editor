@@ -12,5 +12,5 @@ cost_to_draw = 1
 effect1 = "Unblight 1 of your token in a biome "
 effect2 = ""
 revealed = true
-tex3D_path = "res://assets/cards/action_card_10.png"
-image_path = "res://assets/cards/2D/card_10.png"
+tex3D_path = ""
+image_path = ""

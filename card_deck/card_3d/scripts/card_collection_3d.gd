@@ -60,6 +60,13 @@ func prepend_card(card: Card3D):
 
 
 func insert_card(card: Card3D, index: int):
+	# Check if this is a card being added to a hand and we're at max capacity
+	if self.name == "Hand":
+		var game = get_node("/root/Game/")
+		if game and game.card_manager and game.card_manager.is_hand_full():
+			print("Cannot insert card - hand is full!")
+			return
+	
 	card.card_3d_mouse_down.connect(_on_card_pressed.bind(card))
 	card.card_3d_mouse_up.connect(_on_card_clicked.bind(card))
 	card.card_3d_mouse_over.connect(_on_card_hover.bind(card))

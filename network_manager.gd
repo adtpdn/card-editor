@@ -10,6 +10,8 @@ extends Node
 @onready var card_manager = $"../CardManager"
 @onready var ui_manager = $"../UIManager"
 @onready var point_counter = $"../PointCounter"
+@onready var deck = $"../Deck"
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Multiplayer Dependencies
@@ -254,18 +256,19 @@ func _on_peer_connected(new_peer_id):
 		var slot_index = game.player_slots.find(false)
 		if slot_index != -1:
 			game.player_slots[slot_index] = true
+		
+		# Only send the deck seed and available_cards state to the new player
+		if deck and deck.table:
+			rpc_id(new_peer_id, "receive_deck_seed", deck.table.deck_seed)
+			rpc_id(new_peer_id, "receive_deck_state", deck.table.available_cards)
+		
+		# Tell the client to initialize their starting hand
+		game.rpc_id(new_peer_id, "initialize_client_starting_hand")
 			
 		# Sync game state to new player
 		game.rpc_id(new_peer_id, "sync_game_state", game.players, game.game_started)
 		
-		# Initialize player's tokens and hand
-		if game.game_started:
-			# IMPORTANT: Skip card distribution for host - only give cards to the new peer
-			var host_id = multiplayer.get_unique_id()
-			if new_peer_id != host_id:
-				#card_manager.distribute_initial_hand_to_client(new_peer_id)
-				game.rpc_id(new_peer_id, "sync_game_state", game.players, game.game_started)
-		
+		# Initialize player's tokens
 		token_manager.initialize_player_tokens(new_peer_id)
 		var player_tokens = token_manager.get_player_tokens(new_peer_id)
 		game.rpc_id(new_peer_id, "sync_player_tokens", player_tokens)
@@ -538,3 +541,98 @@ func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		cleanup_network()
 		get_tree().quit()
+
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ---           Draw Card      ---
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+func sync_card_draw():
+	if multiplayer.is_server():
+		# Just sync the available_cards state
+		var table = deck.table
+		rpc("sync_available_cards", table.available_cards)
+	
+@rpc("any_peer", "call_local")
+func remote_card_drawn():
+	# Get the card data from the sender
+	var sender_id = multiplayer.get_remote_sender_id()
+
+	deck.table.add_card()
+
+# Sync the deck seed to all clients
+func sync_deck_seed(seed_value: int):
+	if multiplayer.is_server():
+		rpc("receive_deck_seed", seed_value)
+
+# Sync the full deck state (available_cards array)
+func sync_deck_state(available_cards_array: Array):
+	if multiplayer.is_server():
+		rpc("receive_deck_state", available_cards_array)
+
+# Client request for deck sync
+func request_deck_sync():
+	if !multiplayer.is_server():
+		rpc_id(1, "server_send_deck_state")  # 1 is typically the server ID
+
+@rpc("any_peer", "call_local")
+func receive_deck_seed(seed_value: int):
+	var table = get_node("/root/Game/Deck/Table")
+	if table:
+		table.initialize_deck_with_seed(seed_value)
+
+@rpc("any_peer")
+func receive_deck_state(available_cards_array: Array):
+	var table = get_node("/root/Game/Deck/Table")
+	if table:
+		table.available_cards = available_cards_array
+		print("Received deck state with ", available_cards_array.size(), " cards remaining")
+
+@rpc("any_peer")
+func server_send_deck_state():
+	if multiplayer.is_server():
+		var sender_id = multiplayer.get_remote_sender_id()
+		var table = get_node("/root/Game/Deck/Table")
+		if table:
+			# Send the current deck state back to the client who requested it
+			rpc_id(sender_id, "receive_deck_state", table.available_cards)
+
+# Sync when a specific card is drawn - only update available_cards
+func sync_card_drawn(card_index: int):
+	if multiplayer.is_server():
+		# Send the updated available_cards to all clients
+		var table = deck.table
+		rpc("sync_available_cards", table.available_cards)
+
+# New RPC to only sync the available_cards array without drawing a card
+@rpc("any_peer", "call_local") 
+func sync_available_cards(updated_available_cards: Array):
+	var table = get_node("/root/Game/Deck/Table")
+	if table:
+		# Just update the available cards array
+		table.available_cards = updated_available_cards.duplicate()
+		print("Synchronized deck state: ", updated_available_cards.size(), " cards remaining")
+
+# Remove or comment out the existing remote_card_drawn RPC
+# @rpc("any_peer", "call_local")
+# func remote_card_drawn():
+#     # Get the card data from the sender
+#     var sender_id = multiplayer.get_remote_sender_id()
+#     deck.table.add_card()
+
+# Remove or comment out remote_specific_card_drawn unless you need it for other purposes
+# @rpc("any_peer", "call_local") 
+# func remote_specific_card_drawn(card_index: int):
+#     var game = get_node("/root/Game/")
+#     if game and game.card_manager:
+#         # Draw the specific card that was drawn on the server
+#         game.card_manager.draw_specific_card(card_index)
+
+@rpc("any_peer", "call_local") 
+func remote_specific_card_drawn(card_index: int, updated_available_cards = null):
+	var game = get_node("/root/Game/")
+	if game and game.card_manager:
+		# Update the available cards array if provided
+		if updated_available_cards != null and game.deck and game.deck.table:
+			game.deck.table.available_cards = updated_available_cards
+		
+		# Draw the specific card that was drawn on the server
+		game.card_manager.draw_specific_card(card_index)

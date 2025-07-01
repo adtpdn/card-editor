@@ -11,9 +11,8 @@ extends Node
 @onready var ui_manager = $UIManager
 @onready var sigil_manager = $SigilManager
 @onready var turn_phase_manager = $TurnPhaseManager
-
-
 @onready var point_counter = $PointCounter
+@onready var deck = $Deck
 
 @onready var sigil_a_button = $SigilContainer/SigilAButton
 @onready var sigil_b_button = $SigilContainer/SigilBButton
@@ -48,6 +47,13 @@ func _ready():
 	token_manager.initialize()
 	network_manager.initialize()
 	game_state_manager.initialize()
+	
+	# Don't call initialize_starting_hand here, let start_game do it
+	# card_manager.initialize_starting_hand()
+	
+	# Start the game - this will handle card initialization
+	start_game()
+	
 	if has_node("TurnPhaseManager"):
 		turn_phase_manager.initialize()
 	if has_node("SigilManager"):
@@ -57,11 +63,39 @@ func _ready():
 	set_process_input(true)
 	print("Game initialized.")
 
+func start_game():
+	game_started = true
+	
+	# Initialize the deck with a seed first
+	$Deck/Table.initialize_deck_with_seed(randi())
+	
+	# Make sure the card_manager gets a reference to the player hand
+	card_manager.player_hand = $Deck/Table/DragController/Hand
+	
+	# Draw initial cards for the host player
+	card_manager.initialize_starting_hand()
+	
+	# If there are clients, they will get their cards when they connect
+	if network_manager.multiplayer.is_server() and network_manager.multiplayer.get_peers().size() > 0:
+		for peer_id in network_manager.multiplayer.get_peers():
+			# Send the current deck state to the connected peer
+			network_manager.rpc_id(peer_id, "receive_deck_seed", $Deck/Table.deck_seed)
+			network_manager.rpc_id(peer_id, "receive_deck_state", $Deck/Table.available_cards)
+			
+			# Tell the client to initialize their starting hand
+			rpc_id(peer_id, "initialize_client_starting_hand")
+
+	# Sync game state to all clients
+	rpc("sync_game_state", players, game_started)
+
 
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---  Network Synchronization ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+@rpc("any_peer", "call_remote")
+func initialize_client_starting_hand():
+	card_manager.initialize_starting_hand()
 
 @rpc("any_peer", "call_local") 
 func sync_game_state(game_players, has_started):
