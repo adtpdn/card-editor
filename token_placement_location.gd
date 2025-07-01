@@ -119,7 +119,7 @@ func set_highlight(enabled: bool):
 	$MarkerMesh.material_override = material
 
 func set_occupied(occupied: bool):
-	print("Setting occupied state to: ", occupied)
+	#print("Setting occupied state to: ", occupied)
 	is_occupied = occupied
 	if occupied:
 		set_highlight(false)
