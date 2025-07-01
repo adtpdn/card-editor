@@ -5,11 +5,12 @@
 [resource]
 script = ExtResource("1_c1vy6")
 card_id = 3
+card_on_biome = -1
 card_name = "Refresh Energy"
 card_type = 0
 cost_to_draw = 1
 effect1 = "Refresh/unblight 1 your blighted energy on a sigil magic"
 effect2 = ""
 revealed = true
-tex3D_path = "res://assets/cards/action_card_03.png"
-image_path = "res://assets/cards/2D/tile002.png"
+tex3D_path = "res://assets/cards/action_card_02.png"
+image_path = "res://assets/cards/2D/card_02.png"

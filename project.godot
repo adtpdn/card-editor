@@ -18,6 +18,11 @@ config/custom_user_dir_name="Botanimagic"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://thumb.png"
 
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+
 [network]
 
 limits/tcp/connect_timeout_seconds=10
