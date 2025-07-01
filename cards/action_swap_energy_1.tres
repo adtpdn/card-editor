@@ -12,5 +12,5 @@ cost_to_draw = 1
 effect1 = "Swap your energy position with other player energy on the same sigil magic"
 effect2 = ""
 revealed = true
-tex3D_path = "res://assets/cards/action_card_05.png"
-image_path = "res://assets/cards/2D/tile005.png"
+tex3D_path = ""
+image_path = ""

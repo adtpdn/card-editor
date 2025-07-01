@@ -11,8 +11,8 @@ enum CardType {ACTION, AREA}
 @export var effect1: String = ""
 @export var effect2: String = ""
 @export var revealed: bool = true
-@export var tex3D_path: String = ""
-@export var image_path: String = ""
+@export var front_mesh_material: StandardMaterial3D 
+@export var back_mesh_material: StandardMaterial3D
 
 func _init(p_id = -1, p_biome= -1, p_name = "New Card", p_type = CardType.ACTION, p_cost = 1, p_effect1 = "", p_effect2 = ""):
 	card_id = p_id
@@ -33,8 +33,8 @@ func to_dictionary() -> Dictionary:
 		"effect1": effect1,
 		"effect2": effect2,
 		"revealed": revealed,
-		"tex3D_path": tex3D_path,
-		"image_path": image_path
+		"front_mesh_material": front_mesh_material,
+		"back_mesh_material": back_mesh_material
 	}
 
 func from_dictionary(data: Dictionary) -> void:
@@ -46,8 +46,8 @@ func from_dictionary(data: Dictionary) -> void:
 	effect1 = data["effect1"]
 	effect2 = data["effect2"]
 	revealed = data["revealed"]
-	tex3D_path = data["tex3D_path"]
-	image_path = data.get("image_path", "")
+	front_mesh_material = data["front_mesh_material"]
+	back_mesh_material = data.get("back_mesh_material", "")
 
 func _get_property_list():
 	var properties = []

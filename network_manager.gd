@@ -10,6 +10,8 @@ extends Node
 @onready var card_manager = $"../CardManager"
 @onready var ui_manager = $"../UIManager"
 @onready var point_counter = $"../PointCounter"
+@onready var deck = $"../Deck"
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Multiplayer Dependencies
@@ -538,3 +540,18 @@ func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		cleanup_network()
 		get_tree().quit()
+
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ---           Draw Card      ---
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+func sync_card_draw():
+	if multiplayer.is_server():
+		# Send to all clients
+		rpc("remote_card_drawn")
+	
+@rpc("any_peer", "call_local")
+func remote_card_drawn():
+	# Get the card data from the sender
+	var sender_id = multiplayer.get_remote_sender_id()
+
+	deck.table.add_card()

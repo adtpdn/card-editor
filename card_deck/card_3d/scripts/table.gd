@@ -5,7 +5,6 @@ var actions_cards = preload("res://cards/action_cards.tres")
 var available_cards = [] # Will store indices of available cards
 
 @onready var hand: CardCollection3D = $DragController/Hand
-#@onready var pile: CardCollection3D = $DragController/CardSlotBiome1
 
 func _ready():
 	# Initialize available cards
@@ -16,13 +15,13 @@ func reset_available_cards():
 	for i in range(actions_cards.cards.size()):
 		available_cards.append(i)
 
-func _input(event):
-	if event.is_action_pressed("ui_down"):
-		add_card()
-	elif event.is_action_pressed("ui_up"):
-		remove_card()
-	elif event.is_action_pressed("ui_left"):
-		clear_cards()
+#func _input(event):
+	#if event.is_action_pressed("ui_down"):
+		#add_card()
+	#elif event.is_action_pressed("ui_up"):
+		#remove_card()
+	#elif event.is_action_pressed("ui_left"):
+		#clear_cards()
 	#elif event.is_action_pressed("ui_right"):
 		#if pile.card_layout_strategy is PileCardLayout and hand.card_layout_strategy is LineCardLayout:
 			#var layout := LineCardLayout.new()
@@ -46,16 +45,20 @@ func instantiate_face_card(card_index) -> FaceCard3D:
 	face_card_3d.card_name = card_resource.card_name
 	face_card_3d.card_type = card_resource.card_type
 	
-	# If you want to load and set the 3D texture
-	if card_resource.tex3D_path:
-		var material = load(card_resource.tex3D_path)
-		if material:
-			face_card_3d.get_node("CardMesh/CardFrontMesh").set_surface_override_material(0, material)
+	face_card_3d.update_material_front_mesh(card_resource.front_mesh_material)
+	face_card_3d.update_material_back_mesh(card_resource.back_mesh_material)
 	
 	return face_card_3d
 
 func add_card():
 	print('add card')
+	
+	# Check if the hand is full
+	var game = get_node("/root/Game/")
+	if game.card_manager.is_hand_full():
+		print("Hand is full! Maximum cards: " + str(game.card_manager.max_hand_size))
+		return false
+		
 	if available_cards.size() == 0:
 		print("Deck is empty! Reshuffling...")
 		reset_available_cards()
@@ -66,6 +69,9 @@ func add_card():
 		hand.append_card(card)
 		
 		card.global_position = $"../Deck".global_position
+		return true
+	
+	return false
 
 func next_card():
 	if available_cards.size() == 0:
@@ -96,19 +102,14 @@ func play_card(card):
 	var card_global_position = hand.cards[card_index].global_position
 	var c = hand.remove_card(card_index)
 	
-	#pile.append_card(c)
 	c.remove_hovered()
 	c.global_position = card_global_position
 
 func clear_cards():
 	var hand_cards = hand.remove_all()
-	#var pile_cards = pile.remove_all()
 	
 	for c in hand_cards:
 		c.queue_free()
-	
-	#for c in pile_cards:
-		#c.queue_free()
 
 func _on_face_card_3d_card_3d_mouse_up():
 	add_card()
