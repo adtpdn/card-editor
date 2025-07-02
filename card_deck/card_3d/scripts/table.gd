@@ -128,6 +128,23 @@ func add_card():
 		
 		card.global_position = $"../Deck".global_position
 		
+		# Handle turn phase logic when drawing a card
+		var turn_phase_manager = game.turn_phase_manager
+		if turn_phase_manager:
+			var current_phase = turn_phase_manager.current_phase
+			
+			# If we're in the biome phase, drawing a card means we skip this phase
+			if current_phase == turn_phase_manager.Phase.PLANT_BIOME:
+				# Complete the current phase and move to next phase
+				turn_phase_manager.completed_phases[turn_phase_manager.Phase.PLANT_BIOME] = true
+				turn_phase_manager.advance_to_next_phase()
+			
+			# If we're in the sigil/card phase, drawing a card counts as planting a sigil
+			elif current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and !turn_phase_manager.sigil_placed:
+				# Mark sigil as placed and check for phase completion
+				turn_phase_manager.sigil_placed = true
+				turn_phase_manager.check_phase_two_completion()
+		
 		# Only sync the available_cards state, don't make the client draw a card
 		if game.network_manager and game.network_manager.multiplayer and game.network_manager.multiplayer.get_peers().size() > 0:
 			# Sync with the resource card_id, not the index
