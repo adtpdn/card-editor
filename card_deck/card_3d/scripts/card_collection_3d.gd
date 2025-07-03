@@ -48,6 +48,7 @@ var hover_disabled: bool = false # disable card hover animation (useful when dra
 var _hovered_card: Card3D # card currently hovered
 var _preview_drop_index: int = -1
 
+var card_index
 
 # add a card to the hand and animate it to the correct position
 # this will add card as child of this node
@@ -58,14 +59,18 @@ func append_card(card: Card3D):
 func prepend_card(card: Card3D):
 	insert_card(card, 0)
 
-
 func insert_card(card: Card3D, index: int):
 	# Check if this is a card being added to a hand and we're at max capacity
+	var game = get_node("/root/Game/")
+	var turn_phase_manager = game.turn_phase_manager
+
 	if self.name == "Hand":
-		var game = get_node("/root/Game/")
 		if game and game.card_manager and game.card_manager.is_hand_full():
 			print("Cannot insert card - hand is full!")
 			return
+	
+	if turn_phase_manager.sigil_placed:
+		return
 	
 	card.card_3d_mouse_down.connect(_on_card_pressed.bind(card))
 	card.card_3d_mouse_up.connect(_on_card_clicked.bind(card))
@@ -78,11 +83,17 @@ func insert_card(card: Card3D, index: int):
 	print("node name : ", self.name)
 	
 	# Card will active if player plant a card
-	if self.name != "Hand":
+	# Skip triggering effects if this was remotely planted
+	if self.name != "Hand" and not card.has_meta("remote_planted"):
 		plant_card(card)
+	
+	# If it was remotely planted, remove the flag
+	if card.has_meta("remote_planted"):
+		card.remove_meta("remote_planted")
 	
 	for i in range(index, cards.size()):
 		card_indicies[cards[i]] = i
+	
 	
 	apply_card_layout()
 	card_added.emit(card)
@@ -92,10 +103,32 @@ func plant_card(card):
 	var card_manager = game.card_manager
 	card_manager.active_card = card
 	
-	match card.card_id:
+	# Get the explicit resource card_id (not an index)
+	var resource_card_id = card.card_id
+	
+	print("Planting card with resource card_id:", resource_card_id, "to biome slot:", card_slot_biome)
+	
+	# Sync the card planting across the network
+	if game.network_manager and game.network_manager.multiplayer and game.network_manager.multiplayer.get_peers().size() > 0:
+		# Get the player ID
+		var player_id = game.network_manager.multiplayer.get_unique_id()
+		
+		# Send resource card_id, biome slot info, and player ID to all clients
+		game.network_manager.sync_card_planted(resource_card_id, card_slot_biome, player_id)
+	
+	# Then trigger the local effect based on the card's actual resource card_id
+	execute_card_effect(resource_card_id)
+
+func execute_card_effect(card_id: int):
+	var game = get_node("/root/Game/")
+	var card_manager = game.card_manager
+	
+	print("Executing effect for resource card_id:", card_id)
+	
+	match card_id:
 		0: # Unblight Our Own Token
 			card_manager.unblight_card_effect()
-		1: # Tak Off enemy or our energy token
+		1: # Take Off enemy or our energy token
 			card_manager.take_off_card_effect()
 		2: # Swap Energy
 			card_manager.swap_energy_card_effect()
@@ -103,6 +136,8 @@ func plant_card(card):
 			card_manager.refresh_energy_card_effect()
 		4: # Plant Extra Token or Energy
 			card_manager.plant_extra_card_effect()
+		_:
+			print("Unknown resource card_id:", card_id)
 
 # remove and return card from the end of the list
 func pop_card() -> Card3D:
@@ -217,6 +252,9 @@ func _on_card_hover(card: Card3D):
 	if not hover_disabled and can_select_card(card):
 		_hovered_card = card
 		
+		for _id in cards.size():
+			if card.card_id == cards[_id].card_id:
+				card_index = _id
 		if highlight_on_hover:
 			card.set_hovered()
 
@@ -228,11 +266,19 @@ func _on_card_exit(card: Card3D):
 
 
 func _on_card_pressed(card: Card3D):
-	if can_select_card(card):
-		card_selected.emit(card)
+	var game = get_node("/root/Game")
+	var turn_phase_manager = game.turn_phase_manager
+	
+	# Phase plant on sigil and card only
+	# Disabled card movement
+	if turn_phase_manager.current_phase == 1: 
+		if can_select_card(card):
+			print('card pressed')
+			card_selected.emit(card)
 		
 
 func _on_card_clicked(card: Card3D):
+	print("carc clicked")
 	card_clicked.emit(card)
 
 

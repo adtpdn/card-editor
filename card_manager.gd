@@ -43,7 +43,11 @@ func initialize_starting_hand():
 	
 	# Draw the initial cards - should be 2
 	for i in range(initial_hand_size):
-		draw_card()
+		var success = draw_card()
+		if success:
+			# Verify the card IDs of the cards in the hand
+			var last_card = player_hand.cards[player_hand.cards.size() - 1]
+			print("Added initial card with card_id:", last_card.card_id)
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # --- Card Distribution & Deck  ---
@@ -91,12 +95,38 @@ func sync_card_drawn(card_index: int):
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---   Card Event Handlers    ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
+func execute_card_effect(card_id: int):
+	print("Executing card effect for card ID: ", card_id)
+	
+	match card_id:
+		0: # Unblight Our Own Token
+			unblight_card_effect()
+		1: # Take Off enemy or our energy token
+			take_off_card_effect()
+		2: # Swap Energy
+			swap_energy_card_effect()
+		3: # Refresh Energy
+			refresh_energy_card_effect()
+		4: # Plant Extra Token or Energy
+			plant_extra_card_effect()
+		_:
+			print("Unknown card ID: ", card_id)
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---   Card Utility Methods   ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
+func create_remote_card(card_data: Dictionary, biome_slot: int) -> FaceCard3D:
+	var card_id = card_data["card_id"] if card_data.has("card_id") else -1
+	
+	# Create the card instance
+	var face_card = deck.table.instantiate_face_card(card_id)
+	if !face_card:
+		print("Failed to instantiate remote card")
+		return null
+	
+	face_card.card_on_biome = biome_slot
+	
+	return face_card
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---        Card Effects      ---

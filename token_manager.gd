@@ -376,8 +376,6 @@ func _on_token_selected():
 	# Initialize tokens planted counter for this player if needed
 	if !tokens_planted_this_turn.has(player_id):
 		tokens_planted_this_turn[player_id] = 0
-		can_plant_on_sigil = true
-		can_plant_on_biome = false  # Start with only sigil planting enabled
 	
 	# Check if player has already planted the maximum tokens this turn
 	if tokens_planted_this_turn[player_id] >= max_tokens_per_turn:
@@ -391,24 +389,33 @@ func _on_token_selected():
 	print("Token selection mode: " + str(is_token_selected))
 	
 	if is_token_selected:
-		print("Can plant on sigil: " + str(can_plant_on_sigil) + ", Can plant on biome: " + str(can_plant_on_biome))
+		# Check current phase and highlight appropriate placements
+		var current_phase = turn_phase_manager.current_phase
 		
 		# First unhighlight all placements to ensure clean state
 		unhighlight_all_token_placements()
 		
-		# Then highlight ONLY valid placements based on current planting phase
-		for placement in get_parent().get_node("TokenPlacements").get_children():
-			if !placement.is_occupied:
-				# If first token (planting on sigil) and this is a sigil location
-				if tokens_planted_this_turn[player_id] == 0 and placement.place_id == -1:
-					placement.set_highlight(true)
-				# If second token (planting on biome) and this is a biome location
-				elif tokens_planted_this_turn[player_id] == 1 and placement.place_id != -1:
-					placement.set_highlight(true)
-				# If this is an extra token (from card effect) and both sigil and biome are enabled
-				elif tokens_planted_this_turn[player_id] >= 2 and is_plant_extra:
-					if placement.accepted_biome == card_manager.active_card.card_on_biome:
+		# Highlight based on phase
+		if is_plant_extra:
+			# If this is an extra token (from card effect)
+			if card_manager.active_card != null:
+				for placement in get_parent().get_node("TokenPlacements").get_children():
+					if !placement.is_occupied and placement.accepted_biome == card_manager.active_card.card_on_biome:
 						placement.set_highlight(true)
+				
+		
+		elif current_phase == turn_phase_manager.Phase.PLANT_BIOME:
+			# In biome phase, highlight biome locations (place_id == -1)
+			for placement in get_parent().get_node("TokenPlacements").get_children():
+				if !placement.is_occupied and placement.place_id == -1:
+					placement.set_highlight(true)
+		
+		elif current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD:
+			# In sigil phase, highlight sigil locations (place_id != -1)
+			for placement in get_parent().get_node("TokenPlacements").get_children():
+				if !placement.is_occupied and placement.place_id != -1:
+					placement.set_highlight(true)
+			#game.token_button.disabled = true
 	else:
 		# Unhighlight all placements when deselecting
 		unhighlight_all_token_placements()
@@ -416,6 +423,7 @@ func _on_token_selected():
 	# Update UI to show selection state
 	update_token_ui()
 	debug_token_state()
+	is_plant_extra = false
 
 func _input(event):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -652,26 +660,6 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	# Initialize tokens planted counter for this player if needed
 	if !tokens_planted_this_turn.has(player_id):
 		tokens_planted_this_turn[player_id] = 0
-		can_plant_on_sigil = true
-		can_plant_on_biome = false
-	
-	# Validate that the placement is a valid location for current planting phase
-	var is_valid_placement = false
-	
-	# First token must be on sigil location
-	if tokens_planted_this_turn[player_id] == 0 and placement.place_id == -1:
-		is_valid_placement = true
-	# Second token must be on biome location
-	elif tokens_planted_this_turn[player_id] == 1 and placement.place_id != -1:
-		is_valid_placement = true
-	# Extra token from card effect can be on either type if both flags are enabled
-	elif tokens_planted_this_turn[player_id] >= 2 and is_plant_extra:
-		is_valid_placement = true
-	
-	# If not a valid placement, exit
-	if !is_valid_placement:
-		print("Invalid placement location for current planting phase")
-		return
 	
 	# Create and place the token
 	var token = token_scene.instantiate()
@@ -698,18 +686,6 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	
 	# Update token planting state
 	tokens_planted_this_turn[player_id] += 1
-	
-	# Update planting permissions based on what was just planted
-	if tokens_planted_this_turn[player_id] == 1:
-		# First token placed, enable biome locations for second token
-		can_plant_on_sigil = false
-		can_plant_on_biome = true
-		print("First token placed on sigil. Now can plant on biome.")
-	elif tokens_planted_this_turn[player_id] == 2:
-		# Second token placed, disable all planting until next turn
-		can_plant_on_sigil = false
-		can_plant_on_biome = false
-		print("Second token placed on biome. No more planting this turn.")
 	
 	# Reset selection state
 	is_token_selected = false
@@ -765,8 +741,7 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 			token_button.text = "Tokens: " + str(local_tokens.size())
 			
 			# Check if we've reached max tokens
-			var max_tokens_reached = tokens_planted_this_turn.get(player_id, 0) >= max_tokens_per_turn
-			token_button.disabled = local_tokens.size() <= 0 || max_tokens_reached || !game_state_manager.is_valid_player_turn(player_id)
+			token_button.disabled = local_tokens.size() <= 0 || !game_state_manager.is_valid_player_turn(player_id)
 			
 			print("After token placement - UI updated: Token count=", local_tokens.size(),
 				  ", Button disabled=", token_button.disabled)
@@ -1688,6 +1663,7 @@ func unhighlight_all_token_placements():
 		placement.set_highlight(false)
 
 func update_token_ui():
+	var current_phase = turn_phase_manager.current_phase
 	var token_button = get_parent().get_node("RightUI/TokenButton")
 	if !token_button:
 		return
@@ -1695,31 +1671,41 @@ func update_token_ui():
 	var player_id = multiplayer.get_unique_id()
 	
 	# For the host in server mode, always allow token placement
-	var is_my_turn = false
-	if multiplayer.is_server() && get_parent().game_started:
-		is_my_turn = game_state_manager.is_valid_player_turn(player_id)
-	else:
-		is_my_turn = game_state_manager.is_valid_player_turn(player_id)
+	#var is_my_turn = false
+	#if multiplayer.is_server() && get_parent().game_started:
+		#is_my_turn = game_state_manager.is_valid_player_turn(player_id)
+	#else:
+		#is_my_turn = game_state_manager.is_valid_player_turn(player_id)
 	
-	# Get token count
-	var tokens = get_player_tokens(player_id)
-	var token_count = tokens.size()
-	
-	# Check tokens planted this turn
-	if !tokens_planted_this_turn.has(player_id):
-		tokens_planted_this_turn[player_id] = 0
+	## Get token count
+	#var tokens = get_player_tokens(player_id)
+	#var token_count = tokens.size()
+	#
+	## Check tokens planted this turn
+	#if !tokens_planted_this_turn.has(player_id):
+		#tokens_planted_this_turn[player_id] = 0
 	
 	# Check if player has reached max tokens for this turn
-	var max_tokens_reached = tokens_planted_this_turn[player_id] >= max_tokens_per_turn
+	#var max_tokens_reached = tokens_planted_this_turn[player_id] >= max_tokens_per_turn
 	
 	# Update button text with current token count
-	token_button.text = "Tokens: " + str(token_count)
+	#token_button.text = "Tokens: " + str(token_count)
 	
 	# Token button is always visible for local player
 	token_button.visible = true
 	
 	# But only enabled during their turn, if they have tokens, and haven't reached max tokens
-	token_button.disabled = !is_my_turn || token_count <= 0 || max_tokens_reached
+	#token_button.disabled = !is_my_turn || token_count <= 0 || max_tokens_reached
+	print("current phase ")
+	if current_phase >= 1 and turn_phase_manager.sigil_placed:
+		token_button.disabled = true
+	else:
+		token_button.disabled = false
+	
+	print("is plant extra : ", is_plant_extra)
+	if is_plant_extra:
+		token_button.disabled = false
+		#is_plant_extra = false
 	
 	# Visual feedback for selection state
 	if is_token_selected:
@@ -1727,11 +1713,11 @@ func update_token_ui():
 	else:
 		token_button.modulate = Color(1, 1, 1, 1)
 	
-	print("Token UI updated - Button disabled: " + str(token_button.disabled) + 
-		  ", Is my turn: " + str(is_my_turn) + 
-		  ", Token count: " + str(token_count) +
-		  ", Tokens planted this turn: " + str(tokens_planted_this_turn[player_id]) +
-		  ", Max tokens reached: " + str(max_tokens_reached))
+	#print("Token UI updated - Button disabled: " + str(token_button.disabled) + 
+		  #", Is my turn: " + str(is_my_turn) + 
+		  #", Token count: " + str(token_count) +
+		  #", Tokens planted this turn: " + str(tokens_planted_this_turn[player_id]) +
+		  #", Max tokens reached: " + str(max_tokens_reached))
 
 func save_player_token_count(player_id: int):
 	var tokens = get_player_tokens(player_id)

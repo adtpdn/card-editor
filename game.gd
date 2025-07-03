@@ -17,6 +17,7 @@ extends Node
 @onready var sigil_a_button = $SigilContainer/SigilAButton
 @onready var sigil_b_button = $SigilContainer/SigilBButton
 @onready var sigil_c_button = $SigilContainer/SigilCButton
+@onready var token_button = $RightUI/TokenButton
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Core Game State
@@ -64,16 +65,23 @@ func _ready():
 	print("Game initialized.")
 
 func start_game():
+	# Debug the card_manager initialization
+	print("Starting game - initializing card system")
+	
 	game_started = true
 	
 	# Initialize the deck with a seed first
 	$Deck/Table.initialize_deck_with_seed(randi())
 	
-	# Make sure the card_manager gets a reference to the player hand
-	card_manager.player_hand = $Deck/Table/DragController/Hand
-	
 	# Draw initial cards for the host player
 	card_manager.initialize_starting_hand()
+	
+	# Debug the player's hand after initialization
+	print("Player hand after initialization:")
+	if card_manager.player_hand:
+		for i in range(card_manager.player_hand.cards.size()):
+			var card = card_manager.player_hand.cards[i]
+			print("Hand card", i, "card_id:", card.card_id, "name:", card.card_name)
 	
 	# If there are clients, they will get their cards when they connect
 	if network_manager.multiplayer.is_server() and network_manager.multiplayer.get_peers().size() > 0:
@@ -88,14 +96,20 @@ func start_game():
 	# Sync game state to all clients
 	rpc("sync_game_state", players, game_started)
 
-
-
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---  Network Synchronization ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 @rpc("any_peer", "call_remote")
 func initialize_client_starting_hand():
+	print("Client initializing starting hand...")
 	card_manager.initialize_starting_hand()
+	
+	# Debug the client's hand after initialization
+	print("Client hand after initialization:")
+	if card_manager.player_hand:
+		for i in range(card_manager.player_hand.cards.size()):
+			var card = card_manager.player_hand.cards[i]
+			print("Client hand card", i, "card_id:", card.card_id, "name:", card.card_name)
 
 @rpc("any_peer", "call_local") 
 func sync_game_state(game_players, has_started):
@@ -303,3 +317,30 @@ func adjust_points(biome: String, delta: int):
 		point_counter.mountain_magic_points,
 		point_counter.water_magic_points
 	)
+
+@rpc("any_peer", "call_local")
+func sync_card_planted(card_data: Dictionary, biome_slot: int, player_id: int):
+	# This function will handle the visual representation of cards
+	# being planted by other players
+	
+	if player_id == multiplayer.get_unique_id():
+		# Skip if it's our own card - we already handled it locally
+		return
+		
+	print("Received card plant from player", player_id, "to biome", biome_slot)
+	
+	# Create a card instance for the other player's action
+	var card = card_manager.create_remote_card(card_data, biome_slot)
+	
+	# Place it in the right slot
+	var target_slot = null
+	match biome_slot:
+		0: target_slot = $Deck/Table/DragController/CardSlotBiome1
+		1: target_slot = $Deck/Table/DragController/CardSlotBiome2
+		2: target_slot = $Deck/Table/DragController/CardSlotBiome3
+		3: target_slot = $Deck/Table/DragController/CardSlotBiome4
+	
+	if target_slot and card:
+		# Set a flag to prevent it from re-triggering effects
+		card.set_meta("remote_planted", true)
+		target_slot.append_card(card)

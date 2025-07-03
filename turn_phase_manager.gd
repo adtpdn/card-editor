@@ -160,24 +160,23 @@ func enter_current_phase():
 		end_phase_button.disabled = true
 		print("TurnPhaseManager: Hiding end phase button for phase ", current_phase)
 	
-	# Rest of your existing code
 	match current_phase:
 		Phase.PLANT_BIOME:
 			print("TurnPhaseManager: Setting up PLANT_BIOME phase")
+			# FIXED: In biome phase, we want to plant tokens on BIOME locations (place_id == -1)
 			token_manager.can_plant_on_biome = true
 			token_manager.can_plant_on_sigil = false
-			disable_card_play()  # Disable cards in first phase
+			  # Disable cards in first phase
 		Phase.PLANT_SIGIL_AND_CARD:
 			print("TurnPhaseManager: Setting up PLANT_SIGIL_AND_CARD phase")
+			# FIXED: In sigil phase, we want to plant tokens on SIGIL locations (place_id != -1)
 			token_manager.can_plant_on_biome = false
 			token_manager.can_plant_on_sigil = true
-			enable_card_play()  # Enable cards for this phase
 		Phase.PLAY_SIGIL:
 			print("TurnPhaseManager: Setting up PLAY_SIGIL phase")
 			# Disable tokens and cards
 			token_manager.can_plant_on_biome = false
 			token_manager.can_plant_on_sigil = false
-			disable_card_play()
 			token_button.disabled = true
 		Phase.END_TURN:
 			print("TurnPhaseManager: Setting up END_TURN phase")
@@ -214,7 +213,7 @@ func reset_phases():
 		completed_phases[phase_id] = false
 	
 	# Disable all interactive elements until explicitly enabled
-	disable_card_play()
+	
 	enable_sigil_buttons(false)
 	token_manager.can_plant_on_biome = false
 	token_manager.can_plant_on_sigil = false
@@ -245,7 +244,10 @@ func check_phase_two_completion():
 	print("TurnPhaseManager: Checking phase two completion. Sigil placed: ", sigil_placed, ", Card played: ", card_played)
 	if sigil_placed and card_played:
 		print("TurnPhaseManager: Phase two complete, both actions done")
-		complete_current_phase()
+		completed_phases[Phase.PLANT_SIGIL_AND_CARD] = true
+		
+		# Use call_deferred to avoid immediate phase change during signal processing
+		call_deferred("advance_to_next_phase")
 	else:
 		print("TurnPhaseManager: Phase two not yet complete")
 		# Update notification to show progress
@@ -346,25 +348,6 @@ func advance_to_next_phase():
 	
 	print("TurnPhaseManager: Phase successfully advanced from ", previous_phase, " to ", current_phase)
 
-# Helper function to enable card play
-func enable_card_play():
-	print("TurnPhaseManager: Enabling card play")
-	var player_hand = deck.hand
-	if player_hand:
-		#player_hand.set_interaction_enabled(true)
-		print("TurnPhaseManager: Card play enabled")
-	else:
-		print("TurnPhaseManager: Player hand not found!")
-
-# Helper function to disable card play
-func disable_card_play():
-	print("TurnPhaseManager: Disabling card play")
-	var player_hand = deck.hand
-	if player_hand:
-		#player_hand.set_interaction_enabled(false)
-		print("TurnPhaseManager: Card play disabled")
-	else:
-		print("TurnPhaseManager: Player hand not found!")
 
 # Helper function to enable/disable sigil buttons
 func enable_sigil_buttons(enabled: bool):
@@ -558,24 +541,25 @@ func _on_token_placed(player_id, biome, location):
 	
 	print("TurnPhaseManager: Placement found with place_id: ", placement.place_id)
 	
-	# IMPORTANT: There was a logic error here. place_id == -1 means biome placement
-	# and place_id != -1 means sigil placement
-	
 	# Check current phase and placement type
-	if current_phase == Phase.PLANT_BIOME:
+	if token_manager.is_plant_extra:
+		pass
+	elif current_phase == Phase.PLANT_BIOME:
 		# In biome planting phase
-		if placement.place_id == -1:  # This is BIOME placement (place_id is the biome ID)
+		if placement.place_id == -1:  # This is BIOME placement (place_id == -1)
 			print("TurnPhaseManager: Biome placement detected in PLANT_BIOME phase")
 			completed_phases[Phase.PLANT_BIOME] = true
+			# Use call_deferred to avoid immediate phase change during signal processing
 			call_deferred("advance_to_next_phase")
-		else:  # place_id == -1 means SIGIL placement
+		else:
 			print("TurnPhaseManager: WARNING - Sigil placement detected in PLANT_BIOME phase")
 	
 	elif current_phase == Phase.PLANT_SIGIL_AND_CARD:
 		# In sigil/card phase
-		if placement.place_id != -1:  # This is SIGIL placement
+		if placement.place_id != -1:  # This is SIGIL placement (place_id != -1)
 			print("TurnPhaseManager: Sigil placement detected in PLANT_SIGIL_AND_CARD phase")
-			sigil_placed = true
+			if !token_manager.is_plant_extra:
+				sigil_placed = true
 			check_phase_two_completion()
 
 func _on_card_placed(card, slot_index, location_name):
@@ -589,7 +573,6 @@ func _on_card_placed(card, slot_index, location_name):
 		print("TurnPhaseManager: Card played in correct phase")
 		# Mark card as played
 		card_played = true
-		disable_card_play()
 		
 		# Check if phase is complete
 		check_phase_two_completion()

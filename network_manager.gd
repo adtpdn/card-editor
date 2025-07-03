@@ -550,13 +550,6 @@ func sync_card_draw():
 		# Just sync the available_cards state
 		var table = deck.table
 		rpc("sync_available_cards", table.available_cards)
-	
-@rpc("any_peer", "call_local")
-func remote_card_drawn():
-	# Get the card data from the sender
-	var sender_id = multiplayer.get_remote_sender_id()
-
-	deck.table.add_card()
 
 # Sync the deck seed to all clients
 func sync_deck_seed(seed_value: int):
@@ -596,35 +589,24 @@ func server_send_deck_state():
 			rpc_id(sender_id, "receive_deck_state", table.available_cards)
 
 # Sync when a specific card is drawn - only update available_cards
-func sync_card_drawn(card_index: int):
+func sync_card_drawn(card_id: int):
 	if multiplayer.is_server():
-		# Send the updated available_cards to all clients
+		# Send the updated available_cards and the resource card_id
 		var table = deck.table
-		rpc("sync_available_cards", table.available_cards)
+		rpc("sync_available_cards", table.available_cards, card_id)
 
 # New RPC to only sync the available_cards array without drawing a card
 @rpc("any_peer", "call_local") 
-func sync_available_cards(updated_available_cards: Array):
+func sync_available_cards(updated_available_cards: Array, card_id: int = -1):
 	var table = get_node("/root/Game/Deck/Table")
 	if table:
 		# Just update the available cards array
 		table.available_cards = updated_available_cards.duplicate()
 		print("Synchronized deck state: ", updated_available_cards.size(), " cards remaining")
-
-# Remove or comment out the existing remote_card_drawn RPC
-# @rpc("any_peer", "call_local")
-# func remote_card_drawn():
-#     # Get the card data from the sender
-#     var sender_id = multiplayer.get_remote_sender_id()
-#     deck.table.add_card()
-
-# Remove or comment out remote_specific_card_drawn unless you need it for other purposes
-# @rpc("any_peer", "call_local") 
-# func remote_specific_card_drawn(card_index: int):
-#     var game = get_node("/root/Game/")
-#     if game and game.card_manager:
-#         # Draw the specific card that was drawn on the server
-#         game.card_manager.draw_specific_card(card_index)
+		
+		# Log the card_id for debugging
+		if card_id >= 0:
+			print("Card with resource card_id", card_id, "was drawn remotely")
 
 @rpc("any_peer", "call_local") 
 func remote_specific_card_drawn(card_index: int, updated_available_cards = null):
@@ -636,3 +618,148 @@ func remote_specific_card_drawn(card_index: int, updated_available_cards = null)
 		
 		# Draw the specific card that was drawn on the server
 		game.card_manager.draw_specific_card(card_index)
+
+
+# Sync when a card is planted
+func sync_card_planted(card_id: int, biome_slot: int, player_id: int):
+	if multiplayer.is_server():
+		# Send to all clients
+		rpc("remote_card_planted", card_id, biome_slot, player_id)
+	else:
+		# If client, send to server first for validation
+		rpc_id(1, "request_card_plant", card_id, biome_slot, player_id)
+
+# Server-side validation of a card plant request from a client
+@rpc("any_peer")
+func request_card_plant(card_id: int, biome_slot: int, player_id: int):
+	if !multiplayer.is_server():
+		return
+		
+	var sender_id = multiplayer.get_remote_sender_id()
+	
+	# Here you could add validation logic if needed
+	# For now, we'll just forward the action to all clients
+	
+	rpc("remote_card_planted", card_id, biome_slot, sender_id)
+
+# Remote execution of card planting
+@rpc("any_peer", "call_local")
+func remote_card_planted(card_id: int, biome_slot: int, player_id: int):
+	print("Received remote_card_planted with resource card_id:", card_id)
+	
+	var game = get_node("/root/Game/")
+	if !game or !game.card_manager:
+		return
+	
+	# If this is coming from another player (not us)
+	var our_id = multiplayer.get_unique_id()
+	
+	if player_id != our_id:  # If it's not our own action
+		print("Processing remote card plant from player", player_id)
+		# Create and place the card using the resource card_id
+		create_and_place_card(card_id, biome_slot)
+	
+	# Execute the card effect based on resource card_id
+	var card_collection = null
+	match biome_slot:
+		0: card_collection = game.deck.card_slot_biome_1
+		1: card_collection = game.deck.card_slot_biome_2
+		2: card_collection = game.deck.card_slot_biome_3
+		3: card_collection = game.deck.card_slot_biome_4
+	
+	if card_collection:
+		card_collection.execute_card_effect(card_id)
+
+func create_and_place_card(card_id: int, biome_slot: int):
+	var game = get_node("/root/Game/")
+	if !game or !game.deck:
+		return
+	
+	# Get the target biome slot
+	var target_slot = null
+	match biome_slot:
+		0: target_slot = game.deck.card_slot_biome_1
+		1: target_slot = game.deck.card_slot_biome_2
+		2: target_slot = game.deck.card_slot_biome_3
+		3: target_slot = game.deck.card_slot_biome_4
+		_: 
+			print("Invalid biome slot:", biome_slot)
+			return
+	
+	if !target_slot:
+		print("Target biome slot not found")
+		return
+	
+	# Find the card index that corresponds to the resource card_id
+	var found_index = -1
+	var actions_cards = game.deck.table.actions_cards
+	
+	for i in range(actions_cards.cards.size()):
+		if actions_cards.cards[i].card_id == card_id:
+			found_index = i
+			break
+	
+	if found_index == -1:
+		print("Error: Could not find index for resource card_id:", card_id)
+		return
+		
+	print("Found index", found_index, "for resource card_id", card_id)
+	
+	# Create the card instance using the found index
+	var face_card = game.deck.table.instantiate_face_card(found_index)
+	if !face_card:
+		print("Failed to instantiate card with resource card_id:", card_id)
+		return
+	
+	# Double-check the card_id is correct (should be the resource card_id)
+	if face_card.card_id != card_id:
+		print("Warning: Card ID mismatch. Expected resource card_id:", card_id, "Got:", face_card.card_id)
+		face_card.card_id = card_id  # Force the correct resource card_id
+	
+	print("Created remote card with resource card_id:", face_card.card_id, "for biome slot:", biome_slot)
+	
+	# Add the card to the target slot
+	# We'll set a flag to prevent it from triggering effects again
+	face_card.set_meta("remote_planted", true)
+	target_slot.append_card(face_card)
+
+
+@rpc("any_peer", "call_local")
+func remote_move_card_to_biome(card_id: int, biome_slot: int):
+	var game = get_node("/root/Game/")
+	if !game or !game.deck or !game.deck.hand:
+		return
+		
+	# Find the card in the player's hand
+	var hand = game.deck.hand
+	var card_to_move = null
+	
+	for card in hand.cards:
+		if card.card_id == card_id:
+			card_to_move = card
+			break
+	
+	if !card_to_move:
+		print("Card with ID ", card_id, " not found in hand")
+		return
+	
+	# Find the target biome slot
+	var target_slot = null
+	match biome_slot:
+		0: target_slot = game.deck.card_slot_biome_1
+		1: target_slot = game.deck.card_slot_biome_2
+		2: target_slot = game.deck.card_slot_biome_3
+		3: target_slot = game.deck.card_slot_biome_4
+	
+	if !target_slot:
+		print("Target biome slot ", biome_slot, " not found")
+		return
+	
+	# Get the card index
+	var card_index = hand.card_indicies[card_to_move]
+	
+	# Remove from hand
+	var card = hand.remove_card(card_index)
+	
+	# Add to biome slot
+	target_slot.append_card(card)

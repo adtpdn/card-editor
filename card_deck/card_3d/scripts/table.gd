@@ -10,6 +10,14 @@ var rng = RandomNumberGenerator.new()
 @onready var hand: CardCollection3D = $DragController/Hand
 
 func _ready():
+	# Debug the card resources
+	debug_card_resources()
+	# Debug the action cards resource
+	print("Debugging action cards resource:")
+	for i in range(actions_cards.cards.size()):
+		var card = actions_cards.cards[i]
+		print("Card index:", i, "card_id:", card.card_id, "name:", card.card_name)
+	
 	# Initialize available cards
 	reset_available_cards()
 	
@@ -74,13 +82,23 @@ func instantiate_face_card(card_index) -> FaceCard3D:
 	# Get the card from the action cards deck
 	var card_resource = actions_cards.cards[card_index]
 	
-	# Set the card data
-	face_card_3d.card_id = card_resource.card_id
+	# Store the actual resource card_id, completely ignoring the index
+	var resource_card_id = card_resource.card_id
+	
+	# Set the card data explicitly from the resource
+	face_card_3d.card_id = resource_card_id
 	face_card_3d.card_name = card_resource.card_name
 	face_card_3d.card_type = card_resource.card_type
 	
+	# Store the original index as metadata if needed, but don't use it for card_id
+	face_card_3d.set_meta("original_card_index", card_index)
+	
 	face_card_3d.update_material_front_mesh(card_resource.front_mesh_material)
 	face_card_3d.update_material_back_mesh(card_resource.back_mesh_material)
+	
+	# Debug to verify card_id is from resource
+	print("Created card from index", card_index, "with RESOURCE card_id:", resource_card_id, 
+		  "FINAL card_id:", face_card_3d.card_id)
 	
 	return face_card_3d
 
@@ -89,6 +107,7 @@ func add_card():
 	
 	# Check if the hand is full
 	var game = get_node("/root/Game/")
+	var token_manager = game.token_manager
 	if game.card_manager.is_hand_full():
 		print("Hand is full! Maximum cards:", game.card_manager.max_hand_size)
 		return false
@@ -100,13 +119,45 @@ func add_card():
 	var data = next_card()
 	if data:
 		var card = instantiate_face_card(data["id"])
+		
+		# Double-check the card_id is correct and matches the resource
+		if card.card_id != data["card_id"]:
+			print("Warning: Card ID mismatch. Expected:", data["card_id"], "Got:", card.card_id)
+			card.card_id = data["card_id"]  # Force the correct ID from resource
+		
 		hand.append_card(card)
 		
-		card.global_position = $"../Deck".global_position
+		#card.global_position = $"../Deck".global_position
+		
+		# Handle turn phase logic when drawing a card
+		var turn_phase_manager = game.turn_phase_manager
+		if turn_phase_manager:
+			var current_phase = turn_phase_manager.current_phase
+			
+			# If we're in the biome phase, drawing a card means we skip this phase
+			if token_manager.is_plant_extra:
+				pass
+			
+			elif current_phase == turn_phase_manager.Phase.PLANT_BIOME:
+				# Complete the current phase and move to next phase
+				turn_phase_manager.completed_phases[turn_phase_manager.Phase.PLANT_BIOME] = true
+				turn_phase_manager.advance_to_next_phase()
+			
+			# If we're in the sigil/card phase, drawing a card counts as planting a sigil
+			elif current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and !turn_phase_manager.sigil_placed:
+				# Mark sigil as placed and check for phase completion
+				turn_phase_manager.sigil_placed = true
+				print("sigil placed true")
+				if token_manager.is_plant_extra:
+					game.token_button.disabled = false
+				else:
+					game.token_button.disabled = true
+				turn_phase_manager.check_phase_two_completion()
 		
 		# Only sync the available_cards state, don't make the client draw a card
 		if game.network_manager and game.network_manager.multiplayer and game.network_manager.multiplayer.get_peers().size() > 0:
-			game.network_manager.sync_card_drawn(data["id"])  # This now just syncs available_cards
+			# Sync with the resource card_id, not the index
+			game.network_manager.sync_card_drawn(data["card_id"])
 			
 		return true
 	
@@ -120,12 +171,22 @@ func next_card():
 	var random_index_position = rng.randi() % available_cards.size() if deck_seed != 0 else randi() % available_cards.size()
 	var card_index = available_cards[random_index_position]
 	
+	# Get the actual card_id from the resource
+	var resource_card_id = actions_cards.cards[card_index].card_id
+	
+	# Debug the selected card
+	print("Selected card from deck: index =", card_index, "resource card_id =", resource_card_id)
+	
 	# Remove this card from available cards
 	available_cards.remove_at(random_index_position)
 	
-	print("Drawing card index", card_index, "(", available_cards.size(), "cards left)")
+	print("Drawing card index", card_index, "with resource card_id", resource_card_id, "(", available_cards.size(), "cards left)")
 	
-	return {"id": card_index}
+	# Return both the index and the card_id
+	return {
+		"id": card_index,
+		"card_id": resource_card_id
+	}
 
 func remove_card():
 	if hand.cards.size() == 0:
@@ -158,3 +219,22 @@ func request_deck_sync():
 	var network_manager = get_node("/root/Game/NetworkManager")
 	if network_manager:
 		network_manager.request_deck_sync()
+
+func debug_card_resources():
+	print("Debugging card resources:")
+	var resource_path = "res://cards/action_cards.tres"
+	var loaded_resource = load(resource_path)
+	
+	if loaded_resource:
+		print("Successfully loaded action cards resource")
+		for i in range(loaded_resource.cards.size()):
+			var card = loaded_resource.cards[i]
+			print("Resource card index:", i, "card_id:", card.card_id, "name:", card.card_name)
+	else:
+		print("Failed to load action cards resource")
+	
+	# Check if our actions_cards matches the loaded resource
+	print("Comparing with actions_cards:")
+	for i in range(actions_cards.cards.size()):
+		var card = actions_cards.cards[i]
+		print("Local actions_cards index:", i, "card_id:", card.card_id, "name:", card.card_name)
