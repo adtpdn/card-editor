@@ -48,6 +48,7 @@ var hover_disabled: bool = false # disable card hover animation (useful when dra
 var _hovered_card: Card3D # card currently hovered
 var _preview_drop_index: int = -1
 
+var card_index
 
 # add a card to the hand and animate it to the correct position
 # this will add card as child of this node
@@ -58,11 +59,12 @@ func append_card(card: Card3D):
 func prepend_card(card: Card3D):
 	insert_card(card, 0)
 
-
 func insert_card(card: Card3D, index: int):
+	
 	# Check if this is a card being added to a hand and we're at max capacity
+	var game = get_node("/root/Game/")
+	var turn_phase_manager = game.turn_phase_manager
 	if self.name == "Hand":
-		var game = get_node("/root/Game/")
 		if game and game.card_manager and game.card_manager.is_hand_full():
 			print("Cannot insert card - hand is full!")
 			return
@@ -81,6 +83,7 @@ func insert_card(card: Card3D, index: int):
 	# Skip triggering effects if this was remotely planted
 	if self.name != "Hand" and not card.has_meta("remote_planted"):
 		plant_card(card)
+		#turn_phase_manager.card_played = true
 	
 	# If it was remotely planted, remove the flag
 	if card.has_meta("remote_planted"):
@@ -88,6 +91,7 @@ func insert_card(card: Card3D, index: int):
 	
 	for i in range(index, cards.size()):
 		card_indicies[cards[i]] = i
+	
 	
 	apply_card_layout()
 	card_added.emit(card)
@@ -246,6 +250,9 @@ func _on_card_hover(card: Card3D):
 	if not hover_disabled and can_select_card(card):
 		_hovered_card = card
 		
+		for _id in cards.size():
+			if card.card_id == cards[_id].card_id:
+				card_index = _id
 		if highlight_on_hover:
 			card.set_hovered()
 
@@ -257,11 +264,19 @@ func _on_card_exit(card: Card3D):
 
 
 func _on_card_pressed(card: Card3D):
-	if can_select_card(card):
-		card_selected.emit(card)
+	var game = get_node("/root/Game")
+	var turn_phase_manager = game.turn_phase_manager
+	
+	# Phase plant on sigil and card only
+	# Disabled card movement
+	if turn_phase_manager.current_phase == 1: 
+		if can_select_card(card):
+			print('card pressed')
+			card_selected.emit(card)
 		
 
 func _on_card_clicked(card: Card3D):
+	print("carc clicked")
 	card_clicked.emit(card)
 
 

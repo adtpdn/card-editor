@@ -402,6 +402,7 @@ func _on_token_selected():
 				for placement in get_parent().get_node("TokenPlacements").get_children():
 					if !placement.is_occupied and placement.accepted_biome == card_manager.active_card.card_on_biome:
 						placement.set_highlight(true)
+				
 		
 		elif current_phase == turn_phase_manager.Phase.PLANT_BIOME:
 			# In biome phase, highlight biome locations (place_id == -1)
@@ -414,7 +415,7 @@ func _on_token_selected():
 			for placement in get_parent().get_node("TokenPlacements").get_children():
 				if !placement.is_occupied and placement.place_id != -1:
 					placement.set_highlight(true)
-		
+			#game.token_button.disabled = true
 	else:
 		# Unhighlight all placements when deselecting
 		unhighlight_all_token_placements()
@@ -422,6 +423,7 @@ func _on_token_selected():
 	# Update UI to show selection state
 	update_token_ui()
 	debug_token_state()
+	is_plant_extra = false
 
 func _input(event):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -1661,6 +1663,7 @@ func unhighlight_all_token_placements():
 		placement.set_highlight(false)
 
 func update_token_ui():
+	var current_phase = turn_phase_manager.current_phase
 	var token_button = get_parent().get_node("RightUI/TokenButton")
 	if !token_button:
 		return
@@ -1668,31 +1671,41 @@ func update_token_ui():
 	var player_id = multiplayer.get_unique_id()
 	
 	# For the host in server mode, always allow token placement
-	var is_my_turn = false
-	if multiplayer.is_server() && get_parent().game_started:
-		is_my_turn = game_state_manager.is_valid_player_turn(player_id)
-	else:
-		is_my_turn = game_state_manager.is_valid_player_turn(player_id)
+	#var is_my_turn = false
+	#if multiplayer.is_server() && get_parent().game_started:
+		#is_my_turn = game_state_manager.is_valid_player_turn(player_id)
+	#else:
+		#is_my_turn = game_state_manager.is_valid_player_turn(player_id)
 	
-	# Get token count
-	var tokens = get_player_tokens(player_id)
-	var token_count = tokens.size()
-	
-	# Check tokens planted this turn
-	if !tokens_planted_this_turn.has(player_id):
-		tokens_planted_this_turn[player_id] = 0
+	## Get token count
+	#var tokens = get_player_tokens(player_id)
+	#var token_count = tokens.size()
+	#
+	## Check tokens planted this turn
+	#if !tokens_planted_this_turn.has(player_id):
+		#tokens_planted_this_turn[player_id] = 0
 	
 	# Check if player has reached max tokens for this turn
-	var max_tokens_reached = tokens_planted_this_turn[player_id] >= max_tokens_per_turn
+	#var max_tokens_reached = tokens_planted_this_turn[player_id] >= max_tokens_per_turn
 	
 	# Update button text with current token count
-	token_button.text = "Tokens: " + str(token_count)
+	#token_button.text = "Tokens: " + str(token_count)
 	
 	# Token button is always visible for local player
 	token_button.visible = true
 	
 	# But only enabled during their turn, if they have tokens, and haven't reached max tokens
-	token_button.disabled = !is_my_turn || token_count <= 0 || max_tokens_reached
+	#token_button.disabled = !is_my_turn || token_count <= 0 || max_tokens_reached
+	print("current phase ")
+	if current_phase >= 1 and turn_phase_manager.sigil_placed:
+		token_button.disabled = true
+	else:
+		token_button.disabled = false
+	
+	print("is plant extra : ", is_plant_extra)
+	if is_plant_extra:
+		token_button.disabled = false
+		#is_plant_extra = false
 	
 	# Visual feedback for selection state
 	if is_token_selected:
@@ -1700,11 +1713,11 @@ func update_token_ui():
 	else:
 		token_button.modulate = Color(1, 1, 1, 1)
 	
-	print("Token UI updated - Button disabled: " + str(token_button.disabled) + 
-		  ", Is my turn: " + str(is_my_turn) + 
-		  ", Token count: " + str(token_count) +
-		  ", Tokens planted this turn: " + str(tokens_planted_this_turn[player_id]) +
-		  ", Max tokens reached: " + str(max_tokens_reached))
+	#print("Token UI updated - Button disabled: " + str(token_button.disabled) + 
+		  #", Is my turn: " + str(is_my_turn) + 
+		  #", Token count: " + str(token_count) +
+		  #", Tokens planted this turn: " + str(tokens_planted_this_turn[player_id]) +
+		  #", Max tokens reached: " + str(max_tokens_reached))
 
 func save_player_token_count(player_id: int):
 	var tokens = get_player_tokens(player_id)

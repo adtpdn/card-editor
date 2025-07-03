@@ -17,6 +17,7 @@ extends Node
 @onready var sigil_a_button = $SigilContainer/SigilAButton
 @onready var sigil_b_button = $SigilContainer/SigilBButton
 @onready var sigil_c_button = $SigilContainer/SigilCButton
+@onready var token_button = $RightUI/TokenButton
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Core Game State
@@ -94,8 +95,6 @@ func start_game():
 
 	# Sync game state to all clients
 	rpc("sync_game_state", players, game_started)
-
-
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---  Network Synchronization ---

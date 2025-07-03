@@ -107,6 +107,7 @@ func add_card():
 	
 	# Check if the hand is full
 	var game = get_node("/root/Game/")
+	var token_manager = game.token_manager
 	if game.card_manager.is_hand_full():
 		print("Hand is full! Maximum cards:", game.card_manager.max_hand_size)
 		return false
@@ -134,7 +135,10 @@ func add_card():
 			var current_phase = turn_phase_manager.current_phase
 			
 			# If we're in the biome phase, drawing a card means we skip this phase
-			if current_phase == turn_phase_manager.Phase.PLANT_BIOME:
+			if token_manager.is_plant_extra:
+				pass
+			
+			elif current_phase == turn_phase_manager.Phase.PLANT_BIOME:
 				# Complete the current phase and move to next phase
 				turn_phase_manager.completed_phases[turn_phase_manager.Phase.PLANT_BIOME] = true
 				turn_phase_manager.advance_to_next_phase()
@@ -143,6 +147,11 @@ func add_card():
 			elif current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and !turn_phase_manager.sigil_placed:
 				# Mark sigil as placed and check for phase completion
 				turn_phase_manager.sigil_placed = true
+				print("sigil placed true")
+				if token_manager.is_plant_extra:
+					game.token_button.disabled = false
+				else:
+					game.token_button.disabled = true
 				turn_phase_manager.check_phase_two_completion()
 		
 		# Only sync the available_cards state, don't make the client draw a card
