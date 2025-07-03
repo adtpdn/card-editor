@@ -1,10 +1,12 @@
 class_name FaceCard3D
 extends Card3D
 
+enum CardType {Card, Elemental}
+
 var card_id : int = -1
 var card_on_biome = -1
 var card_name : String = ""
-var card_type
+var card_type : CardType = CardType.Card
 
 @onready var card_back_mesh = $CardMesh/CardBackMesh
 @onready var card_front_mesh = $CardMesh/CardFrontMesh

@@ -55,12 +55,18 @@ func set_hovered():
 
 
 func remove_hovered():
+	var parent = self.get_parent()
 	if hover_tween and hover_tween.is_running:
 		hover_tween.kill()
 		
 	hover_tween = create_tween()
 	hover_tween.set_parallel(true)
 	hover_tween.set_ease(Tween.EASE_IN)
+	
+	# Card planted on biome
+	#if parent.name != "Hand":
+		#_tween_card_scale(0.7)
+	#else:
 	_tween_card_scale(1)
 	_tween_mesh_position(Vector3.ZERO, move_tween_duration)
 

@@ -126,7 +126,7 @@ func add_card():
 			card.card_id = data["card_id"]  # Force the correct ID from resource
 		
 		hand.append_card(card)
-		
+
 		#card.global_position = $"../Deck".global_position
 		
 		# Handle turn phase logic when drawing a card
