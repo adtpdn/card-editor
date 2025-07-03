@@ -80,6 +80,8 @@ func insert_card(card: Card3D, index: int):
 	card.card_on_biome = card_slot_biome
 	cards.insert(index, card)
 	add_child(card)
+	card.card_parent = card.get_parent().name
+	print('card parent : ', card.card_parent)
 	print("node name : ", self.name)
 	
 	

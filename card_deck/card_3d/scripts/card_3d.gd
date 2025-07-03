@@ -64,10 +64,10 @@ func remove_hovered():
 	hover_tween.set_ease(Tween.EASE_IN)
 	
 	# Card planted on biome
-	#if parent.name != "Hand":
-		#_tween_card_scale(0.7)
-	#else:
-	_tween_card_scale(1)
+	if parent.name != "Hand":
+		_tween_card_scale(0.7)
+	else:
+		_tween_card_scale(1)
 	_tween_mesh_position(Vector3.ZERO, move_tween_duration)
 
 
