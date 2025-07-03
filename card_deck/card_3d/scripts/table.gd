@@ -127,7 +127,7 @@ func add_card():
 		
 		hand.append_card(card)
 		
-		card.global_position = $"../Deck".global_position
+		#card.global_position = $"../Deck".global_position
 		
 		# Handle turn phase logic when drawing a card
 		var turn_phase_manager = game.turn_phase_manager

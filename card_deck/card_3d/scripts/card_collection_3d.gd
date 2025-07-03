@@ -60,14 +60,17 @@ func prepend_card(card: Card3D):
 	insert_card(card, 0)
 
 func insert_card(card: Card3D, index: int):
-	
 	# Check if this is a card being added to a hand and we're at max capacity
 	var game = get_node("/root/Game/")
 	var turn_phase_manager = game.turn_phase_manager
+
 	if self.name == "Hand":
 		if game and game.card_manager and game.card_manager.is_hand_full():
 			print("Cannot insert card - hand is full!")
 			return
+	
+	if turn_phase_manager.sigil_placed:
+		return
 	
 	card.card_3d_mouse_down.connect(_on_card_pressed.bind(card))
 	card.card_3d_mouse_up.connect(_on_card_clicked.bind(card))
@@ -83,7 +86,6 @@ func insert_card(card: Card3D, index: int):
 	# Skip triggering effects if this was remotely planted
 	if self.name != "Hand" and not card.has_meta("remote_planted"):
 		plant_card(card)
-		#turn_phase_manager.card_played = true
 	
 	# If it was remotely planted, remove the flag
 	if card.has_meta("remote_planted"):
