@@ -13,6 +13,7 @@ extends Node
 @onready var turn_phase_manager = $TurnPhaseManager
 @onready var point_counter = $PointCounter
 @onready var deck = $Deck
+@onready var token_placements = $TokenPlacements
 
 @onready var sigil_a_button = $SigilContainer/SigilAButton
 @onready var sigil_b_button = $SigilContainer/SigilBButton

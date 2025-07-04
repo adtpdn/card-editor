@@ -415,7 +415,8 @@ func _on_token_selected():
 			# In sigil phase, highlight sigil locations (place_id != -1)
 			for placement in get_parent().get_node("TokenPlacements").get_children():
 				if !placement.is_occupied and placement.place_id != -1:
-					placement.set_highlight(true)
+					placement.set_sigil_placement()
+					#placement.set_highlight(true)
 			
 	else:
 		# Unhighlight all placements when deselecting

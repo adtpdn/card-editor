@@ -11,7 +11,8 @@ var is_occupied = false
 var current_token = null
 
 # Replace biome colors with a neutral placeholder color
-const PLACEHOLDER_COLOR = Color(0.7, 0.7, 0.7, 0.3)  # Light gray with transparency
+#const PLACEHOLDER_COLOR = Color(0.7, 0.7, 0.7, 0.2)  # Light gray with transparency
+const PLACEHOLDER_COLOR = Color(0.736, 0.693, 0.454, 0.2)
 
 const BIOME_NAMES = {
 	BiomeType.FOREST: "Forest",
@@ -38,12 +39,22 @@ func _ready():
 	area_3d.input_ray_pickable = true
 
 func hide_placement():
-	self.hide()
-
+	var game = get_node("/root/Game")
+	var token_placements = get_node("/root/Game/TokenPlacements")
+	
+	for placement in token_placements.get_children():
+		placement.hide()
+ 
 func set_biome_placement():
 	var game = get_node("/root/Game")
 	var turn_phase_manager = game.turn_phase_manager
 	if turn_phase_manager.current_phase == 0 and place_id == -1:
+		self.show()
+
+func set_sigil_placement():
+	var game = get_node("/root/Game")
+	var turn_phase_manager = game.turn_phase_manager
+	if turn_phase_manager.current_phase == 1 and place_id != -1:
 		self.show()
 
 func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: Vector3, shape_idx: int):
@@ -106,6 +117,7 @@ func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: 
 		else:
 			print("Client requesting placement")
 			game.token_manager.rpc_id(1, "request_token_placement", token_index, global_position, accepted_biome)
+		hide_placement()
 
 func set_highlight(enabled: bool):
 	if is_occupied:  # Never highlight if occupied
@@ -188,11 +200,14 @@ func place_token(player_id: int, token_data: Dictionary):
 func _on_mouse_entered():
 	if !is_occupied:
 		var material = marker_mesh.material_override.duplicate()
-		material.albedo_color.a = 0.6
+		#material.albedo_color = Color(0.643, 0.949, 0.475, 0.4)
+		material.albedo_color = Color(0.376, 0.709, 0.548, 0.4)
+		#material.albedo_color.a = 0.6
 		marker_mesh.material_override = material
 
 func _on_mouse_exited():
 	if !is_occupied:
 		var material = marker_mesh.material_override.duplicate()
-		material.albedo_color.a = 0.3
+		#material.albedo_color.a = 0.3
+		material.albedo_color = Color(0.736, 0.693, 0.454, 0.2)
 		marker_mesh.material_override = material
