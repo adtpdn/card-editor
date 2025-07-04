@@ -41,6 +41,8 @@ signal card_added(card)
 	set(offset):
 		$DropZone.position.z = offset
 
+@onready var place_mesh = $PlaceMesh
+
 var cards: Array[Card3D] = []
 var card_indicies = {}
 
@@ -49,6 +51,10 @@ var _hovered_card: Card3D # card currently hovered
 var _preview_drop_index: int = -1
 
 var card_index
+
+func _ready():
+	if self.name == "Hand":
+		place_mesh.hide()
 
 # add a card to the hand and animate it to the correct position
 # this will add card as child of this node

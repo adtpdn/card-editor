@@ -31,13 +31,6 @@ var max_players = 4  # Maximum players allowed
 # Color management for players
 var player_colors = {}  # Mapping of player IDs to colors
 
-const PLAYER_COLORS = [
-	Color(1, 0, 0),     # Red
-	Color(0, 1, 0),     # Green
-	Color(0, 0, 1),     # Blue
-	Color(1, 1, 0)      # Yellow
-]
-
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
