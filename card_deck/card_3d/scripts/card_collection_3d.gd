@@ -41,6 +41,8 @@ signal card_added(card)
 	set(offset):
 		$DropZone.position.z = offset
 
+@onready var place_mesh = $PlaceMesh
+
 var cards: Array[Card3D] = []
 var card_indicies = {}
 
@@ -49,6 +51,10 @@ var _hovered_card: Card3D # card currently hovered
 var _preview_drop_index: int = -1
 
 var card_index
+
+func _ready():
+	if self.name == "Hand":
+		place_mesh.hide()
 
 # add a card to the hand and animate it to the correct position
 # this will add card as child of this node
@@ -69,9 +75,6 @@ func insert_card(card: Card3D, index: int):
 			print("Cannot insert card - hand is full!")
 			return
 	
-	if turn_phase_manager.sigil_placed:
-		return
-	
 	card.card_3d_mouse_down.connect(_on_card_pressed.bind(card))
 	card.card_3d_mouse_up.connect(_on_card_clicked.bind(card))
 	card.card_3d_mouse_over.connect(_on_card_hover.bind(card))
@@ -80,11 +83,15 @@ func insert_card(card: Card3D, index: int):
 	card.card_on_biome = card_slot_biome
 	cards.insert(index, card)
 	add_child(card)
+	card.card_parent = card.get_parent().name
+	print('card parent : ', card.card_parent)
 	print("node name : ", self.name)
+	
 	
 	# Card will active if player plant a card
 	# Skip triggering effects if this was remotely planted
 	if self.name != "Hand" and not card.has_meta("remote_planted"):
+		card.scale = Vector3(0.7, 0.7, 0.7)
 		plant_card(card)
 	
 	# If it was remotely planted, remove the flag
@@ -99,9 +106,15 @@ func insert_card(card: Card3D, index: int):
 	card_added.emit(card)
 
 func plant_card(card):
+	print("plant card")
 	var game = get_node("/root/Game/")
+	var turn_phase_manager = game.turn_phase_manager
 	var card_manager = game.card_manager
+	
+	
 	card_manager.active_card = card
+	
+	turn_phase_manager.card_played = true
 	
 	# Get the explicit resource card_id (not an index)
 	var resource_card_id = card.card_id
@@ -255,6 +268,7 @@ func _on_card_hover(card: Card3D):
 		for _id in cards.size():
 			if card.card_id == cards[_id].card_id:
 				card_index = _id
+		
 		if highlight_on_hover:
 			card.set_hovered()
 
@@ -268,6 +282,18 @@ func _on_card_exit(card: Card3D):
 func _on_card_pressed(card: Card3D):
 	var game = get_node("/root/Game")
 	var turn_phase_manager = game.turn_phase_manager
+	
+	var parent = card.get_parent()
+	
+	# Disabled pressed card
+	# probably as a card or elemental
+	if parent.name != "Hand" :
+		print("pressed hand")
+		return
+	
+	if turn_phase_manager.card_played:
+		print("card played")
+		return
 	
 	# Phase plant on sigil and card only
 	# Disabled card movement

@@ -462,6 +462,7 @@ func _on_end_turn_pressed():
 	
 	if multiplayer.is_server():
 		next_turn()
+		token_manager.reset_turn_token_counters(current_player)
 		 # Force sync before processing turn change
 		token_manager.sync_complete_token_state()
 	else:

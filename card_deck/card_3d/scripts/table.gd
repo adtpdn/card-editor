@@ -126,8 +126,8 @@ func add_card():
 			card.card_id = data["card_id"]  # Force the correct ID from resource
 		
 		hand.append_card(card)
-		
-		#card.global_position = $"../Deck".global_position
+
+		card.global_position = $"../Deck".global_position
 		
 		# Handle turn phase logic when drawing a card
 		var turn_phase_manager = game.turn_phase_manager
@@ -212,6 +212,12 @@ func clear_cards():
 		c.queue_free()
 
 func _on_face_card_3d_card_3d_mouse_up():
+	var game = get_node("/root/Game")
+	var turn_phase_manager = game.turn_phase_manager
+	if turn_phase_manager.sigil_placed :
+		print("cant draw a card if sigil already placed")
+		return
+	
 	add_card()
 
 # Function to request a sync of the deck state (called by clients)

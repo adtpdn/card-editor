@@ -178,6 +178,7 @@ func enter_current_phase():
 			token_manager.can_plant_on_biome = false
 			token_manager.can_plant_on_sigil = false
 			token_button.disabled = true
+			reset_card_variables()
 		Phase.END_TURN:
 			print("TurnPhaseManager: Setting up END_TURN phase")
 			if game_state_manager:
@@ -201,6 +202,14 @@ func exit_current_phase():
 			if sigil_manager:
 				sigil_manager.is_sigil_mode = false
 				sigil_manager.is_sigil_c = false
+
+# Resets all card data for the sigil activation
+func reset_card_variables():
+	token_manager.is_take_off_mode = false
+	token_manager.is_unblight_mode = false
+	token_manager.is_refresh_energy_mode = false
+	token_manager.is_swap_energy_mode = false  
+	token_manager.is_plant_extra = false
 
 # Resets all phases for a new turn
 func reset_phases():

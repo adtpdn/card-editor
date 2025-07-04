@@ -45,7 +45,7 @@ const BUTTON_PRESS_COOLDOWN = 0.25
 func _ready():
 	set_multiplayer_authority(1)
 	
-	create_stack_labels()
+	#create_stack_labels()
 	update_all_stacks()
 
 

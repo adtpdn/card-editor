@@ -138,7 +138,7 @@ func _on_host_pressed():
 		# Initialize host data
 		game.players = [host_id]  # Reset players array
 		game.player_hands[host_id] = []
-		game.player_colors[host_id] = game.PLAYER_COLORS[0]
+		#game.player_colors[host_id] = game.PLAYER_COLORS[0]
 		
 		# Initialize game state
 		token_manager.initialize_player_tokens(host_id)
@@ -246,11 +246,11 @@ func _on_peer_connected(new_peer_id):
 		game.player_hands[new_peer_id] = []
 		
 		# Assign a color to the new player
-		var color_index = game.players.size() - 1
-		if color_index < game.PLAYER_COLORS.size():
-			game.player_colors[new_peer_id] = game.PLAYER_COLORS[color_index]
-			# Sync colors to all clients including the new one
-			game.rpc("sync_player_colors", game.player_colors)
+		#var color_index = game.players.size() - 1
+		#if color_index < game.PLAYER_COLORS.size():
+			#game.player_colors[new_peer_id] = game.PLAYER_COLORS[color_index]
+			## Sync colors to all clients including the new one
+			#game.rpc("sync_player_colors", game.player_colors)
 		
 		# Find first available slot
 		var slot_index = game.player_slots.find(false)

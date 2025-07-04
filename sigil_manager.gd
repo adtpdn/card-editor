@@ -610,7 +610,7 @@ func add_point_to_player(player_id: int):
 	dialog.title = "Point Earned"
 	dialog.dialog_text = "You earned 1 point from activating a sigil pattern!"
 	game.add_child(dialog)
-	dialog.popup_centered()
+	#dialog.popup_centered()
 
 # Add point to biome from sigil activation (rounds 6-8)
 func add_point_to_biome(biome_type: int):
@@ -904,8 +904,8 @@ func _on_push_pull_input(_placement_pos):
 			token_manager.rpc_id(1, "request_token_movement", source_placement.global_position, _placement_pos)
 		
 		# Cleanup
-		if get_tree().root.is_connected("input_event", Callable(self, "_on_push_pull_input")):
-			get_tree().root.disconnect("input_event", Callable(self, "_on_push_pull_input"))
+		#if get_tree().root.is_connected("input_event", Callable(self, "_on_push_pull_input")):
+			#get_tree().root.disconnect("input_event", Callable(self, "_on_push_pull_input"))
 		
 		# Clear all highlights
 		for placement in get_parent().get_node("TokenPlacements").get_children():
