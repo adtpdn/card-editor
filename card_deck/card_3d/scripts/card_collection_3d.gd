@@ -69,9 +69,6 @@ func insert_card(card: Card3D, index: int):
 			print("Cannot insert card - hand is full!")
 			return
 	
-	if turn_phase_manager.sigil_placed :
-		return
-	
 	card.card_3d_mouse_down.connect(_on_card_pressed.bind(card))
 	card.card_3d_mouse_up.connect(_on_card_clicked.bind(card))
 	card.card_3d_mouse_over.connect(_on_card_hover.bind(card))
@@ -88,6 +85,7 @@ func insert_card(card: Card3D, index: int):
 	# Card will active if player plant a card
 	# Skip triggering effects if this was remotely planted
 	if self.name != "Hand" and not card.has_meta("remote_planted"):
+		card.scale = Vector3(0.7, 0.7, 0.7)
 		plant_card(card)
 	
 	# If it was remotely planted, remove the flag
@@ -102,9 +100,11 @@ func insert_card(card: Card3D, index: int):
 	card_added.emit(card)
 
 func plant_card(card):
+	print("plant card")
 	var game = get_node("/root/Game/")
 	var turn_phase_manager = game.turn_phase_manager
 	var card_manager = game.card_manager
+	
 	
 	card_manager.active_card = card
 	
@@ -282,9 +282,11 @@ func _on_card_pressed(card: Card3D):
 	# Disabled pressed card
 	# probably as a card or elemental
 	if parent.name != "Hand" :
+		print("pressed hand")
 		return
 	
 	if turn_phase_manager.card_played:
+		print("card played")
 		return
 	
 	# Phase plant on sigil and card only
