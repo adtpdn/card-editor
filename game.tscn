@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=4 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=30 format=4 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://game.gd" id="1_0rb8f"]
 [ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://turn_phase_manager.gd" id="2_e36ub"]
@@ -70,6 +70,8 @@ albedo_color = Color(0.42, 0.42, 0.42, 1)
 [sub_resource type="CylinderMesh" id="CylinderMesh_yl3nv"]
 material = SubResource("StandardMaterial3D_cu6c3")
 radial_segments = 8
+
+[sub_resource type="Theme" id="Theme_qhcbd"]
 
 [node name="Game" type="Node"]
 script = ExtResource("1_0rb8f")
@@ -825,6 +827,7 @@ accepted_biome = 1
 [node name="Tokens" type="Node3D" parent="."]
 
 [node name="Deck" parent="." instance=ExtResource("21_hb5m1")]
+visible = false
 
 [node name="ResetButton" type="Button" parent="."]
 visible = false
@@ -850,6 +853,7 @@ offset_top = -324.0
 offset_bottom = 325.0
 grow_horizontal = 0
 grow_vertical = 2
+theme = SubResource("Theme_qhcbd")
 
 [node name="Menu" type="VBoxContainer" parent="RightUI"]
 clip_contents = true
@@ -1033,7 +1037,6 @@ grow_vertical = 2
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 5, 0)
-visible = false
 sky_mode = 1
 
 [node name="PointCounter" type="Node3D" parent="."]
