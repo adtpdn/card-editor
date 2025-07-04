@@ -24,6 +24,8 @@ const BIOME_NAMES = {
 @onready var area_3d = $Area3D
 
 func _ready():
+	hide_placement()
+	
 	update_marker_appearance()
 	update_appearance()
 	# Set up interaction
@@ -34,6 +36,15 @@ func _ready():
 	
 	# Make sure the Area3D is pickable
 	area_3d.input_ray_pickable = true
+
+func hide_placement():
+	self.hide()
+
+func set_biome_placement():
+	var game = get_node("/root/Game")
+	var turn_phase_manager = game.turn_phase_manager
+	if turn_phase_manager.current_phase == 0 and place_id == -1:
+		self.show()
 
 func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: Vector3, shape_idx: int):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -111,7 +122,7 @@ func set_highlight(enabled: bool):
 	var material = StandardMaterial3D.new()
 	
 	if enabled:
-		material.albedo_color = Color(1, 1, 0.3, 0.3)  # Yellow highlight
+		material.albedo_color = Color(0.643, 0.949, 0.475, 0.3)  # Yellow highlight
 	else:
 		material.albedo_color = PLACEHOLDER_COLOR  # Neutral placeholder color
 		

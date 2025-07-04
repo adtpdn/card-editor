@@ -827,7 +827,6 @@ accepted_biome = 1
 [node name="Tokens" type="Node3D" parent="."]
 
 [node name="Deck" parent="." instance=ExtResource("21_hb5m1")]
-visible = false
 
 [node name="ResetButton" type="Button" parent="."]
 visible = false

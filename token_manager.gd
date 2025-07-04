@@ -408,14 +408,15 @@ func _on_token_selected():
 			# In biome phase, highlight biome locations (place_id == -1)
 			for placement in get_parent().get_node("TokenPlacements").get_children():
 				if !placement.is_occupied and placement.place_id == -1:
-					placement.set_highlight(true)
+					placement.set_biome_placement()
+					#placement.set_highlight(true)
 		
 		elif current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD:
 			# In sigil phase, highlight sigil locations (place_id != -1)
 			for placement in get_parent().get_node("TokenPlacements").get_children():
 				if !placement.is_occupied and placement.place_id != -1:
 					placement.set_highlight(true)
-			#game.token_button.disabled = true
+			
 	else:
 		# Unhighlight all placements when deselecting
 		unhighlight_all_token_placements()
@@ -627,6 +628,11 @@ func request_token_placement(token_index: int, position: Vector3, biome_type: in
 		
 		# Only check if placement is occupied
 		if placement and !placement.is_occupied:
+			if turn_phase_manager.current_phase == 0 and placement.place_id != -1:
+				return
+			elif turn_phase_manager.current_phase == 1 and placement.place_id == -1: 
+				return
+			
 			# CRITICAL: Add the biome from the placement location
 			token_data.biome = placement.accepted_biome
 			

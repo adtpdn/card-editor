@@ -18,7 +18,7 @@ orientation = 2
 script = ExtResource("1_0ckh6")
 
 [node name="DropZone" type="StaticBody3D" parent="."]
-transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0, 0)
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0, -0.6)
 collision_layer = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="DropZone"]
@@ -27,7 +27,7 @@ disabled = true
 debug_color = Color(0, 0.6, 0.701961, 1)
 
 [node name="PlaceMesh" type="MeshInstance3D" parent="."]
-transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0, 0)
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, -0.2, -0.1)
 mesh = SubResource("PlaneMesh_xruwk")
 
 [connection signal="mouse_entered" from="DropZone" to="." method="_on_drop_zone_mouse_entered"]

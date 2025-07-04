@@ -11,22 +11,22 @@
 
 [sub_resource type="Resource" id="Resource_nrrdr"]
 script = ExtResource("4_28kt0")
-pile_y_offset = 0.0
+pile_y_offset = 0.2
 metadata/_custom_type_script = "uid://dauol4rysxcqw"
 
 [sub_resource type="Resource" id="Resource_4uqre"]
 script = ExtResource("4_28kt0")
-pile_y_offset = 0.0
+pile_y_offset = 0.2
 metadata/_custom_type_script = "uid://dauol4rysxcqw"
 
 [sub_resource type="Resource" id="Resource_vlwyr"]
 script = ExtResource("4_28kt0")
-pile_y_offset = 0.0
+pile_y_offset = 0.2
 metadata/_custom_type_script = "uid://dauol4rysxcqw"
 
 [sub_resource type="Resource" id="Resource_taw8e"]
 script = ExtResource("4_28kt0")
-pile_y_offset = 0.0
+pile_y_offset = 0.2
 metadata/_custom_type_script = "uid://dauol4rysxcqw"
 
 [sub_resource type="Resource" id="Resource_b2mrn"]
@@ -49,6 +49,7 @@ script = ExtResource("1_rgf87")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.0885658)
+visible = false
 shadow_enabled = true
 shadow_opacity = 0.65
 shadow_blur = 5.0
@@ -96,7 +97,7 @@ skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_28kt0")
 
 [node name="Deck" parent="." instance=ExtResource("6_4uqre")]
-transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -9.0197, 0.0964201, -0.686903)
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -9.84359, 0.0964201, -0.686903)
 script = ExtResource("8_v3qdk")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Deck"]
