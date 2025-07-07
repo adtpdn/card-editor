@@ -803,11 +803,13 @@ func perform_push_pull(energy_token, token, is_push: bool):
 		if is_push:
 			# For "push away": Highlight placements in adjacent biomes to the energy token
 			if adjacent_biomes.has(placement_biome) and placement.place_id == -1:
+				placement.show()
 				placement.set_highlight(true)
 				potential_placements.append(placement)
 		else:
 			# For "pull closer": Highlight placements in the energy token's biome
 			if placement_biome == energy_token_biome and placement.place_id == -1:
+				placement.show()
 				placement.set_highlight(true)
 				potential_placements.append(placement)
 	print("adjcents biomes : ",adjacent_biomes )
@@ -910,13 +912,13 @@ func _on_push_pull_input(_placement_pos):
 		# Clear all highlights
 		for placement in get_parent().get_node("TokenPlacements").get_children():
 			placement.set_highlight(false)
+			placement.hide_placement()
 		
 		_selected_token = null
 		is_sigil_mode = false
 		token_manager.is_token_selected = false
 		selected_energy_token.highlight(false)
 		selected_energy_token = null
-		
 		
 		disable_all_sigil_buttons()
 		print("Token move operation completed")

@@ -75,6 +75,7 @@ func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: 
 						print("sigi c 1")
 						game.sigil_manager.show_blight_unblight_direction_ui(game.sigil_manager.selected_energy_token)
 					game.sigil_manager._selected_token = null
+
 			print("Game not found or location is occupied")
 			return
 		
@@ -134,7 +135,7 @@ func set_highlight(enabled: bool):
 	var material = StandardMaterial3D.new()
 	
 	if enabled:
-		material.albedo_color = Color(0.643, 0.949, 0.475, 0.3)  # Yellow highlight
+		material.albedo_color = Color(0.736, 0.693, 0.454, 0.2)  # Yellow highlight
 	else:
 		material.albedo_color = PLACEHOLDER_COLOR  # Neutral placeholder color
 		
