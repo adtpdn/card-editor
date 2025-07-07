@@ -99,6 +99,10 @@ var can_plant_on_sigil = true     # Track if player can still plant in sigil loc
 var can_plant_on_biome = true     # Track if player can still plant in biome locations (place_id != -1)
 var max_tokens_per_turn = 2       # Maximum tokens allowed per turn
 
+const token_mat_player_1 = preload("res://assets/materials/token_material/token_mat_player_1.tres")
+const token_mat_player_2 = preload("res://assets/materials/token_material/token_mat_player_2.tres")
+const token_mat_player_3 = preload("res://assets/materials/token_material/token_mat_player_3.tres")
+const token_mat_player_4 = preload("res://assets/materials/token_material/token_mat_player_4.tres")
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization & Setup
@@ -272,6 +276,17 @@ func setup_token_ui():
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Token Management
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+func apply_player_material(token: Node, player_id: int):
+	# Ensure the token has the correct owner_id
+	if token.owner_id != player_id:
+		token.owner_id = player_id
+		
+	# Call the token's update_material method if it has one
+	if token.has_method("update_material"):
+		token.update_material()
+	else:
+		print("Warning: Token does not have update_material method")
 
 # Original functions from your token_manager.gd
 func initialize_player_tokens(player_id: int, force_reset: bool = false):
@@ -679,9 +694,14 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	var placement_index = placement.get_index()
 	var is_energy = placement_index < 28  # First 28 placements are energy placements
 	print("Placing token at index ", placement_index, ", is_energy: ", is_energy)
+	print("Setting token owner to player ID: ", player_id)
 	
 	# Call the updated set_token_data with biome, player id, and energy status
 	token.set_token_data(biome_type, player_id, is_energy)
+	
+	# Apply player material
+	apply_player_material(token, player_id)
+	
 	token.global_position = position
 	
 	# Store reference to the placement in the token
@@ -1165,9 +1185,9 @@ func sync_energy_token_swap(first_token_position: Vector3, second_token_position
 	first_token.is_blighted = second_token_blighted
 	second_token.is_blighted = first_token_blighted
 	
-	# Update visual appearance
-	#first_token.update_appearance()
-	#second_token.update_appearance()
+	# Update visual appearance with correct player materials
+	apply_player_material(first_token, second_token_owner)
+	apply_player_material(second_token, first_token_owner)
 	
 	# Reset swap mode
 	is_swap_energy_mode = false
@@ -1490,6 +1510,9 @@ func sync_token_movement(from_position: Vector3, to_position: Vector3):
 
 	# Move the token
 	token.global_position = to_placement.global_position
+	
+	# Ensure the player material is still correct
+	apply_player_material(token, token.owner_id)
 
 func sync_existing_game_state(new_peer_id: int):
 	# Sync tokens
@@ -1520,9 +1543,12 @@ func receive_game_state(tokens_data: Array, occupied_locations: Array):
 	# Recreate tokens
 	for token_info in tokens_data:
 		var token = token_scene.instantiate()
-		get_parent().get_node("Tokens").add_child(token,true)
+		get_parent().get_node("Tokens").add_child(token, true)
 		token.set_token_data(token_info.biome, token_info.type)
 		token.global_position = token_info.position
+		
+		# Apply player-specific material
+		apply_player_material(token, token_info.type)  # type is used as player_id here
 	
 	# Mark occupied locations
 	for pos in occupied_locations:
@@ -1539,6 +1565,72 @@ func distribute_initial_tokens_to_client(peer_id: int):
 	var tokens = get_player_tokens(peer_id)
 	rpc_id(peer_id, "sync_player_tokens", tokens)
 	#print("Sent initial tokens to client: ", tokens)
+
+func force_resync_token_colors():
+	if !multiplayer.is_server():
+		return
+	
+	print("Forcing resync of all token colors")
+	
+	# Collect data for all tokens
+	var token_data = []
+	for token in get_parent().get_node("Tokens").get_children():
+		# Get the player's color index
+		var color_index = -1
+		for i in range(get_parent().players.size()):
+			if get_parent().players[i] == token.owner_id:
+				color_index = i
+				break
+		
+		token_data.append({
+			"position": token.global_position,
+			"biome": token.biome_type,
+			"owner": token.owner_id,
+			"is_energy": token.is_energy,
+			"is_blighted": token.is_blighted,
+			"player_color_index": color_index  # Add the color index
+		})
+	
+	# Send update to all clients
+	rpc("sync_token_colors", token_data)
+
+@rpc("any_peer", "call_local")
+func sync_token_colors(token_data: Array):
+	print("Syncing token colors for ", token_data.size(), " tokens")
+	
+	# Update all tokens with proper colors
+	for token_info in token_data:
+		var token = find_token_at_position(token_info.position)
+		if token:
+			# Ensure owner_id is set correctly
+			token.owner_id = token_info.owner
+			
+			# If we have a color index, use that directly
+			if token_info.has("player_color_index") and token_info.player_color_index >= 0:
+				token.player_color_index = token_info.player_color_index
+				
+				# Apply color based on the index
+				var mesh = token.get_node("TokenMesh")
+				if mesh:
+					match token_info.player_color_index:
+						0:
+							mesh.material_override = token_mat_player_1
+							print("Applied player 1 material to token")
+						1:
+							mesh.material_override = token_mat_player_2
+							print("Applied player 2 material to token")
+						2:
+							mesh.material_override = token_mat_player_3
+							print("Applied player 3 material to token") 
+						3:
+							mesh.material_override = token_mat_player_4
+							print("Applied player 4 material to token")
+						_:
+							print("Invalid player color index: ", token_info.player_color_index)
+			else:
+				# Fallback to using update_material
+				if token.has_method("update_material"):
+					token.update_material()
 
 func sync_complete_token_state():
 	if !multiplayer.is_server():
@@ -1602,6 +1694,9 @@ func receive_complete_token_state(placement_data: Array, token_data: Array):
 		token.is_blighted = token_info.is_blighted
 		token.global_position = token_info.position
 		
+		# Apply player-specific material
+		apply_player_material(token, token_info.owner)
+		
 		# Connect token to its placement
 		var placement = get_token_placement_at_position(token_info.position)
 		if placement:
@@ -1632,8 +1727,13 @@ func sync_all_token_placements(token_placement_data: Array):
 		var token = token_scene.instantiate()
 		get_parent().get_node("Tokens").add_child(token, true)
 		
-		# Set token data
+		# Set token data with the explicit owner ID
 		token.set_token_data(token_info.biome, token_info.owner, token_info.is_energy)
+		print("Creating token with owner: ", token_info.owner)
+		
+		# Apply material based on owner
+		apply_player_material(token, token_info.owner)
+		
 		token.global_position = token_info.position
 		
 		# Connect to placement

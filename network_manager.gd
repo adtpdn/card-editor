@@ -245,13 +245,6 @@ func _on_peer_connected(new_peer_id):
 		# Initialize new player's hand tracking
 		game.player_hands[new_peer_id] = []
 		
-		# Assign a color to the new player
-		#var color_index = game.players.size() - 1
-		#if color_index < game.PLAYER_COLORS.size():
-			#game.player_colors[new_peer_id] = game.PLAYER_COLORS[color_index]
-			## Sync colors to all clients including the new one
-			#game.rpc("sync_player_colors", game.player_colors)
-		
 		# Find first available slot
 		var slot_index = game.player_slots.find(false)
 		if slot_index != -1:
@@ -278,12 +271,18 @@ func _on_peer_connected(new_peer_id):
 		# Update the player list UI
 		ui_manager.update_player_list()
 		token_manager.setup_player_token_indicators()
+		
+		# IMPORTANT: Sync the updated players list to ALL clients
+		rpc("sync_players_list", game.players)
+		
+		# After adding the new player, force a sync of all token colors
+		token_manager.force_resync_token_colors()
 
 func _on_peer_disconnected(peer_id):
 	if peer_id == null or peer_id == 0:  # Check for both null and invalid ID
 		return
 		
-	#print("Peer disconnected: ", peer_id)
+	print("Peer disconnected: ", peer_id)
 	if game.players.has(peer_id):
 		var slot_index = game.players.find(peer_id)
 		if slot_index != -1:
@@ -299,7 +298,10 @@ func _on_peer_disconnected(peer_id):
 		
 		# Update the player list UI
 		ui_manager.update_player_list()
-	token_manager.setup_player_token_indicators()
+		token_manager.setup_player_token_indicators()
+		
+		# IMPORTANT: Sync the updated players list to ALL clients
+		rpc("sync_players_list", game.players)
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---    Network Discovery     ---
@@ -763,3 +765,23 @@ func remote_move_card_to_biome(card_id: int, biome_slot: int):
 	
 	# Add to biome slot
 	target_slot.append_card(card)
+
+
+@rpc("authority", "call_local")
+func sync_players_list(players_array: Array):
+	var game = get_parent()
+	game.players = players_array.duplicate()
+	print("Received updated players list: ", game.players)
+	
+	# Update any UI or game state that depends on the players list
+	var ui_manager = get_parent().get_node("UIManager")
+	if ui_manager:
+		ui_manager.update_player_list()
+	
+	var token_manager = get_parent().get_node("TokenManager")
+	if token_manager:
+		token_manager.setup_player_token_indicators()
+		
+		# Force update of all token colors based on new player list
+		if multiplayer.is_server():
+			token_manager.force_resync_token_colors()

@@ -7,17 +7,23 @@ var biome_type: BiomeType
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 @onready var game = get_node("/root/Game")
 
+var player_color_index: int = -1
 var owner_id: int = -1
-var token_type: int = 0  # Added to match the syncing code in token_manager.gd
-
-var token_placement = null
+var token_type: int = 0
 var is_energy: bool = false
 var is_blighted: bool = false
+var token_placement = null
 
 signal token_clicked(token)
 
 var is_highlighted = false
 var pattern_highlights = []
+
+# References to player materials
+var token_mat_player_1 = preload("res://assets/materials/token_material/token_mat_player_1.tres")
+var token_mat_player_2 = preload("res://assets/materials/token_material/token_mat_player_2.tres")
+var token_mat_player_3 = preload("res://assets/materials/token_material/token_mat_player_3.tres")
+var token_mat_player_4 = preload("res://assets/materials/token_material/token_mat_player_4.tres")
 
 func _ready():
 	# Make sure the token is clickable
@@ -25,12 +31,83 @@ func _ready():
 	if static_body:
 		var input_listener = static_body
 		input_listener.input_event.connect(_on_input_event)
+	
+	# Apply material based on owner_id if available
+	update_material()
 
 func set_token_data(biome, owner, is_energy_token=false):
 	biome_type = biome
 	owner_id = owner
 	is_energy = is_energy_token  # Set energy status
-	# No need to call update_token_display() since we're not changing colors
+	
+	# Apply the appropriate material
+	update_material()
+
+func set_player_color_index(index: int):
+	player_color_index = index
+	apply_color_by_index(index)
+
+func apply_color_by_index(index: int):
+	if !token_mesh:
+		token_mesh = $TokenMesh
+		
+	if token_mesh:
+		match index:
+			0:
+				token_mesh.material_override = token_mat_player_1
+				print("Applied player 1 material by index")
+			1:
+				token_mesh.material_override = token_mat_player_2
+				print("Applied player 2 material by index")
+			2:
+				token_mesh.material_override = token_mat_player_3
+				print("Applied player 3 material by index")
+			3:
+				token_mesh.material_override = token_mat_player_4
+				print("Applied player 4 material by index")
+			_:
+				print("Invalid player color index: ", index)
+
+func update_material():
+	# Make sure we have the token mesh
+	if !token_mesh:
+		token_mesh = $TokenMesh
+	
+	if token_mesh and owner_id != -1 and game and game.players.size() > 0:
+		# Find the player's index in the players array
+		var player_index = -1
+		for i in range(game.players.size()):
+			if game.players[i] == owner_id:
+				player_index = i
+				break
+		
+		print("Token update_material - Owner ID: ", owner_id, " Player Index: ", player_index)
+		
+		# Apply material based on player index in players array
+		if player_index >= 0:
+			match player_index:
+				0:
+					token_mesh.material_override = token_mat_player_1
+					print("Applied player 1 material to token (owner_id: ", owner_id, ")")
+				1:
+					token_mesh.material_override = token_mat_player_2
+					print("Applied player 2 material to token (owner_id: ", owner_id, ")")
+				2:
+					token_mesh.material_override = token_mat_player_3
+					print("Applied player 3 material to token (owner_id: ", owner_id, ")")
+				3:
+					token_mesh.material_override = token_mat_player_4
+					print("Applied player 4 material to token (owner_id: ", owner_id, ")")
+				_:
+					print("Player index out of range: ", player_index)
+		else:
+			print("Owner ID not found in players array: ", owner_id)
+			print("Players array: ", game.players)
+	else:
+		print("Cannot update material - Token mesh: ", token_mesh != null, 
+			  ", Owner ID: ", owner_id, 
+			  ", Game: ", game != null, 
+			  ", Players size: ", game.players.size() if game else 0)
 
 func set_blighted(blighted: bool):
 	if is_blighted != blighted:
@@ -44,7 +121,6 @@ func set_blighted(blighted: bool):
 			animation_player.play("unblight")
 			
 		# Sync the animation to all clients
-		#if game && game.multiplayer.is_server():
 		print('sync token blight')
 		game.rpc("sync_token_blight", global_position, is_blighted)
 
