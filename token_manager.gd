@@ -365,6 +365,7 @@ func set_player_tokens(player_id: int, tokens: Array):
 # Placement & Selection
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+# Something wrong with 
 func _on_token_selected():
 	print("Token button clicked")
 	
@@ -613,7 +614,7 @@ func handle_touch(position: Vector2):
 			unhighlight_all_token_placements()
 
 @rpc("any_peer")
-func request_token_placement(token_index: int, position: Vector3, biome_type: int):
+func request_token_placement(token_index: int, position: Vector3, biome_type: int, is_blighted: bool = false):
 	if !multiplayer.is_server():
 		return
 		
@@ -651,6 +652,9 @@ func request_token_placement(token_index: int, position: Vector3, biome_type: in
 			
 			# CRITICAL: Add the biome from the placement location
 			token_data.biome = placement.accepted_biome
+			
+			# IMPORTANT: Include the blighted state in token data
+			token_data.is_blighted = is_blighted
 			
 			# Update cooldown time
 			last_token_placement_time = current_time
@@ -693,11 +697,19 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	# Determine if this is an energy placement
 	var placement_index = placement.get_index()
 	var is_energy = placement_index < 28  # First 28 placements are energy placements
+	
+	# IMPORTANT: Explicitly preserve blighted state if it exists in token_data
+	var is_blighted = token_data.get("is_blighted", false)
+	
 	print("Placing token at index ", placement_index, ", is_energy: ", is_energy)
 	print("Setting token owner to player ID: ", player_id)
+	print("Token blighted state: ", is_blighted)
 	
 	# Call the updated set_token_data with biome, player id, and energy status
 	token.set_token_data(biome_type, player_id, is_energy)
+	
+	# IMPORTANT: Explicitly set the blighted state after setting token data
+	token.is_blighted = is_blighted
 	
 	# Apply player material
 	apply_player_material(token, player_id)
@@ -718,7 +730,7 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	is_token_selected = false
 	unhighlight_all_token_placements()
 	
-	# CRITICAL: After a token is placed, force a full token state sync
+	# CRITICAL: Only sync player token counts, NOT all token placements
 	if multiplayer.is_server():
 		# Sync token counts for all players
 		var players = get_parent().players
@@ -739,18 +751,18 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 				# RPC for clients
 				rpc_id(pid, "sync_player_tokens", player_tokens, pid)
 		
-		# Also sync token placement data to ensure consistency
-		var token_placement_data = []
-		for token_obj in get_parent().get_node("Tokens").get_children():
-			token_placement_data.append({
-				"position": token_obj.global_position,
-				"biome": token_obj.biome_type,
-				"owner": token_obj.owner_id,
-				"is_energy": token_obj.is_energy
-			})
+		# IMPORTANT: Do NOT call sync_all_token_placements here
+		# Instead, just sync the data for this specific token
+		var token_data_to_sync = {
+			"position": token.global_position,
+			"biome": token.biome_type,
+			"owner": token.owner_id,
+			"is_energy": token.is_energy,
+			"is_blighted": token.is_blighted
+		}
 		
-		# Send this data to all clients
-		rpc("sync_all_token_placements", token_placement_data)
+		# Send just this token's data to all clients
+		rpc("sync_single_token_placement", token_data_to_sync)
 	
 	# Update UI for the current player
 	var local_id = multiplayer.get_unique_id()
@@ -782,6 +794,45 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	# Make sure to emit the token_placed signal
 	emit_signal("token_placed", player_id, token_data.biome, position)
 	print("Token manager emitted token_placed signal for player ", player_id, " at position ", position)
+
+@rpc("any_peer", "call_local")
+func sync_single_token_placement(token_data: Dictionary):
+	print("Syncing single token at position ", token_data.position)
+	
+	# Only create a new token if it doesn't already exist at this position
+	var existing_token = find_token_at_position(token_data.position)
+	if existing_token:
+		# Token already exists, just update its properties
+		existing_token.biome_type = token_data.biome
+		existing_token.owner_id = token_data.owner
+		existing_token.is_energy = token_data.is_energy
+		existing_token.is_blighted = token_data.is_blighted
+		
+		# Apply material based on owner
+		apply_player_material(existing_token, token_data.owner)
+		return
+	
+	# No existing token, create a new one
+	var token = token_scene.instantiate()
+	get_parent().get_node("Tokens").add_child(token, true)
+	
+	# Set token data
+	token.set_token_data(token_data.biome, token_data.owner, token_data.is_energy)
+	token.is_blighted = token_data.is_blighted
+	token.global_position = token_data.position
+	
+	# Apply material based on owner
+	apply_player_material(token, token_data.owner)
+	
+	# Connect to placement
+	var placement = get_token_placement_at_position(token_data.position)
+	if placement:
+		placement.set_occupied(true)
+		placement.current_token = token
+		token.token_placement = placement
+	
+	# Update UI
+	update_token_ui()
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Token Placement Generation

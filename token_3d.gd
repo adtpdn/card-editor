@@ -75,6 +75,12 @@ func update_material():
 	if !token_mesh:
 		token_mesh = $TokenMesh
 	
+	# First try to use the explicit color index if available
+	if player_color_index >= 0 and token_mesh:
+		apply_color_by_index(player_color_index)
+		return
+	
+	# Otherwise fall back to the player array lookup
 	if token_mesh and owner_id != -1 and game and game.players.size() > 0:
 		# Find the player's index in the players array
 		var player_index = -1
@@ -83,33 +89,14 @@ func update_material():
 				player_index = i
 				break
 		
-		print("Token update_material - Owner ID: ", owner_id, " Player Index: ", player_index)
-		
-		# Apply material based on player index in players array
+		# Apply material based on player index
 		if player_index >= 0:
-			match player_index:
-				0:
-					token_mesh.material_override = token_mat_player_1
-					print("Applied player 1 material to token (owner_id: ", owner_id, ")")
-				1:
-					token_mesh.material_override = token_mat_player_2
-					print("Applied player 2 material to token (owner_id: ", owner_id, ")")
-				2:
-					token_mesh.material_override = token_mat_player_3
-					print("Applied player 3 material to token (owner_id: ", owner_id, ")")
-				3:
-					token_mesh.material_override = token_mat_player_4
-					print("Applied player 4 material to token (owner_id: ", owner_id, ")")
-				_:
-					print("Player index out of range: ", player_index)
+			player_color_index = player_index  # Save this for future use
+			apply_color_by_index(player_index)
 		else:
 			print("Owner ID not found in players array: ", owner_id)
-			print("Players array: ", game.players)
 	else:
-		print("Cannot update material - Token mesh: ", token_mesh != null, 
-			  ", Owner ID: ", owner_id, 
-			  ", Game: ", game != null, 
-			  ", Players size: ", game.players.size() if game else 0)
+		print("Cannot update material - missing dependencies")
 
 func set_blighted(blighted: bool):
 	if is_blighted != blighted:
