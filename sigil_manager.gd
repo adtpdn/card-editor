@@ -317,6 +317,44 @@ func debug_selected_token_patterns():
 	else:
 		print("No energy token selected for debugging")
 
+# Debug function to check token movement
+func debug_token_movement(source_token, target_token, target_placement=null):
+	print("\n==== DEBUG TOKEN MOVEMENT ====")
+	
+	print("BEFORE MOVEMENT:")
+	print("Source token (selected energy token):")
+	print("  Position: ", source_token.global_position)
+	print("  Owner: ", source_token.owner_id)
+	print("  Is Energy: ", source_token.is_energy)
+	
+	print("Target token (token to be pushed/pulled):")
+	print("  Position: ", target_token.global_position)
+	print("  Owner: ", target_token.owner_id)
+	print("  Is Energy: ", target_token.is_energy)
+	
+	if target_placement:
+		print("Target placement (where target token should move to):")
+		print("  Position: ", target_placement.global_position)
+		print("  Is Occupied: ", target_placement.is_occupied)
+		if target_placement.is_occupied:
+			print("  Current token: ", target_placement.current_token)
+	
+	# Get all tokens to check for duplicates
+	var all_tokens = get_parent().get_node("Tokens").get_children()
+	print("Total tokens in scene before: ", all_tokens.size())
+	
+	# Get source token placement
+	var source_placement = token_manager.get_token_placement_at_position(source_token.global_position)
+	if source_placement:
+		print("Source token placement place_id: ", source_placement.place_id)
+	
+	# Get target token placement
+	var target_token_placement = token_manager.get_token_placement_at_position(target_token.global_position)
+	if target_token_placement:
+		print("Target token placement place_id: ", target_token_placement.place_id)
+	
+	print("==============================")
+
 func debug_all_energy_tokens():
 	print("\n=== DEBUG ALL ENERGY TOKENS ===")
 	var tokens_by_biome = {
@@ -965,7 +1003,9 @@ func get_current_round() -> int:
 
 # UI for Sigil A and B effect (push/pull tokens)
 func show_pull_push_ui(energy_token, is_other_player: bool):
-	print("show push or pull ui")
+	print("\n=== SHOW PUSH OR PULL UI ===")
+	print("Energy token position: ", energy_token.global_position)
+	print("Is targeting other player tokens: ", is_other_player)
 
 	# Create UI to select which token to push/pull
 	var dialog = AcceptDialog.new()
@@ -980,18 +1020,31 @@ func show_pull_push_ui(energy_token, is_other_player: bool):
 	# Store information about which sigil is being used
 	_selected_token_is_other_player = is_other_player
 	
+	# Track token count before operation
+	var token_count_before = get_parent().get_node("Tokens").get_children().size()
+	print("Token count before starting push/pull operation: ", token_count_before)
+	
 	# Showing outerglow for each token to select
-	var tokens = tokens.get_children()
+	var tokens_list = tokens.get_children()
+	print("Total tokens: ", tokens_list.size())
+	
+	var highlighted_count = 0
 	if is_other_player:
-		for token in tokens:
+		# For Sigil A (other player's tokens)
+		for token in tokens_list:
 			if token.owner_id != energy_token.owner_id and !token.is_energy:
 				token.outerglow.show()
+				highlighted_count += 1
 	else:
-		for token in tokens:
+		# For Sigil B (own tokens)
+		for token in tokens_list:
 			if token.owner_id == energy_token.owner_id and !token.is_energy:
 				token.outerglow.show()
+				highlighted_count += 1
 	
+	print("Highlighted ", highlighted_count, " tokens for selection")
 	show_push_pull_direction_ui(energy_token)
+	print("===========================\n")
 
 
 # UI for Sigil C effect (blight/unblight)
@@ -1051,6 +1104,7 @@ func show_blight_unblight_direction_ui(energy_token):
 
 # Show UI for push/pull direction selection
 func show_push_pull_direction_ui(energy_token):
+	print("\n=== SHOW PUSH/PULL DIRECTION UI ===")
 	var popup = PopupMenu.new()
 	popup.name = "DirectionSelectionPopup"
 	game.add_child(popup)
@@ -1059,23 +1113,30 @@ func show_push_pull_direction_ui(energy_token):
 	var target_token = _selected_token
 	energy_token = selected_energy_token
 	
-	# Checking if the true than sigil a active
+	print("Energy token: ", energy_token.global_position)
+	print("Target token: ", target_token.global_position)
+	
+	# Debug token movement state before making decisions
+	debug_token_movement(energy_token, target_token)
+	
+	# Checking if the true then sigil a active (other player's token)
 	if _selected_token_is_other_player:
 		if target_token.owner_id == energy_token.owner_id:
-			#print("sigil A with the same owner id cant run")
-			
+			print("ERROR: Sigil A cannot target your own tokens")
 			return
-	# Checking if the true than sigil b active
+	# Checking if false then sigil b active (own token)
 	else:
 		if target_token.owner_id != energy_token.owner_id:
-			#print("sigil B with the different owner id cant run")
+			print("ERROR: Sigil B cannot target other player's tokens")
 			return
 	
 	# Add direction options
 	if target_token.biome_type == energy_token.biome_type:
 		popup.add_item("Push Away", 0)
+		print("Push option added (same biome)")
 	else:
 		popup.add_item("Pull Closer", 1)
+		print("Pull option added (different biome)")
 	
 	# Connect signal
 	popup.id_pressed.connect(func(id): perform_push_pull(energy_token, target_token, id == 0))
@@ -1084,6 +1145,7 @@ func show_push_pull_direction_ui(energy_token):
 	var mouse_pos = get_viewport().get_mouse_position()
 	popup.position = mouse_pos
 	popup.popup()
+	print("==============================\n")
 
 # Perform actual blight or unblight
 func perform_blight_unblight(energy_token, token, is_blight: bool):
@@ -1097,7 +1159,15 @@ func perform_blight_unblight(energy_token, token, is_blight: bool):
 
 # Perform the actual push or pull
 func perform_push_pull(energy_token, token, is_push: bool):
-	print("perform push pull")
+	print("\n=== PERFORM PUSH/PULL ===")
+	print("Energy token: ", energy_token.global_position)
+	print("Target token: ", token.global_position)
+	print("Operation: ", "PUSH" if is_push else "PULL")
+	
+	# Track token count before operation
+	var token_count_before = get_parent().get_node("Tokens").get_children().size()
+	print("Token count before push/pull: ", token_count_before)
+	
 	# Store the selected token for use in subsequent steps
 	var target_token = token
 	
@@ -1108,24 +1178,28 @@ func perform_push_pull(energy_token, token, is_push: bool):
 	# Get the token's current placement
 	var token_placement = token_manager.get_token_placement_at_position(target_token.global_position)
 	if !token_placement:
-		print("Could not find token placement location")
+		print("ERROR: Could not find token placement location")
 		return
+	
+	print("Current token placement: ", token_placement.global_position)
 	
 	# Get the sigil token's placement (this is the energy token that activated the sigil)
 	var energy_token_placement = null
-	print("energy token : ", energy_token)
 	if energy_token:
-		print("energy token : ", energy_token.global_position)
 		energy_token_placement = token_manager.get_token_placement_at_position(energy_token.global_position)
-		print("energy token placment : ", energy_token_placement)
 	
 	if !energy_token_placement:
-		print("Could not find energy token placement")
+		print("ERROR: Could not find energy token placement")
 		return
+	
+	print("Energy token placement: ", energy_token_placement.global_position)
 	
 	# Get the biome types
 	var target_token_biome = target_token.biome_type
 	var energy_token_biome = energy_token.biome_type
+	
+	print("Target token biome: ", target_token_biome)
+	print("Energy token biome: ", energy_token_biome)
 	
 	# Find potential placement locations based on push/pull mode
 	var potential_placements = []
@@ -1138,6 +1212,8 @@ func perform_push_pull(energy_token, token, is_push: bool):
 		adjacent_biomes = [BiomeType.WATER, BiomeType.DESERT]
 	else: # WATER or DESERT
 		adjacent_biomes = [BiomeType.FOREST, BiomeType.MOUNTAIN]
+	
+	print("Adjacent biomes: ", adjacent_biomes)
 	
 	for placement in get_parent().get_node("TokenPlacements").get_children():
 		if placement.is_occupied:
@@ -1157,17 +1233,19 @@ func perform_push_pull(energy_token, token, is_push: bool):
 				placement.show()
 				placement.set_highlight(true)
 				potential_placements.append(placement)
-	print("adjcents biomes : ",adjacent_biomes )
+	
+	print("Found ", potential_placements.size(), " potential placements for the operation")
+	
 	if potential_placements.size() == 0:
-		print("No valid placements found for push/pull operation")
+		print("ERROR: No valid placements found for push/pull operation")
 		return
 	
 	# Store token for use in the input handler
 	_selected_token = target_token
 	token_manager.is_token_selected = true
 	
-	# Will go to push pull input event
-	print("Please click on a highlighted location to move the token")
+	print("Target token stored for movement. Please click on a highlighted location.")
+	print("==============================\n")
 
 
 func _on_blight_unblight_input():
@@ -1207,18 +1285,29 @@ func _on_blight_unblight_input():
 # Function to handle the input for push/pull destination selection
 func _on_push_pull_input(_placement_pos):
 	if is_sigil_mode:
-		print("")
+		print("\n=== ON PUSH/PULL INPUT ===")
 		
 		if _selected_token == null:
+			print("No token selected, showing direction UI")
 			show_push_pull_direction_ui(selected_energy_token)
 			return
 		
 		print("Processing push/pull input")
-		print("Target token : ", _selected_token)
-		print("Hit something at position: ", _selected_token.position)
-		print("placement pos : ", _placement_pos)
+		print("Target token: ", _selected_token)
+		print("Target token position: ", _selected_token.global_position)
+		print("Destination position: ", _placement_pos)
+		
+		# Track token count before operation
+		var token_count_before = get_parent().get_node("Tokens").get_children().size()
+		print("Token count before moving: ", token_count_before)
 		
 		var source_placement = token_manager.get_token_placement_at_position(_selected_token.global_position)
+		if !source_placement:
+			print("ERROR: Source placement not found!")
+			return
+			
+		print("Source placement: ", source_placement.global_position)
+		
 		# Set the new placement
 		var _placement_node = null
 		for _placement in get_parent().get_node("TokenPlacements").get_children():
@@ -1226,35 +1315,52 @@ func _on_push_pull_input(_placement_pos):
 				_placement_node = _placement
 				break
 		
+		if !_placement_node:
+			print("ERROR: No placement found at destination position")
+			return
+			
+		print("Destination placement: ", _placement_node.global_position)
+		
 		if !_placement_node.is_highlighted:
+			print("ERROR: Selected placement is not highlighted")
 			return
 		
-		print("")
-		# Move the token
+		print("Moving token from ", source_placement.global_position, " to ", _placement_node.global_position)
+		
+		# Move the token - IMPORTANT: This is where duplication could happen
 		if multiplayer.is_server():
-			print("multiplayer pull and push")
-			if source_placement:
-				# Clear the current placement
-				source_placement.set_occupied(false)
-				source_placement.current_token = null
-				
-				print("placement node : ", _placement_node)
-				_selected_token.biome_type = _placement_node.accepted_biome
-				print("biome type current player token: ", _selected_token.biome_type)
-				_placement_node.set_occupied(true)
-				_placement_node.current_token = _selected_token
-				
-				# Move the token
-				_selected_token.global_position = _placement_pos
-				
-				# Sync to clients
-				token_manager.rpc("sync_token_movement", source_placement.global_position, _placement_pos)
-			else:
-				print("Source placement not found!")
+			print("Server handling token movement")
+			
+			# Clear the current placement FIRST
+			source_placement.set_occupied(false)
+			source_placement.current_token = null
+			print("Source placement marked as unoccupied")
+			
+			# Update token biome type to match new placement
+			_selected_token.biome_type = _placement_node.accepted_biome
+			print("Updated token biome type to: ", _selected_token.biome_type)
+			
+			# Set new placement as occupied WITH THIS TOKEN (not a duplicate)
+			_placement_node.set_occupied(true)
+			_placement_node.current_token = _selected_token
+			print("Destination placement marked as occupied with the same token")
+			
+			# Move the token to the new position - NO new token creation
+			_selected_token.global_position = _placement_pos
+			print("Token moved to new position")
+			
+			# Sync to clients
+			token_manager.rpc("sync_token_movement", source_placement.global_position, _placement_pos)
 		else:
 			# Request server to move the token
-			print("Requesting server to move token")
+			print("Client requesting server to move token")
 			token_manager.rpc_id(1, "request_token_movement", source_placement.global_position, _placement_pos)
+		
+		# Track token count after operation to check for duplication
+		var token_count_after = get_parent().get_node("Tokens").get_children().size()
+		print("Token count after moving: ", token_count_after)
+		if token_count_after > token_count_before:
+			print("WARNING: Token count increased! Duplication may have occurred!")
 		
 		# Clear all highlights
 		for placement in get_parent().get_node("TokenPlacements").get_children():
@@ -1262,20 +1368,23 @@ func _on_push_pull_input(_placement_pos):
 			placement.hide_placement()
 		
 		# Hide Outerglow
-		var tokens = tokens.get_children()
-		for token in tokens:
+		var tokens_list = tokens.get_children()
+		for token in tokens_list:
 			token.outerglow.hide()
 		
+		# Reset state
 		_selected_token = null
 		is_sigil_mode = false
 		token_manager.is_token_selected = false
-		selected_energy_token.highlight(false)
-		selected_energy_token = null
+		
+		# Unhighlight the energy token
+		if selected_energy_token:
+			selected_energy_token.highlight(false)
+			selected_energy_token = null
 		
 		disable_all_sigil_buttons()
 		print("Token move operation completed")
-		#else:
-			#print("No highlighted placement found near click position")
+		print("==============================\n")
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Network Integration

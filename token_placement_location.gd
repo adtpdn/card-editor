@@ -84,13 +84,13 @@ func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: 
 			print("Not your turn!")
 			return
 		
-		#if game.sigil_manager.is_sigil_mode:
-			#if !game.sigil_manager.is_sigil_c:
-				#game.sigil_manager._on_push_pull_input(global_position)
-			#else:
-				#print("sigil c 2")
-				#game.sigil_manager._on_blight_unblight_input()
-			#return
+		if game.sigil_manager.is_sigil_mode:
+			if !game.sigil_manager.is_sigil_c:
+				game.sigil_manager._on_push_pull_input(global_position)
+			else:
+				print("sigil c 2")
+				game.sigil_manager._on_blight_unblight_input()
+			return
 		
 		# Debug token selection state
 		print("Token selected: " + str(game.token_manager.is_token_selected))
