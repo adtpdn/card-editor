@@ -6,6 +6,8 @@ var biome_type: BiomeType
 @onready var token_mesh: MeshInstance3D = $TokenMesh
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 @onready var game = get_node("/root/Game")
+@onready var outerglow = $Outerglow
+
 
 var player_color_index: int = -1
 var owner_id: int = -1

@@ -17,6 +17,7 @@ signal sigil_mode_changed(enabled)
 @onready var point_counter = $"../PointCounter"
 @onready var deck = $"../Deck"
 @onready var turn_phase_manager = $"../TurnPhaseManager"
+@onready var tokens = $"../Tokens"
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -653,6 +654,17 @@ func show_pull_push_ui(energy_token, is_other_player: bool):
 	# Store information about which sigil is being used
 	_selected_token_is_other_player = is_other_player
 	
+	# Showing outerglow for each token to select
+	var tokens = tokens.get_children()
+	if is_other_player:
+		for token in tokens:
+			if token.owner_id != energy_token.owner_id and !token.is_energy:
+				token.outerglow.show()
+	else:
+		for token in tokens:
+			if token.owner_id == energy_token.owner_id and !token.is_energy:
+				token.outerglow.show()
+	
 	show_push_pull_direction_ui(energy_token)
 
 
@@ -669,6 +681,15 @@ func show_blight_unblight_ui(energy_token):
 	# Set game to token selection mode for blight/unblight
 	token_manager.is_token_selected = false  # Turn off normal token placement mode
 	is_blight_mode = true
+	
+	# Showing outerglow for each token to select
+	var tokens = tokens.get_children()
+	for token in tokens:
+		if token.owner_id != energy_token.owner_id and !token.is_energy and !token.is_blighted:
+			token.outerglow.show()
+		if token.owner_id == energy_token.owner_id and !token.is_energy and token.is_blighted:
+			print("own token blight")
+			token.outerglow.show()
 	
 	show_blight_unblight_direction_ui(energy_token)
 
@@ -716,6 +737,7 @@ func show_push_pull_direction_ui(energy_token):
 	if _selected_token_is_other_player:
 		if target_token.owner_id == energy_token.owner_id:
 			#print("sigil A with the same owner id cant run")
+			
 			return
 	# Checking if the true than sigil b active
 	else:
@@ -752,9 +774,6 @@ func perform_push_pull(energy_token, token, is_push: bool):
 	print("perform push pull")
 	# Store the selected token for use in subsequent steps
 	var target_token = token
-	
-	# Reset token selection mode
-	#is_sigil_mode = false
 	
 	# Clear any previous highlights
 	for placement in get_parent().get_node("TokenPlacements").get_children():
@@ -850,6 +869,12 @@ func _on_blight_unblight_input():
 		selected_energy_token = null
 		is_sigil_c = false
 		is_blight_mode = false
+		
+		# Hide Outerglow
+		var tokens = tokens.get_children()
+		for token in tokens:
+			token.outerglow.hide()
+		
 		disable_all_sigil_buttons()
 		print("Blight")
 
@@ -905,14 +930,15 @@ func _on_push_pull_input(_placement_pos):
 			print("Requesting server to move token")
 			token_manager.rpc_id(1, "request_token_movement", source_placement.global_position, _placement_pos)
 		
-		# Cleanup
-		#if get_tree().root.is_connected("input_event", Callable(self, "_on_push_pull_input")):
-			#get_tree().root.disconnect("input_event", Callable(self, "_on_push_pull_input"))
-		
 		# Clear all highlights
 		for placement in get_parent().get_node("TokenPlacements").get_children():
 			placement.set_highlight(false)
 			placement.hide_placement()
+		
+		# Hide Outerglow
+		var tokens = tokens.get_children()
+		for token in tokens:
+			token.outerglow.hide()
 		
 		_selected_token = null
 		is_sigil_mode = false
