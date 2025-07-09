@@ -190,22 +190,22 @@ func update_stack_visuals(slot: Marker3D) -> void:
 		var tween = create_tween()
 		tween.tween_property(card, "global_position", new_pos, 0.2)
 
-func view_card(card: Card) -> void:
-	if not card:
-		return
-	
-	if multiplayer.is_server():
-		rpc("sync_view_card", global_position)
-	else:
-		rpc_id(1, "request_view_card", global_position)
-		
-	# Move camera to view position
-	var tween = create_tween()
-	var target_pos = global_position + Vector3(0, 1.5, -2.0)
-	tween.tween_property(get_node("/root/Game/Camera3D"), "global_position", target_pos, 0.5)
-	
-	# Make camera look at planting area
-	get_node("/root/Game/Camera3D").look_at(global_position)
+#func view_card(card: Card) -> void:
+	#if not card:
+		#return
+	#
+	#if multiplayer.is_server():
+		#rpc("sync_view_card", global_position)
+	#else:
+		#rpc_id(1, "request_view_card", global_position)
+		#
+	## Move camera to view position
+	#var tween = create_tween()
+	#var target_pos = global_position + Vector3(0, 1.5, -2.0)
+	#tween.tween_property(get_node("/root/Game/Camera3D"), "global_position", target_pos, 0.5)
+	#
+	## Make camera look at planting area
+	#get_node("/root/Game/Camera3D").look_at(global_position)
 
 func reset_camera() -> void:
 	if multiplayer.is_server():

@@ -397,36 +397,37 @@ func debug_all_energy_tokens():
 	print("==============================\n")
 
 func update_sigil_button_states(token):
-	print("\n===== UPDATE SIGIL BUTTON STATES =====")
-	
-	# Check patterns without the debug spam
-	var can_form_a = check_for_sigil_a_pattern(token)
-	var can_form_b = check_for_sigil_b_pattern(token)
-	var can_form_c = check_for_sigil_c_pattern(token)
-	
-	print("Pattern detection results - A: ", can_form_a, ", B: ", can_form_b, ", C: ", can_form_c)
-	
-	# Check if there's enough mana
-	var has_mana = check_mana_available(token.biome_type)
-	print("Has mana for biome ", token.biome_type, ": ", has_mana)
-	
-	# Enable or disable buttons based on pattern availability and mana
-	var sigil_a_button = game.sigil_a_button
-	var sigil_b_button = game.sigil_b_button
-	var sigil_c_button = game.sigil_c_button
-	
-	sigil_a_button.disabled = !(can_form_a && has_mana)
-	sigil_b_button.disabled = !(can_form_b && has_mana)
-	sigil_c_button.disabled = !(can_form_c && has_mana)
-	
-	# Update button appearance
-	sigil_a_button.modulate = Color(1, 1, 1, 1.0 if !sigil_a_button.disabled else 0.5)
-	sigil_b_button.modulate = Color(1, 1, 1, 1.0 if !sigil_b_button.disabled else 0.5)
-	sigil_c_button.modulate = Color(1, 1, 1, 1.0 if !sigil_c_button.disabled else 0.5)
-	
-	print("Button states updated - A: ", !sigil_a_button.disabled, 
-		  ", B: ", !sigil_b_button.disabled, 
-		  ", C: ", !sigil_c_button.disabled)
+	if turn_phase_manager.current_phase == 2:
+		print("\n===== UPDATE SIGIL BUTTON STATES =====")
+		
+		# Check patterns without the debug spam
+		var can_form_a = check_for_sigil_a_pattern(token)
+		var can_form_b = check_for_sigil_b_pattern(token)
+		var can_form_c = check_for_sigil_c_pattern(token)
+		
+		print("Pattern detection results - A: ", can_form_a, ", B: ", can_form_b, ", C: ", can_form_c)
+		
+		# Check if there's enough mana
+		var has_mana = check_mana_available(token.biome_type)
+		print("Has mana for biome ", token.biome_type, ": ", has_mana)
+		
+		# Enable or disable buttons based on pattern availability and mana
+		var sigil_a_button = game.sigil_a_button
+		var sigil_b_button = game.sigil_b_button
+		var sigil_c_button = game.sigil_c_button
+		
+		sigil_a_button.disabled = !(can_form_a && has_mana)
+		sigil_b_button.disabled = !(can_form_b && has_mana)
+		sigil_c_button.disabled = !(can_form_c && has_mana)
+		
+		# Update button appearance
+		sigil_a_button.modulate = Color(1, 1, 1, 1.0 if !sigil_a_button.disabled else 0.5)
+		sigil_b_button.modulate = Color(1, 1, 1, 1.0 if !sigil_b_button.disabled else 0.5)
+		sigil_c_button.modulate = Color(1, 1, 1, 1.0 if !sigil_c_button.disabled else 0.5)
+		
+		print("Button states updated - A: ", !sigil_a_button.disabled, 
+			  ", B: ", !sigil_b_button.disabled, 
+			  ", C: ", !sigil_c_button.disabled)
 
 func disable_all_sigil_buttons():
 	var sigil_a_button = game.sigil_a_button
@@ -519,6 +520,7 @@ func _on_token_clicked(token):
 
 # Main pattern check function
 func check_for_sigil_patterns(token):
+	print("checking for sigil patterns")
 	var patterns_found = []
 	
 	# Check each pattern type
