@@ -2,7 +2,7 @@ class_name PileCardLayout
 extends CardLayout
 
 
-@export var pile_y_offset: float = 0.2
+@export var pile_y_offset: float = 0.0
 
 
 func calculate_card_positions(num_cards: int) -> Array[Vector3]:

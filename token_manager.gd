@@ -547,13 +547,15 @@ func handle_touch(position: Vector2):
 					if multiplayer.is_server():
 						take_off_energy(found_token.global_position)
 						unhighlight_outerglow()
+						# Reset remove mode after attempt
+						is_take_off_mode = false
 					else:
 						print("Sending take off request to server")
 						rpc_id(1, "request_take_off_energy", found_token.global_position)
 						unhighlight_outerglow()
+						# Reset remove mode after attempt
+						is_take_off_mode = false
 					
-					# Reset remove mode after attempt
-					is_take_off_mode = false
 
 				# Unblight Card Effect
 				elif is_unblight_mode and !found_token.is_energy and found_token.is_blighted :
@@ -561,12 +563,14 @@ func handle_touch(position: Vector2):
 					# Handle unblight mode
 					if multiplayer.is_server():
 						unblight_token(found_token.global_position)
+						# Reset blight mode after attempt
+						is_unblight_mode = false
 					else:
 						print("Sending unblight request to server")
 						rpc_id(1, "request_unblight_token", found_token.global_position)
+						# Reset blight mode after attempt
+						is_unblight_mode = false
 					
-					# Reset blight mode after attempt
-					is_unblight_mode = false
 					unhighlight_outerglow()
 
 				# Refresh Energy Card Effect 
@@ -576,11 +580,12 @@ func handle_touch(position: Vector2):
 					if multiplayer.is_server():
 						print("refresh energy 1")
 						refresh_energy(found_token.global_position)
+						is_refresh_energy_mode = false
 					else:
 						print("Sending refresh energy request to server")
 						rpc_id(1, "request_refresh_energy", found_token.global_position)
-					
-					is_refresh_energy_mode = false
+						is_refresh_energy_mode = false
+
 					unhighlight_outerglow()
 
 				# Swap Energy Card Effect
@@ -601,8 +606,8 @@ func handle_touch(position: Vector2):
 								if token != first_swap_token and token.is_energy and first_swap_token.biome_type == token.biome_type:
 									print("outerglow show swap")
 									token.outerglow.show()
-								else:
-									token.outerglow.hide()
+								if token.owner_id == first_swap_token.owner_id :
+									token.outerglow.hide() 
 							
 							print("First token selected for swap: " + str(first_swap_token.global_position))
 						else:
@@ -613,18 +618,20 @@ func handle_touch(position: Vector2):
 						# Make sure we're not selecting the same token
 						if found_token != first_swap_token:
 							# Check that both tokens are in the same biome
-							if found_token.biome_type == first_swap_token.biome_type:
+							if found_token.biome_type == first_swap_token.biome_type and found_token.owner_id != first_swap_token.owner_id:
 								# Perform the swap
 								if multiplayer.is_server():
 									swap_energy_tokens(first_swap_token.global_position, found_token.global_position)
 									unhighlight_outerglow()
+									first_swap_token = null
+									is_swap_energy_mode = false
 								else:
 									print("Sending swap energy request to server")
 									rpc_id(1, "request_swap_energy_tokens", first_swap_token.global_position, found_token.global_position)
 									unhighlight_outerglow()
-								# Reset swap mode after attempt
-								first_swap_token = null
-								is_swap_energy_mode = false
+									first_swap_token = null
+									is_swap_energy_mode = false
+								
 								
 				turn_phase_manager.card_played = true 
 				
