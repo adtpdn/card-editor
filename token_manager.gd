@@ -28,6 +28,7 @@ extends Node
 @onready var point_counter = $"../PointCounter"
 @onready var sigil_manager = $"../SigilManager"
 @onready var turn_phase_manager = $"../TurnPhaseManager"
+@onready var tokens = $"../Tokens"
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -440,7 +441,6 @@ func _on_token_selected():
 	
 	# Update UI to show selection state
 	update_token_ui()
-	debug_token_state()
 	is_plant_extra = false
 
 func _input(event):
@@ -538,7 +538,7 @@ func handle_touch(position: Vector2):
 				print("card on biome : ", card_on_biome)
 				
 				# Take Off Energy 
-				if is_take_off_mode and found_token.is_energy and found_token.biome_type == card_on_biome:
+				if is_take_off_mode and found_token.is_energy :
 					print("Take Off Energy Card Effect")
 					# Handle remove mode
 					if multiplayer.is_server():
@@ -549,9 +549,10 @@ func handle_touch(position: Vector2):
 					
 					# Reset remove mode after attempt
 					is_take_off_mode = false
+					unhighlight_outerglow()
 
 				# Unblight Card Effect
-				elif is_unblight_mode and !found_token.is_energy and found_token.is_blighted and found_token.biome_type == card_on_biome:
+				elif is_unblight_mode and !found_token.is_energy and found_token.is_blighted :
 					print("Unblight Card Effect")
 					# Handle unblight mode
 					if multiplayer.is_server():
@@ -562,9 +563,10 @@ func handle_touch(position: Vector2):
 					
 					# Reset blight mode after attempt
 					is_unblight_mode = false
+					unhighlight_outerglow()
 
 				# Refresh Energy Card Effect 
-				elif is_refresh_energy_mode and found_token.is_energy and found_token.is_blighted and found_token.biome_type == card_on_biome:
+				elif is_refresh_energy_mode and found_token.is_energy and found_token.is_blighted:
 					print("Refresh Energy Card Effet")
 					# Handle refresh energy mode
 					if multiplayer.is_server():
@@ -574,9 +576,10 @@ func handle_touch(position: Vector2):
 						rpc_id(1, "request_refresh_energy", found_token.global_position)
 					
 					is_refresh_energy_mode = false
+					unhighlight_outerglow()
 
 				# Swap Energy Card Effect
-				elif is_swap_energy_mode and found_token.is_energy and found_token.biome_type == card_on_biome:
+				elif is_swap_energy_mode and found_token.is_energy :
 					print("Swap Energy Card Effect - Token Selection")
 					
 					# If this is the first token selection
@@ -586,6 +589,12 @@ func handle_touch(position: Vector2):
 							first_swap_token = found_token
 							# Highlight this token to show it's selected
 							first_swap_token.highlight(true)
+							unhighlight_outerglow()
+							# Highlight other token
+							for token in tokens.get_children():
+								if token != first_swap_token and token.is_energy and first_swap_token.biome_type == token.biome_type:
+									token.outerglow.show()
+							
 							print("First token selected for swap: " + str(first_swap_token.global_position))
 						else:
 							print("You can only select your own token first")
@@ -606,12 +615,19 @@ func handle_touch(position: Vector2):
 								# Reset swap mode after attempt
 								first_swap_token = null
 								is_swap_energy_mode = false
+								unhighlight_outerglow()
 				turn_phase_manager.card_played = true 
 				
 				
 			found_token = null
+			
+			
 			# Always unhighlight after any token action
 			unhighlight_all_token_placements()
+
+func unhighlight_outerglow():
+	for token in tokens.get_children():
+		token.outerglow.hide()
 
 @rpc("any_peer")
 func request_token_placement(token_index: int, position: Vector3, biome_type: int, is_blighted: bool = false):
@@ -962,22 +978,6 @@ func setup_player_token_indicators():
 	# Call initial update
 	update_token_indicators()
 
-func debug_token_state():
-	var player_id = multiplayer.get_unique_id()
-	var tokens = get_player_tokens(player_id)
-	
-	print("==== TOKEN DEBUG INFO ====")
-	print("Player ID: " + str(player_id))
-	print("Token count: " + str(tokens.size()))
-	print("Is token selected: " + str(is_token_selected))
-	print("Is valid turn: " + str(game_state_manager.is_valid_player_turn(player_id)))
-	
-	var token_button = get_parent().get_node("RightUI/TokenButton")
-	if token_button:
-		print("Button disabled: " + str(token_button.disabled))
-		print("Button text: " + token_button.text)
-	print("==========================")
-
 @rpc("any_peer", "call_local")
 func update_token_ui_remote():
 	update_token_ui()
@@ -1054,6 +1054,13 @@ func _on_take_off_energy():
 
 	# Ensure token selection mode is off
 	is_token_selected = false
+	
+	# Highlight our token.is_blighted
+	var player_id = multiplayer.get_unique_id()
+	for token in tokens.get_children():
+		if token.is_energy:
+			token.outerglow.show()
+	
 	unhighlight_all_token_placements()
 	update_token_ui()
 
@@ -1063,6 +1070,13 @@ func _on_unblight_token():
 	
 	# Ensure token selection mode is off
 	is_token_selected = false
+	
+	# Highlight our token.is_blighted
+	var player_id = multiplayer.get_unique_id()
+	for token in tokens.get_children():
+		if !token.is_energy and token.owner_id == player_id and token.is_blighted:
+			token.outerglow.show()
+	
 	unhighlight_all_token_placements()
 	update_token_ui()
 
@@ -1072,6 +1086,13 @@ func _on_refresh_energy():
 	
 	# Ensure token selection mode is off
 	is_token_selected = false
+	
+	# Highlight our token.is_blighted
+	var player_id = multiplayer.get_unique_id()
+	for token in tokens.get_children():
+		if token.is_energy and token.owner_id == player_id:
+			token.outerglow.show()
+	
 	unhighlight_all_token_placements()
 	update_token_ui()
 
@@ -1085,6 +1106,13 @@ func _on_swap_energy():
 	
 	# Ensure token selection mode is off
 	is_token_selected = false
+	
+	# Highlight our token.is_blighted
+	var player_id = multiplayer.get_unique_id()
+	for token in tokens.get_children():
+		if token.is_energy and token.owner_id == player_id:
+			token.outerglow.show()
+	
 	unhighlight_all_token_placements()
 	update_token_ui()
 
@@ -1195,21 +1223,21 @@ func swap_energy_tokens(first_token_position: Vector3, second_token_position: Ve
 	var second_token_owner = second_token.owner_id
 	var first_token_blighted = first_token.is_blighted
 	var second_token_blighted = second_token.is_blighted
+	var first_token_color_index = first_token.player_color_index
+	var second_token_color_index = second_token.player_color_index
 	
 	# Update tokens with swapped data
 	first_token.owner_id = second_token_owner
 	second_token.owner_id = first_token_owner
 	first_token.is_blighted = second_token_blighted
 	second_token.is_blighted = first_token_blighted
-	
-	# Update visual appearance to match new owners and blight states
-	#first_token.update_appearance()
-	#second_token.update_appearance()
+	first_token.player_color_index = second_token_color_index
+	second_token.player_color_index = first_token_color_index
 	
 	# Sync to all clients
 	rpc("sync_energy_token_swap", first_token_position, second_token_position, 
 		first_token_owner, second_token_owner, 
-		first_token_blighted, second_token_blighted)
+		first_token_blighted, second_token_blighted, first_token_color_index, second_token_color_index)
 	
 	# Always unhighlight after swap
 	unhighlight_all_token_placements()
@@ -1217,7 +1245,7 @@ func swap_energy_tokens(first_token_position: Vector3, second_token_position: Ve
 @rpc("any_peer", "call_local")
 func sync_energy_token_swap(first_token_position: Vector3, second_token_position: Vector3, 
 						   first_token_owner: int, second_token_owner: int,
-						   first_token_blighted: bool, second_token_blighted: bool):
+						   first_token_blighted: bool, second_token_blighted: bool, first_token_color_index: int, second_token_color_index: int):
 	print("Syncing token swap between: " + str(first_token_position) + " and " + str(second_token_position))
 	
 	# Find both tokens
@@ -1235,6 +1263,10 @@ func sync_energy_token_swap(first_token_position: Vector3, second_token_position
 	# Swap blight states
 	first_token.is_blighted = second_token_blighted
 	second_token.is_blighted = first_token_blighted
+	
+	# Swap Player Color Index
+	first_token.player_color_index = second_token_color_index
+	second_token.player_color_index = first_token_color_index
 	
 	# Update visual appearance with correct player materials
 	apply_player_material(first_token, second_token_owner)

@@ -67,22 +67,25 @@ script = ExtResource("1_3x582")
 script = ExtResource("2_rgf87")
 
 [node name="CardSlotBiome1" parent="Table/DragController" instance=ExtResource("3_tbve4")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.4516, 2.31562, -0.0238361)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.21456, 0.135766, -0.0238362)
 card_slot_biome = 0
 card_layout_strategy = SubResource("Resource_nrrdr")
 
 [node name="CardSlotBiome2" parent="Table/DragController" instance=ExtResource("3_tbve4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.452, -2.409, 0.029)
+visible = false
 card_slot_biome = 1
 card_layout_strategy = SubResource("Resource_4uqre")
 
 [node name="CardSlotBiome3" parent="Table/DragController" instance=ExtResource("3_tbve4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.452, -2.55, 0.029)
+visible = false
 card_slot_biome = 2
 card_layout_strategy = SubResource("Resource_vlwyr")
 
 [node name="CardSlotBiome4" parent="Table/DragController" instance=ExtResource("3_tbve4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.452, 2.42869, -0.0289999)
+visible = false
 card_slot_biome = 3
 card_layout_strategy = SubResource("Resource_taw8e")
 
