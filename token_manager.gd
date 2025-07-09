@@ -417,8 +417,11 @@ func _on_token_selected():
 			# If this is an extra token (from card effect)
 			if card_manager.active_card != null:
 				for placement in get_parent().get_node("TokenPlacements").get_children():
-					if !placement.is_occupied and placement.accepted_biome == card_manager.active_card.card_on_biome:
-						placement.set_highlight(true)
+					if !placement.is_occupied:
+						#placement.set_highlight(true)
+						print("plant extra")
+						placement.set_biome_placement()
+						placement.set_sigil_placement()
 				
 		
 		elif current_phase == turn_phase_manager.Phase.PLANT_BIOME:
@@ -543,13 +546,14 @@ func handle_touch(position: Vector2):
 					# Handle remove mode
 					if multiplayer.is_server():
 						take_off_energy(found_token.global_position)
+						unhighlight_outerglow()
 					else:
 						print("Sending take off request to server")
 						rpc_id(1, "request_take_off_energy", found_token.global_position)
+						unhighlight_outerglow()
 					
 					# Reset remove mode after attempt
 					is_take_off_mode = false
-					unhighlight_outerglow()
 
 				# Unblight Card Effect
 				elif is_unblight_mode and !found_token.is_energy and found_token.is_blighted :
@@ -589,11 +593,15 @@ func handle_touch(position: Vector2):
 							first_swap_token = found_token
 							# Highlight this token to show it's selected
 							first_swap_token.highlight(true)
-							unhighlight_outerglow()
+							#await unhighlight_outerglow()
+							
 							# Highlight other token
 							for token in tokens.get_children():
 								if token != first_swap_token and token.is_energy and first_swap_token.biome_type == token.biome_type:
+									print("outerglow show swap")
 									token.outerglow.show()
+								else:
+									token.outerglow.hide()
 							
 							print("First token selected for swap: " + str(first_swap_token.global_position))
 						else:
@@ -608,26 +616,51 @@ func handle_touch(position: Vector2):
 								# Perform the swap
 								if multiplayer.is_server():
 									swap_energy_tokens(first_swap_token.global_position, found_token.global_position)
+									unhighlight_outerglow()
 								else:
 									print("Sending swap energy request to server")
 									rpc_id(1, "request_swap_energy_tokens", first_swap_token.global_position, found_token.global_position)
-								
+									unhighlight_outerglow()
 								# Reset swap mode after attempt
 								first_swap_token = null
 								is_swap_energy_mode = false
-								unhighlight_outerglow()
+								
 				turn_phase_manager.card_played = true 
 				
 				
 			found_token = null
 			
-			
 			# Always unhighlight after any token action
 			unhighlight_all_token_placements()
 
 func unhighlight_outerglow():
+	# First handle the local call
+	_unhighlight_outerglow_local()
+	
+	# If server, propagate to all clients
+	if multiplayer.is_server():
+		rpc("_unhighlight_outerglow_local")
+	else:
+		# If client, request server to propagate
+		rpc_id(1, "request_unhighlight_outerglow")
+
+@rpc("any_peer", "call_local")
+func _unhighlight_outerglow_local():
 	for token in tokens.get_children():
 		token.outerglow.hide()
+
+@rpc("any_peer")
+func request_unhighlight_outerglow():
+	if !multiplayer.is_server():
+		return
+		
+	var player_id = multiplayer.get_remote_sender_id()
+	# Validate it's the player's turn or any other validation logic
+	if !game_state_manager.is_valid_player_turn(player_id):
+		return
+		
+	# Propagate to all clients
+	rpc("_unhighlight_outerglow_local")
 
 @rpc("any_peer")
 func request_token_placement(token_index: int, position: Vector3, biome_type: int, is_blighted: bool = false):
@@ -1056,7 +1089,6 @@ func _on_take_off_energy():
 	is_token_selected = false
 	
 	# Highlight our token.is_blighted
-	var player_id = multiplayer.get_unique_id()
 	for token in tokens.get_children():
 		if token.is_energy:
 			token.outerglow.show()
