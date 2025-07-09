@@ -574,6 +574,7 @@ func handle_touch(position: Vector2):
 					print("Refresh Energy Card Effet")
 					# Handle refresh energy mode
 					if multiplayer.is_server():
+						print("refresh energy 1")
 						refresh_energy(found_token.global_position)
 					else:
 						print("Sending refresh energy request to server")
@@ -1122,7 +1123,7 @@ func _on_refresh_energy():
 	# Highlight our token.is_blighted
 	var player_id = multiplayer.get_unique_id()
 	for token in tokens.get_children():
-		if token.is_energy and token.owner_id == player_id:
+		if token.is_energy and token.owner_id == player_id and token.is_blighted:
 			token.outerglow.show()
 	
 	unhighlight_all_token_placements()
@@ -1315,6 +1316,7 @@ func sync_energy_token_swap(first_token_position: Vector3, second_token_position
 
 
 ## Refresh Energy
+@rpc("any_peer")
 func request_refresh_energy(token_position: Vector3):
 	if !multiplayer.is_server():
 		return
@@ -1327,9 +1329,9 @@ func request_refresh_energy(token_position: Vector3):
 	if !game_state_manager.is_valid_player_turn(player_id):
 		return
 	
-	# Process the token removal
+	# Process the token refresh
 	refresh_energy(token_position)
-	print("Server processed token removal at: " + str(token_position))
+	print("Server processed token refresh at: " + str(token_position))
 
 func refresh_energy(token_position: Vector3):
 	# Find the token at this position
