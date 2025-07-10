@@ -212,6 +212,11 @@ func highlight_marker_mesh():
 		if sigil_manager.check_for_sigil_a_pattern(token) or sigil_manager.check_for_sigil_b_pattern(token) or sigil_manager.check_for_sigil_c_pattern(token):
 			token.marker_mesh.show()
 
+func unhighlight_marker_mesh():
+	print("unhighlight marker mesh")
+	for token in tokens.get_children():
+		token.marker_mesh.hide()
+
 # Resets all card data for the sigil activation
 func reset_card_variables():
 	token_manager.is_take_off_mode = false
@@ -538,6 +543,7 @@ func _on_end_phase_button_pressed():
 
 func _on_end_turn_pressed():
 	print("TurnPhaseManager: End turn button pressed")
+	unhighlight_marker_mesh()
 	current_phase = Phase.NONE
 
 func _on_token_placed(player_id, biome, location):

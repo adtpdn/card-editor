@@ -1298,6 +1298,7 @@ func _on_blight_unblight_input():
 		selected_energy_token = null
 		is_sigil_c = false
 		is_blight_mode = false
+		turn_phase_manager.unhighlight_marker_mesh()
 		
 		# Hide Outerglow
 		var tokens = tokens.get_children()
@@ -1401,6 +1402,7 @@ func _on_push_pull_input(_placement_pos):
 		_selected_token = null
 		is_sigil_mode = false
 		token_manager.is_token_selected = false
+		turn_phase_manager.unhighlight_marker_mesh()
 		
 		# Unhighlight the energy token
 		if selected_energy_token:
