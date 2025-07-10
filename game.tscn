@@ -980,6 +980,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.84638, 0, 11.85)
 [node name="sigil_slot_1" parent="." instance=ExtResource("20_qhcbd")]
 
 [node name="sigil_slot_2" parent="." instance=ExtResource("21_f1jbl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0161567, -0.118564, -0.0452033)
 
 [node name="sigil_slot_3" parent="." instance=ExtResource("22_vaj68")]
 

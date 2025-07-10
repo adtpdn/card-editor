@@ -17,6 +17,8 @@ enum Phase {
 @onready var ui_manager = $"../UIManager"
 @onready var sigil_manager = $"../SigilManager"
 @onready var deck = $"../Deck"
+@onready var tokens = $"../Tokens"
+
 
 @onready var end_phase_button = $"../RightUI/EndPhaseButton"
 @onready var token_button = $"../RightUI/TokenButton"
@@ -179,6 +181,7 @@ func enter_current_phase():
 			token_manager.can_plant_on_sigil = false
 			token_button.disabled = true
 			reset_card_variables()
+			highlight_marker_mesh()
 		Phase.END_TURN:
 			print("TurnPhaseManager: Setting up END_TURN phase")
 			if game_state_manager:
@@ -202,6 +205,12 @@ func exit_current_phase():
 			if sigil_manager:
 				sigil_manager.is_sigil_mode = false
 				sigil_manager.is_sigil_c = false
+
+func highlight_marker_mesh():
+	print("highlight marker mesh")
+	for token in tokens.get_children():
+		if sigil_manager.check_for_sigil_a_pattern(token) or sigil_manager.check_for_sigil_b_pattern(token) or sigil_manager.check_for_sigil_c_pattern(token):
+			token.marker_mesh.show()
 
 # Resets all card data for the sigil activation
 func reset_card_variables():

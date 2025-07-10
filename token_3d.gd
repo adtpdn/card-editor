@@ -7,6 +7,7 @@ var biome_type: BiomeType
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 @onready var game = get_node("/root/Game")
 @onready var outerglow = $Outerglow
+@onready var marker_mesh = $MarkerMesh
 
 
 var player_color_index: int = -1

@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://dfjq1voh17um3"]
+[gd_scene load_steps=13 format=3 uid="uid://dfjq1voh17um3"]
 
 [ext_resource type="Script" uid="uid://dw7af08d83l31" path="res://token_3d.gd" id="1_18jwr"]
 [ext_resource type="Shader" uid="uid://bsxqdo8pk5cno" path="res://assets/materials/shaders/token_3d.gdshader" id="2_43hjs"]
@@ -20,6 +20,16 @@ render_priority = 0
 shader = ExtResource("2_43hjs")
 shader_parameter/shine_color = Color(0, 1, 1, 1)
 shader_parameter/shine_speed = 1.5
+shader_parameter/smoothness = 0.5
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_43hjs"]
+size = Vector2(0.2, 0.2)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_noijm"]
+render_priority = 0
+shader = ExtResource("2_43hjs")
+shader_parameter/shine_color = Color(0.737255, 0.694118, 0.454902, 0.2)
+shader_parameter/shine_speed = 1.0
 shader_parameter/smoothness = 0.5
 
 [sub_resource type="Animation" id="Animation_43hjs"]
@@ -142,6 +152,12 @@ transform = Transform3D(1, -4.65661e-10, 0, 2.98023e-08, 1, 0, 0, 0, 1, 0, 1.030
 visible = false
 mesh = SubResource("TorusMesh_gknmk")
 surface_material_override/0 = SubResource("ShaderMaterial_vfgd4")
+
+[node name="MarkerMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(-4.71428, 0, 4.71428, 0, 1, 0, -4.71428, 0, -4.71428, 0, -0.846843, 0)
+visible = false
+mesh = SubResource("PlaneMesh_43hjs")
+surface_material_override/0 = SubResource("ShaderMaterial_noijm")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {
