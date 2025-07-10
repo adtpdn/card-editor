@@ -18,6 +18,7 @@ signal sigil_mode_changed(enabled)
 @onready var deck = $"../Deck"
 @onready var turn_phase_manager = $"../TurnPhaseManager"
 @onready var tokens = $"../Tokens"
+@onready var pop_up_sigil = $"../PopUpSigil"
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -36,6 +37,8 @@ var is_blight_mode = false
 var is_sigil_a = false
 var is_sigil_b = false
 var is_sigil_c := false
+
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization
@@ -1031,18 +1034,20 @@ func get_current_round() -> int:
 # Sigil Effect Implementation
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-# UI for Sigil A and B effect (push/pull tokens)
+# Updated function for push/pull UI
 func show_pull_push_ui(energy_token, is_other_player: bool):
 	print("\n=== SHOW PUSH OR PULL UI ===")
 	print("Energy token position: ", energy_token.global_position)
 	print("Is targeting other player tokens: ", is_other_player)
 
-	# Create UI to select which token to push/pull
-	var dialog = AcceptDialog.new()
-	dialog.title = "Select Token to Push/Pull"
-	dialog.dialog_text = "Click on a token to push or pull."
-	game.add_child(dialog)
-	dialog.popup_centered()
+	# Use the existing PopUpSigil node
+	var instruction_text = ""
+	if is_other_player:
+		instruction_text = "Select another player's token to Push or Pull"
+	else:
+		instruction_text = "Select your own token to Push or Pull"
+	
+	pop_up_sigil.show_instruction_label(instruction_text)
 	
 	# Set game to token selection mode for push/pull
 	token_manager.is_token_selected = false  # Turn off normal token placement mode
@@ -1073,34 +1078,28 @@ func show_pull_push_ui(energy_token, is_other_player: bool):
 				highlighted_count += 1
 	
 	print("Highlighted ", highlighted_count, " tokens for selection")
-	show_push_pull_direction_ui(energy_token)
 	print("===========================\n")
 
 
-# UI for Sigil C effect (blight/unblight)
+# Updated function for blight/unblight UI
 func show_blight_unblight_ui(energy_token):
-	# Token is still energy
-	# Create UI to select which token to blight/unblight
-	var dialog = AcceptDialog.new()
-	dialog.title = "Select Token to Blight/Unblight"
-	dialog.dialog_text = "Click on a token to blight an opponent's token or unblight your own."
-	game.add_child(dialog)
-	dialog.popup_centered()
+	# Use the existing PopUpSigil node
+	var instruction_text = "Select a token to Blight (opponent's) or Unblight (your own)"
+	pop_up_sigil.show_instruction_label(instruction_text)
 	
 	# Set game to token selection mode for blight/unblight
 	token_manager.is_token_selected = false  # Turn off normal token placement mode
 	is_blight_mode = true
 	
 	# Showing outerglow for each token to select
-	var tokens = tokens.get_children()
-	for token in tokens:
+	var tokens_list = tokens.get_children()
+	for token in tokens_list:
 		if token.owner_id != energy_token.owner_id and !token.is_energy and !token.is_blighted and token.biome_type == energy_token.biome_type:
 			token.outerglow.show()
 		if token.owner_id == energy_token.owner_id and !token.is_energy and token.is_blighted and token.biome_type == energy_token.biome_type:
 			print("own token blight")
 			token.outerglow.show()
-	
-	show_blight_unblight_direction_ui(energy_token)
+
 
 func show_blight_unblight_direction_ui(energy_token):
 	await signal_other_player_token
@@ -1291,6 +1290,9 @@ func _on_blight_unblight_input():
 		var is_blight_status = target_token.is_blighted
 		_selected_token.set_blighted(!is_blight_status)
 		
+		# Clear the instruction label at the end of the operation
+		pop_up_sigil.hide_panel()
+		
 		_selected_token = null
 		is_sigil_mode = false
 		token_manager.is_token_selected = false
@@ -1397,6 +1399,9 @@ func _on_push_pull_input(_placement_pos):
 		var tokens_list = tokens.get_children()
 		for token in tokens_list:
 			token.outerglow.hide()
+		
+		# Clear the instruction label at the end of the operation
+		pop_up_sigil.hide_panel()
 		
 		# Reset state
 		_selected_token = null

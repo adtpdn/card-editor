@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=4 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=31 format=4 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://game.gd" id="1_0rb8f"]
 [ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://turn_phase_manager.gd" id="2_e36ub"]
@@ -18,6 +18,7 @@
 [ext_resource type="Material" uid="uid://c6acp7vu62y16" path="res://assets/meshes/corner_slice_2_mat.tres" id="12_hb5m1"]
 [ext_resource type="Material" uid="uid://dlp8ve03x2jgc" path="res://assets/meshes/corner_slice_3_mat.tres" id="13_x5p1p"]
 [ext_resource type="Material" uid="uid://c7ugxmqk3hnld" path="res://assets/meshes/corner_slice_4_mat.tres" id="14_qhcbd"]
+[ext_resource type="PackedScene" uid="uid://bchy4wmtwdsy" path="res://scenes/pop_up_sigil.tscn" id="19_f1jbl"]
 [ext_resource type="PackedScene" uid="uid://dcowk0qhpovrj" path="res://assets/meshes/sigil_slot_1.glb" id="20_qhcbd"]
 [ext_resource type="PackedScene" uid="uid://ckc5fe52hxbo7" path="res://assets/meshes/sigil_slot_2.glb" id="21_f1jbl"]
 [ext_resource type="PackedScene" uid="uid://cogovef2ukws3" path="res://card_deck/deck.tscn" id="21_hb5m1"]
@@ -749,6 +750,9 @@ offset_right = 45.0
 offset_bottom = 69.0
 grow_horizontal = 2
 text = "Reset"
+
+[node name="PopUpSigil" parent="." instance=ExtResource("19_f1jbl")]
+visible = false
 
 [node name="RightUI" type="Control" parent="."]
 layout_mode = 3

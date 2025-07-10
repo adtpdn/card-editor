@@ -1,0 +1,39 @@
+[gd_scene load_steps=2 format=3 uid="uid://bchy4wmtwdsy"]
+
+[ext_resource type="Script" uid="uid://copi64l3fv7vm" path="res://scenes/pop_up_sigil.gd" id="1_qfklp"]
+
+[node name="PopUpSigil" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+script = ExtResource("1_qfklp")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -132.0
+offset_right = 132.0
+offset_bottom = 96.0
+grow_horizontal = 2
+
+[node name="Label" type="Label" parent="Panel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -130.0
+offset_right = 133.0
+offset_bottom = 98.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 14
+text = "show_instruction_label"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
