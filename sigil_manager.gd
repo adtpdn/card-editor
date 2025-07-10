@@ -171,263 +171,291 @@ func _on_sigil_c_pressed():
 				# Use RPC to sync the blighted state to all clients
 				game.rpc("sync_token_blight", selected_energy_token.global_position, true)
 
-func debug_energy_token_ids():
-	print("\n=== DEBUG ENERGY TOKEN IDs ===")
-	
-	var biomes = [BiomeType.FOREST, BiomeType.WATER, BiomeType.MOUNTAIN, BiomeType.DESERT]
-	
-	for biome_type in biomes:
-		print("\n-- Biome ", biome_type, " --")
-		
-		# Get all energy tokens in this biome
-		var tokens = []
-		for token in game.get_node("Tokens").get_children():
-			if token.biome_type == biome_type and token.is_energy:
-				tokens.append(token)
-		
-		if tokens.size() == 0:
-			print("No energy tokens in this biome")
-			continue
-		
-		# Sort tokens by position (for consistent ID assignment)
-		tokens.sort_custom(func(a, b): 
-			if abs(a.global_position.z - b.global_position.z) > 0.1:
-				return a.global_position.z < b.global_position.z
-			return a.global_position.x < b.global_position.x
-		)
-		
-		# Print each token's position and calculated ID
-		for i in range(tokens.size()):
-			var token = tokens[i]
-			var id = i + 1  # ID is index + 1
-			print("Token at ", token.global_position, " has ID: ", id, 
-				 ", Blighted: ", token.is_blighted, 
-				 ", Owner: ", token.owner_id)
-	
-	print("==============================\n")
-
-func debug_all_sigil_patterns():
-	print("\n====== DEBUGGING ALL SIGIL PATTERNS ======")
-	
-	# Debug all biomes
-	for biome_type in [BiomeType.FOREST, BiomeType.WATER, BiomeType.MOUNTAIN, BiomeType.DESERT]:
-		print("\n== BIOME ", biome_type, " ==")
-		debug_placements_in_biome(biome_type)
-		
-		# Find all energy tokens in this biome
-		var energy_tokens = []
-		for token in game.get_node("Tokens").get_children():
-			if token.biome_type == biome_type && token.is_energy && !token.is_blighted:
-				energy_tokens.append(token)
-		
-		print("Found ", energy_tokens.size(), " non-blighted energy tokens in biome ", biome_type)
-		
-		# Check each token for patterns
-		for token in energy_tokens:
-			var placement = token_manager.get_token_placement_at_position(token.global_position)
-			if !placement or placement.place_id <= 0:
-				continue
-				
-			print("\nChecking token at place_id ", placement.place_id)
-			
-			var can_form_a = check_for_sigil_a_pattern(token)
-			var can_form_b = check_for_sigil_b_pattern(token)
-			var can_form_c = check_for_sigil_c_pattern(token)
-			
-			print("Token at place_id ", placement.place_id, " can form patterns: A=", can_form_a, ", B=", can_form_b, ", C=", can_form_c)
-	
-	print("\n=======================================")
-
-func debug_placements_in_biome(biome_type: int):
-	print("\n=== DEBUG PLACEMENTS IN BIOME ", biome_type, " ===")
-	
-	var placements = []
-	for p in get_parent().get_node("TokenPlacements").get_children():
-		if p.accepted_biome == biome_type:
-			placements.append(p)
-	
-	print("Total placements in biome: ", placements.size())
-	
-	# Group placements by place_id
-	var placements_by_id = {}
-	for p in placements:
-		var id = p.place_id
-		if !placements_by_id.has(id):
-			placements_by_id[id] = []
-		placements_by_id[id].append(p)
-	
-	# Check for duplicate place_ids
-	for id in placements_by_id.keys():
-		if placements_by_id[id].size() > 1:
-			print("WARNING: Found ", placements_by_id[id].size(), " placements with place_id ", id)
-	
-	# Print details for each placement by place_id
-	for id in range(1, 8):  # Assuming place_ids 1-7
-		if !placements_by_id.has(id):
-			print("No placement with place_id ", id)
-			continue
-			
-		for p in placements_by_id[id]:
-			var token_info = "none"
-			if p.is_occupied and p.current_token:
-				var token = p.current_token
-				token_info = "Owner=" + str(token.owner_id) + ", Energy=" + str(token.is_energy) + ", Blighted=" + str(token.is_blighted)
-			
-			print("Placement with place_id ", id, 
-				  ": Position=", p.global_position, 
-				  ", Occupied=", p.is_occupied,
-				  ", Token: ", token_info)
-	
-	print("==============================\n")
-
-func debug_selected_token_patterns():
-	if selected_energy_token:
-		print("\n==== DEBUGGING SELECTED TOKEN PATTERNS ====")
-		print("Selected token at: ", selected_energy_token.global_position)
-		
-		var placement = token_manager.get_token_placement_at_position(selected_energy_token.global_position)
-		if placement:
-			print("Token is on placement with place_id: ", placement.place_id)
-		else:
-			print("ERROR: No placement found for token")
-			return
-			
-		print("Biome: ", selected_energy_token.biome_type)
-		print("Is Energy: ", selected_energy_token.is_energy)
-		print("Is Blighted: ", selected_energy_token.is_blighted)
-		
-		# Debug the placements in this biome
-		debug_placements_in_biome(selected_energy_token.biome_type)
-		
-		# Check patterns
-		var can_form_a = check_for_sigil_a_pattern(selected_energy_token)
-		var can_form_b = check_for_sigil_b_pattern(selected_energy_token)
-		var can_form_c = check_for_sigil_c_pattern(selected_energy_token)
-		
-		print("\nPattern results:")
-		print("Can form Sigil A: ", can_form_a)
-		print("Can form Sigil B: ", can_form_b)
-		print("Can form Sigil C: ", can_form_c)
-		
-		# Check mana
-		var has_mana = check_mana_available(selected_energy_token.biome_type)
-		print("Has mana: ", has_mana)
-		
-		print("=========================================")
-	else:
-		print("No energy token selected for debugging")
-
-# Debug function to check token movement
-func debug_token_movement(source_token, target_token, target_placement=null):
-	print("\n==== DEBUG TOKEN MOVEMENT ====")
-	
-	print("BEFORE MOVEMENT:")
-	print("Source token (selected energy token):")
-	print("  Position: ", source_token.global_position)
-	print("  Owner: ", source_token.owner_id)
-	print("  Is Energy: ", source_token.is_energy)
-	
-	print("Target token (token to be pushed/pulled):")
-	print("  Position: ", target_token.global_position)
-	print("  Owner: ", target_token.owner_id)
-	print("  Is Energy: ", target_token.is_energy)
-	
-	if target_placement:
-		print("Target placement (where target token should move to):")
-		print("  Position: ", target_placement.global_position)
-		print("  Is Occupied: ", target_placement.is_occupied)
-		if target_placement.is_occupied:
-			print("  Current token: ", target_placement.current_token)
-	
-	# Get all tokens to check for duplicates
-	var all_tokens = get_parent().get_node("Tokens").get_children()
-	print("Total tokens in scene before: ", all_tokens.size())
-	
-	# Get source token placement
-	var source_placement = token_manager.get_token_placement_at_position(source_token.global_position)
-	if source_placement:
-		print("Source token placement place_id: ", source_placement.place_id)
-	
-	# Get target token placement
-	var target_token_placement = token_manager.get_token_placement_at_position(target_token.global_position)
-	if target_token_placement:
-		print("Target token placement place_id: ", target_token_placement.place_id)
-	
-	print("==============================")
-
-func debug_all_energy_tokens():
-	print("\n=== DEBUG ALL ENERGY TOKENS ===")
-	var tokens_by_biome = {
-		BiomeType.FOREST: [],
-		BiomeType.WATER: [],
-		BiomeType.MOUNTAIN: [],
-		BiomeType.DESERT: []
-	}
-	
-	# Group tokens by biome
-	for token in game.get_node("Tokens").get_children():
-		if token.is_energy:
-			tokens_by_biome[token.biome_type].append(token)
-	
-	# Output details for each biome
-	for biome in tokens_by_biome.keys():
-		var biome_tokens = tokens_by_biome[biome]
-		print("\nBiome ", biome, " has ", biome_tokens.size(), " energy tokens:")
-		
-		# Sort tokens for consistent output
-		biome_tokens.sort_custom(func(a, b): 
-			if abs(a.global_position.z - b.global_position.z) > 0.1:
-				return a.global_position.z < b.global_position.z
-			return a.global_position.x < b.global_position.x
-		)
-		
-		# Output info for each token
-		for i in range(biome_tokens.size()):
-			var token = biome_tokens[i]
-			print("  Token ", i+1, ": Position=", token.global_position, 
-				  ", Blighted=", token.is_blighted, 
-				  ", Owner=", token.owner_id)
-			
-			# Try to get its placement
-			var placement = token_manager.get_token_placement_at_position(token.global_position)
-			if placement:
-				print("    Placement: place_id=", placement.place_id, 
-					  ", index=", placement.get_index())
-	
-	print("==============================\n")
+#func debug_energy_token_ids():
+	#print("\n=== DEBUG ENERGY TOKEN IDs ===")
+	#
+	#var biomes = [BiomeType.FOREST, BiomeType.WATER, BiomeType.MOUNTAIN, BiomeType.DESERT]
+	#
+	#for biome_type in biomes:
+		#print("\n-- Biome ", biome_type, " --")
+		#
+		## Get all energy tokens in this biome
+		#var tokens = []
+		#for token in game.get_node("Tokens").get_children():
+			#if token.biome_type == biome_type and token.is_energy:
+				#tokens.append(token)
+		#
+		#if tokens.size() == 0:
+			#print("No energy tokens in this biome")
+			#continue
+		#
+		## Sort tokens by position (for consistent ID assignment)
+		#tokens.sort_custom(func(a, b): 
+			#if abs(a.global_position.z - b.global_position.z) > 0.1:
+				#return a.global_position.z < b.global_position.z
+			#return a.global_position.x < b.global_position.x
+		#)
+		#
+		## Print each token's position and calculated ID
+		#for i in range(tokens.size()):
+			#var token = tokens[i]
+			#var id = i + 1  # ID is index + 1
+			#print("Token at ", token.global_position, " has ID: ", id, 
+				 #", Blighted: ", token.is_blighted, 
+				 #", Owner: ", token.owner_id)
+	#
+	#print("==============================\n")
+#
+#func debug_all_sigil_patterns():
+	#print("\n====== DEBUGGING ALL SIGIL PATTERNS ======")
+	#
+	## Debug all biomes
+	#for biome_type in [BiomeType.FOREST, BiomeType.WATER, BiomeType.MOUNTAIN, BiomeType.DESERT]:
+		#print("\n== BIOME ", biome_type, " ==")
+		#debug_placements_in_biome(biome_type)
+		#
+		## Find all energy tokens in this biome
+		#var energy_tokens = []
+		#for token in game.get_node("Tokens").get_children():
+			#if token.biome_type == biome_type && token.is_energy && !token.is_blighted:
+				#energy_tokens.append(token)
+		#
+		#print("Found ", energy_tokens.size(), " non-blighted energy tokens in biome ", biome_type)
+		#
+		## Check each token for patterns
+		#for token in energy_tokens:
+			#var placement = token_manager.get_token_placement_at_position(token.global_position)
+			#if !placement or placement.place_id <= 0:
+				#continue
+				#
+			#print("\nChecking token at place_id ", placement.place_id)
+			#
+			#var can_form_a = check_for_sigil_a_pattern(token)
+			#var can_form_b = check_for_sigil_b_pattern(token)
+			#var can_form_c = check_for_sigil_c_pattern(token)
+			#
+			#print("Token at place_id ", placement.place_id, " can form patterns: A=", can_form_a, ", B=", can_form_b, ", C=", can_form_c)
+	#
+	#print("\n=======================================")
+#
+#func debug_placements_in_biome(biome_type: int):
+	#print("\n=== DEBUG PLACEMENTS IN BIOME ", biome_type, " ===")
+	#
+	#var placements = []
+	#for p in get_parent().get_node("TokenPlacements").get_children():
+		#if p.accepted_biome == biome_type:
+			#placements.append(p)
+	#
+	#print("Total placements in biome: ", placements.size())
+	#
+	## Group placements by place_id
+	#var placements_by_id = {}
+	#for p in placements:
+		#var id = p.place_id
+		#if !placements_by_id.has(id):
+			#placements_by_id[id] = []
+		#placements_by_id[id].append(p)
+	#
+	## Check for duplicate place_ids
+	#for id in placements_by_id.keys():
+		#if placements_by_id[id].size() > 1:
+			#print("WARNING: Found ", placements_by_id[id].size(), " placements with place_id ", id)
+	#
+	## Print details for each placement by place_id
+	#for id in range(1, 8):  # Assuming place_ids 1-7
+		#if !placements_by_id.has(id):
+			#print("No placement with place_id ", id)
+			#continue
+			#
+		#for p in placements_by_id[id]:
+			#var token_info = "none"
+			#if p.is_occupied and p.current_token:
+				#var token = p.current_token
+				#token_info = "Owner=" + str(token.owner_id) + ", Energy=" + str(token.is_energy) + ", Blighted=" + str(token.is_blighted)
+			#
+			#print("Placement with place_id ", id, 
+				  #": Position=", p.global_position, 
+				  #", Occupied=", p.is_occupied,
+				  #", Token: ", token_info)
+	#
+	#print("==============================\n")
+#
+#func debug_selected_token_patterns():
+	#if selected_energy_token:
+		#print("\n==== DEBUGGING SELECTED TOKEN PATTERNS ====")
+		#print("Selected token at: ", selected_energy_token.global_position)
+		#
+		#var placement = token_manager.get_token_placement_at_position(selected_energy_token.global_position)
+		#if placement:
+			#print("Token is on placement with place_id: ", placement.place_id)
+		#else:
+			#print("ERROR: No placement found for token")
+			#return
+			#
+		#print("Biome: ", selected_energy_token.biome_type)
+		#print("Is Energy: ", selected_energy_token.is_energy)
+		#print("Is Blighted: ", selected_energy_token.is_blighted)
+		#
+		## Debug the placements in this biome
+		#debug_placements_in_biome(selected_energy_token.biome_type)
+		#
+		## Check patterns
+		#var can_form_a = check_for_sigil_a_pattern(selected_energy_token)
+		#var can_form_b = check_for_sigil_b_pattern(selected_energy_token)
+		#var can_form_c = check_for_sigil_c_pattern(selected_energy_token)
+		#
+		#print("\nPattern results:")
+		#print("Can form Sigil A: ", can_form_a)
+		#print("Can form Sigil B: ", can_form_b)
+		#print("Can form Sigil C: ", can_form_c)
+		#
+		## Check mana
+		#var has_mana = check_mana_available(selected_energy_token.biome_type)
+		#print("Has mana: ", has_mana)
+		#
+		#print("=========================================")
+	#else:
+		#print("No energy token selected for debugging")
+#
+## Debug function to check token movement
+#func debug_token_movement(source_token, target_token, target_placement=null):
+	#print("\n==== DEBUG TOKEN MOVEMENT ====")
+	#
+	#print("BEFORE MOVEMENT:")
+	#print("Source token (selected energy token):")
+	#print("  Position: ", source_token.global_position)
+	#print("  Owner: ", source_token.owner_id)
+	#print("  Is Energy: ", source_token.is_energy)
+	#
+	#print("Target token (token to be pushed/pulled):")
+	#print("  Position: ", target_token.global_position)
+	#print("  Owner: ", target_token.owner_id)
+	#print("  Is Energy: ", target_token.is_energy)
+	#
+	#if target_placement:
+		#print("Target placement (where target token should move to):")
+		#print("  Position: ", target_placement.global_position)
+		#print("  Is Occupied: ", target_placement.is_occupied)
+		#if target_placement.is_occupied:
+			#print("  Current token: ", target_placement.current_token)
+	#
+	## Get all tokens to check for duplicates
+	#var all_tokens = get_parent().get_node("Tokens").get_children()
+	#print("Total tokens in scene before: ", all_tokens.size())
+	#
+	## Get source token placement
+	#var source_placement = token_manager.get_token_placement_at_position(source_token.global_position)
+	#if source_placement:
+		#print("Source token placement place_id: ", source_placement.place_id)
+	#
+	## Get target token placement
+	#var target_token_placement = token_manager.get_token_placement_at_position(target_token.global_position)
+	#if target_token_placement:
+		#print("Target token placement place_id: ", target_token_placement.place_id)
+	#
+	#print("==============================")
+#
+#func debug_all_energy_tokens():
+	#print("\n=== DEBUG ALL ENERGY TOKENS ===")
+	#var tokens_by_biome = {
+		#BiomeType.FOREST: [],
+		#BiomeType.WATER: [],
+		#BiomeType.MOUNTAIN: [],
+		#BiomeType.DESERT: []
+	#}
+	#
+	## Group tokens by biome
+	#for token in game.get_node("Tokens").get_children():
+		#if token.is_energy:
+			#tokens_by_biome[token.biome_type].append(token)
+	#
+	## Output details for each biome
+	#for biome in tokens_by_biome.keys():
+		#var biome_tokens = tokens_by_biome[biome]
+		#print("\nBiome ", biome, " has ", biome_tokens.size(), " energy tokens:")
+		#
+		## Sort tokens for consistent output
+		#biome_tokens.sort_custom(func(a, b): 
+			#if abs(a.global_position.z - b.global_position.z) > 0.1:
+				#return a.global_position.z < b.global_position.z
+			#return a.global_position.x < b.global_position.x
+		#)
+		#
+		## Output info for each token
+		#for i in range(biome_tokens.size()):
+			#var token = biome_tokens[i]
+			#print("  Token ", i+1, ": Position=", token.global_position, 
+				  #", Blighted=", token.is_blighted, 
+				  #", Owner=", token.owner_id)
+			#
+			## Try to get its placement
+			#var placement = token_manager.get_token_placement_at_position(token.global_position)
+			#if placement:
+				#print("    Placement: place_id=", placement.place_id, 
+					  #", index=", placement.get_index())
+	#
+	#print("==============================\n")
 
 func update_sigil_button_states(token):
 	if turn_phase_manager.current_phase == 2:
-		print("\n===== UPDATE SIGIL BUTTON STATES =====")
+		print("\n=== SHOWING SIGIL OPTIONS MENU ===")
+	
+		# Create popup menu
+		var popup = PopupMenu.new()
+		popup.name = "SigilOptionsPopup"
+		game.add_child(popup)
 		
-		# Check patterns without the debug spam
+		# Check for available patterns
 		var can_form_a = check_for_sigil_a_pattern(token)
 		var can_form_b = check_for_sigil_b_pattern(token)
 		var can_form_c = check_for_sigil_c_pattern(token)
 		
-		print("Pattern detection results - A: ", can_form_a, ", B: ", can_form_b, ", C: ", can_form_c)
-		
 		# Check if there's enough mana
 		var has_mana = check_mana_available(token.biome_type)
-		print("Has mana for biome ", token.biome_type, ": ", has_mana)
 		
-		# Enable or disable buttons based on pattern availability and mana
-		var sigil_a_button = game.sigil_a_button
-		var sigil_b_button = game.sigil_b_button
-		var sigil_c_button = game.sigil_c_button
+		var added_items = 0
 		
-		sigil_a_button.disabled = !(can_form_a && has_mana)
-		sigil_b_button.disabled = !(can_form_b && has_mana)
-		sigil_c_button.disabled = !(can_form_c && has_mana)
+		# Add available pattern options
+		if can_form_a && has_mana:
+			popup.add_item("Sigil A", SigilPattern.SIGIL_A)
+			added_items += 1
 		
-		# Update button appearance
-		sigil_a_button.modulate = Color(1, 1, 1, 1.0 if !sigil_a_button.disabled else 0.5)
-		sigil_b_button.modulate = Color(1, 1, 1, 1.0 if !sigil_b_button.disabled else 0.5)
-		sigil_c_button.modulate = Color(1, 1, 1, 1.0 if !sigil_c_button.disabled else 0.5)
+		if can_form_b && has_mana:
+			popup.add_item("Sigil B", SigilPattern.SIGIL_B)
+			added_items += 1
 		
-		print("Button states updated - A: ", !sigil_a_button.disabled, 
-			  ", B: ", !sigil_b_button.disabled, 
-			  ", C: ", !sigil_c_button.disabled)
+		if can_form_c && has_mana:
+			popup.add_item("Sigil C", SigilPattern.SIGIL_C)
+			added_items += 1
+		
+		# If no options are available, show a message
+		if added_items == 0:
+			var dialog = AcceptDialog.new()
+			dialog.title = "No Sigil Patterns Available"
+			dialog.dialog_text = "No valid sigil patterns can be formed or not enough mana."
+			game.add_child(dialog)
+			dialog.popup_centered()
+			return
+		
+		# Connect signal to the appropriate sigil handler based on selection
+		popup.id_pressed.connect(func(id):
+			match id:
+				SigilPattern.SIGIL_A:
+					_on_sigil_a_pressed()
+				SigilPattern.SIGIL_B:
+					_on_sigil_b_pressed()
+				SigilPattern.SIGIL_C:
+					_on_sigil_c_pressed()
+		)
+		
+		# Show popup at mouse position
+		var mouse_pos = get_viewport().get_mouse_position()
+		popup.position = mouse_pos
+		popup.popup()
+		
+		print("Added " + str(added_items) + " sigil options to menu")
+		print("===========================\n")
+
 
 func disable_all_sigil_buttons():
 	var sigil_a_button = game.sigil_a_button
@@ -1066,25 +1094,23 @@ func show_blight_unblight_ui(energy_token):
 	# Showing outerglow for each token to select
 	var tokens = tokens.get_children()
 	for token in tokens:
-		if token.owner_id != energy_token.owner_id and !token.is_energy and !token.is_blighted:
+		if token.owner_id != energy_token.owner_id and !token.is_energy and !token.is_blighted and token.biome_type == energy_token.biome_type:
 			token.outerglow.show()
-		if token.owner_id == energy_token.owner_id and !token.is_energy and token.is_blighted:
+		if token.owner_id == energy_token.owner_id and !token.is_energy and token.is_blighted and token.biome_type == energy_token.biome_type:
 			print("own token blight")
 			token.outerglow.show()
 	
 	show_blight_unblight_direction_ui(energy_token)
 
 func show_blight_unblight_direction_ui(energy_token):
-	print("show blight and unblight direction ui")
-	var popup = PopupMenu.new()
-	popup.name = "DirectionSelectionPopup"
-	game.add_child(popup)
-
 	await signal_other_player_token
 	var target_token = _selected_token
-
-	# Add direction options
 	if target_token.biome_type == energy_token.biome_type :
+		print("show blight and unblight direction ui")
+		var popup = PopupMenu.new()
+		popup.name = "DirectionSelectionPopup"
+		game.add_child(popup)
+		# Add direction options
 		#print("show option blight and unblight")
 		#print("target token : ", target_token)
 		#print("target token owner id : ", target_token.owner_id)
@@ -1096,13 +1122,13 @@ func show_blight_unblight_direction_ui(energy_token):
 		else: 
 			return
 
-	# Connect signal
-	popup.id_pressed.connect(func(id): perform_blight_unblight(energy_token, target_token, id == 0))
+		# Connect signal
+		popup.id_pressed.connect(func(id): perform_blight_unblight(energy_token, target_token, id == 0))
 
-	# Show popup at mouse position
-	var mouse_pos = get_viewport().get_mouse_position()
-	popup.position = mouse_pos
-	popup.popup()
+		# Show popup at mouse position
+		var mouse_pos = get_viewport().get_mouse_position()
+		popup.position = mouse_pos
+		popup.popup()
 
 # Show UI for push/pull direction selection
 func show_push_pull_direction_ui(energy_token):
@@ -1118,9 +1144,6 @@ func show_push_pull_direction_ui(energy_token):
 	print("Energy token: ", energy_token.global_position)
 	print("Target token: ", target_token.global_position)
 	
-	# Debug token movement state before making decisions
-	debug_token_movement(energy_token, target_token)
-	
 	# Checking if the true then sigil a active (other player's token)
 	if _selected_token_is_other_player:
 		if target_token.owner_id == energy_token.owner_id:
@@ -1132,7 +1155,7 @@ func show_push_pull_direction_ui(energy_token):
 			print("ERROR: Sigil B cannot target other player's tokens")
 			return
 	
-	# Add direction options
+	# Add direction options based on biome relationship
 	if target_token.biome_type == energy_token.biome_type:
 		popup.add_item("Push Away", 0)
 		print("Push option added (same biome)")

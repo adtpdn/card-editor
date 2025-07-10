@@ -472,6 +472,15 @@ func handle_touch(position: Vector2):
 			var sigil_manager = get_parent().get_node("SigilManager")
 			if sigil_manager.handle_sigil_input(position):
 				return  # Input was handled by SigilManager.
+	else:
+		# Check if it's the player's turn and they are the one in sigil mode
+		if game.game_state_manager.is_valid_player_turn(player_id) and game.sigil_manager.selected_energy_token != null and game.sigil_manager.selected_energy_token.owner_id == player_id:
+			print("Selected token : ", game.sigil_manager._selected_token)
+			if game.sigil_manager._selected_token and !game.sigil_manager.is_sigil_c:
+				game.sigil_manager.show_push_pull_direction_ui(game.sigil_manager.selected_energy_token)
+			elif game.sigil_manager._selected_token and game.sigil_manager.is_sigil_c:
+				print("sigi c 1")
+				game.sigil_manager.show_blight_unblight_direction_ui(game.sigil_manager.selected_energy_token)
 	
 	# Continue with regular token placement logic...
 	var camera = get_parent().get_node("Camera3D")
