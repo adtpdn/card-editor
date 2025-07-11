@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=4 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=36 format=4 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://game.gd" id="1_0rb8f"]
 [ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://turn_phase_manager.gd" id="2_e36ub"]
@@ -18,14 +18,17 @@
 [ext_resource type="Material" uid="uid://c6acp7vu62y16" path="res://assets/meshes/corner_slice_2_mat.tres" id="12_hb5m1"]
 [ext_resource type="Material" uid="uid://dlp8ve03x2jgc" path="res://assets/meshes/corner_slice_3_mat.tres" id="13_x5p1p"]
 [ext_resource type="Material" uid="uid://c7ugxmqk3hnld" path="res://assets/meshes/corner_slice_4_mat.tres" id="14_qhcbd"]
-[ext_resource type="PackedScene" uid="uid://bchy4wmtwdsy" path="res://scenes/pop_up_sigil.tscn" id="19_f1jbl"]
+[ext_resource type="PackedScene" uid="uid://bchy4wmtwdsy" path="res://scenes/pop_up.tscn" id="19_f1jbl"]
 [ext_resource type="PackedScene" uid="uid://dcowk0qhpovrj" path="res://assets/meshes/sigil_slot_1.glb" id="20_qhcbd"]
 [ext_resource type="PackedScene" uid="uid://ckc5fe52hxbo7" path="res://assets/meshes/sigil_slot_2.glb" id="21_f1jbl"]
 [ext_resource type="PackedScene" uid="uid://cogovef2ukws3" path="res://card_deck/deck.tscn" id="21_hb5m1"]
 [ext_resource type="PackedScene" uid="uid://dy1jahwg10ltr" path="res://assets/meshes/sigil_slot_3.glb" id="22_vaj68"]
 [ext_resource type="PackedScene" uid="uid://c75jlfpiagn3a" path="res://assets/meshes/sigil_slot_4.glb" id="23_i2p71"]
-[ext_resource type="Script" uid="uid://copi64l3fv7vm" path="res://scenes/pop_up_sigil.gd" id="25_i2p71"]
+[ext_resource type="Script" uid="uid://copi64l3fv7vm" path="res://src/pop_up.gd" id="25_i2p71"]
 [ext_resource type="PackedScene" uid="uid://dneiapwmkd0eu" path="res://scenes/player_turn.tscn" id="25_vaj68"]
+[ext_resource type="PackedScene" uid="uid://dxpbtxks8gf60" path="res://scenes/soil_star.tscn" id="25_xa8c5"]
+[ext_resource type="Script" uid="uid://cnal45cmhu1to" path="res://src/soil_star.gd" id="26_bnpwn"]
+[ext_resource type="Texture2D" uid="uid://chxlfkga6ciaq" path="res://assets/ui/points.png" id="27_36jdj"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0k8a4"]
 resource_name = "Corner.001"
@@ -799,6 +802,44 @@ text = "Reset"
 
 [node name="Notification" parent="." instance=ExtResource("19_f1jbl")]
 visible = false
+
+[node name="SoilStar" parent="." instance=ExtResource("25_xa8c5")]
+
+[node name="Points" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -211.0
+offset_top = -45.0
+offset_right = -171.0
+offset_bottom = -5.0
+grow_horizontal = 0
+grow_vertical = 0
+script = ExtResource("26_bnpwn")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Points"]
+layout_mode = 0
+offset_left = -155.0
+offset_top = -102.0
+offset_right = -41.0
+offset_bottom = -2.0
+
+[node name="PointsLabel" type="Label" parent="Points/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="MarginContainer" type="MarginContainer" parent="Points/HBoxContainer"]
+custom_minimum_size = Vector2(15, 0)
+layout_mode = 2
+
+[node name="PointsTexture" type="TextureRect" parent="Points/HBoxContainer"]
+layout_mode = 2
+texture = ExtResource("27_36jdj")
+expand_mode = 2
 
 [node name="Status_Phase" type="Control" parent="."]
 layout_mode = 3
