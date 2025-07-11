@@ -18,6 +18,7 @@ enum Phase {
 @onready var sigil_manager = $"../SigilManager"
 @onready var deck = $"../Deck"
 @onready var tokens = $"../Tokens"
+@onready var player_turn = $"../PlayerTurn"
 
 
 @onready var end_phase_button = $"../RightUI/EndPhaseButton"
@@ -151,7 +152,7 @@ func set_phase(phase_id: Phase):
 # Actions when entering a phase
 func enter_current_phase():
 	print("TurnPhaseManager: Entering phase: ", current_phase)
-	
+	player_turn.update_turn_display()
 	# Show/hide and enable/disable end phase button based on phase
 	if current_phase != Phase.NONE and current_phase != Phase.END_TURN:
 		end_phase_button.visible = true

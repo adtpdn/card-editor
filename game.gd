@@ -33,6 +33,8 @@ var max_players = 4  # Maximum players allowed
 # Color management for players
 var player_colors = {}  # Mapping of player IDs to colors
 
+signal turn_changed
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

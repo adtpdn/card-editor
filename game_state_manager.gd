@@ -12,6 +12,8 @@ extends Node
 @onready var point_counter = $"../PointCounter"
 @onready var turn_phase_manager = $"../TurnPhaseManager"
 @onready var deck = $"../Deck"
+@onready var player_turn = $"../PlayerTurn"
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Game State Variables
@@ -335,6 +337,9 @@ func set_current_turn(player_id: int):
 	if player_id == multiplayer.get_unique_id():
 		print("My turn started, requesting token sync")
 		#request_complete_token_sync()
+	
+	get_parent().emit_signal("turn_changed")
+	player_turn._check_for_turn_changes()
 	
 	print("Current turn index set to: " + str(current_turn_index) + 
 		  " (Player " + str(game.players[current_turn_index]) + ")")
