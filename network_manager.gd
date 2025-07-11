@@ -664,10 +664,7 @@ func remote_card_planted(card_id: int, biome_slot: int, player_id: int):
 	# Execute the card effect based on resource card_id
 	var card_collection = null
 	match biome_slot:
-		0: card_collection = game.deck.card_slot_biome_1
-		1: card_collection = game.deck.card_slot_biome_2
-		2: card_collection = game.deck.card_slot_biome_3
-		3: card_collection = game.deck.card_slot_biome_4
+		0: card_collection = game.deck.pile
 	
 	if card_collection:
 		card_collection.execute_card_effect(card_id)
@@ -680,10 +677,7 @@ func create_and_place_card(card_id: int, biome_slot: int):
 	# Get the target biome slot
 	var target_slot = null
 	match biome_slot:
-		0: target_slot = game.deck.card_slot_biome_1
-		1: target_slot = game.deck.card_slot_biome_2
-		2: target_slot = game.deck.card_slot_biome_3
-		3: target_slot = game.deck.card_slot_biome_4
+		0: target_slot = game.deck.pile
 		_: 
 			print("Invalid biome slot:", biome_slot)
 			return

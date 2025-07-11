@@ -18,7 +18,8 @@ signal sigil_mode_changed(enabled)
 @onready var deck = $"../Deck"
 @onready var turn_phase_manager = $"../TurnPhaseManager"
 @onready var tokens = $"../Tokens"
-@onready var pop_up_sigil = $"../PopUpSigil"
+@onready var notification = $"../Notification"
+
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1047,7 +1048,7 @@ func show_pull_push_ui(energy_token, is_other_player: bool):
 	else:
 		instruction_text = "Select your own token to Push or Pull"
 	
-	pop_up_sigil.show_instruction_label(instruction_text)
+	notification.show_instruction_label(instruction_text)
 	
 	# Set game to token selection mode for push/pull
 	token_manager.is_token_selected = false  # Turn off normal token placement mode
@@ -1085,7 +1086,7 @@ func show_pull_push_ui(energy_token, is_other_player: bool):
 func show_blight_unblight_ui(energy_token):
 	# Use the existing PopUpSigil node
 	var instruction_text = "Select a token to Blight (opponent's) or Unblight (your own)"
-	pop_up_sigil.show_instruction_label(instruction_text)
+	notification.show_instruction_label(instruction_text)
 	
 	# Set game to token selection mode for blight/unblight
 	token_manager.is_token_selected = false  # Turn off normal token placement mode
@@ -1106,35 +1107,26 @@ func show_blight_unblight_direction_ui(energy_token):
 	var target_token = _selected_token
 	if target_token.biome_type == energy_token.biome_type :
 		print("show blight and unblight direction ui")
-		var popup = PopupMenu.new()
-		popup.name = "DirectionSelectionPopup"
-		game.add_child(popup)
 		# Add direction options
 		#print("show option blight and unblight")
 		#print("target token : ", target_token)
 		#print("target token owner id : ", target_token.owner_id)
 		#print("energy token owner id : ", energy_token.owner_id)
+		var choose_id 
 		if !target_token.is_blighted and target_token.owner_id != energy_token.owner_id:
-			popup.add_item("Blight", 0)
+			choose_id = 0
 		elif target_token.is_blighted and target_token.owner_id == energy_token.owner_id:
-			popup.add_item("Unblight", 1)
+			choose_id = 1
 		else: 
 			return
 
 		# Connect signal
-		popup.id_pressed.connect(func(id): perform_blight_unblight(energy_token, target_token, id == 0))
+		perform_blight_unblight(energy_token, target_token, choose_id == 0)
 
-		# Show popup at mouse position
-		var mouse_pos = get_viewport().get_mouse_position()
-		popup.position = mouse_pos
-		popup.popup()
 
 # Show UI for push/pull direction selection
 func show_push_pull_direction_ui(energy_token):
 	print("\n=== SHOW PUSH/PULL DIRECTION UI ===")
-	#var popup = PopupMenu.new()
-	#popup.name = "DirectionSelectionPopup"
-	#game.add_child(popup)
 
 	await signal_other_player_token
 	var target_token = _selected_token
@@ -1157,21 +1149,14 @@ func show_push_pull_direction_ui(energy_token):
 	var choose_id 
 	# Add direction options based on biome relationship
 	if target_token.biome_type == energy_token.biome_type:
-		#popup.add_item("Push Away", 0)
 		choose_id = 0
 		print("Push option added (same biome)")
 	else:
 		choose_id = 1
-		#popup.add_item("Pull Closer", 1)
 		print("Pull option added (different biome)")
 	
 	# Connect signal
-	#popup.id_pressed.connect(func(id): perform_push_pull(energy_token, target_token, id == 0))
 	perform_push_pull(energy_token, target_token, choose_id == 0)
-	# Show popup at mouse position
-	#var mouse_pos = get_viewport().get_mouse_position()
-	#popup.position = mouse_pos
-	#popup.popup()
 	print("==============================\n")
 
 # Perform actual blight or unblight
@@ -1299,7 +1284,7 @@ func _on_blight_unblight_input():
 		_selected_token.set_blighted(!is_blight_status)
 		
 		# Clear the instruction label at the end of the operation
-		pop_up_sigil.hide_panel()
+		notification.hide_panel()
 		
 		_selected_token = null
 		is_sigil_mode = false
@@ -1410,7 +1395,7 @@ func _on_push_pull_input(_placement_pos):
 			token.outerglow.hide()
 		
 		# Clear the instruction label at the end of the operation
-		pop_up_sigil.hide_panel()
+		notification.hide_panel()
 		
 		# Reset state
 		_selected_token = null

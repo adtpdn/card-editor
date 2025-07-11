@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=4 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=33 format=4 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://game.gd" id="1_0rb8f"]
 [ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://turn_phase_manager.gd" id="2_e36ub"]
@@ -24,6 +24,7 @@
 [ext_resource type="PackedScene" uid="uid://cogovef2ukws3" path="res://card_deck/deck.tscn" id="21_hb5m1"]
 [ext_resource type="PackedScene" uid="uid://dy1jahwg10ltr" path="res://assets/meshes/sigil_slot_3.glb" id="22_vaj68"]
 [ext_resource type="PackedScene" uid="uid://c75jlfpiagn3a" path="res://assets/meshes/sigil_slot_4.glb" id="23_i2p71"]
+[ext_resource type="Script" uid="uid://copi64l3fv7vm" path="res://scenes/pop_up_sigil.gd" id="25_i2p71"]
 [ext_resource type="PackedScene" uid="uid://dneiapwmkd0eu" path="res://scenes/player_turn.tscn" id="25_vaj68"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0k8a4"]
@@ -796,8 +797,44 @@ offset_bottom = 69.0
 grow_horizontal = 2
 text = "Reset"
 
-[node name="PopUpSigil" parent="." instance=ExtResource("19_f1jbl")]
+[node name="Notification" parent="." instance=ExtResource("19_f1jbl")]
 visible = false
+
+[node name="Status_Phase" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+script = ExtResource("25_i2p71")
+
+[node name="Panel" type="Panel" parent="Status_Phase"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -281.0
+offset_right = 264.0
+offset_bottom = -185.0
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="Status_Phase/Panel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -130.0
+offset_right = 133.0
+offset_bottom = 98.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 14
+text = "show_instruction_label"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
 
 [node name="RightUI" type="Control" parent="."]
 layout_mode = 3

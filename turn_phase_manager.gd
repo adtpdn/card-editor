@@ -19,6 +19,9 @@ enum Phase {
 @onready var deck = $"../Deck"
 @onready var tokens = $"../Tokens"
 @onready var player_turn = $"../PlayerTurn"
+@onready var status_phase = $"../Status_Phase"
+@onready var notification = $"../Notification"
+
 
 
 @onready var end_phase_button = $"../RightUI/EndPhaseButton"
@@ -47,8 +50,8 @@ var phase_names = {
 
 # Phase descriptions for notifications
 var phase_descriptions = {
-	Phase.PLANT_BIOME: "Place a token in one of the biome locations.",
-	Phase.PLANT_SIGIL_AND_CARD: "In this phase, do BOTH:\n• Place a token in a sigil location\n• Play a card from your hand",
+	Phase.PLANT_BIOME: "Place a token in one of the biome locations or draw a card.",
+	Phase.PLANT_SIGIL_AND_CARD: "In this phase, do BOTH:\n• Place a token in a sigil location or draw a card\n• Play a card from your hand",
 	Phase.PLAY_SIGIL: "Select a token and activate Sigil A, B, or C.",
 	Phase.END_TURN: "Your turn is ending."
 }
@@ -163,12 +166,15 @@ func enter_current_phase():
 		end_phase_button.disabled = true
 		print("TurnPhaseManager: Hiding end phase button for phase ", current_phase)
 	
+	notification.hide()
+	
 	match current_phase:
 		Phase.PLANT_BIOME:
 			print("TurnPhaseManager: Setting up PLANT_BIOME phase")
 			# FIXED: In biome phase, we want to plant tokens on BIOME locations (place_id == -1)
 			token_manager.can_plant_on_biome = true
 			token_manager.can_plant_on_sigil = false
+			
 			  # Disable cards in first phase
 		Phase.PLANT_SIGIL_AND_CARD:
 			print("TurnPhaseManager: Setting up PLANT_SIGIL_AND_CARD phase")
@@ -434,49 +440,11 @@ func show_phase_notification():
 	if current_phase == Phase.NONE:
 		print("TurnPhaseManager: Not showing notification for NONE phase")
 		return
-	
-	# Create a custom popup without buttons
-	var panel = Panel.new()
-	panel.name = "PhaseNotificationPanel"
-	
-	# Set up the panel size
-	panel.size = Vector2(350, 150)
-	
-	# Position in the center of the screen
-	var viewport_size = get_viewport().size
-	panel.position = Vector2(
-		(viewport_size.x - panel.size.x) / 2,
-		(viewport_size.y - panel.size.y) / 2
-	)
-	
-	# Add a title label
-	var title_label = Label.new()
-	title_label.text = phase_names[current_phase]
-	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title_label.add_theme_font_size_override("font_size", 16)
-	title_label.add_theme_color_override("font_color", Color(1, 1, 1))
-	title_label.position = Vector2(10, 10)
-	title_label.size = Vector2(panel.size.x - 20, 30)
-	panel.add_child(title_label)
-	
+
 	# Add a description label
-	var desc_label = Label.new()
-	desc_label.text = phase_descriptions[current_phase]
-	desc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc_label.position = Vector2(10, 50)
-	desc_label.size = Vector2(panel.size.x - 20, 90)
-	panel.add_child(desc_label)
-	
-	# Add to scene
-	get_parent().add_child(panel)
+	status_phase.show_instruction_label(phase_descriptions[current_phase])
+
 	print("TurnPhaseManager: Custom notification displayed")
-	
-	# Auto-close after 3 seconds
-	await get_tree().create_timer(3.0).timeout
-	if is_instance_valid(panel):
-		panel.queue_free()
-		print("TurnPhaseManager: Notification auto-closed")
 
 # --------------------------------
 # Event handlers
@@ -545,6 +513,7 @@ func _on_end_phase_button_pressed():
 func _on_end_turn_pressed():
 	print("TurnPhaseManager: End turn button pressed")
 	unhighlight_marker_mesh()
+	status_phase.hide_panel()
 	current_phase = Phase.NONE
 
 func _on_token_placed(player_id, biome, location):

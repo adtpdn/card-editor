@@ -15,6 +15,7 @@ extends Node
 @onready var deck = $Deck
 @onready var token_placements = $TokenPlacements
 @onready var tokens = $Tokens
+@onready var notification = $Notification
 
 @onready var sigil_a_button = $SigilContainer/SigilAButton
 @onready var sigil_b_button = $SigilContainer/SigilBButton
