@@ -1132,9 +1132,9 @@ func show_blight_unblight_direction_ui(energy_token):
 # Show UI for push/pull direction selection
 func show_push_pull_direction_ui(energy_token):
 	print("\n=== SHOW PUSH/PULL DIRECTION UI ===")
-	var popup = PopupMenu.new()
-	popup.name = "DirectionSelectionPopup"
-	game.add_child(popup)
+	#var popup = PopupMenu.new()
+	#popup.name = "DirectionSelectionPopup"
+	#game.add_child(popup)
 
 	await signal_other_player_token
 	var target_token = _selected_token
@@ -1154,21 +1154,24 @@ func show_push_pull_direction_ui(energy_token):
 			print("ERROR: Sigil B cannot target other player's tokens")
 			return
 	
+	var choose_id 
 	# Add direction options based on biome relationship
 	if target_token.biome_type == energy_token.biome_type:
-		popup.add_item("Push Away", 0)
+		#popup.add_item("Push Away", 0)
+		choose_id = 0
 		print("Push option added (same biome)")
 	else:
-		popup.add_item("Pull Closer", 1)
+		choose_id = 1
+		#popup.add_item("Pull Closer", 1)
 		print("Pull option added (different biome)")
 	
 	# Connect signal
-	popup.id_pressed.connect(func(id): perform_push_pull(energy_token, target_token, id == 0))
-	
+	#popup.id_pressed.connect(func(id): perform_push_pull(energy_token, target_token, id == 0))
+	perform_push_pull(energy_token, target_token, choose_id == 0)
 	# Show popup at mouse position
-	var mouse_pos = get_viewport().get_mouse_position()
-	popup.position = mouse_pos
-	popup.popup()
+	#var mouse_pos = get_viewport().get_mouse_position()
+	#popup.position = mouse_pos
+	#popup.popup()
 	print("==============================\n")
 
 # Perform actual blight or unblight
@@ -1248,15 +1251,20 @@ func perform_push_pull(energy_token, token, is_push: bool):
 		if is_push:
 			# For "push away": Highlight placements in adjacent biomes to the energy token
 			if adjacent_biomes.has(placement_biome) and placement.place_id == -1:
+				print("push placement")
 				placement.show()
 				placement.set_highlight(true)
 				potential_placements.append(placement)
+			else:
+				placement.hide()
 		else:
 			# For "pull closer": Highlight placements in the energy token's biome
 			if placement_biome == energy_token_biome and placement.place_id == -1:
 				placement.show()
 				placement.set_highlight(true)
 				potential_placements.append(placement)
+			else:
+				placement.hide()
 	
 	print("Found ", potential_placements.size(), " potential placements for the operation")
 	
@@ -1320,6 +1328,7 @@ func _on_push_pull_input(_placement_pos):
 			show_push_pull_direction_ui(selected_energy_token)
 			return
 		
+		
 		print("Processing push/pull input")
 		print("Target token: ", _selected_token)
 		print("Target token position: ", _selected_token.global_position)
@@ -1349,9 +1358,9 @@ func _on_push_pull_input(_placement_pos):
 			
 		print("Destination placement: ", _placement_node.global_position)
 		
-		if !_placement_node.is_highlighted:
-			print("ERROR: Selected placement is not highlighted")
-			return
+		#if !_placement_node.is_highlighted:
+			#print("ERROR: Selected placement is not highlighted")
+			#return
 		
 		print("Moving token from ", source_placement.global_position, " to ", _placement_node.global_position)
 		

@@ -909,6 +909,7 @@ grow_horizontal = 0
 text = "Blight Token"
 
 [node name="SigilContainer" type="VBoxContainer" parent="."]
+visible = false
 offset_left = 34.0
 offset_top = 42.0
 offset_right = 92.0
