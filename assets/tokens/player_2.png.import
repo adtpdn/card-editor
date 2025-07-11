@@ -2,9 +2,9 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dan47j8egdkiv"
-path.s3tc="res://.godot/imported/uv_sigil_slot.png-b4906ff1770fb0f45e5405c182afd02b.s3tc.ctex"
-path.etc2="res://.godot/imported/uv_sigil_slot.png-b4906ff1770fb0f45e5405c182afd02b.etc2.ctex"
+uid="uid://58bmrlrrx1ey"
+path.s3tc="res://.godot/imported/player_2.png-39cd606be7d1210f82bbbc10ab28c823.s3tc.ctex"
+path.etc2="res://.godot/imported/player_2.png-39cd606be7d1210f82bbbc10ab28c823.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -12,8 +12,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/meshes/uv_sigil_slot.png"
-dest_files=["res://.godot/imported/uv_sigil_slot.png-b4906ff1770fb0f45e5405c182afd02b.s3tc.ctex", "res://.godot/imported/uv_sigil_slot.png-b4906ff1770fb0f45e5405c182afd02b.etc2.ctex"]
+source_file="res://assets/tokens/player_2.png"
+dest_files=["res://.godot/imported/player_2.png-39cd606be7d1210f82bbbc10ab28c823.s3tc.ctex", "res://.godot/imported/player_2.png-39cd606be7d1210f82bbbc10ab28c823.etc2.ctex"]
 
 [params]
 
