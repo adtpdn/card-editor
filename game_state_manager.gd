@@ -107,6 +107,15 @@ func _on_start_game_pressed():
 				var first_player_id = players[selected_index]
 				start_game_with_first_player(first_player_id)
 
+@rpc("any_peer", "call_local", "reliable")
+func sync_player_tokens(player_id: int, tokens: Array):
+	if not token_manager:
+		printerr("TokenManager not found!")
+		return
+	token_manager.player_tokens[player_id] = tokens
+	token_manager.player_token_counts[player_id] = tokens.size()
+	token_manager.update_token_ui()
+
 @rpc("call_local")
 func sync_game_start(current_players):
 	print("\n=== Starting Game ===")
@@ -134,33 +143,48 @@ func sync_game_start(current_players):
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 # --- THIS IS THE NEW, AUTHORITATIVE FUNCTION FOR SYNCING PLAYERS ---
-@rpc("any_peer", "call_local")
-func sync_player_list_and_uis(new_player_list: Array):
-	print("[Player %d] Received updated player list: %s" % [multiplayer.get_unique_id(), str(new_player_list)])
+@rpc("any_peer", "call_local", "reliable")
+func sync_player_list_and_uis(authoritative_player_list: Array):
+	print("[%d] Received updated player list: %s" % [multiplayer.get_unique_id(), str(authoritative_player_list)])
 	
-	# Update the local game state with the authoritative list from the server
-	game.players = new_player_list
+	# Update the local game state with the official list from the server
+	game.players = authoritative_player_list
 	
 	var player_uis_node = get_node_or_null("/root/Game/PlayerUIs")
 	if not player_uis_node:
-		print("ERROR: Could not find PlayerUIs node.")
+		printerr("GameStateManager: ERROR! Could not find the PlayerUIs node.")
 		return
 		
-	# First, remove any UIs for players who are no longer in the list
+	# 1. REMOVE UIs for players who have disconnected
 	for child in player_uis_node.get_children():
 		var id_str = child.name.trim_prefix("Player_").trim_suffix("_UI")
 		if id_str.is_valid_int():
-			var id = id_str.to_int()
-			if not new_player_list.has(id):
-				print("Removing stale UI for disconnected player %d" % id)
+			var ui_player_id = id_str.to_int()
+			if not authoritative_player_list.has(ui_player_id):
+				print("Removing stale UI for disconnected player %d" % ui_player_id)
 				child.queue_free()
 
-	# Second, add UIs for any new players in the list
-	for player_id in new_player_list:
-		# Use get_node_or_null to safely check if the node already exists
-		if player_uis_node.get_node_or_null("Player_%d_UI" % player_id) == null:
+	# 2. ADD UIs for new players who don't have one yet
+	for player_id in authoritative_player_list:
+		if not player_uis_node.has_node("Player_%d_UI" % player_id):
 			print("Player %d is new. Creating their UI." % player_id)
-			add_player(player_id) # Use a dedicated function to create the UI
+			_add_player_ui(player_id, player_uis_node)
+
+	# 3. SET VISIBILITY for each UI based on the local player's ID.
+	var local_player_id = multiplayer.get_unique_id()
+	for child_ui in player_uis_node.get_children():
+		var id_str = child_ui.name.trim_prefix("Player_").trim_suffix("_UI")
+		if id_str.is_valid_int():
+			var ui_owner_id = id_str.to_int()
+			# The UI is visible ONLY if its owner ID matches the local player's ID.
+			child_ui.visible = (ui_owner_id == local_player_id)
+	
+	# 4. (Optional but Recommended) Update other UI elements after changes
+	if ui_manager:
+		ui_manager.update_player_list()
+	if token_manager:
+		token_manager.setup_player_token_indicators()
+
 # ----------------------------------------------------
 
 func setup_player(player_id: int) -> void:
@@ -185,15 +209,9 @@ func setup_player(player_id: int) -> void:
 
 # This function is now only for creating the UI, not for managing the player list.
 # It is NOT an RPC.
-func add_player(player_id):
-	var player_uis_node = get_node_or_null("/root/Game/PlayerUIs")
-	if not player_uis_node:
-		print("ERROR in add_player_ui: Could not find PlayerUIs node.")
-		return
-
-	# Double-check if the UI for this player already exists
-	if player_uis_node.get_node_or_null("Player_%d_UI" % player_id) != null:
-		return # Don't create a duplicate UI
+func _add_player_ui(player_id: int, player_uis_node: Node):
+	if player_uis_node.has_node("Player_%d_UI" % player_id):
+		return # Safety check to prevent creating duplicates
 
 	var hud_instance = player_hud_scene.instantiate()
 	hud_instance.name = "Player_%d_UI" % player_id

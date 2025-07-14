@@ -117,6 +117,7 @@ func _on_host_pressed():
 	var error = multiplayer_peer.create_server(PORT)
 	
 	if error == OK:
+		
 		if is_mobile and use_upnp:
 			if setup_upnp():
 				if connect_status:
@@ -145,6 +146,8 @@ func _on_host_pressed():
 		var tokens = token_manager.get_player_tokens(host_id)
 		token_manager.update_token_ui()
 		#card_manager.distribute_initial_hand()
+		
+		#game_state_manager._add_player_ui(host_id)
 		game_state_manager.setup_player(host_id)
 		game_state_manager.start_game()
 		
@@ -207,6 +210,7 @@ func attempt_connection(target_ip: String):
 			if multiplayer.is_server():
 				return
 			var local_id = multiplayer.get_unique_id()
+			#game_state_manager._add_player_ui(local_id)
 			if local_id > 0:
 				print("Client requesting initial game state and cards")
 				# Request initial game state
@@ -230,78 +234,39 @@ func attempt_connection(target_ip: String):
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 func _on_peer_connected(new_peer_id):
+	# This logic only runs on the server
 	if multiplayer.is_server():
-		await get_tree().create_timer(0.1).timeout
-		
-		# Check if game is full
+		await get_tree().create_timer(0.1).timeout # Short delay for stability
+
 		if game.players.size() >= game.max_players:
-			# Disconnect the player if game is full
 			multiplayer_peer.disconnect_peer(new_peer_id)
 			return
 			
 		print("New peer connected: ", new_peer_id)
+		
+		# 1. Add the new player to the server's master list
 		game.players.append(new_peer_id)
 		
-		# Initialize new player's hand tracking
-		game.player_hands[new_peer_id] = []
-		
-		# Find first available slot
-		var slot_index = game.player_slots.find(false)
-		if slot_index != -1:
-			game.player_slots[slot_index] = true
-		
-		# Only send the deck seed and available_cards state to the new player
-		if deck and deck.table:
-			rpc_id(new_peer_id, "receive_deck_seed", deck.table.deck_seed)
-			rpc_id(new_peer_id, "receive_deck_state", deck.table.available_cards)
-		
-		# Tell the client to initialize their starting hand
-		game.rpc_id(new_peer_id, "initialize_client_starting_hand")
-			
-		# Sync game state to new player
-		game.rpc_id(new_peer_id, "sync_game_state", game.players, game.game_started)
-		
-		# Initialize player's tokens
+		# 2. Initialize the new player's tokens ON THE SERVER
 		token_manager.initialize_player_tokens(new_peer_id)
-		var player_tokens = token_manager.get_player_tokens(new_peer_id)
-		game.rpc_id(new_peer_id, "sync_player_tokens", player_tokens)
 		
-		game_state_manager.setup_player(new_peer_id)
+		# 3. Call the single authoritative function to sync the UI for ALL players
+		game_state_manager.rpc("sync_player_list_and_uis", game.players)
 		
-		# Update the player list UI
-		ui_manager.update_player_list()
-		token_manager.setup_player_token_indicators()
-		
-		# IMPORTANT: Sync the updated players list to ALL clients
-		rpc("sync_players_list", game.players)
-		
-		# After adding the new player, force a sync of all token colors
-		token_manager.force_resync_token_colors()
+		# 4. Send the initial full game state to the NEW player ONLY
+		var all_tokens = token_manager.player_tokens
+		game.rpc_id(new_peer_id, "sync_initial_full_state", game.players, game.game_started, all_tokens)
 
 func _on_peer_disconnected(peer_id):
-	if peer_id == null or peer_id == 0:  # Check for both null and invalid ID
-		return
+	# This logic only runs on the server
+	if multiplayer.is_server() and game.players.has(peer_id):
+		print("Peer disconnected: ", peer_id)
 		
-	print("Peer disconnected: ", peer_id)
-	if game.players.has(peer_id):
-		var slot_index = game.players.find(peer_id)
-		if slot_index != -1:
-			game.player_slots[slot_index] = false
+		# 1. Remove the player from the server's master list
 		game.players.erase(peer_id)
-	
-	# Clean up disconnected player's hand
-	if game.player_hands.has(peer_id):
-		game.player_hands.erase(peer_id)
-	
-	if multiplayer.is_server():
-		game.rpc("remove_player", peer_id)
 		
-		# Update the player list UI
-		ui_manager.update_player_list()
-		token_manager.setup_player_token_indicators()
-		
-		# IMPORTANT: Sync the updated players list to ALL clients
-		rpc("sync_players_list", game.players)
+		# 2. Call the single authoritative function to update the UI for all remaining players
+		game_state_manager.rpc("sync_player_list_and_uis", game.players)
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---    Network Discovery     ---

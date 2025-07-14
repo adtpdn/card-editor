@@ -3,7 +3,7 @@ extends Node
 
 # --- Manager and node references ---
 @onready var game = get_node("/root/Game")
-
+var stars_awarded_this_turn = {}
 
 ## Checks all biomes to find which player has the most non-blighted tokens.
 # This function should only be called on the server.
@@ -16,7 +16,7 @@ func check_domination_biomes() -> void:
 	# This dictionary will store the total stars to be awarded this turn.
 	# We calculate all awards first, then send them.
 	# Format: { player_id: stars_to_add, player_id_2: stars_to_add, ... }
-	var stars_awarded_this_turn = {}
+	stars_awarded_this_turn = {}
 	for player_id in game.players:
 		stars_awarded_this_turn[player_id] = 0
 
