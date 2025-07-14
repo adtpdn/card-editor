@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=4 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=34 format=4 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://game.gd" id="1_0rb8f"]
 [ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://turn_phase_manager.gd" id="2_e36ub"]
@@ -10,6 +10,7 @@
 [ext_resource type="Script" uid="uid://22sqj66kc86h" path="res://ui_manager.gd" id="6_x5p1p"]
 [ext_resource type="Script" uid="uid://b33jfe6s6f3g4" path="res://sigil_manager.gd" id="7_boyg6"]
 [ext_resource type="PackedScene" uid="uid://u5swx58xo14j" path="res://token_placement_location.tscn" id="7_i0rid"]
+[ext_resource type="Script" uid="uid://di0aebdoy5x2n" path="res://src/domination_manager.gd" id="9_36jdj"]
 [ext_resource type="PackedScene" uid="uid://j5dwjwxb7bas" path="res://assets/meshes/animagic_slice.glb" id="9_215e1"]
 [ext_resource type="Texture2D" uid="uid://b2pgilhnxrgc3" path="res://assets/meshes/corner_slice_4.png" id="10_boyg6"]
 [ext_resource type="PackedScene" uid="uid://cj4b00y883ujc" path="res://assets/meshes/game_board.glb" id="11_7sc4i"]
@@ -26,9 +27,6 @@
 [ext_resource type="PackedScene" uid="uid://c75jlfpiagn3a" path="res://assets/meshes/sigil_slot_4.glb" id="23_i2p71"]
 [ext_resource type="Script" uid="uid://copi64l3fv7vm" path="res://src/pop_up.gd" id="25_i2p71"]
 [ext_resource type="PackedScene" uid="uid://dneiapwmkd0eu" path="res://scenes/player_turn.tscn" id="25_vaj68"]
-[ext_resource type="PackedScene" uid="uid://dxpbtxks8gf60" path="res://scenes/soil_star.tscn" id="25_xa8c5"]
-[ext_resource type="Script" uid="uid://cnal45cmhu1to" path="res://src/soil_star.gd" id="26_bnpwn"]
-[ext_resource type="Texture2D" uid="uid://chxlfkga6ciaq" path="res://assets/ui/points.png" id="27_36jdj"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0k8a4"]
 resource_name = "Corner.001"
@@ -102,6 +100,9 @@ script = ExtResource("6_x5p1p")
 
 [node name="SigilManager" type="Node" parent="."]
 script = ExtResource("7_boyg6")
+
+[node name="DominationManager" type="Node" parent="."]
+script = ExtResource("9_36jdj")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 17, 0)
@@ -803,44 +804,6 @@ text = "Reset"
 [node name="Notification" parent="." instance=ExtResource("19_f1jbl")]
 visible = false
 
-[node name="SoilStar" parent="." instance=ExtResource("25_xa8c5")]
-
-[node name="Points" type="Control" parent="."]
-layout_mode = 3
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -211.0
-offset_top = -45.0
-offset_right = -171.0
-offset_bottom = -5.0
-grow_horizontal = 0
-grow_vertical = 0
-script = ExtResource("26_bnpwn")
-
-[node name="HBoxContainer" type="HBoxContainer" parent="Points"]
-layout_mode = 0
-offset_left = -155.0
-offset_top = -102.0
-offset_right = -41.0
-offset_bottom = -2.0
-
-[node name="PointsLabel" type="Label" parent="Points/HBoxContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "0"
-
-[node name="MarginContainer" type="MarginContainer" parent="Points/HBoxContainer"]
-custom_minimum_size = Vector2(15, 0)
-layout_mode = 2
-
-[node name="PointsTexture" type="TextureRect" parent="Points/HBoxContainer"]
-layout_mode = 2
-texture = ExtResource("27_36jdj")
-expand_mode = 2
-
 [node name="Status_Phase" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 15
@@ -1074,5 +1037,14 @@ offset_right = -5.03702
 offset_bottom = 26.188
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="PlayerUIs" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [connection signal="pressed" from="ResetButton" to="." method="_on_reset_button_pressed"]
