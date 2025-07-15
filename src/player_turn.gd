@@ -34,12 +34,13 @@ func _ready():
 
 func _on_peer_connected(peer_id):
 	# When a new peer connects, exchange player names
-	if game.multiplayer.is_server():
-		# Send our name to the new peer
-		send_player_name(peer_id)
-	else:
-		# Request names from the server
-		request_player_names()
+	#if game.multiplayer.is_server():
+		## Send our name to the new peer
+		#send_player_name(peer_id)
+	#else:
+		## Request names from the server
+		#request_player_names()
+	pass
 
 func get_player_name_from_id(player_id):
 	# Generate a name based on player ID

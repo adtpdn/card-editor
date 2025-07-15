@@ -254,8 +254,8 @@ func _on_peer_connected(new_peer_id):
 		game_state_manager.rpc("sync_player_list_and_uis", game.players)
 		
 		# 4. Send the initial full game state to the NEW player ONLY
-		var all_tokens = token_manager.player_tokens
-		game.rpc_id(new_peer_id, "sync_initial_full_state", game.players, game.game_started, all_tokens)
+		#var all_tokens = token_manager.player_tokens
+		#game.rpc_id(new_peer_id, "sync_initial_full_state", game.players, game.game_started, all_tokens)
 
 func _on_peer_disconnected(peer_id):
 	# This logic only runs on the server

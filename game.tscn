@@ -821,7 +821,7 @@ anchors_preset = 4
 anchor_top = 0.5
 anchor_bottom = 0.5
 offset_top = -281.0
-offset_right = 264.0
+offset_right = 267.0
 offset_bottom = -185.0
 grow_vertical = 2
 
@@ -835,7 +835,7 @@ offset_right = 133.0
 offset_bottom = 98.0
 grow_horizontal = 2
 theme_override_font_sizes/font_size = 14
-text = "show_instruction_label"
+text = "Instruction"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2

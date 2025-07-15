@@ -31,7 +31,7 @@ func check_domination_biomes() -> void:
 
 		# Count non-blighted tokens for each player in the current biome
 		for token in game.tokens.get_children():
-			if token.biome_type == biome_value and not token.is_blighted:
+			if token.biome_type == biome_value and not token.is_blighted and !token.is_energy:
 				if player_token_counts.has(token.owner_id):
 					player_token_counts[token.owner_id] += 1
 
