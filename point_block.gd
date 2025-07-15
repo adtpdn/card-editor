@@ -18,24 +18,24 @@ const BIOME_COLORS = {
 	"water_magic": Color(0.4, 0.4, 1.0)      # Bright Blue
 }
 
-func _ready():
-	create_mesh()
+#func _ready():
+	#create_mesh()
 
-func create_mesh():
-	var mesh_instance = MeshInstance3D.new()
-	add_child(mesh_instance)
-	
-	# Create box mesh
-	var mesh = BoxMesh.new()
-	mesh.size = BLOCK_SIZE
-	mesh_instance.mesh = mesh
-	
-	# Create material
-	var material = StandardMaterial3D.new()
-	material.albedo_color = BIOME_COLORS[biome_type]
-	material.metallic = 0.4
-	material.roughness = 0.6
-	material.emission_enabled = true
-	material.emission_energy = 0.2
-	
-	mesh_instance.material_override = material
+#func create_mesh():
+	#var mesh_instance = MeshInstance3D.new()
+	#add_child(mesh_instance)
+	#
+	## Create box mesh
+	#var mesh = BoxMesh.new()
+	#mesh.size = BLOCK_SIZE
+	#mesh_instance.mesh = mesh
+	#
+	## Create material
+	#var material = StandardMaterial3D.new()
+	#material.albedo_color = BIOME_COLORS[biome_type]
+	#material.metallic = 0.4
+	#material.roughness = 0.6
+	#material.emission_enabled = true
+	#material.emission_energy = 0.2
+	#
+	#mesh_instance.material_override = material

@@ -16,8 +16,8 @@ var mountain_magic_points = 3
 var water_magic_points = 3
 
 const BLOCK_HEIGHT = 0.2
-const BLOCK_SPACING = 0.05
-const STACK_SPACING = 2.0
+const BLOCK_SPACING = 0.01
+const STACK_SPACING = 0.01
 
 var block_scene = preload("res://point_block.tscn")
 

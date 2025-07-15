@@ -1,10 +1,10 @@
 extends Node3D
 
 var card_database = CardResource.new()
-var actions_cards = preload("res://cards/action_cards.tres")
-var available_cards = [] # Will store indices of available cards
+@export var actions_cards = preload("res://cards/action_cards.tres")
+@export var available_cards = [] # Will store indices of available cards
 
-var deck_seed: int = 0
+@export var deck_seed: int = 0
 var rng = RandomNumberGenerator.new()
 
 @onready var hand: CardCollection3D = $DragController/Hand
