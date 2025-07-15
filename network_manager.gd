@@ -138,6 +138,7 @@ func _on_host_pressed():
 		
 		# Initialize host data
 		game.players = [host_id]  # Reset players array
+		game.initial_player_order = [host_id]
 		game.player_hands[host_id] = []
 		#game.player_colors[host_id] = game.PLAYER_COLORS[0]
 		
@@ -247,6 +248,7 @@ func _on_peer_connected(new_peer_id):
 		# 1. Add the new player to the server's master list
 		game.players.append(new_peer_id)
 		
+		
 		# 2. Initialize the new player's tokens ON THE SERVER
 		token_manager.initialize_player_tokens(new_peer_id)
 		
@@ -264,6 +266,7 @@ func _on_peer_disconnected(peer_id):
 		
 		# 1. Remove the player from the server's master list
 		game.players.erase(peer_id)
+		game.initial_player_order.erase(peer_id)
 		
 		# 2. Call the single authoritative function to update the UI for all remaining players
 		game_state_manager.rpc("sync_player_list_and_uis", game.players)

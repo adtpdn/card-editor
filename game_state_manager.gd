@@ -23,6 +23,7 @@ const player_hud_scene = preload("res://scenes/player_hud.tscn")
 var game_started = false
 var current_turn_index = 0
 var max_players = 4 # Maximum players allowed
+var initial_player_order: Array = [] # NEW: Stores the original player order for consistent color indexing.
 
 # Color management for players
 var player_colors = {} # Mapping of player IDs to colors
@@ -124,6 +125,12 @@ func sync_game_start(current_players):
 	game.game_started = true
 	game.players = current_players
 	
+	# NEW: Store the initial player order if it hasn't been set yet.
+	# This list will NOT be reordered and should be used for color assignments.
+	if initial_player_order.is_empty():
+		initial_player_order = current_players.duplicate()
+		print("Initial player order for colors set: " + str(initial_player_order))
+	
 	current_turn_index = 0
 	print("Starting turn index: " + str(current_turn_index))
 	print("First player: " + str(game.players[current_turn_index]))
@@ -149,6 +156,7 @@ func sync_player_list_and_uis(authoritative_player_list: Array):
 	
 	# Update the local game state with the official list from the server
 	game.players = authoritative_player_list
+	game.initial_player_order = authoritative_player_list
 	
 	var player_uis_node = get_node_or_null("/root/Game/PlayerUIs")
 	if not player_uis_node:
@@ -239,6 +247,18 @@ func sync_player_colors(colors: Dictionary):
 # ---     Turn Management      ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
+## NEW HELPER FUNCTION
+## Returns the permanent color index for a player based on their initial join order.
+## Use this function wherever you need a color index to ensure it doesn't change
+## when the `game.players` array is reordered.
+func get_player_color_index(player_id: int) -> int:
+	if initial_player_order.is_empty():
+		# Fallback to current order if initial isn't set yet (should be rare)
+		return game.players.find(player_id)
+	
+	var index = initial_player_order.find(player_id)
+	return index if index != -1 else 0 # Return 0 as a safe default
+
 func debug_turn_state():
 	var end_turn_button = get_parent().get_node("RightUI/EndTurnButton")
 	var players = game.players
@@ -249,7 +269,8 @@ func debug_turn_state():
 	if end_turn_button:
 		print("Button disabled: " + str(end_turn_button.disabled))
 	print("Game started: " + str(game.game_started))
-	print("Players: " + str(players))
+	print("Players (Turn Order): " + str(players))
+	print("Players (Color Order): " + str(initial_player_order))
 	print("Current turn index: " + str(current_turn_index))
 	if players.size() > 0 and current_turn_index >= 0 and current_turn_index < players.size():
 		print("Current turn player: " + str(players[current_turn_index]))
@@ -381,10 +402,11 @@ func request_next_turn():
 	print("Current turn player: ", players[current_turn_index])
 	
 	if requesting_player == players[current_turn_index]:
-		next_turn()
+		await next_turn() # Await the function
 	
 	print("=== Turn Change Request Complete ===\n")
 
+# This function is asynchronous because it uses `await`
 func next_turn():
 	if !multiplayer.is_server():
 		return
@@ -396,11 +418,18 @@ func next_turn():
 	print("Current turn index: ", current_turn_index)
 	
 	if players.size() > 0:
-		if current_turn_index == players.size() - 1:
+		var is_end_of_round = (current_turn_index == players.size() - 1)
+		
+		if is_end_of_round:
 			print("Last player's turn ended. A full round is complete.")
 			print("--- Checking for biome domination ---")
-			domination_manager.check_domination_biomes()
-			await get_tree().create_timer(3.0).timeout
+			# This function is async and has its own internal await
+			await domination_manager.check_domination_biomes()
+			
+			# Reorder players for the next round based on stars
+			await reorder_players_after_round()
+			# Re-fetch the player list as it may have been sorted
+			players = game.players
 		
 		var current_player = players[current_turn_index]
 		token_manager.save_player_token_count(current_player)
@@ -436,6 +465,106 @@ func next_turn():
 	
 	print("=== Next Turn Complete ===\n")
 
+## Gets the soil star count for a given player from their UI node.
+func _get_player_star_count(player_id: int) -> int:
+	var soil_star_node_path = "/root/Game/PlayerUIs/Player_%d_UI/SoilStar" % player_id
+	var soil_star_node = get_node_or_null(soil_star_node_path)
+	
+	if soil_star_node:
+		# NOTE: This assumes the SoilStar node has a variable named 'current_soil_star'
+		# that holds the integer value of the stars. Adjust if the name is different.
+		if "current_soil_star" in soil_star_node:
+			return soil_star_node.current_soil_star
+		else:
+			print("WARNING: SoilStar node for player %d is missing 'current_soil_star' variable." % player_id)
+			return 0
+	else:
+		print("WARNING: Could not find SoilStar node for player %d at path: %s" % [player_id, soil_star_node_path])
+		return 0
+
+## Calculates and sets the new player turn order after a round is complete.
+func reorder_players_after_round():
+	if not multiplayer.is_server():
+		return
+
+	print("\n=== Reordering Players for Next Round ===")
+	var old_player_order = game.players.duplicate()
+	if old_player_order.is_empty():
+		print("No players to reorder.")
+		return
+
+	# Step 1: Get star counts for all players and find the maximum
+	var player_stats = {}
+	var max_stars = -1
+	for player_id in old_player_order:
+		var stars = _get_player_star_count(player_id)
+		player_stats[player_id] = stars
+		if stars > max_stars:
+			max_stars = stars
+	
+	print("Player star counts: ", player_stats)
+	print("Maximum stars: ", max_stars)
+
+	# Step 2: Find all players who have the maximum star count
+	var winners = []
+	if max_stars > 0: # Only reorder if at least one player has more than 0 stars
+		for player_id in player_stats:
+			if player_stats[player_id] == max_stars:
+				winners.append(player_id)
+	
+	print("Players with max stars (winners): ", winners)
+
+	# Step 3: Determine the new first player using the tie-breaker rule
+	var new_first_player = -1
+	if winners.is_empty():
+		# No one earned stars, so the last player goes first in the next round (rotation)
+		new_first_player = old_player_order.back()
+	elif winners.size() == 1:
+		# Only one winner
+		new_first_player = winners[0]
+	else:
+		# Tie-breaker: find the winner who was latest in the old turn order
+		for i in range(old_player_order.size() - 1, -1, -1):
+			var player_id = old_player_order[i]
+			if winners.has(player_id):
+				new_first_player = player_id
+				break
+	
+	if new_first_player == -1:
+		# This case should ideally not be reached if there are players, but as a fallback:
+		print("Could not determine a new first player. Keeping original order.")
+		return
+
+	print("New first player will be: ", new_first_player)
+
+	# Step 4: Construct the new player order by rotating the old list
+	var new_player_order = []
+	new_player_order.append(new_first_player)
+
+	var start_index = old_player_order.find(new_first_player)
+	
+	# Iterate through the old list, starting from the player AFTER the winner
+	for i in range(1, old_player_order.size()):
+		var current_index = (start_index + i) % old_player_order.size()
+		new_player_order.append(old_player_order[current_index])
+		
+	print("Old player order: ", old_player_order)
+	print("New player order: ", new_player_order)
+
+	# Step 5: Update the game state with the new order and sync with clients
+	game.players = new_player_order
+	rpc("sync_new_player_order", new_player_order)
+
+## RPC to synchronize the new turn order with all clients.
+@rpc("any_peer", "call_local")
+func sync_new_player_order(new_order: Array):
+	print("[%d] Received new player order: %s" % [multiplayer.get_unique_id(), str(new_order)])
+	game.players = new_order
+	# Update any relevant UI, like a player list display
+	if ui_manager:
+		ui_manager.update_player_list()
+
+
 func _on_end_turn_pressed():
 	var players = game.players
 	if not is_valid_turn_index(): return
@@ -458,7 +587,7 @@ func _on_end_turn_pressed():
 			end_phase_button.disabled = true
 	
 	if multiplayer.is_server():
-		next_turn()
+		await next_turn() # Await the async function
 		token_manager.reset_turn_token_counters(current_player)
 		token_manager.sync_complete_token_state()
 	else:

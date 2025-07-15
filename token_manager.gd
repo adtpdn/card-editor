@@ -976,6 +976,62 @@ func _generate_slice_positions(radius: float, start_angle: float, end_angle: flo
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # UI Management
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+func update_token_indicators():
+	var player_token_indicators = get_parent().get_node("RightUI/PlayerTokenIndicators")
+	var players = get_parent().players
+	
+	for player_id in players:
+		var indicator_name = "Player_" + str(player_id)
+		if player_token_indicators.has_node(indicator_name):
+			var indicator = player_token_indicators.get_node(indicator_name)
+			var label = indicator.get_node("TokenCount")
+			
+			# Get token count for this player
+			var token_count = get_player_tokens(player_id).size()
+			label.text = str(token_count)
+			
+			# Maybe fade out if they have no tokens
+			indicator.modulate.a = 1.0 if token_count > 0 else 0.5
+
+func setup_player_token_indicators():
+	var player_token_indicators = get_parent().get_node("RightUI/PlayerTokenIndicators")
+	var players = get_parent().players
+	var player_colors = get_parent().player_colors
+	
+	# Clear existing indicators
+	for child in player_token_indicators.get_children():
+		child.queue_free()
+	
+	# Create an indicator for each player
+	for player_id in players:
+		var indicator = ColorRect.new()
+		indicator.name = "Player_" + str(player_id)
+		indicator.size = Vector2(30, 30)  # Small square
+		
+		# Set player color
+		if player_colors.has(player_id):
+			indicator.color = player_colors[player_id]
+		else:
+			indicator.color = Color(0.5, 0.5, 0.5)
+		
+		# Create count label
+		var label = Label.new()
+		label.name = "TokenCount"
+		label.text = "0"  # Will be updated later
+		indicator.add_child(label)
+		
+		# Position the label
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.size = indicator.size
+		
+		# Add to container
+		player_token_indicators.add_child(indicator)
+	
+	# Call initial update
+	update_token_indicators()
+
 @rpc("any_peer", "call_local")
 func update_token_ui_remote():
 	update_token_ui()

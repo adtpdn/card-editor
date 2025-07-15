@@ -82,17 +82,19 @@ func update_material():
 		return
 	
 	# Otherwise fall back to the player array lookup
-	if token_mesh and owner_id != -1 and game and game.players.size() > 0:
+	if token_mesh and owner_id != -1 and game and game.initial_player_order.size() > 0:
 		# Find the player's index in the players array
 		var player_index = -1
-		for i in range(game.players.size()):
-			if game.players[i] == owner_id:
+		print("initial player order: ", game.initial_player_order)
+		for i in range(game.initial_player_order.size()):
+			if game.initial_player_order[i] == owner_id:
 				player_index = i
 				break
 		
 		# Apply material based on player index
 		if player_index >= 0:
 			player_color_index = player_index  # Save this for future use
+			print("player index : ", player_index)
 			apply_color_by_index(player_index)
 		else:
 			print("Owner ID not found in players array: ", owner_id)
