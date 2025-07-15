@@ -93,8 +93,8 @@ func instantiate_face_card(card_index) -> FaceCard3D:
 	# Store the original index as metadata if needed, but don't use it for card_id
 	face_card_3d.set_meta("original_card_index", card_index)
 	
-	face_card_3d.update_material_front_mesh(card_resource.front_mesh_material)
-	face_card_3d.update_material_back_mesh(card_resource.back_mesh_material)
+	face_card_3d.front_material_path = card_resource.front_mesh_material.resource_path
+	face_card_3d.back_material_path = card_resource.back_mesh_material.resource_path
 	
 	# Debug to verify card_id is from resource
 	print("Created card from index", card_index, "with RESOURCE card_id:", resource_card_id, 

@@ -1,6 +1,8 @@
-[gd_resource type="Resource" script_class="CardResource" load_steps=2 format=3 uid="uid://ckmcpk45kuwrv"]
+[gd_resource type="Resource" script_class="CardResource" load_steps=4 format=3 uid="uid://ckmcpk45kuwrv"]
 
+[ext_resource type="Material" uid="uid://drikh8gb0pvmj" path="res://card_deck/materials/CFM_00_Back_Card.tres" id="1_0qx1d"]
 [ext_resource type="Script" uid="uid://77vvo0ke2vww" path="res://card_deck/card_3d/scripts/card_resource.gd" id="1_qidgc"]
+[ext_resource type="Material" uid="uid://dea7vkfb1ekpw" path="res://card_deck/materials/CFM_06_Plant_Extra.tres" id="2_7vrgm"]
 
 [resource]
 script = ExtResource("1_qidgc")
@@ -12,5 +14,5 @@ cost_to_draw = 1
 effect1 = "Plant 1 extra token on biome or plant 1 extra energy on a sigil magic"
 effect2 = ""
 revealed = true
-tex3D_path = ""
-image_path = ""
+front_mesh_material = ExtResource("2_7vrgm")
+back_mesh_material = ExtResource("1_0qx1d")

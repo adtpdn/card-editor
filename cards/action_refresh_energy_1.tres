@@ -1,6 +1,8 @@
-[gd_resource type="Resource" script_class="CardResource" load_steps=2 format=3 uid="uid://qefl3yobjvbs"]
+[gd_resource type="Resource" script_class="CardResource" load_steps=4 format=3 uid="uid://qefl3yobjvbs"]
 
+[ext_resource type="Material" uid="uid://drikh8gb0pvmj" path="res://card_deck/materials/CFM_00_Back_Card.tres" id="1_fol2s"]
 [ext_resource type="Script" uid="uid://77vvo0ke2vww" path="res://card_deck/card_3d/scripts/card_resource.gd" id="1_xecle"]
+[ext_resource type="Material" uid="uid://b8yxawqnhdyl4" path="res://card_deck/materials/CFM_01_Refresh_Energy.tres" id="2_fwui5"]
 
 [resource]
 script = ExtResource("1_xecle")
@@ -12,5 +14,5 @@ cost_to_draw = 1
 effect1 = "Refresh/unblight 1 your blighted energy on a sigil magic"
 effect2 = ""
 revealed = true
-tex3D_path = ""
-image_path = ""
+front_mesh_material = ExtResource("2_fwui5")
+back_mesh_material = ExtResource("1_fol2s")
