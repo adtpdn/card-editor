@@ -182,8 +182,6 @@ func sync_player_list_and_uis(authoritative_player_list: Array):
 	# 4. (Optional but Recommended) Update other UI elements after changes
 	if ui_manager:
 		ui_manager.update_player_list()
-	if token_manager:
-		token_manager.setup_player_token_indicators()
 
 # ----------------------------------------------------
 
@@ -402,6 +400,7 @@ func next_turn():
 			print("Last player's turn ended. A full round is complete.")
 			print("--- Checking for biome domination ---")
 			domination_manager.check_domination_biomes()
+			await get_tree().create_timer(3.0).timeout
 		
 		var current_player = players[current_turn_index]
 		token_manager.save_player_token_count(current_player)

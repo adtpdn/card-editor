@@ -6,7 +6,6 @@ extends Node
 var stars_awarded_this_turn = {}
 
 ## Checks all biomes to find which player has the most non-blighted tokens.
-# This function should only be called on the server.
 func check_domination_biomes() -> void:
 	if not multiplayer.is_server():
 		return # Domination logic is handled by the server to ensure consistency.
@@ -65,28 +64,63 @@ func check_domination_biomes() -> void:
 			print("No non-blighted tokens in %s biome to determine domination." % biome_name)
 
 	# --- Sync the results with all clients ---
-	# After checking all biomes, send the total stars awarded to each player.
-	for player_id in stars_awarded_this_turn:
-		if stars_awarded_this_turn[player_id] > 0:
-			# This RPC tells all clients to update the UI for the specific player.
-			rpc("award_stars_to_player", player_id, stars_awarded_this_turn[player_id])
-
-
-## This function is called on all clients (and the server) to update the UI.
-@rpc("any_peer", "call_local")
-func award_stars_to_player(player_id: int, count: int):
-	print("Awarding %d soil star(s) to player %d" % [count, player_id])
+	# Check if any stars were awarded before proceeding.
+	var has_awards = false
+	for star_count in stars_awarded_this_turn.values():
+		if star_count > 0:
+			has_awards = true
+			break
 	
-	# This is the recommended way to find player-specific UI.
-	# It assumes you have a central node (e.g., "PlayerUIs") that holds an
-	# instance of each player's HUD, named uniquely with their ID.
-	# See the explanation below for how to set this up.
-	var soil_star_node_path = "/root/Game/PlayerUIs/Player_%d_UI/SoilStar" % player_id
-	var soil_star_node = get_node_or_null(soil_star_node_path)
+	if has_awards:
+		# Send a single RPC to all peers (including the host via "call_local").
+		# This function will handle all UI updates and trigger local notifications.
+		rpc("update_all_stars_and_notify", stars_awarded_this_turn)
+		
+		# --- FIX ---
+		# Wait on the server for a moment to let the notification be seen by players
+		# before the next turn's UI changes can happen. This prevents the "start turn"
+		# notification from immediately overriding the star award notification.
+		await get_tree().create_timer(3.5).timeout
 
-	if soil_star_node:
-		# We found the node, so call its function to increase the star count.
-		soil_star_node.increase_soil_star(count)
-	else:
-		# If the node isn't found, this warning will help you debug the path.
-		print("WARNING: Could not find SoilStar node for player %d. Please check your scene structure and the path in domination.gd: %s" % [player_id, soil_star_node_path])
+
+## This function is called on all peers (host and clients) via RPC.
+# It updates the UI and then calls a separate local function for notifications.
+# This avoids having `await` inside an RPC function, which is more robust.
+@rpc("any_peer", "call_local")
+func update_all_stars_and_notify(all_awards: Dictionary):
+	# This print will appear on the server and all clients' consoles for debugging.
+	print("RPC received on peer %d: Updating stars with data: %s" % [multiplayer.get_unique_id(), str(all_awards)])
+
+	# --- Step 1: Update the SoilStar UI for ALL players who earned stars ---
+	for player_id in all_awards:
+		var count = all_awards[player_id]
+		if count > 0:
+			var soil_star_node_path = "/root/Game/PlayerUIs/Player_%d_UI/SoilStar" % player_id
+			var soil_star_node = get_node_or_null(soil_star_node_path)
+
+			if soil_star_node:
+				# We found the node, so call its function to increase the star count.
+				soil_star_node.increase_soil_star(count)
+			else:
+				# If the node isn't found, this warning will help you debug the path.
+				print("WARNING: Could not find SoilStar node for player %d. Path: %s" % [player_id, soil_star_node_path])
+
+	# --- Step 2: Trigger a local notification if this player earned stars ---
+	var local_player_id = multiplayer.get_unique_id()
+	if all_awards.has(local_player_id):
+		var stars_earned = all_awards[local_player_id]
+		# Call the new, purely local function to handle the notification.
+		_show_local_notification(stars_earned)
+
+
+## This is a purely local function to show the notification with a timer.
+# It contains the `await` call, keeping it separate from the RPC logic.
+func _show_local_notification(stars_earned: int):
+	var text = "You got %d soil star(s)!" % stars_earned
+	
+	# This shows the notification panel with the personalized text.
+	game.notification.show_instruction_label(text)
+
+	# We create a timer to automatically hide the notification after a few seconds.
+	await get_tree().create_timer(3.0).timeout # It's relate to game_state_manager 
+	game.notification.hide_panel()

@@ -952,47 +952,10 @@ offset_bottom = 87.0
 theme_override_font_sizes/font_size = 10
 text = "00"
 
-[node name="RollResultLabel" type="Label" parent="RightUI"]
-visible = false
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -28.0
-offset_top = 589.0
-offset_right = 74.0
-offset_bottom = 612.0
-grow_horizontal = 2
-text = "DICE LABEL"
-horizontal_alignment = 1
-
 [node name="PlayerTokenIndicators" type="HBoxContainer" parent="RightUI"]
-visible = false
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
-
-[node name="RemoveButton" type="Button" parent="RightUI"]
-visible = false
-layout_mode = 0
-offset_left = 7.0
-offset_top = 113.0
-offset_right = 129.0
-offset_bottom = 144.0
-text = "Remove Token"
-
-[node name="BlightButton" type="Button" parent="RightUI"]
-visible = false
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -214.0
-offset_top = 148.0
-offset_right = -109.0
-offset_bottom = 179.0
-grow_horizontal = 0
-text = "Blight Token"
 
 [node name="PlayerTurn" parent="." instance=ExtResource("25_vaj68")]
 

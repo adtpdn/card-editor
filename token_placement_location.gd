@@ -129,10 +129,10 @@ func set_highlight(enabled: bool):
 	var material = StandardMaterial3D.new()
 	
 	if enabled:
-		print("enabled set highlight placement")
+		#print("enabled set highlight placement")
 		material.albedo_color = Color(0.736, 0.693, 0.454, 0.2)  # Yellow highlight
 	else:
-		print("disabled set highlight placement")
+		#print("disabled set highlight placement")
 		material.albedo_color = PLACEHOLDER_COLOR  # Neutral placeholder color
 		
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA

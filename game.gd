@@ -119,7 +119,6 @@ func sync_game_state(game_players, has_started):
 	
 	# Update UI to reflect state
 	ui_manager.update_player_list()
-	token_manager.setup_player_token_indicators()
 
 	# Request initial cards if client hasn't received any yet
 	if !multiplayer.is_server() and game_started:

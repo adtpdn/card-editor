@@ -739,7 +739,6 @@ func sync_players_list(players_array: Array):
 	
 	var token_manager = get_parent().get_node("TokenManager")
 	if token_manager:
-		token_manager.setup_player_token_indicators()
 		
 		# Force update of all token colors based on new player list
 		if multiplayer.is_server():
