@@ -149,7 +149,6 @@ shape = SubResource("ConcavePolygonShape3D_82ns2")
 
 [node name="Outerglow" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, -4.65661e-10, 0, 2.98023e-08, 1, 0, 0, 0, 1, 0, 1.03062, 0)
-visible = false
 mesh = SubResource("TorusMesh_gknmk")
 surface_material_override/0 = SubResource("ShaderMaterial_vfgd4")
 

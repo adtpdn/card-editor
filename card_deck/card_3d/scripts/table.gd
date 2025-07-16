@@ -1,10 +1,10 @@
 extends Node3D
 
 var card_database = CardResource.new()
-var actions_cards = preload("res://cards/action_cards.tres")
-var available_cards = [] # Will store indices of available cards
+@export var actions_cards = preload("res://cards/action_cards.tres")
+@export var available_cards = [] # Will store indices of available cards
 
-var deck_seed: int = 0
+@export var deck_seed: int = 0
 var rng = RandomNumberGenerator.new()
 
 @onready var hand: CardCollection3D = $DragController/Hand
@@ -93,8 +93,8 @@ func instantiate_face_card(card_index) -> FaceCard3D:
 	# Store the original index as metadata if needed, but don't use it for card_id
 	face_card_3d.set_meta("original_card_index", card_index)
 	
-	face_card_3d.update_material_front_mesh(card_resource.front_mesh_material)
-	face_card_3d.update_material_back_mesh(card_resource.back_mesh_material)
+	face_card_3d.front_material_path = card_resource.front_mesh_material.resource_path
+	face_card_3d.back_material_path = card_resource.back_mesh_material.resource_path
 	
 	# Debug to verify card_id is from resource
 	print("Created card from index", card_index, "with RESOURCE card_id:", resource_card_id, 

@@ -1,0 +1,10 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://bn8ssyqj56878"]
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_cpo1f"]
+load_path = "res://.godot/imported/uv_sigil_slot.png-b4906ff1770fb0f45e5405c182afd02b.s3tc.ctex"
+
+[resource]
+resource_name = "sigil_slot_1_mat"
+cull_mode = 2
+albedo_texture = SubResource("CompressedTexture2D_cpo1f")
+roughness = 0.5

@@ -1,6 +1,8 @@
-[gd_resource type="Resource" script_class="CardResource" load_steps=2 format=3 uid="uid://45nqojvfbhyg"]
+[gd_resource type="Resource" script_class="CardResource" load_steps=4 format=3 uid="uid://45nqojvfbhyg"]
 
 [ext_resource type="Script" uid="uid://77vvo0ke2vww" path="res://card_deck/card_3d/scripts/card_resource.gd" id="1_30ota"]
+[ext_resource type="Material" uid="uid://drikh8gb0pvmj" path="res://card_deck/materials/CFM_00_Back_Card.tres" id="1_vowew"]
+[ext_resource type="Material" uid="uid://du7vvstq6ejob" path="res://card_deck/materials/CFM_10_Unblight_Token.tres" id="2_6bil5"]
 
 [resource]
 script = ExtResource("1_30ota")
@@ -12,5 +14,5 @@ cost_to_draw = 1
 effect1 = "Unblight 1 of your token in a biome "
 effect2 = ""
 revealed = true
-tex3D_path = ""
-image_path = ""
+front_mesh_material = ExtResource("2_6bil5")
+back_mesh_material = ExtResource("1_vowew")
