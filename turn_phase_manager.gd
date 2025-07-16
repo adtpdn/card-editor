@@ -175,7 +175,7 @@ func enter_current_phase():
 			token_manager.can_plant_on_biome = true
 			token_manager.can_plant_on_sigil = false
 			
-			  # Disable cards in first phase
+			 # Disable cards in first phase
 		Phase.PLANT_SIGIL_AND_CARD:
 			print("TurnPhaseManager: Setting up PLANT_SIGIL_AND_CARD phase")
 			# FIXED: In sigil phase, we want to plant tokens on SIGIL locations (place_id != -1)

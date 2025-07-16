@@ -732,6 +732,8 @@ func request_token_placement(token_index: int, position: Vector3, biome_type: in
 			# IMPORTANT: Remove the token from player's available tokens BEFORE sync
 			remove_token(player_id, token_index)
 			
+			notification.hide_panel()
+			
 			# Log the token count
 			print("Player ", player_id, " token count before sync: ", 
 				  get_player_tokens(player_id).size())
