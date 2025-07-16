@@ -1,6 +1,4 @@
-
-[gd_scene load_steps=28 format=4 uid="uid://dpmxlw8f4fyvd"]
-
+[gd_scene load_steps=31 format=4 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://game.gd" id="1_0rb8f"]
 [ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://turn_phase_manager.gd" id="2_e36ub"]
@@ -21,20 +19,11 @@
 [ext_resource type="Material" uid="uid://c6acp7vu62y16" path="res://assets/meshes/corner_slice_2_mat.tres" id="12_hb5m1"]
 [ext_resource type="Material" uid="uid://dlp8ve03x2jgc" path="res://assets/meshes/corner_slice_3_mat.tres" id="13_x5p1p"]
 [ext_resource type="Material" uid="uid://c7ugxmqk3hnld" path="res://assets/meshes/corner_slice_4_mat.tres" id="14_qhcbd"]
-
-[ext_resource type="PackedScene" uid="uid://bchy4wmtwdsy" path="res://scenes/pop_up.tscn" id="19_f1jbl"]
-[ext_resource type="PackedScene" uid="uid://dcowk0qhpovrj" path="res://assets/meshes/sigil_slot_1.glb" id="20_qhcbd"]
-[ext_resource type="PackedScene" uid="uid://ckc5fe52hxbo7" path="res://assets/meshes/sigil_slot_2.glb" id="21_f1jbl"]
+[ext_resource type="PackedScene" path="res://scenes/pop_up.tscn" id="19_f1jbl"]
 [ext_resource type="PackedScene" uid="uid://cogovef2ukws3" path="res://card_deck/deck.tscn" id="21_hb5m1"]
-[ext_resource type="PackedScene" uid="uid://dy1jahwg10ltr" path="res://assets/meshes/sigil_slot_3.glb" id="22_vaj68"]
-[ext_resource type="PackedScene" uid="uid://c75jlfpiagn3a" path="res://assets/meshes/sigil_slot_4.glb" id="23_i2p71"]
-[ext_resource type="Script" uid="uid://copi64l3fv7vm" path="res://src/pop_up.gd" id="25_i2p71"]
-[ext_resource type="PackedScene" uid="uid://dneiapwmkd0eu" path="res://scenes/player_turn.tscn" id="25_vaj68"]
-
-[ext_resource type="PackedScene" uid="uid://bchy4wmtwdsy" path="res://scenes/pop_up_sigil.tscn" id="19_f1jbl"]
-
 [ext_resource type="ArrayMesh" uid="uid://cr84fumgftsvn" path="res://assets/meshes/sigil_slot.tres" id="21_x5p1p"]
-
+[ext_resource type="Script" uid="uid://copi64l3fv7vm" path="res://src/pop_up.gd" id="25_i2p71"]
+[ext_resource type="PackedScene" path="res://scenes/player_turn.tscn" id="25_vaj68"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0k8a4"]
 resource_name = "Corner.001"
@@ -753,17 +742,36 @@ accepted_biome = 1
 
 [node name="Deck" parent="." instance=ExtResource("21_hb5m1")]
 
-[node name="sigil_slot_1" parent="." instance=ExtResource("20_qhcbd")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.119, 0)
+[node name="sigil_slot_1" type="Node3D" parent="."]
 
-[node name="sigil_slot_2" parent="." instance=ExtResource("21_f1jbl")]
+[node name="Sigil_slot_1" type="MeshInstance3D" parent="sigil_slot_1"]
+transform = Transform3D(-0.985265, 0, -0.985266, 0, 1.39338, 0, 0.985266, 0, -0.985265, 0, 0, 0)
+mesh = ExtResource("21_x5p1p")
+skeleton = NodePath("")
+
+[node name="sigil_slot_2" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0161567, -0.118564, -0.0452033)
 
-[node name="sigil_slot_3" parent="." instance=ExtResource("22_vaj68")]
+[node name="Sigil_slot_2" type="MeshInstance3D" parent="sigil_slot_2"]
+transform = Transform3D(0.985266, 0, -0.985265, 0, 1.39338, 0, 0.985265, 0, 0.985266, 0, 0, 0)
+mesh = ExtResource("21_x5p1p")
+skeleton = NodePath("")
+
+[node name="sigil_slot_3" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.119, 0)
 
-[node name="sigil_slot_4" parent="." instance=ExtResource("23_i2p71")]
+[node name="Sigil_slot_3" type="MeshInstance3D" parent="sigil_slot_3"]
+transform = Transform3D(0.985265, 0, 0.985266, 0, 1.39338, 0, -0.985266, 0, 0.985265, 0, 0, 0)
+mesh = ExtResource("21_x5p1p")
+skeleton = NodePath("")
+
+[node name="sigil_slot_4" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.119, 0)
+
+[node name="Sigil_slot_4" type="MeshInstance3D" parent="sigil_slot_4"]
+transform = Transform3D(-0.985266, 0, 0.985265, 0, 1.39338, 0, -0.985265, 0, -0.985266, 0, 0, 0)
+mesh = ExtResource("21_x5p1p")
+skeleton = NodePath("")
 
 [node name="PointCounter" type="Node3D" parent="."]
 transform = Transform3D(-0.00947704, 0, 0.999955, 0, 1, 0, -0.999955, 0, -0.00947704, -6.88334, 0, 0.0452511)
@@ -791,6 +799,30 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.01899, 0, 11.7746)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.23454, 0, 10.0414)
 
 [node name="DesertMagicStack" type="Node3D" parent="PointCounter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.93798, 0, 11.9693)
+
+[node name="ForestStack2" type="Node3D" parent="PointCounter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.25538, 0, 3.69709)
+
+[node name="ForestMagicStack2" type="Node3D" parent="PointCounter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.06009, 0, 1.96928)
+
+[node name="WaterStack2" type="Node3D" parent="PointCounter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.26165, 0, 3.64341)
+
+[node name="WaterMagicStack2" type="Node3D" parent="PointCounter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.95123, 0, 1.84649)
+
+[node name="MountainStack2" type="Node3D" parent="PointCounter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.18955, 0.177179, 10.0922)
+
+[node name="MountainMagicStack2" type="Node3D" parent="PointCounter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.01899, 0, 11.7746)
+
+[node name="DesertStack2" type="Node3D" parent="PointCounter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.23454, 0, 10.0414)
+
+[node name="DesertMagicStack2" type="Node3D" parent="PointCounter"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.93798, 0, 11.9693)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
@@ -1009,7 +1041,6 @@ offset_bottom = 26.188
 grow_horizontal = 2
 grow_vertical = 2
 
-
 [node name="PlayerUIs" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 15
@@ -1019,69 +1050,28 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+[node name="DirectionalLight3D2" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 5, 0)
 sky_mode = 1
 
-[node name="PointCounter" type="Node3D" parent="."]
+[node name="PointCounter2" type="Node3D" parent="."]
 transform = Transform3D(-0.00947704, 0, 0.999955, 0, 1, 0, -0.999955, 0, -0.00947704, -6.88334, 0, 0.0452511)
 script = ExtResource("11_beb7m")
 
-[node name="ForestStack" type="Node3D" parent="PointCounter"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.25538, 0, 3.69709)
-
-[node name="ForestMagicStack" type="Node3D" parent="PointCounter"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.06009, 0, 1.96928)
-
-[node name="WaterStack" type="Node3D" parent="PointCounter"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.26165, 0, 3.64341)
-
-[node name="WaterMagicStack" type="Node3D" parent="PointCounter"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.95123, 0, 1.84649)
-
-[node name="MountainStack" type="Node3D" parent="PointCounter"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.18955, 0.177179, 10.0922)
-
-[node name="MountainMagicStack" type="Node3D" parent="PointCounter"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.01899, 0, 11.7746)
-
-[node name="DesertStack" type="Node3D" parent="PointCounter"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.23454, 0, 10.0414)
-
-[node name="DesertMagicStack" type="Node3D" parent="PointCounter"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.93798, 0, 11.9693)
-
-[node name="sigil_slot_1" type="Node3D" parent="."]
+[node name="sigil_slot_5" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.119, 0)
+visible = false
 
-[node name="Sigil_slot_1" type="MeshInstance3D" parent="sigil_slot_1"]
-transform = Transform3D(-0.985265, 0, -0.985266, 0, 1.39338, 0, 0.985266, 0, -0.985265, 0, 0, 0)
-mesh = ExtResource("21_x5p1p")
-skeleton = NodePath("")
-
-[node name="sigil_slot_2" type="Node3D" parent="."]
+[node name="sigil_slot_6" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0161567, -0.118564, -0.0452033)
+visible = false
 
-[node name="Sigil_slot_2" type="MeshInstance3D" parent="sigil_slot_2"]
-transform = Transform3D(0.985266, 0, -0.985265, 0, 1.39338, 0, 0.985265, 0, 0.985266, 0, 0, 0)
-mesh = ExtResource("21_x5p1p")
-skeleton = NodePath("")
-
-[node name="sigil_slot_3" type="Node3D" parent="."]
+[node name="sigil_slot_7" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.119, 0)
+visible = false
 
-[node name="Sigil_slot_3" type="MeshInstance3D" parent="sigil_slot_3"]
-transform = Transform3D(0.985265, 0, 0.985266, 0, 1.39338, 0, -0.985266, 0, 0.985265, 0, 0, 0)
-mesh = ExtResource("21_x5p1p")
-skeleton = NodePath("")
-
-[node name="sigil_slot_4" type="Node3D" parent="."]
+[node name="sigil_slot_8" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.119, 0)
-
-
-[node name="Sigil_slot_4" type="MeshInstance3D" parent="sigil_slot_4"]
-transform = Transform3D(-0.985266, 0, 0.985265, 0, 1.39338, 0, -0.985265, 0, -0.985266, 0, 0, 0)
-mesh = ExtResource("21_x5p1p")
-skeleton = NodePath("")
+visible = false
 
 [connection signal="pressed" from="ResetButton" to="." method="_on_reset_button_pressed"]
