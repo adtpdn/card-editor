@@ -1,0 +1,38 @@
+[gd_scene load_steps=3 format=3 uid="uid://dxpbtxks8gf60"]
+
+[ext_resource type="Script" uid="uid://cnal45cmhu1to" path="res://src/soil_star.gd" id="1_jw5jo"]
+[ext_resource type="Texture2D" uid="uid://dshxu8xgwqow1" path="res://assets/ui/soilstar.png" id="2_vqcdg"]
+
+[node name="SoilStar" type="Control"]
+layout_mode = 3
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -40.0
+offset_top = -40.0
+grow_horizontal = 0
+grow_vertical = 0
+script = ExtResource("1_jw5jo")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = -155.0
+offset_top = -61.0
+offset_right = -15.0
+offset_bottom = -1.0
+
+[node name="SoilStarLabel" type="Label" parent="HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="MarginContainer" type="MarginContainer" parent="HBoxContainer"]
+custom_minimum_size = Vector2(15, 0)
+layout_mode = 2
+
+[node name="SoilStarTexture" type="TextureRect" parent="HBoxContainer"]
+layout_mode = 2
+texture = ExtResource("2_vqcdg")
+expand_mode = 2

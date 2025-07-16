@@ -15,6 +15,7 @@ extends Node
 @onready var deck = $Deck
 @onready var token_placements = $TokenPlacements
 @onready var tokens = $Tokens
+@onready var notification = $Notification
 
 @onready var sigil_a_button = $SigilContainer/SigilAButton
 @onready var sigil_b_button = $SigilContainer/SigilBButton
@@ -25,13 +26,22 @@ extends Node
 # Core Game State
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 var game_started = false
-var players = []
+var players = [] # This list stores the CURRENT TURN ORDER and will be re-sorted.
+var initial_player_order: Array = [] # NEW: This stores the PERMANENT JOIN ORDER for colors.
 var player_hands = {}
-var player_slots = [false, false, false, false]  # Track occupied slots
-var max_players = 4  # Maximum players allowed
+var player_slots = [false, false, false, false] # Track occupied slots
+var max_players = 4 # Maximum players allowed
 
-# Color management for players
-var player_colors = {}  # Mapping of player IDs to colors
+# --- FIX ---
+# Player colors are now defined here in the main game script.
+const player_colors = [
+	Color(1, 0, 0),# Red
+	Color(0, 1, 0),# Green
+	Color(0, 0, 1),# Blue
+	Color(1, 1, 0) # Yellow
+]
+
+signal turn_changed
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization
@@ -63,20 +73,16 @@ func start_game():
 	# Debug the card_manager initialization
 	print("Starting game - initializing card system")
 	
-	game_started = true
-	
+	if multiplayer.is_server():
+		game_started = true
+		
+
+		
 	# Initialize the deck with a seed first
 	$Deck/Table.initialize_deck_with_seed(randi())
 	
 	# Draw initial cards for the host player
 	card_manager.initialize_starting_hand()
-	
-	# Debug the player's hand after initialization
-	print("Player hand after initialization:")
-	if card_manager.player_hand:
-		for i in range(card_manager.player_hand.cards.size()):
-			var card = card_manager.player_hand.cards[i]
-			print("Hand card", i, "card_id:", card.card_id, "name:", card.card_name)
 	
 	# If there are clients, they will get their cards when they connect
 	if network_manager.multiplayer.is_server() and network_manager.multiplayer.get_peers().size() > 0:
@@ -92,8 +98,42 @@ func start_game():
 	rpc("sync_game_state", players, game_started)
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ---  Network Synchronization ---
+# ---  	Color Management 	  ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+## NEW HELPER FUNCTION
+## Returns the permanent color index for a player based on their initial join order.
+func get_player_color_index(player_id: int) -> int:
+	if initial_player_order.is_empty():
+		# Fallback to current order if initial isn't set yet (should be rare)
+		print("WARNING: initial_player_order is empty in game.gd. Falling back to game.players for color index.")
+		return players.find(player_id)
+	
+	var index = initial_player_order.find(player_id)
+	return index if index != -1 else 0 # Return 0 as a safe default
+
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ---  Network Synchronization ---
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+@rpc("any_peer", "call_local", "reliable")
+func sync_player_list(updated_players: Array):
+	# Ensure the local player list matches the server's master list
+	self.players = updated_players
+
+	print("[%s] Player list synced. Current players: %s" % [multiplayer.get_unique_id(), str(self.players)])
+
+	# After syncing the data, update the UI accordingly
+	if ui_manager:
+		ui_manager.update_player_list()
+
+## NEW RPC
+## RPC to ensure all clients have the same permanent color order list.
+@rpc("any_peer", "call_local", "reliable")
+func sync_initial_order(order_from_server: Array):
+	if initial_player_order.is_empty():
+		initial_player_order = order_from_server
+		print("[%d] Received and set initial player order for colors in game.gd: %s" % [multiplayer.get_unique_id(), str(initial_player_order)])
+
 @rpc("any_peer", "call_remote")
 func initialize_client_starting_hand():
 	print("Client initializing starting hand...")
@@ -106,17 +146,15 @@ func initialize_client_starting_hand():
 			var card = card_manager.player_hand.cards[i]
 			print("Client hand card", i, "card_id:", card.card_id, "name:", card.card_name)
 
-@rpc("any_peer", "call_local") 
+@rpc("any_peer", "call_local")
 func sync_game_state(game_players, has_started):
 	print("Syncing game state from server")
 	players = game_players
 	game_started = has_started
-	
-	# Sync player_hands if data is provided
+	initial_player_order = game_players
 	
 	# Update UI to reflect state
 	ui_manager.update_player_list()
-	token_manager.setup_player_token_indicators()
 
 	# Request initial cards if client hasn't received any yet
 	if !multiplayer.is_server() and game_started:
@@ -135,7 +173,8 @@ func set_current_turn(player_id):
 
 @rpc("any_peer", "call_local")
 func sync_player_colors(colors: Dictionary):
-	player_colors = colors.duplicate()
+	# This function might be deprecated now but keeping it for safety.
+	# The new system relies on the initial_player_order.
 	game_state_manager.sync_player_colors(colors)
 
 @rpc("any_peer", "call_local")
@@ -165,23 +204,6 @@ func request_token_refresh():
 	var tokens = token_manager.get_player_tokens(requesting_peer)
 	rpc_id(requesting_peer, "sync_player_tokens", tokens)
 
-#@rpc("any_peer", "call_local")
-#func sync_card_played(card_data: Dictionary, slot_index: int, location_name: String, player_id: int):
-	#card_manager.sync_card_played(card_data, slot_index, location_name, player_id)
-#
-#
-#@rpc("any_peer", "call_local")
-#func sync_draw_card(card_data: Dictionary):
-	#card_manager.sync_draw_card(card_data)
-#
-#@rpc("any_peer", "call_local")
-#func receive_initial_hand(cards_data: Array):
-	#card_manager.receive_initial_hand(cards_data)
-#
-#@rpc("any_peer")
-#func request_hand_resync():
-	#card_manager.request_hand_resync()
-
 @rpc("any_peer")
 func request_card_placement(card_data: Dictionary, slot_index: int, location_name: String, player_id: int):
 	card_manager.request_card_placement(card_data, slot_index, location_name, player_id)
@@ -194,18 +216,15 @@ func request_game_state_sync(requesting_peer_id):
 	var actual_requesting_peer = multiplayer.get_remote_sender_id()
 	print("Client ", actual_requesting_peer, " requested game state sync")
 	
+	# --- FIX ---
+	# When a client requests a sync, also send them the permanent color order.
+	rpc_id(actual_requesting_peer, "sync_initial_order", initial_player_order)
+	
 	# Send full game state to the requesting client
 	rpc_id(actual_requesting_peer, "sync_game_state", players, game_started)
 	
 	# Also send turn state
 	rpc_id(actual_requesting_peer, "sync_turn_state", game_state_manager.current_turn_index)
-	
-	# If game is started, make sure client has cards
-	if game_started and player_hands.has(actual_requesting_peer):
-		var cards_data = []
-		for card in player_hands[actual_requesting_peer]:
-			cards_data.append(card.to_dictionary())
-		#rpc_id(actual_requesting_peer, "receive_initial_hand", cards_data)
 
 @rpc("any_peer")
 func request_draw_card(is_action: bool):
@@ -252,7 +271,7 @@ func remove_player(player_id):
 
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ---   Game Engine Handlers   ---
+# ---   Game Engine Handlers   ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 func _process(delta: float) -> void:
@@ -267,7 +286,7 @@ func _notification(what):
 
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ---      Point Counter       ---
+# ---      Point Counter       ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 func request_point_adjustment(biome: String, delta: int):
@@ -302,7 +321,7 @@ func adjust_points(biome: String, delta: int):
 	point_counter.set_points(biome, new_value)
 	
 	# Sync to all clients
-	point_counter.rpc("sync_point_values", 
+	point_counter.rpc("sync_point_values",
 		point_counter.forest_points,
 		point_counter.desert_points,
 		point_counter.mountain_points,

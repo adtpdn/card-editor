@@ -282,6 +282,7 @@ func _on_card_exit(card: Card3D):
 func _on_card_pressed(card: Card3D):
 	var game = get_node("/root/Game")
 	var turn_phase_manager = game.turn_phase_manager
+	var notification = game.notification
 	
 	var parent = card.get_parent()
 	
@@ -300,7 +301,9 @@ func _on_card_pressed(card: Card3D):
 	if turn_phase_manager.current_phase == 1: 
 		if can_select_card(card):
 			print('card pressed')
+			notification.show_instruction_label("Play a Card")
 			card_selected.emit(card)
+			
 		
 
 func _on_card_clicked(card: Card3D):

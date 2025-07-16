@@ -29,6 +29,7 @@ extends Node
 @onready var sigil_manager = $"../SigilManager"
 @onready var turn_phase_manager = $"../TurnPhaseManager"
 @onready var tokens = $"../Tokens"
+@onready var notification = $"../Notification"
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -422,6 +423,7 @@ func _on_token_selected():
 						print("plant extra")
 						placement.set_biome_placement()
 						placement.set_sigil_placement()
+						notification.show_instruction_label("Plant Extra Token on Biome or Sigil")
 				
 		
 		elif current_phase == turn_phase_manager.Phase.PLANT_BIOME:
@@ -429,14 +431,16 @@ func _on_token_selected():
 			for placement in get_parent().get_node("TokenPlacements").get_children():
 				if !placement.is_occupied and placement.place_id == -1:
 					placement.set_biome_placement()
-					#placement.set_highlight(true)
+					placement.set_highlight(true)
+					notification.show_instruction_label("Plant Token on Biome")
 		
 		elif current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD:
 			# In sigil phase, highlight sigil locations (place_id != -1)
 			for placement in get_parent().get_node("TokenPlacements").get_children():
 				if !placement.is_occupied and placement.place_id != -1:
 					placement.set_sigil_placement()
-					#placement.set_highlight(true)
+					placement.set_highlight(true)
+					notification.show_instruction_label("Plant Token on Sigil")
 			
 	else:
 		# Unhighlight all placements when deselecting
@@ -727,6 +731,8 @@ func request_token_placement(token_index: int, position: Vector3, biome_type: in
 			
 			# IMPORTANT: Remove the token from player's available tokens BEFORE sync
 			remove_token(player_id, token_index)
+			
+			notification.hide_panel()
 			
 			# Log the token count
 			print("Player ", player_id, " token count before sync: ", 

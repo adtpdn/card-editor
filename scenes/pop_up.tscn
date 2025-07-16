@@ -1,8 +1,8 @@
 [gd_scene load_steps=2 format=3 uid="uid://bchy4wmtwdsy"]
 
-[ext_resource type="Script" uid="uid://copi64l3fv7vm" path="res://scenes/pop_up_sigil.gd" id="1_qfklp"]
+[ext_resource type="Script" uid="uid://copi64l3fv7vm" path="res://src/pop_up.gd" id="1_qfklp"]
 
-[node name="PopUpSigil" type="Control"]
+[node name="PopUp" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -33,7 +33,7 @@ offset_right = 133.0
 offset_bottom = 98.0
 grow_horizontal = 2
 theme_override_font_sizes/font_size = 14
-text = "show_instruction_label"
+text = "Instruction Label"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2

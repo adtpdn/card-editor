@@ -1,8 +1,11 @@
+
 [gd_resource type="Resource" script_class="CardResource" load_steps=4 format=3 uid="uid://dhf8f1v1nt20h"]
 
 [ext_resource type="Material" uid="uid://drikh8gb0pvmj" path="res://card_deck/materials/CFM_00_Back_Card.tres" id="1_725ps"]
 [ext_resource type="Script" uid="uid://77vvo0ke2vww" path="res://card_deck/card_3d/scripts/card_resource.gd" id="1_fpnfp"]
+
 [ext_resource type="Material" uid="uid://kx30uqrsewhg" path="res://card_deck/materials/CFM_05_Plant_Extra.tres" id="1_t04ia"]
+
 
 [resource]
 script = ExtResource("1_fpnfp")
@@ -16,3 +19,4 @@ effect2 = ""
 revealed = true
 front_mesh_material = ExtResource("1_t04ia")
 back_mesh_material = ExtResource("1_725ps")
+
