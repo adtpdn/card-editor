@@ -739,7 +739,7 @@ func request_token_placement(token_index: int, position: Vector3, biome_type: in
 				  get_player_tokens(player_id).size())
 			
 			if is_plant_extra :
-				
+				point_counter.request_add_magic_points.rpc(token_data.biome)
 				is_plant_extra = false
 			
 			# Important: Sync the placement to ALL clients including the requester

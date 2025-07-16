@@ -1,6 +1,9 @@
 # point_counter.gd
 extends Node3D
 
+# Define an enum for the different biomes. This makes the code cleaner and less prone to typos.
+enum Biome {FOREST, WATER, MOUNTAIN, DESERT}
+
 const TOTAL_POINTS = 10  # Max points per biome
 
 # Regular biome points
@@ -43,23 +46,59 @@ const BUTTON_PRESS_COOLDOWN = 0.25
 		set_multiplayer_authority(1)
 
 func _ready():
+	# The server (authority) will manage the points.
 	set_multiplayer_authority(1)
-	
-	#create_stack_labels()
 	update_all_stacks()
 
 
-func on_button_pressed(biome: String, delta: int):
-	# Implement cooldown to prevent rapid button presses
+# This function is now just for requesting regular point adjustments.
+func on_button_pressed(biome_string: String, delta: int):
 	var current_time = Time.get_ticks_msec() / 1000.0
 	if current_time - last_button_press_time < BUTTON_PRESS_COOLDOWN:
 		return
-		
 	last_button_press_time = current_time
 	
 	var game_node = get_parent()
 	if game_node and game_node.has_method("request_point_adjustment"):
-		game_node.request_point_adjustment(biome, delta)
+		game_node.request_point_adjustment(biome_string, delta)
+
+# This function can be called by a client to request adding magic points for a specific biome.
+# It's an RPC that tells the server to execute the logic.
+@rpc("call_local")
+func request_add_magic_points(biome: Biome):
+	# This logic will only run on the multiplayer authority (the server/host).
+	if not is_multiplayer_authority():
+		return
+
+	add_magic_points_from_biome(biome)
+	
+	# After updating the points on the server, we sync the new values with all clients.
+	sync_point_values.rpc(
+		forest_points, desert_points, mountain_points, water_points,
+		forest_magic_points, desert_magic_points, mountain_magic_points, water_magic_points
+	)
+
+# This is where the core logic for adding points based on the Biome enum happens.
+# This function should only be called on the server.
+func add_magic_points_from_biome(biome: Biome):
+	match biome:
+		Biome.FOREST:
+			var new_points = forest_magic_points + 2
+			forest_magic_points = validate_points(new_points)
+		Biome.DESERT:
+			var new_points = desert_magic_points + 2
+			desert_magic_points = validate_points(new_points)
+		Biome.MOUNTAIN:
+			var new_points = mountain_magic_points + 2
+			mountain_magic_points = validate_points(new_points)
+		Biome.WATER:
+			var new_points = water_magic_points + 2
+			water_magic_points = validate_points(new_points)
+	
+	# We call update_all_stacks() here on the server so its view is immediately correct.
+	# Clients will update when they receive the sync_point_values RPC.
+	update_all_stacks()
+
 
 func create_block(biome: String) -> Node3D:
 	var block = block_scene.instantiate()
@@ -113,6 +152,8 @@ func update_stack(stack_node: Node3D, points: int, biome: String):
 		stack_node.add_child(block)
 		block.position.y = i * (BLOCK_HEIGHT + BLOCK_SPACING)
 
+# This RPC is now called by the server to broadcast the state to all clients.
+# We change it to 'any_peer' so the server can call it on clients.
 @rpc("any_peer", "call_local")
 func sync_point_values(f: int, d: int, m: int, w: int, fm: int, dm: int, mm: int, wm: int):
 	forest_points = f
@@ -138,6 +179,9 @@ func get_points(biome: String) -> int:
 	return 0
 
 func set_points(biome: String, value: int):
+	# This function should generally only be called on the server.
+	if not is_multiplayer_authority(): return
+	
 	value = validate_points(value)
 	match biome:
 		"forest": forest_points = value
