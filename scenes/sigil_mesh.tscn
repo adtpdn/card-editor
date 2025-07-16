@@ -1,0 +1,38 @@
+[gd_scene load_steps=2 format=3 uid="uid://ct3mj6rfjmily"]
+
+[ext_resource type="ArrayMesh" uid="uid://cfg8ewaugnbvx" path="res://assets/meshes/sigil_slot.tres" id="1_abhd1"]
+
+[node name="SigilMesh" type="Node3D"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0)
+
+[node name="sigil_slot_1" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+
+[node name="Sigil_slot_1" type="MeshInstance3D" parent="sigil_slot_1"]
+transform = Transform3D(-0.985265, 0, -0.985266, 0, 1.39338, 0, 0.985266, 0, -0.985265, 0, 0, 0)
+mesh = ExtResource("1_abhd1")
+skeleton = NodePath("")
+
+[node name="sigil_slot_2" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0.0161567, 0.0452033, -0.118564)
+
+[node name="Sigil_slot_2" type="MeshInstance3D" parent="sigil_slot_2"]
+transform = Transform3D(0.985266, 0, -0.985265, 0, 1.39338, 0, 0.985265, 0, 0.985266, 0, 0, 0)
+mesh = ExtResource("1_abhd1")
+skeleton = NodePath("")
+
+[node name="sigil_slot_3" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 5.20166e-09, -0.119)
+
+[node name="Sigil_slot_3" type="MeshInstance3D" parent="sigil_slot_3"]
+transform = Transform3D(0.985265, 0, 0.985266, 0, 1.39338, 0, -0.985266, 0, 0.985265, 0, 0, 0)
+mesh = ExtResource("1_abhd1")
+skeleton = NodePath("")
+
+[node name="sigil_slot_4" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 5.20166e-09, -0.119)
+
+[node name="Sigil_slot_4" type="MeshInstance3D" parent="sigil_slot_4"]
+transform = Transform3D(-0.985266, 0, 0.985265, 0, 1.39338, 0, -0.985265, 0, -0.985266, 0, 0, 0)
+mesh = ExtResource("1_abhd1")
+skeleton = NodePath("")

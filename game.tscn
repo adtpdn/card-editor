@@ -7,7 +7,7 @@
 [ext_resource type="Script" uid="uid://crljukaucgphk" path="res://game_state_manager.gd" id="4_e36ub"]
 [ext_resource type="Script" uid="uid://dpaobk3mip7va" path="res://card_manager.gd" id="5_hb5m1"]
 [ext_resource type="PackedScene" uid="uid://cqkw6uj4kgxav" path="res://token_placement_location_magic.tscn" id="6_aclfe"]
-[ext_resource type="Script" path="res://ui_manager.gd" id="6_x5p1p"]
+[ext_resource type="Script" uid="uid://22sqj66kc86h" path="res://ui_manager.gd" id="6_x5p1p"]
 [ext_resource type="Script" uid="uid://b33jfe6s6f3g4" path="res://sigil_manager.gd" id="7_boyg6"]
 [ext_resource type="PackedScene" uid="uid://u5swx58xo14j" path="res://token_placement_location.tscn" id="7_i0rid"]
 [ext_resource type="Script" uid="uid://di0aebdoy5x2n" path="res://src/domination_manager.gd" id="9_36jdj"]
@@ -19,11 +19,11 @@
 [ext_resource type="Material" uid="uid://c6acp7vu62y16" path="res://assets/meshes/corner_slice_2_mat.tres" id="12_hb5m1"]
 [ext_resource type="Material" uid="uid://dlp8ve03x2jgc" path="res://assets/meshes/corner_slice_3_mat.tres" id="13_x5p1p"]
 [ext_resource type="Material" uid="uid://c7ugxmqk3hnld" path="res://assets/meshes/corner_slice_4_mat.tres" id="14_qhcbd"]
-[ext_resource type="PackedScene" path="res://scenes/pop_up.tscn" id="19_f1jbl"]
+[ext_resource type="PackedScene" uid="uid://bchy4wmtwdsy" path="res://scenes/pop_up.tscn" id="19_f1jbl"]
+[ext_resource type="PackedScene" uid="uid://ct3mj6rfjmily" path="res://scenes/sigil_mesh.tscn" id="20_f1jbl"]
 [ext_resource type="PackedScene" uid="uid://cogovef2ukws3" path="res://card_deck/deck.tscn" id="21_hb5m1"]
-[ext_resource type="ArrayMesh" uid="uid://cr84fumgftsvn" path="res://assets/meshes/sigil_slot.tres" id="21_x5p1p"]
 [ext_resource type="Script" uid="uid://copi64l3fv7vm" path="res://src/pop_up.gd" id="25_i2p71"]
-[ext_resource type="PackedScene" path="res://scenes/player_turn.tscn" id="25_vaj68"]
+[ext_resource type="PackedScene" uid="uid://dneiapwmkd0eu" path="res://scenes/player_turn.tscn" id="25_vaj68"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0k8a4"]
 resource_name = "Corner.001"
@@ -742,36 +742,8 @@ accepted_biome = 1
 
 [node name="Deck" parent="." instance=ExtResource("21_hb5m1")]
 
-[node name="sigil_slot_1" type="Node3D" parent="."]
-
-[node name="Sigil_slot_1" type="MeshInstance3D" parent="sigil_slot_1"]
-transform = Transform3D(-0.985265, 0, -0.985266, 0, 1.39338, 0, 0.985266, 0, -0.985265, 0, 0, 0)
-mesh = ExtResource("21_x5p1p")
-skeleton = NodePath("")
-
-[node name="sigil_slot_2" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0161567, -0.118564, -0.0452033)
-
-[node name="Sigil_slot_2" type="MeshInstance3D" parent="sigil_slot_2"]
-transform = Transform3D(0.985266, 0, -0.985265, 0, 1.39338, 0, 0.985265, 0, 0.985266, 0, 0, 0)
-mesh = ExtResource("21_x5p1p")
-skeleton = NodePath("")
-
-[node name="sigil_slot_3" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.119, 0)
-
-[node name="Sigil_slot_3" type="MeshInstance3D" parent="sigil_slot_3"]
-transform = Transform3D(0.985265, 0, 0.985266, 0, 1.39338, 0, -0.985266, 0, 0.985265, 0, 0, 0)
-mesh = ExtResource("21_x5p1p")
-skeleton = NodePath("")
-
-[node name="sigil_slot_4" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.119, 0)
-
-[node name="Sigil_slot_4" type="MeshInstance3D" parent="sigil_slot_4"]
-transform = Transform3D(-0.985266, 0, 0.985265, 0, 1.39338, 0, -0.985265, 0, -0.985266, 0, 0, 0)
-mesh = ExtResource("21_x5p1p")
-skeleton = NodePath("")
+[node name="SigilMesh" parent="." instance=ExtResource("20_f1jbl")]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0)
 
 [node name="PointCounter" type="Node3D" parent="."]
 transform = Transform3D(-0.00947704, 0, 0.999955, 0, 1, 0, -0.999955, 0, -0.00947704, -6.88334, 0, 0.0452511)
@@ -826,6 +798,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.23454, 0, 10.0414)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.93798, 0, 11.9693)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 5, 0)
+sky_mode = 1
+
+[node name="DirectionalLight3D2" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 5, 0)
 sky_mode = 1
 
@@ -1049,29 +1025,5 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-
-[node name="DirectionalLight3D2" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 5, 0)
-sky_mode = 1
-
-[node name="PointCounter2" type="Node3D" parent="."]
-transform = Transform3D(-0.00947704, 0, 0.999955, 0, 1, 0, -0.999955, 0, -0.00947704, -6.88334, 0, 0.0452511)
-script = ExtResource("11_beb7m")
-
-[node name="sigil_slot_5" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.119, 0)
-visible = false
-
-[node name="sigil_slot_6" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0161567, -0.118564, -0.0452033)
-visible = false
-
-[node name="sigil_slot_7" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.119, 0)
-visible = false
-
-[node name="sigil_slot_8" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.119, 0)
-visible = false
 
 [connection signal="pressed" from="ResetButton" to="." method="_on_reset_button_pressed"]

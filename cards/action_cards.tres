@@ -11,7 +11,7 @@
 [ext_resource type="Resource" uid="uid://d215hsqvp4m6m" path="res://cards/action_take_off_2.tres" id="9_fxfms"]
 [ext_resource type="Resource" uid="uid://ry0bcq5phfq2" path="res://cards/action_unblight_1.tres" id="10_oru6x"]
 [ext_resource type="Resource" uid="uid://45nqojvfbhyg" path="res://cards/action_unblight_2.tres" id="11_nrqkq"]
-[ext_resource type="Script" uid="uid://cuvbmlsje2ik1" path="res://deck_resource.gd" id="12_8kd1w"]
+[ext_resource type="Script" uid="uid://c0ll17r7c4jrc" path="res://deck_resource.gd" id="12_8kd1w"]
 
 [resource]
 script = ExtResource("12_8kd1w")
