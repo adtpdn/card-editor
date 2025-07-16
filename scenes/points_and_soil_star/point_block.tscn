@@ -1,12 +1,12 @@
 [gd_scene load_steps=8 format=4 uid="uid://3sm3p88nmahr"]
 
-[ext_resource type="Script" uid="uid://hvtgpo44e7ji" path="res://point_block.gd" id="1_26bwg"]
-[ext_resource type="Texture2D" uid="uid://c0j0akbot7qab" path="res://assets/meshes/point-block_point_block.png" id="2_64wex"]
+[ext_resource type="Script" uid="uid://hvtgpo44e7ji" path="res://src/points_and_soil_star/point_block.gd" id="1_jt8jc"]
+[ext_resource type="Texture2D" uid="uid://c0j0akbot7qab" path="res://assets/meshes/point-block_point_block.png" id="2_cxtuc"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_05xrn"]
 resource_name = "point-block_mat"
 cull_mode = 2
-albedo_texture = ExtResource("2_64wex")
+albedo_texture = ExtResource("2_cxtuc")
 roughness = 0.5
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_vcmin"]
@@ -49,7 +49,7 @@ shadow_mesh = SubResource("ArrayMesh_vcmin")
 
 [node name="PointBlock" type="Node3D"]
 transform = Transform3D(0.25, 0, 0, 0, 0.25, 0, 0, 0, 0.25, 0, 0.120118, 0)
-script = ExtResource("1_26bwg")
+script = ExtResource("1_jt8jc")
 
 [node name="point-block" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.2, 0, 0, 0, 1, 0, -0.518342, 0)

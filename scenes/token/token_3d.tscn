@@ -1,6 +1,6 @@
 [gd_scene load_steps=13 format=3 uid="uid://dfjq1voh17um3"]
 
-[ext_resource type="Script" uid="uid://dw7af08d83l31" path="res://token_3d.gd" id="1_18jwr"]
+[ext_resource type="Script" uid="uid://dw7af08d83l31" path="res://src/token/token_3d.gd" id="1_18jwr"]
 [ext_resource type="Shader" uid="uid://bsxqdo8pk5cno" path="res://assets/materials/shaders/token_3d.gdshader" id="2_43hjs"]
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_bpimy"]
@@ -149,6 +149,7 @@ shape = SubResource("ConcavePolygonShape3D_82ns2")
 
 [node name="Outerglow" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, -4.65661e-10, 0, 2.98023e-08, 1, 0, 0, 0, 1, 0, 1.03062, 0)
+visible = false
 mesh = SubResource("TorusMesh_gknmk")
 surface_material_override/0 = SubResource("ShaderMaterial_vfgd4")
 

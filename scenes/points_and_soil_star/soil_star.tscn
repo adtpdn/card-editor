@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://dxpbtxks8gf60"]
 
-[ext_resource type="Script" uid="uid://cnal45cmhu1to" path="res://src/soil_star.gd" id="1_jw5jo"]
-[ext_resource type="Texture2D" uid="uid://dshxu8xgwqow1" path="res://assets/ui/soilstar.png" id="2_vqcdg"]
+[ext_resource type="Script" uid="uid://cnal45cmhu1to" path="res://src/points_and_soil_star/soil_star.gd" id="1_y7qr1"]
+[ext_resource type="Texture2D" uid="uid://dshxu8xgwqow1" path="res://assets/ui/soilstar.png" id="2_lonpu"]
 
 [node name="SoilStar" type="Control"]
 layout_mode = 3
@@ -14,7 +14,7 @@ offset_left = -40.0
 offset_top = -40.0
 grow_horizontal = 0
 grow_vertical = 0
-script = ExtResource("1_jw5jo")
+script = ExtResource("1_y7qr1")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 0
@@ -34,5 +34,5 @@ layout_mode = 2
 
 [node name="SoilStarTexture" type="TextureRect" parent="HBoxContainer"]
 layout_mode = 2
-texture = ExtResource("2_vqcdg")
+texture = ExtResource("2_lonpu")
 expand_mode = 2

@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://u5swx58xo14j"]
 
-[ext_resource type="Script" uid="uid://b3ah4rojyoila" path="res://token_placement_location.gd" id="1_ktdd8"]
+[ext_resource type="Script" uid="uid://b3ah4rojyoila" path="res://src/token/token_placement_location.gd" id="1_ktdd8"]
 [ext_resource type="Material" uid="uid://by1y0fgktihs4" path="res://assets/meshes/transparent_.tres" id="2_p8b62"]
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_68ov5"]

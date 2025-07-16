@@ -15,7 +15,7 @@ extends Node
 @onready var player_turn = $"../PlayerTurn"
 @onready var domination_manager = $"../DominationManager"
 
-const player_hud_scene = preload("res://scenes/player_hud.tscn")
+const player_hud_scene = preload("res://scenes/player_ui/player_hud.tscn")
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Game State Variables

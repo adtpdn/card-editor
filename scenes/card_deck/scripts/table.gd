@@ -1,7 +1,7 @@
 extends Node3D
 
 var card_database = CardResource.new()
-@export var actions_cards = preload("res://cards/action_cards.tres")
+@export var actions_cards = preload("res://scenes/card_deck/materials/cards/action_cards.tres")
 @export var available_cards = [] # Will store indices of available cards
 
 var card_index
@@ -11,8 +11,6 @@ var rng = RandomNumberGenerator.new()
 @onready var hand: CardCollection3D = $DragController/Hand
 
 func _ready():
-	# Debug the card resources
-	debug_card_resources()
 	# Debug the action cards resource
 	print("Debugging action cards resource:")
 	for i in range(actions_cards.cards.size()):
@@ -227,22 +225,3 @@ func request_deck_sync():
 	var network_manager = get_node("/root/Game/NetworkManager")
 	if network_manager:
 		network_manager.request_deck_sync()
-
-func debug_card_resources():
-	print("Debugging card resources:")
-	var resource_path = "res://cards/action_cards.tres"
-	var loaded_resource = load(resource_path)
-	
-	if loaded_resource:
-		print("Successfully loaded action cards resource")
-		for i in range(loaded_resource.cards.size()):
-			var card = loaded_resource.cards[i]
-			print("Resource card index:", i, "card_id:", card.card_id, "name:", card.card_name)
-	else:
-		print("Failed to load action cards resource")
-	
-	# Check if our actions_cards matches the loaded resource
-	print("Comparing with actions_cards:")
-	for i in range(actions_cards.cards.size()):
-		var card = actions_cards.cards[i]
-		print("Local actions_cards index:", i, "card_id:", card.card_id, "name:", card.card_name)

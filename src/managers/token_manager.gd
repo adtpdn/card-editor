@@ -59,7 +59,7 @@ var last_token_selection_time = 0.0
 var last_token_placement_time = 0.0
 
 # Token scene reference
-var token_scene = preload("res://token_3d.tscn")
+var token_scene = preload("res://scenes/token/token_3d.tscn")
 
 # Add variables for card effects
 var is_take_off_mode := false
@@ -158,7 +158,7 @@ func setup_token_placements():
 	await get_parent().ready
 	await get_tree().process_frame
 	
-	var token_placement_scene = preload("res://token_placement_location.tscn")
+	var token_placement_scene = preload("res://scenes/token/token_placement_location.tscn")
 	
 	# Clear existing placements
 	for child in get_parent().get_node("TokenPlacements").get_children():
@@ -448,7 +448,7 @@ func _on_token_selected():
 	
 	# Update UI to show selection state
 	update_token_ui()
-	is_plant_extra = false
+	
 
 func _input(event):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -737,6 +737,10 @@ func request_token_placement(token_index: int, position: Vector3, biome_type: in
 			# Log the token count
 			print("Player ", player_id, " token count before sync: ", 
 				  get_player_tokens(player_id).size())
+			
+			if is_plant_extra :
+				
+				is_plant_extra = false
 			
 			# Important: Sync the placement to ALL clients including the requester
 			rpc("sync_token_placement", player_id, token_data, position)

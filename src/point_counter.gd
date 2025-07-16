@@ -19,7 +19,7 @@ const BLOCK_HEIGHT = 0.2
 const BLOCK_SPACING = 0.01
 const STACK_SPACING = 0.01
 
-var block_scene = preload("res://point_block.tscn")
+var block_scene = preload("res://scenes/points_and_soil_star/point_block.tscn")
 
 # Regular stacks
 @onready var forest_stack = $ForestStack

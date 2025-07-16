@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://ucko812cirey"]
+
+[ext_resource type="PackedScene" uid="uid://dxpbtxks8gf60" path="res://scenes/points_and_soil_star/soil_star.tscn" id="1_xh26h"]
+[ext_resource type="PackedScene" uid="uid://b7si3u1lndgw4" path="res://scenes/points_and_soil_star/points.tscn" id="2_dtf5k"]
+
+[node name="PlayerHUD" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SoilStar" parent="." instance=ExtResource("1_xh26h")]
+layout_mode = 1
+
+[node name="Points" parent="." instance=ExtResource("2_dtf5k")]
+layout_mode = 1
