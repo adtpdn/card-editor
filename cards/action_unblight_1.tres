@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="CardResource" load_steps=4 format=3 uid="uid://ry0bcq5phfq2"]
 
-[ext_resource type="Script" uid="uid://77vvo0ke2vww" path="res://card_deck/card_3d/scripts/card_resource.gd" id="1_62vsr"]
-[ext_resource type="Material" uid="uid://drikh8gb0pvmj" path="res://card_deck/materials/CFM_00_Back_Card.tres" id="1_ryt3y"]
-[ext_resource type="Material" uid="uid://ngiutgg2l22w" path="res://card_deck/materials/CFM_09_Unblight_Token.tres" id="2_k26dw"]
+[ext_resource type="Script" uid="uid://77vvo0ke2vww" path="res://scenes/card_deck/scripts/card_resource.gd" id="1_62vsr"]
+[ext_resource type="Material" uid="uid://drikh8gb0pvmj" path="res://scenes/card_deck/materials/CFM_00_Back_Card.tres" id="1_ryt3y"]
+[ext_resource type="Material" uid="uid://ngiutgg2l22w" path="res://scenes/card_deck/materials/CFM_09_Unblight_Token.tres" id="2_k26dw"]
 
 [resource]
 script = ExtResource("1_62vsr")

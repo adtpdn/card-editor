@@ -4,6 +4,7 @@ var card_database = CardResource.new()
 @export var actions_cards = preload("res://cards/action_cards.tres")
 @export var available_cards = [] # Will store indices of available cards
 
+var card_index
 @export var deck_seed: int = 0
 var rng = RandomNumberGenerator.new()
 
@@ -76,7 +77,7 @@ func reset_available_cards():
 			#hand.card_layout_strategy = LineCardLayout.new()
 
 func instantiate_face_card(card_index) -> FaceCard3D:
-	var scene = load("res://card_deck/card_3d/scenes/face_card_3d.tscn")
+	var scene = load("res://scenes/card_deck/scenes/face_card_3d.tscn")
 	var face_card_3d: FaceCard3D = scene.instantiate()
 	
 	# Get the card from the action cards deck
@@ -117,9 +118,10 @@ func add_card():
 		reset_available_cards()
 		
 	var data = next_card()
+	
 	if data:
 		var card = instantiate_face_card(data["id"])
-		
+		card_index = data["id"]
 		# Double-check the card_id is correct and matches the resource
 		if card.card_id != data["card_id"]:
 			print("Warning: Card ID mismatch. Expected:", data["card_id"], "Got:", card.card_id)

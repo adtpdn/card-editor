@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="CardResource" load_steps=4 format=3 uid="uid://nk1emmfrhnqn"]
 
-[ext_resource type="Material" uid="uid://drikh8gb0pvmj" path="res://card_deck/materials/CFM_00_Back_Card.tres" id="1_03jcp"]
-[ext_resource type="Script" uid="uid://77vvo0ke2vww" path="res://card_deck/card_3d/scripts/card_resource.gd" id="1_oth5w"]
-[ext_resource type="Material" uid="uid://bknofyj1riclf" path="res://card_deck/materials/CFM_03_Swap_Energy.tres" id="2_frnqb"]
+[ext_resource type="Material" uid="uid://drikh8gb0pvmj" path="res://scenes/card_deck/materials/CFM_00_Back_Card.tres" id="1_03jcp"]
+[ext_resource type="Script" uid="uid://77vvo0ke2vww" path="res://scenes/card_deck/scripts/card_resource.gd" id="1_oth5w"]
+[ext_resource type="Material" uid="uid://bknofyj1riclf" path="res://scenes/card_deck/materials/CFM_03_Swap_Energy.tres" id="2_frnqb"]
 
 [resource]
 script = ExtResource("1_oth5w")

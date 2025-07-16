@@ -1,8 +1,8 @@
 [gd_scene load_steps=7 format=3 uid="uid://dxpc2iac0hjpw"]
 
-[ext_resource type="Script" uid="uid://bqibbhjbko4ra" path="res://card_deck/card_3d/scripts/card_3d.gd" id="1_ll0aq"]
+[ext_resource type="Script" uid="uid://bqibbhjbko4ra" path="res://scenes/card_deck/scripts/card_3d.gd" id="1_ll0aq"]
 [ext_resource type="Texture2D" uid="uid://cbpt07uuhs6gd" path="res://assets/cards/2D/back-card.png" id="2_12a7b"]
-[ext_resource type="PlaneMesh" uid="uid://c3ego0al22ln2" path="res://card_deck/card_3d_back_mesh.tres" id="2_xedky"]
+[ext_resource type="PlaneMesh" uid="uid://dxvj3gkbbknem" path="res://scenes/card_deck/card_3d_back_mesh.tres" id="2_xedky"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j6x5i"]
 albedo_texture = ExtResource("2_12a7b")

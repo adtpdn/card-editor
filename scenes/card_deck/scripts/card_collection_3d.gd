@@ -81,11 +81,11 @@ func insert_card(card: Card3D, index: int):
 	card.card_3d_mouse_exit.connect(_on_card_exit.bind(card))
 	
 	card.card_on_biome = card_slot_biome
-	cards.insert(index, card)
+	cards.append(card)
 	add_child(card)
 	card.card_parent = card.get_parent().name
-	print('card parent : ', card.card_parent)
-	print("node name : ", self.name)
+	#print('card parent : ', card.card_parent)
+	#print("node name : ", self.name)
 	
 	
 	# Card will active if player plant a card
@@ -93,6 +93,7 @@ func insert_card(card: Card3D, index: int):
 	if self.name != "Hand" and not card.has_meta("remote_planted"):
 		card.scale = Vector3(0.7, 0.7, 0.7)
 		plant_card(card)
+		hide_last_card()
 	
 	# If it was remotely planted, remove the flag
 	if card.has_meta("remote_planted"):
@@ -101,9 +102,17 @@ func insert_card(card: Card3D, index: int):
 	for i in range(index, cards.size()):
 		card_indicies[cards[i]] = i
 	
-	
 	apply_card_layout()
 	card_added.emit(card)
+
+func hide_last_card() -> void :
+	var pile = get_parent()
+	print("pile : ", pile )
+	var cards = cards
+	
+	for id in cards.size():
+		if id != cards.size() - 1:
+			cards[id].hide()
 
 func plant_card(card):
 	print("plant card")
@@ -118,6 +127,7 @@ func plant_card(card):
 	
 	# Get the explicit resource card_id (not an index)
 	var resource_card_id = card.card_id
+	var resource_card_name = card.card_name
 	
 	print("Planting card with resource card_id:", resource_card_id, "to biome slot:", card_slot_biome)
 	
@@ -127,7 +137,7 @@ func plant_card(card):
 		var player_id = game.network_manager.multiplayer.get_unique_id()
 		
 		# Send resource card_id, biome slot info, and player ID to all clients
-		game.network_manager.sync_card_planted(resource_card_id, card_slot_biome, player_id)
+		game.network_manager.sync_card_planted(resource_card_id, card_slot_biome, player_id, resource_card_name)
 	
 	# Then trigger the local effect based on the card's actual resource card_id
 	execute_card_effect(resource_card_id)
@@ -289,25 +299,25 @@ func _on_card_pressed(card: Card3D):
 	# Disabled pressed card
 	# probably as a card or elemental
 	if parent.name != "Hand" :
-		print("pressed hand")
+		#print("pressed hand")
 		return
 	
 	if turn_phase_manager.card_played:
-		print("card played")
+		#print("card played")
 		return
 	
 	# Phase plant on sigil and card only
 	# Disabled card movement
 	if turn_phase_manager.current_phase == 1: 
 		if can_select_card(card):
-			print('card pressed')
+			#print('card pressed')
 			notification.show_instruction_label("Play a Card")
 			card_selected.emit(card)
 			
 		
 
 func _on_card_clicked(card: Card3D):
-	print("carc clicked")
+	#print("carc clicked")
 	card_clicked.emit(card)
 
 

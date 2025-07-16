@@ -58,7 +58,7 @@ func set_hovered():
 
 func remove_hovered():
 	var parent = self.get_parent()
-	print("parent : ", parent)
+	#print("parent : ", parent)
 	if hover_tween and hover_tween.is_running:
 		hover_tween.kill()
 		

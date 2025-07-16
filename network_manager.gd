@@ -571,7 +571,7 @@ func sync_available_cards(updated_available_cards: Array, card_id: int = -1):
 	var table = get_node("/root/Game/Deck/Table")
 	if table:
 		# Just update the available cards array
-		table.available_cards = updated_available_cards.duplicate()
+		table.available_cards = updated_available_cards
 		print("Synchronized deck state: ", updated_available_cards.size(), " cards remaining")
 		
 		# Log the card_id for debugging
@@ -591,17 +591,17 @@ func remote_specific_card_drawn(card_index: int, updated_available_cards = null)
 
 
 # Sync when a card is planted
-func sync_card_planted(card_id: int, biome_slot: int, player_id: int):
+func sync_card_planted(card_id: int, biome_slot: int, player_id: int, card_name: String):
 	if multiplayer.is_server():
 		# Send to all clients
-		rpc("remote_card_planted", card_id, biome_slot, player_id)
+		rpc("remote_card_planted", card_id, biome_slot, player_id, card_name)
 	else:
 		# If client, send to server first for validation
-		rpc_id(1, "request_card_plant", card_id, biome_slot, player_id)
+		rpc_id(1, "request_card_plant", card_id, biome_slot, player_id, card_name)
 
 # Server-side validation of a card plant request from a client
 @rpc("any_peer")
-func request_card_plant(card_id: int, biome_slot: int, player_id: int):
+func request_card_plant(card_id: int, biome_slot: int, player_id: int, card_name: String):
 	if !multiplayer.is_server():
 		return
 		
@@ -610,11 +610,11 @@ func request_card_plant(card_id: int, biome_slot: int, player_id: int):
 	# Here you could add validation logic if needed
 	# For now, we'll just forward the action to all clients
 	
-	rpc("remote_card_planted", card_id, biome_slot, sender_id)
+	rpc("remote_card_planted", card_id, biome_slot, sender_id, card_name)
 
 # Remote execution of card planting
 @rpc("any_peer", "call_local")
-func remote_card_planted(card_id: int, biome_slot: int, player_id: int):
+func remote_card_planted(card_id: int, biome_slot: int, player_id: int, card_name: String):
 	print("Received remote_card_planted with resource card_id:", card_id)
 	
 	var game = get_node("/root/Game/")
@@ -627,7 +627,7 @@ func remote_card_planted(card_id: int, biome_slot: int, player_id: int):
 	if player_id != our_id:  # If it's not our own action
 		print("Processing remote card plant from player", player_id)
 		# Create and place the card using the resource card_id
-		create_and_place_card(card_id, biome_slot)
+		create_and_place_card(card_id, biome_slot, card_name)
 	
 	# Execute the card effect based on resource card_id
 	var card_collection = null
@@ -637,7 +637,7 @@ func remote_card_planted(card_id: int, biome_slot: int, player_id: int):
 	if card_collection:
 		card_collection.execute_card_effect(card_id)
 
-func create_and_place_card(card_id: int, biome_slot: int):
+func create_and_place_card(card_id: int, biome_slot: int, card_name: String):
 	var game = get_node("/root/Game/")
 	if !game or !game.deck:
 		return
@@ -659,7 +659,7 @@ func create_and_place_card(card_id: int, biome_slot: int):
 	var actions_cards = game.deck.table.actions_cards
 	
 	for i in range(actions_cards.cards.size()):
-		if actions_cards.cards[i].card_id == card_id:
+		if actions_cards.cards[i].card_id == card_id and actions_cards.cards[i].card_name == card_name:
 			found_index = i
 			break
 	
@@ -667,7 +667,7 @@ func create_and_place_card(card_id: int, biome_slot: int):
 		print("Error: Could not find index for resource card_id:", card_id)
 		return
 		
-	print("Found index", found_index, "for resource card_id", card_id)
+	print("Found index ", found_index, " for resource card_id", card_id)
 	
 	# Create the card instance using the found index
 	var face_card = game.deck.table.instantiate_face_card(found_index)
@@ -686,6 +686,7 @@ func create_and_place_card(card_id: int, biome_slot: int):
 	# We'll set a flag to prevent it from triggering effects again
 	face_card.set_meta("remote_planted", true)
 	target_slot.append_card(face_card)
+	target_slot.hide_last_card()
 
 
 @rpc("any_peer", "call_local")

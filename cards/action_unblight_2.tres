@@ -1,14 +1,14 @@
 [gd_resource type="Resource" script_class="CardResource" load_steps=4 format=3 uid="uid://45nqojvfbhyg"]
 
-[ext_resource type="Script" uid="uid://77vvo0ke2vww" path="res://card_deck/card_3d/scripts/card_resource.gd" id="1_30ota"]
-[ext_resource type="Material" uid="uid://drikh8gb0pvmj" path="res://card_deck/materials/CFM_00_Back_Card.tres" id="1_vowew"]
-[ext_resource type="Material" uid="uid://du7vvstq6ejob" path="res://card_deck/materials/CFM_10_Unblight_Token.tres" id="2_6bil5"]
+[ext_resource type="Material" uid="uid://drikh8gb0pvmj" path="res://scenes/card_deck/materials/CFM_00_Back_Card.tres" id="1_vowew"]
+[ext_resource type="Material" uid="uid://du7vvstq6ejob" path="res://scenes/card_deck/materials/CFM_10_Unblight_Token.tres" id="2_6bil5"]
+[ext_resource type="Script" uid="uid://77vvo0ke2vww" path="res://scenes/card_deck/scripts/card_resource.gd" id="3_tuavy"]
 
 [resource]
-script = ExtResource("1_30ota")
+script = ExtResource("3_tuavy")
 card_id = 0
 card_on_biome = -1
-card_name = "Unblight"
+card_name = "Unblight 2"
 card_type = 0
 cost_to_draw = 1
 effect1 = "Unblight 1 of your token in a biome "
