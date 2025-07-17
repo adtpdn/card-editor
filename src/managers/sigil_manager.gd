@@ -960,16 +960,29 @@ func activate_sigil_pattern(token, pattern_id):
 		SigilPattern.SIGIL_C:
 			show_blight_unblight_ui(token)
 	
-	# After activation, determine if points go to player or biome
-	# Based on the round number (rounds 1-5 to player, 6-8 to biome)
 	var current_round = get_current_round()
-	
+	var points_to_add = 1 # Each sigil activation is worth 1 point
+
 	if current_round >= 1 and current_round <= 5:
-		# Points to player
-		add_point_to_player(token.owner_id)
-	else:
-		# Points to biome
-		add_point_to_biome(token.biome_type)
+		# Rounds 1-5: Add points to the player
+		print("Round %d: Adding %d point(s) to player %d." % [current_round, points_to_add, token.owner_id])
+		if multiplayer.is_server():
+			# If host, call the function directly
+			point_counter.add_player_points(token.owner_id, points_to_add)
+		else:
+			# If client, send a request to the host (server ID is always 1)
+			point_counter.rpc_id(1, "request_add_player_points", token.owner_id, points_to_add)
+
+	elif current_round >= 6 and current_round <= 8:
+		# Rounds 6-8: Add points to the biome's shared magic pool
+		print("Round %d: Adding %d point(s) to biome." % [current_round, points_to_add])
+		var biome_type = token.biome_type
+		if multiplayer.is_server():
+			# If host, call the function directly
+			point_counter.add_biome_points(biome_type, points_to_add)
+		else:
+			# If client, send a request to the host
+			point_counter.rpc_id(1, "add_biome_points", biome_type, points_to_add)
 
 # Check if mana is available for this biome
 func check_mana_available(biome_type: int) -> bool:
@@ -998,38 +1011,15 @@ func consume_mana(biome_type: int):
 	# Use the point adjustment function to reduce mana by 1
 	game.request_point_adjustment(mana_biome, -1)
 
-# Add point to player from sigil activation (rounds 1-5)
-func add_point_to_player(player_id: int):
-	# In your game this would update the player's score
-	print("Adding point to player: ", player_id)
-	
-	# You'll need to implement player scoring
-	# For now we'll show a notification
-	var dialog = AcceptDialog.new()
-	dialog.title = "Point Earned"
-	dialog.dialog_text = "You earned 1 point from activating a sigil pattern!"
-	game.add_child(dialog)
-	#dialog.popup_centered()
 
-# Add point to biome from sigil activation (rounds 6-8)
-func add_point_to_biome(biome_type: int):
-	# Determine which biome to add points to
-	var biome = ""
-	
-	match biome_type:
-		BiomeType.FOREST: biome = "forest"
-		BiomeType.WATER: biome = "water"
-		BiomeType.MOUNTAIN: biome = "mountain"
-		BiomeType.DESERT: biome = "desert"
-	
-	# Use the point adjustment function to add a point
-	game.request_point_adjustment(biome, 1)
-
-# Get current round
 func get_current_round() -> int:
-	# You need to implement round tracking in your game
-	# For now, assume it's round 1-5 (points to player)
-	return 1  # Default to round 1
+	# Ensure you have a 'current_round' variable in your GameStateManager
+	if game_state_manager and game_state_manager.current_round <=0 :
+		return game_state_manager.current_round
+	
+	# Fallback if the variable isn't found
+	print("WARNING: 'current_round' not found in GameStateManager. Defaulting to round 1.")
+	return 1
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Sigil Effect Implementation

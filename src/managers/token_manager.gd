@@ -1623,14 +1623,6 @@ func sync_token_blight(token_position: Vector3, is_blighted: bool):
 		is_take_off_mode = false
 		is_unblight_mode = false
 		
-		# Reset button visual states
-		var remove_button = get_parent().get_node("RightUI/RemoveButton")
-		var blight_button = get_parent().get_node("RightUI/BlightButton")
-		
-		if remove_button:
-			remove_button.modulate = Color(1, 1, 1, 1)
-		if blight_button:
-			blight_button.modulate = Color(1, 1, 1, 1)
 	else:
 		print("No token found at position for blight sync: " + str(token_position))
 

@@ -1,12 +1,6 @@
 # point_counter.gd
 extends Node3D
 
-# Emitted when any player's score changes. Connect your player score UI to this.
-signal player_points_changed(player_id, new_total)
-
-# Emitted when a biome's magic points change. Connect your biome points UI to this.
-signal biome_points_changed(biome_type, new_total)
-
 # Define an enum for the different biomes. This makes the code cleaner and less prone to typos.
 enum Biome {
 	FOREST,
@@ -14,16 +8,6 @@ enum Biome {
 	MOUNTAIN,
 	DESERT
 }
-
-var biome_points: Dictionary = {
-	Biome.FOREST: 0,
-	Biome.WATER: 0,
-	Biome.MOUNTAIN: 0,
-	Biome.DESERT: 0
-}
-
-# Stores points for each player { player_id: points }
-var player_points: Dictionary = {}
 
 const TOTAL_POINTS = 10  # Max points per biome
 
@@ -63,15 +47,14 @@ var current_turn_player_id: int = 1
 var last_button_press_time = 0.0
 const BUTTON_PRESS_COOLDOWN = 0.25
 
-#@export var sync_id := 1:
-	#set(id):
-		#sync_id = id
-		#set_multiplayer_authority(1)
+@export var sync_id := 1:
+	set(id):
+		sync_id = id
+		set_multiplayer_authority(1)
 
 func _ready():
 	# The server (authority) will manage the points.
-	#set_multiplayer_authority(1)
-	#rpc_config("request_add_player_points", multiplayer.RPC_MODE_AUTHORITY)
+	set_multiplayer_authority(1)
 	update_all_stacks()
 
 
@@ -104,6 +87,9 @@ func request_add_magic_points(biome: Biome):
 		forest_magic_points, desert_magic_points, mountain_magic_points, water_magic_points
 	)
 
+# --- NEW FUNCTION ---
+# This is where the core logic for adding points based on the Biome enum happens.
+# This function should only be called on the server.
 func add_magic_points_from_biome(biome: Biome):
 	match biome:
 		Biome.FOREST:
@@ -222,114 +208,6 @@ func set_points(biome: String, value: int):
 func validate_points(value: int) -> int:
 	return clampi(value, 0, TOTAL_POINTS)
 
-
-
-#================================#
-#         PLAYER POINTS          #
-#================================#
-
-## Adds points to a specific player. Can only be executed by the server.
-## Clients should call this using: rpc_id(1, "add_player_points", ...)
-
-func add_player_points(player_id: int, amount: int):
-	# This check ensures only the server runs this logic.
-	if not multiplayer.is_server(): return
-
-	# The .get(player_id, 0) part safely handles cases where the player_id is not yet
-	# in the dictionary (i.e., when the player_points dictionary is empty for that player).
-	var current_points = player_points.get(player_id, 0)
-	var new_total = current_points + amount
-	
-	# After calculating, sync the authoritative result to all players.
-	sync_player_points.rpc(player_id, new_total)
-
-@rpc("any_peer")
-func request_add_player_points(player_id: int, amount: int):
-	if not is_multiplayer_authority():
-		return
-
-	add_player_points(player_id, amount)
-	
-	#sync_player_points.rpc(player_id, amount)
-
-## Syncs the updated player score to all players and updates the UI Label.
-@rpc("any_peer", "call_local")
-func sync_player_points(player_id: int, new_total: int):
-	# 1. Update the data dictionary
-	player_points[player_id] = new_total
-	print("SYNC: Player %d now has %d points." % [player_id, new_total])
-	player_points_changed.emit(player_id, new_total)
-
-	# 2. Update the corresponding UI Label
-	update_player_score_label(player_id, new_total)
-
-## Finds and updates the score label for a specific player.
-func update_player_score_label(player_id: int, new_total: int):
-	# Find the root node for all player UIs.
-	var player_uis_node = get_node_or_null("/root/Game/PlayerUIs")
-	if not player_uis_node:
-		print("UI update failed: '/root/Game/PlayerUIs' node not found.")
-		return
-
-	# Construct the correct node name based on your screenshot's naming convention.
-	var node_name = "Player_%d_UI" % player_id
-	var player_ui_root = player_uis_node.get_node_or_null(node_name)
-	
-	if not player_ui_root:
-		return
-
-	# Find the 'Points' Control node inside the player's UI.
-	var points_control = player_ui_root.get_node_or_null("Points")
-	if not points_control:
-		print("UI update failed: 'Points' node not found in %s." % player_ui_root.name)
-		return
-
-	# Find the Label to update within the 'Points' control node.
-	var points_label: Label
-	for child in points_control.get_children():
-		if child is Label:
-			points_label = child
-			break
-		elif child.get_child_count() > 0:
-			for grandchild in child.get_children():
-				if grandchild is Label:
-					points_label = grandchild
-					break
-		if points_label:
-			break
-	
-	# Finally, update the label's text if it was found.
-	if points_label:
-		points_label.text = str(new_total)
-	else:
-		print("UI update failed: No Label child found in %s." % points_control.name)
-
-#================================#
-#          BIOME POINTS          #
-#================================#
-
-## Adds points to a specific biome's magic pool. Can only be executed by the server.
-## Clients should call this using: rpc_id(1, "add_biome_points", ...)
-@rpc("authority", "call_local")
-func add_biome_points(biome_type: int, amount: int):
-	if not multiplayer.is_server(): return
-	
-	if not biome_points.has(biome_type):
-		print("Error: Invalid biome type received: ", biome_type)
-		return
-
-	var current_points = biome_points.get(biome_type, 0)
-	var new_total = current_points + amount
-	
-	# Sync the authoritative result to all players.
-	sync_biome_points.rpc(biome_type, new_total)
-
-## Syncs the updated biome magic points to all players.
-@rpc("any_peer", "call_local")
-func sync_biome_points(biome_type: int, new_total: int):
-	biome_points[biome_type] = new_total
-	print("SYNC: Biome type %d now has %d magic points." % [biome_type, new_total])
-	biome_points_changed.emit(biome_type, new_total)
 
 
 # Add point to player from sigil activation (rounds 1-5)

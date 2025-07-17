@@ -21,6 +21,7 @@ const player_hud_scene = preload("res://scenes/player_ui/player_hud.tscn")
 # Game State Variables
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 var game_started = false
+var current_round: int = 1
 var current_turn_index = 0
 var max_players = 4 # Maximum players allowed
 var initial_player_order: Array = [] # NEW: Stores the original player order for consistent color indexing.
@@ -430,6 +431,7 @@ func next_turn():
 			await reorder_players_after_round()
 			# Re-fetch the player list as it may have been sorted
 			players = game.players
+			advance_to_next_round()
 		
 		var current_player = players[current_turn_index]
 		token_manager.save_player_token_count(current_player)
@@ -605,3 +607,8 @@ func update_player_hand_interaction():
 
 func reset_game():
 	get_tree().reload_current_scene()
+
+func advance_to_next_round():
+	current_round += 1
+	# You might want to sync this to clients if they need to know the round number
+	print("Advancing to round: ", current_round)
