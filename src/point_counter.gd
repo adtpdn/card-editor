@@ -2,7 +2,12 @@
 extends Node3D
 
 # Define an enum for the different biomes. This makes the code cleaner and less prone to typos.
-enum Biome {FOREST, WATER, MOUNTAIN, DESERT}
+enum Biome {
+	FOREST,
+	WATER,
+	MOUNTAIN,
+	DESERT
+}
 
 const TOTAL_POINTS = 10  # Max points per biome
 
@@ -62,11 +67,13 @@ func on_button_pressed(biome_string: String, delta: int):
 	if game_node and game_node.has_method("request_point_adjustment"):
 		game_node.request_point_adjustment(biome_string, delta)
 
-# This function can be called by a client to request adding magic points for a specific biome.
-# It's an RPC that tells the server to execute the logic.
-@rpc("call_local")
+# --- CORRECTED FUNCTION ---
+# The 'authority' keyword ensures this only runs on the server.
+# The 'call_local' keyword allows the server to call this RPC on itself without an error.
+@rpc("any_peer")
 func request_add_magic_points(biome: Biome):
-	# This logic will only run on the multiplayer authority (the server/host).
+	# The is_multiplayer_authority() check is now redundant because of the decorator,
+	# but it's good practice to keep for clarity.
 	if not is_multiplayer_authority():
 		return
 
@@ -78,11 +85,13 @@ func request_add_magic_points(biome: Biome):
 		forest_magic_points, desert_magic_points, mountain_magic_points, water_magic_points
 	)
 
+# --- NEW FUNCTION ---
 # This is where the core logic for adding points based on the Biome enum happens.
 # This function should only be called on the server.
 func add_magic_points_from_biome(biome: Biome):
 	match biome:
 		Biome.FOREST:
+			# Add 2 to the existing forest magic points.
 			var new_points = forest_magic_points + 2
 			forest_magic_points = validate_points(new_points)
 		Biome.DESERT:

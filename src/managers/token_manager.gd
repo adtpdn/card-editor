@@ -396,11 +396,11 @@ func _on_token_selected():
 		tokens_planted_this_turn[player_id] = 0
 	
 	# Check if player has already planted the maximum tokens this turn
-	if tokens_planted_this_turn[player_id] >= max_tokens_per_turn:
-		print("Maximum tokens for this turn already planted!")
-		is_token_selected = false
-		update_token_ui()
-		return
+	#if tokens_planted_this_turn[player_id] >= max_tokens_per_turn:
+		#print("Maximum tokens for this turn already planted!")
+		#is_token_selected = false
+		#update_token_ui()
+		#return
 	
 	# Toggle selection state
 	is_token_selected = !is_token_selected
@@ -559,16 +559,18 @@ func handle_touch(position: Vector2):
 					# Handle remove mode
 					if multiplayer.is_server():
 						take_off_energy(found_token.global_position)
+						point_counter.add_magic_points_from_biome(found_token.biome_type)
 						unhighlight_outerglow()
 						# Reset remove mode after attempt
 						is_take_off_mode = false
 					else:
 						print("Sending take off request to server")
 						rpc_id(1, "request_take_off_energy", found_token.global_position)
+						point_counter.rpc_id(1, "request_add_magic_points", found_token.biome_type)
 						unhighlight_outerglow()
 						# Reset remove mode after attempt
 						is_take_off_mode = false
-					
+					#point_counter.rpc_id(1, "request_add_magic_points", found_token.biome_type)
 
 				# Unblight Card Effect
 				elif is_unblight_mode and !found_token.is_energy and found_token.is_blighted :
@@ -576,14 +578,17 @@ func handle_touch(position: Vector2):
 					# Handle unblight mode
 					if multiplayer.is_server():
 						unblight_token(found_token.global_position)
+						point_counter.add_magic_points_from_biome(found_token.biome_type)
 						# Reset blight mode after attempt
 						is_unblight_mode = false
 					else:
 						print("Sending unblight request to server")
 						rpc_id(1, "request_unblight_token", found_token.global_position)
+						point_counter.rpc_id(1, "request_add_magic_points", found_token.biome_type)
 						# Reset blight mode after attempt
 						is_unblight_mode = false
 					
+					#point_counter.rpc_id(1, "request_add_magic_points", found_token.biome_type)
 					unhighlight_outerglow()
 
 				# Refresh Energy Card Effect 
@@ -593,12 +598,15 @@ func handle_touch(position: Vector2):
 					if multiplayer.is_server():
 						print("refresh energy 1")
 						refresh_energy(found_token.global_position)
+						point_counter.add_magic_points_from_biome(found_token.biome_type)
 						is_refresh_energy_mode = false
 					else:
 						print("Sending refresh energy request to server")
 						rpc_id(1, "request_refresh_energy", found_token.global_position)
+						point_counter.rpc_id(1, "request_add_magic_points", found_token.biome_type)
 						is_refresh_energy_mode = false
-
+				
+					#point_counter.rpc_id(1, "request_add_magic_points", found_token.biome_type)
 					unhighlight_outerglow()
 
 				# Swap Energy Card Effect
@@ -636,15 +644,18 @@ func handle_touch(position: Vector2):
 								if multiplayer.is_server():
 									swap_energy_tokens(first_swap_token.global_position, found_token.global_position)
 									unhighlight_outerglow()
+									point_counter.add_magic_points_from_biome(found_token.biome_type)
 									first_swap_token = null
 									is_swap_energy_mode = false
 								else:
 									print("Sending swap energy request to server")
 									rpc_id(1, "request_swap_energy_tokens", first_swap_token.global_position, found_token.global_position)
+									point_counter.rpc_id(1, "request_add_magic_points", found_token.biome_type)
 									unhighlight_outerglow()
 									first_swap_token = null
 									is_swap_energy_mode = false
 								
+								#point_counter.rpc_id(1, "request_add_magic_points", found_token.biome_type)
 								
 				turn_phase_manager.card_played = true 
 				
@@ -1484,15 +1495,7 @@ func sync_token_removal_at_position(token_position: Vector3, player_id: int, bio
 	# Reset remove and blight modes
 	is_take_off_mode = false
 	is_unblight_mode = false
-	
-	# Reset button visual states
-	var remove_button = get_parent().get_node("RightUI/RemoveButton")
-	var blight_button = get_parent().get_node("RightUI/BlightButton")
-	
-	if remove_button:
-		remove_button.modulate = Color(1, 1, 1, 1)
-	if blight_button:
-		blight_button.modulate = Color(1, 1, 1, 1)
+
 
 ## Unblight 
 @rpc("any_peer")
