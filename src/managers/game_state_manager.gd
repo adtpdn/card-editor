@@ -21,7 +21,7 @@ const player_hud_scene = preload("res://scenes/player_ui/player_hud.tscn")
 # Game State Variables
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 var game_started = false
-var current_round: int = 5
+var current_round: int = 1
 var current_turn_index = 0
 var max_players = 4 # Maximum players allowed
 var initial_player_order: Array = [] # NEW: Stores the original player order for consistent color indexing.
@@ -443,7 +443,9 @@ func next_turn():
 		
 		var previous_player = players[current_turn_index]
 		token_manager.reset_turn_token_counters(previous_player)
-
+		
+		token_manager.sync_complete_token_state()
+		
 		# Explicitly sync blighted token state
 		var tokens = token_manager.get_player_tokens(previous_player)
 
@@ -596,13 +598,8 @@ func _on_end_turn_pressed():
 	
 	if multiplayer.is_server():
 		next_turn()
-		token_manager.reset_turn_token_counters(current_player)
-		token_manager.sync_complete_token_state()
 	else:
 		rpc_id(1, "request_next_turn")
-		token_manager.reset_turn_token_counters(current_player)
-		token_manager.sync_complete_token_state()
-		
 
 func update_player_hand_interaction():
 	var player_hand = deck.hand

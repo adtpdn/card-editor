@@ -1829,6 +1829,9 @@ func receive_complete_token_state(placement_data: Array, token_data: Array):
 		token.is_blighted = token_info.is_blighted
 		token.global_position = token_info.position
 		
+		if token.is_blighted:
+			token.rotation_degrees.z = 180
+		
 		# Add the new token to our temporary array
 		new_tokens.append(token)
 
@@ -1842,7 +1845,6 @@ func receive_complete_token_state(placement_data: Array, token_data: Array):
 		
 		# Now that the token is ready, apply its material and visual state
 		apply_player_material(token, token_info.owner)
-		token.update_blight_state_silently(token_info.is_blighted) # This will now work!
 		
 		# Connect token to its placement
 		var placement = get_token_placement_at_position(token_info.position)

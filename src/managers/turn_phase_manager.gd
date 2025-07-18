@@ -186,7 +186,6 @@ func enter_current_phase():
 			# Disable tokens and cards
 			token_manager.can_plant_on_biome = false
 			token_manager.can_plant_on_sigil = false
-			token_button.disabled = true
 			reset_card_variables()
 			highlight_marker_mesh()
 		Phase.END_TURN:
@@ -468,19 +467,7 @@ func on_token_button_pressed():
 		token_manager.can_plant_on_biome = false
 		token_manager.can_plant_on_sigil = true
 		token_manager._on_token_selected()
-	#else:
-		#print("TurnPhaseManager: Wrong phase for token placement: ", current_phase)
-		## Not in token planting phase, show notification
-		#var dialog = AcceptDialog.new()
-		#dialog.dialog_text = "You cannot place tokens in the " + phase_names[current_phase] + " phase."
-		#dialog.title = "Wrong Phase"
-		#get_parent().add_child(dialog)
-		#dialog.popup_centered()
-		
-		# Auto-close after 1.5 seconds
-		#await get_tree().create_timer(3.0).timeout
-		#if is_instance_valid(dialog) and dialog.visible:
-			#dialog.queue_free()
+
 
 func _on_end_phase_button_pressed():
 	print("TurnPhaseManager: End phase button pressed")
@@ -554,6 +541,7 @@ func _on_token_placed(player_id, biome, location):
 			print("TurnPhaseManager: Sigil placement detected in PLANT_SIGIL_AND_CARD phase")
 			if !token_manager.is_plant_extra:
 				sigil_placed = true
+				token_button.disabled = true
 			check_phase_two_completion()
 
 func _on_card_placed(card, slot_index, location_name):

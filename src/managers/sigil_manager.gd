@@ -1152,7 +1152,7 @@ func perform_blight_unblight(energy_token, token, is_blight: bool):
 	
 	_selected_token = token
 	token_manager.is_token_selected = true
-
+	
 	_on_blight_unblight_input()
 
 
@@ -1268,10 +1268,12 @@ func _on_blight_unblight_input():
 		var target_token = _selected_token
 		
 		var is_blight_status = target_token.is_blighted
-		_selected_token.set_blighted(!is_blight_status)
+		#_selected_token.set_blighted(!is_blight_status)
 		
 		# Clear the instruction label at the end of the operation
 		notification.hide_panel()
+		
+		game.rpc("sync_token_blight", _selected_token.global_position, !_selected_token.is_blighted)
 		
 		_selected_token = null
 		is_sigil_mode = false
@@ -1286,7 +1288,6 @@ func _on_blight_unblight_input():
 		var tokens = tokens.get_children()
 		for token in tokens:
 			token.outerglow.hide()
-		
 		disable_all_sigil_buttons()
 		print("Blight")
 
@@ -1398,15 +1399,6 @@ func _on_push_pull_input(_placement_pos):
 		disable_all_sigil_buttons()
 		print("Token move operation completed")
 		print("==============================\n")
-
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Network Integration
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# These functions should be added to token_manager.gd if not already there
-
-# Request token movement (for RPC)
-func request_token_movement(from_position: Vector3, to_position: Vector3):	token_manager.request_token_movement(from_position, to_position)
-
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Phase Management
