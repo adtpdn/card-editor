@@ -513,7 +513,7 @@ func _notification(what):
 		get_tree().quit()
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ---           Draw Card      ---
+# ---         Draw Card        ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 func sync_card_draw():
 	if multiplayer.is_server():

@@ -395,12 +395,6 @@ func _on_token_selected():
 	if !tokens_planted_this_turn.has(player_id):
 		tokens_planted_this_turn[player_id] = 0
 	
-	# Check if player has already planted the maximum tokens this turn
-	#if tokens_planted_this_turn[player_id] >= max_tokens_per_turn:
-		#print("Maximum tokens for this turn already planted!")
-		#is_token_selected = false
-		#update_token_ui()
-		#return
 	
 	# Toggle selection state
 	is_token_selected = !is_token_selected
@@ -412,6 +406,15 @@ func _on_token_selected():
 		
 		# First unhighlight all placements to ensure clean state
 		unhighlight_all_token_placements()
+		
+		if current_phase == turn_phase_manager.Phase.PLANT_BIOME and game_state_manager.current_round == 0:
+			for placement in get_parent().get_node("TokenPlacements").get_children():
+				if !placement.is_occupied and placement.place_id == -1:
+					placement.set_biome_placement()
+					placement.set_highlight(true)
+					notification.show_instruction_label("Plant Token on Biome")
+			#turn_phase_manager.count_plant += 1
+			return
 		
 		# Highlight based on phase
 		if is_plant_extra:

@@ -21,7 +21,7 @@ const player_hud_scene = preload("res://scenes/player_ui/player_hud.tscn")
 # Game State Variables
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 var game_started = false
-var current_round: int = 1
+var current_round: int = 0
 var current_turn_index = 0
 var max_players = 4 # Maximum players allowed
 var initial_player_order: Array = [] # NEW: Stores the original player order for consistent color indexing.
@@ -63,51 +63,10 @@ func start_game():
 		var players = game.players
 		
 		if players.size() > 0:
-			print("\n=== Starting Game ===")
-			print("Initial players: ", players)
-			print("Starting turn index: ", current_turn_index)
-			
 			get_parent().rpc("sync_game_start", players)
 			
 			var first_player = players[current_turn_index]
-			print("First player: ", first_player)
 			get_parent().rpc("set_current_turn", first_player)
-			
-			print("=== Game Start Complete ===\n")
-		else:
-			print("No players available to start game")
-
-func start_game_with_first_player(first_player_id):
-	if multiplayer.is_server():
-		game_started = true
-		var players = game.players
-		current_turn_index = players.find(first_player_id)
-		
-		if players.size() > 0:
-			print("\n=== Starting Game ===")
-			print("Initial players: ", players)
-			print("Starting turn index: ", current_turn_index)
-			
-			get_parent().rpc("sync_game_start", players)
-			
-			print("First player: ", first_player_id)
-			get_parent().rpc("set_current_turn", first_player_id)
-			
-			print("=== Game Start Complete ===\n")
-		else:
-			print("No players available to start game")
-
-func _on_start_game_pressed():
-	var player_list = get_parent().get_node("LeftUI/PlayerList")
-	
-	if multiplayer.is_server():
-		var selected_items = player_list.get_selected_items()
-		if selected_items.size() > 0:
-			var selected_index = selected_items[0]
-			var players = game.players
-			if selected_index < players.size():
-				var first_player_id = players[selected_index]
-				start_game_with_first_player(first_player_id)
 
 @rpc("any_peer", "call_local", "reliable")
 func sync_player_tokens(player_id: int, tokens: Array):
@@ -152,7 +111,6 @@ func sync_game_start(current_players):
 		token_manager.initialize_player_tokens(player_id)
 		
 	update_turn_controls()
-	debug_turn_state()
 	update_player_hand_interaction()
 	print("=== Game Start Complete ===\n")
 
@@ -202,6 +160,15 @@ func sync_player_list_and_uis(authoritative_player_list: Array):
 	if ui_manager:
 		ui_manager.update_player_list()
 
+func _add_player_ui(player_id: int, player_uis_node: Node):
+	if player_uis_node.has_node("Player_%d_UI" % player_id):
+		return # Safety check to prevent creating duplicates
+
+	var hud_instance = player_hud_scene.instantiate()
+	hud_instance.name = "Player_%d_UI" % player_id
+	player_uis_node.add_child(hud_instance)
+	print("Created UI for player %d" % player_id)
+
 # ----------------------------------------------------
 
 func setup_player(player_id: int) -> void:
@@ -223,18 +190,6 @@ func setup_player(player_id: int) -> void:
 		
 		if player_id != multiplayer.get_unique_id():
 			get_parent().rpc_id(player_id, "sync_player_tokens", tokens)
-
-# This function is now only for creating the UI, not for managing the player list.
-# It is NOT an RPC.
-func _add_player_ui(player_id: int, player_uis_node: Node):
-	if player_uis_node.has_node("Player_%d_UI" % player_id):
-		return # Safety check to prevent creating duplicates
-
-	var hud_instance = player_hud_scene.instantiate()
-	hud_instance.name = "Player_%d_UI" % player_id
-	player_uis_node.add_child(hud_instance)
-	print("Created UI for player %d" % player_id)
-
 
 @rpc("any_peer", "call_local")
 func remove_player(player_id):
@@ -258,10 +213,6 @@ func sync_player_colors(colors: Dictionary):
 # ---     Turn Management      ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-## NEW HELPER FUNCTION
-## Returns the permanent color index for a player based on their initial join order.
-## Use this function wherever you need a color index to ensure it doesn't change
-## when the `game.players` array is reordered.
 func get_player_color_index(player_id: int) -> int:
 	if initial_player_order.is_empty():
 		# Fallback to current order if initial isn't set yet (should be rare)
@@ -269,27 +220,6 @@ func get_player_color_index(player_id: int) -> int:
 	
 	var index = initial_player_order.find(player_id)
 	return index if index != -1 else 0 # Return 0 as a safe default
-
-func debug_turn_state():
-	var end_turn_button = get_parent().get_node("RightUI/EndTurnButton")
-	var players = game.players
-	var current_player_id = multiplayer.get_unique_id()
-	
-	print("\n=== TURN STATE DEBUG ===")
-	print("Button exists: " + str(end_turn_button != null))
-	if end_turn_button:
-		print("Button disabled: " + str(end_turn_button.disabled))
-	print("Game started: " + str(game.game_started))
-	print("Players (Turn Order): " + str(players))
-	print("Players (Color Order): " + str(initial_player_order))
-	print("Current turn index: " + str(current_turn_index))
-	if players.size() > 0 and current_turn_index >= 0 and current_turn_index < players.size():
-		print("Current turn player: " + str(players[current_turn_index]))
-	else:
-		print("Current turn player: Invalid index")
-	print("Local player ID: " + str(current_player_id))
-	print("Is valid turn: " + str(is_valid_player_turn(current_player_id)))
-	print("=== END DEBUG ===\n")
 
 func update_turn_controls():
 	var end_turn_button = get_parent().get_node("RightUI/EndTurnButton")
@@ -363,7 +293,6 @@ func set_current_turn(player_id: int):
 		print("Hand interaction initially disabled for local player (ID: " + str(multiplayer.get_unique_id()) + ")")
 	
 	update_turn_controls()
-	debug_turn_state()
 	
 	if turn_phase_manager:
 		print("Resetting turn phase manager")
@@ -378,27 +307,6 @@ func set_current_turn(player_id: int):
 	player_turn._check_for_turn_changes()
 	
 	print("Current turn index set to: " + str(current_turn_index) + " (Player " + str(game.players[current_turn_index]) + ")")
-
-
-func enable_player_turn():
-	var player_hand = get_parent().get_node("HandAreas/PlayerHand")
-	var end_turn_button = get_parent().get_node("RightUI/EndTurnButton")
-	
-	if player_hand:
-		player_hand.set_interaction_enabled(true)
-	
-	if end_turn_button:
-		end_turn_button.disabled = false
-
-func disable_player_turn():
-	var player_hand = get_parent().get_node("HandAreas/PlayerHand")
-	var end_turn_button = get_parent().get_node("RightUI/EndTurnButton")
-	
-	if player_hand:
-		player_hand.set_interaction_enabled(false)
-	
-	if end_turn_button:
-		end_turn_button.disabled = true
 
 @rpc("any_peer")
 func request_next_turn():
@@ -430,12 +338,14 @@ func next_turn():
 	if players.size() > 0:
 		var is_end_of_round = (current_turn_index == players.size() - 1)
 		
-		if is_end_of_round:
+		if is_end_of_round and current_round > 0:
 			print("Last player's turn ended. A full round is complete.")
 			print("--- Checking for biome domination ---")
 			await domination_manager.check_domination_biomes()
 			await reorder_players_after_round()
-			players = game.players
+			advance_to_next_round()
+		
+		if is_end_of_round and current_round == 0 :
 			advance_to_next_round()
 
 		var current_player = players[current_turn_index]
@@ -455,23 +365,6 @@ func next_turn():
 
 		tokens = token_manager.get_player_tokens(next_player)
 		get_parent().rpc("set_current_turn", next_player)
-
-		if next_player != multiplayer.get_unique_id():
-			get_parent().rpc_id(next_player, "sync_player_tokens", tokens)
-		else:
-			game.sync_player_tokens(tokens)
-
-		if point_counter:
-			point_counter.rpc("sync_point_values",
-				point_counter.forest_points,
-				point_counter.desert_points,
-				point_counter.mountain_points,
-				point_counter.water_points,
-				point_counter.forest_magic_points,
-				point_counter.desert_magic_points,
-				point_counter.mountain_magic_points,
-				point_counter.water_magic_points
-			)
 
 	print("=== Next Turn Complete ===\n")
 
@@ -610,9 +503,6 @@ func update_player_hand_interaction():
 	var is_my_turn = is_valid_player_turn(local_player_id)
 	
 	print("Updated hand interaction: " + ("enabled" if is_my_turn else "disabled"))
-
-func reset_game():
-	get_tree().reload_current_scene()
 
 # Server-side function to increment the round and sync to clients
 func advance_to_next_round():

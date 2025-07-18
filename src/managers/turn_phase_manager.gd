@@ -27,6 +27,7 @@ enum Phase {
 @onready var end_phase_button = $"../RightUI/EndPhaseButton"
 @onready var token_button = $"../RightUI/TokenButton"
 
+var count_plant = 0
 
 # Phase tracking
 var current_phase: Phase = Phase.NONE
@@ -167,6 +168,16 @@ func enter_current_phase():
 		print("TurnPhaseManager: Hiding end phase button for phase ", current_phase)
 	
 	notification.hide()
+	
+	if game_state_manager.current_round == 0 and count_plant <= 1:
+		match current_phase:
+			Phase.PLANT_BIOME:
+				var end_turn_button = get_parent().get_node("RightUI/EndTurnButton")
+				token_manager.can_plant_on_biome = true
+				token_manager.can_plant_on_sigil = false
+				end_phase_button.disabled = true
+				end_turn_button.disabled = true
+				return
 	
 	match current_phase:
 		Phase.PLANT_BIOME:
@@ -338,6 +349,16 @@ func show_phase_two_progress():
 func advance_to_next_phase():
 	print("TurnPhaseManager: Advancing to next phase from: ", current_phase)
 	
+	print("count plant : ", count_plant)
+	if game_state_manager.current_round == 0:
+		if count_plant == 2:
+			var end_turn_button = get_parent().get_node("RightUI/EndTurnButton")
+			end_turn_button.disabled = false
+			token_button.disabled = true
+			count_plant = 0
+			current_phase = Phase.END_TURN
+		return
+	
 	# Store the current phase for reference
 	var previous_phase = current_phase
 	
@@ -472,6 +493,9 @@ func on_token_button_pressed():
 func _on_end_phase_button_pressed():
 	print("TurnPhaseManager: End phase button pressed")
 	
+	if game_state_manager.current_round == 0:
+		return
+	
 	match current_phase:
 		Phase.PLANT_BIOME:
 			# For biome phase, only allow ending if a token has been placed
@@ -521,6 +545,16 @@ func _on_token_placed(player_id, biome, location):
 		return
 	
 	print("TurnPhaseManager: Placement found with place_id: ", placement.place_id)
+	
+	if game_state_manager.current_round == 0:
+		count_plant += 1
+		print("TurnPhaseManager: count_plant incremented to: ", count_plant)
+		
+		# If we've reached 2 plants, update UI accordingly
+		if count_plant == 2:
+			var end_turn_button = get_parent().get_node("RightUI/EndTurnButton")
+			end_turn_button.disabled = false
+			token_button.disabled = true
 	
 	# Check current phase and placement type
 	if token_manager.is_plant_extra:
