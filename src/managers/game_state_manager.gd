@@ -21,7 +21,7 @@ const player_hud_scene = preload("res://scenes/player_ui/player_hud.tscn")
 # Game State Variables
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 var game_started = false
-var current_round: int = 1
+var current_round: int = 5
 var current_turn_index = 0
 var max_players = 4 # Maximum players allowed
 var initial_player_order: Array = [] # NEW: Stores the original player order for consistent color indexing.
@@ -114,8 +114,18 @@ func sync_player_tokens(player_id: int, tokens: Array):
 	if not token_manager:
 		printerr("TokenManager not found!")
 		return
-	token_manager.player_tokens[player_id] = tokens
-	token_manager.player_token_counts[player_id] = tokens.size()
+	# Ensure tokens array contains full token state, including is_energy
+	var synced_tokens = []
+	for token in tokens:
+		var token_data = {
+			"id": token.get("id", -1), # Adjust based on your token structure
+			"is_energy": token.get("is_energy", false), # Ensure is_energy is included
+			"blighted": token.get("blighted", false), # Include other relevant properties
+			# Add other token properties as needed
+		}
+		synced_tokens.append(token_data)
+	token_manager.player_tokens[player_id] = synced_tokens
+	token_manager.player_token_counts[player_id] = synced_tokens.size()
 	token_manager.update_token_ui()
 
 @rpc("call_local")
@@ -402,8 +412,8 @@ func request_next_turn():
 	print("Requesting player: ", requesting_player)
 	print("Current turn player: ", players[current_turn_index])
 	
-	if requesting_player == players[current_turn_index]:
-		await next_turn() # Await the function
+	#if requesting_player == players[current_turn_index]:
+	await next_turn() # Await the function
 	
 	print("=== Turn Change Request Complete ===\n")
 
@@ -411,48 +421,44 @@ func request_next_turn():
 func next_turn():
 	if !multiplayer.is_server():
 		return
-	
+
 	var players = game.players
-	
 	print("\n=== Processing Next Turn ===")
 	print("Current players: ", players)
 	print("Current turn index: ", current_turn_index)
-	
+
 	if players.size() > 0:
 		var is_end_of_round = (current_turn_index == players.size() - 1)
 		
 		if is_end_of_round:
 			print("Last player's turn ended. A full round is complete.")
 			print("--- Checking for biome domination ---")
-			# This function is async and has its own internal await
 			await domination_manager.check_domination_biomes()
-			
-			# Reorder players for the next round based on stars
 			await reorder_players_after_round()
-			# Re-fetch the player list as it may have been sorted
 			players = game.players
 			advance_to_next_round()
-		
+
 		var current_player = players[current_turn_index]
 		token_manager.save_player_token_count(current_player)
 		
 		var previous_player = players[current_turn_index]
-		var token_manager = get_parent().get_node("TokenManager")
 		token_manager.reset_turn_token_counters(previous_player)
-		
+
+		# Explicitly sync blighted token state
+		var tokens = token_manager.get_player_tokens(previous_player)
+
 		current_turn_index = (current_turn_index + 1) % players.size()
 		var next_player = players[current_turn_index]
 		print("Next player: ", next_player)
-		
-		var tokens = token_manager.get_player_tokens(next_player)
-		
+
+		tokens = token_manager.get_player_tokens(next_player)
 		get_parent().rpc("set_current_turn", next_player)
-		
+
 		if next_player != multiplayer.get_unique_id():
 			get_parent().rpc_id(next_player, "sync_player_tokens", tokens)
 		else:
 			game.sync_player_tokens(tokens)
-		
+
 		if point_counter:
 			point_counter.rpc("sync_point_values",
 				point_counter.forest_points,
@@ -464,7 +470,7 @@ func next_turn():
 				point_counter.mountain_magic_points,
 				point_counter.water_magic_points
 			)
-	
+
 	print("=== Next Turn Complete ===\n")
 
 ## Gets the soil star count for a given player from their UI node.
@@ -589,11 +595,14 @@ func _on_end_turn_pressed():
 			end_phase_button.disabled = true
 	
 	if multiplayer.is_server():
-		await next_turn() # Await the async function
+		next_turn()
 		token_manager.reset_turn_token_counters(current_player)
 		token_manager.sync_complete_token_state()
 	else:
-		get_parent().rpc_id(1, "request_next_turn")
+		rpc_id(1, "request_next_turn")
+		token_manager.reset_turn_token_counters(current_player)
+		token_manager.sync_complete_token_state()
+		
 
 func update_player_hand_interaction():
 	var player_hand = deck.hand
@@ -608,7 +617,16 @@ func update_player_hand_interaction():
 func reset_game():
 	get_tree().reload_current_scene()
 
+# Server-side function to increment the round and sync to clients
 func advance_to_next_round():
-	current_round += 1
-	# You might want to sync this to clients if they need to know the round number
-	print("Advancing to round: ", current_round)
+	if multiplayer.is_server():
+		current_round += 1
+		print("Server advancing to round: ", current_round)
+		# Explicitly sync the new round number to all clients
+		rpc("sync_current_round", current_round)
+
+# Client-side RPC to receive the updated round number
+@rpc("any_peer", "call_local", "reliable")
+func sync_current_round(new_round: int):
+	current_round = new_round
+	print("[%d] Received updated round: %d" % [multiplayer.get_unique_id(), current_round])

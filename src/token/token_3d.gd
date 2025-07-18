@@ -102,19 +102,38 @@ func update_material():
 		print("Cannot update material - missing dependencies")
 
 func set_blighted(blighted: bool):
-	if is_blighted != blighted:
-		is_blighted = blighted
-		
-		# Play the appropriate animation
-		if is_blighted:
-			print("blight animation")
-			animation_player.play("blight")
-		else:
-			animation_player.play("unblight")
-			
-		# Sync the animation to all clients
-		print('sync token blight')
-		game.rpc("sync_token_blight", global_position, is_blighted)
+	# Only run if the state is actually changing.
+	if is_blighted == blighted:
+		return
+	
+	# Update the local state variable first.
+	is_blighted = blighted
+	
+	# Now, call the RPC to play the animation on all clients and the host.
+	game.rpc("sync_blight_animation", global_position, is_blighted)
+
+# at the end of a round where you DON'T want to play an animation.
+func update_blight_state_silently(blighted: bool):
+	is_blighted = blighted
+	
+	# Instantly move the animation to the correct final state without playing it.
+	if is_blighted:
+		# If it should be blighted, seek to the end of the "blight" animation.
+		animation_player.play("blight")
+		animation_player.seek(animation_player.get_animation("blight").length, true)
+	else:
+		# If it should be unblighted, seek to the end of the "unblight" animation.
+		animation_player.play("unblight")
+		animation_player.seek(animation_player.get_animation("unblight").length, true)
+
+
+# This is a NEW function that ONLY plays the animation.
+# It will be the target of your RPC call.
+func play_blight_animation(blighted: bool):
+	if blighted:
+		animation_player.play("blight")
+	else:
+		animation_player.play("unblight")
 
 func remove_token():
 	# Mark the placement as unoccupied

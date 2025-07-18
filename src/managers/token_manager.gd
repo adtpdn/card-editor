@@ -1610,14 +1610,10 @@ func sync_token_blight(token_position: Vector3, is_blighted: bool):
 		# Set the blight flag
 		token.is_blighted = is_blighted
 		
-		# Ensure the animation plays on the client
-		if is_blighted:
-			token.animation_player.play("blight")
-		else:
-			token.animation_player.play("unblight")
+		token.play_blight_animation(is_blighted)
 		
 		# Always unhighlight token placements after any token action
-		unhighlight_all_token_placements()
+		#unhighlight_all_token_placements()
 		
 		# Reset remove and blight modes
 		is_take_off_mode = false
@@ -1811,68 +1807,92 @@ func sync_complete_token_state():
 func receive_complete_token_state(placement_data: Array, token_data: Array):
 	print("Received complete token state")
 	
-	# 1. Update placement occupied states
+	# --- Step 1: Clear all old tokens ---
+	for token in get_parent().get_node("Tokens").get_children():
+		token.queue_free()
+	
+	# --- Step 2: Update placements (can be done right away) ---
 	for placement_info in placement_data:
 		var placement = get_token_placement_at_position(placement_info.position)
 		if placement:
 			placement.set_occupied(placement_info.occupied)
-	
-	# 2. Remove all existing tokens and recreate from data
-	for token in get_parent().get_node("Tokens").get_children():
-		token.queue_free()
-	
-	# Wait a frame to ensure tokens are fully removed
-	await get_tree().process_frame
-	
-	# 3. Recreate tokens from received data
+
+	# --- Step 3: Create new tokens and set their DATA ONLY ---
+	# We create a temporary array to hold references to our new tokens.
+	var new_tokens = []
 	for token_info in token_data:
 		var token = token_scene.instantiate()
 		get_parent().get_node("Tokens").add_child(token, true)
+		
+		# Set all the data variables
 		token.set_token_data(token_info.biome, token_info.owner, token_info.is_energy)
 		token.is_blighted = token_info.is_blighted
 		token.global_position = token_info.position
 		
-		# Apply player-specific material
+		# Add the new token to our temporary array
+		new_tokens.append(token)
+
+	# --- Step 4: WAIT for one frame ---
+	await get_tree().process_frame
+
+	# --- Step 5: Set the VISUALS on the now-ready tokens ---
+	for i in range(new_tokens.size()):
+		var token = new_tokens[i]
+		var token_info = token_data[i] # Get the corresponding data
+		
+		# Now that the token is ready, apply its material and visual state
 		apply_player_material(token, token_info.owner)
+		token.update_blight_state_silently(token_info.is_blighted) # This will now work!
 		
 		# Connect token to its placement
 		var placement = get_token_placement_at_position(token_info.position)
 		if placement:
 			token.token_placement = placement
 			placement.current_token = token
-	
-	# 4. Update UI
+			
+	# --- Step 6: Update UI ---
 	update_token_ui()
 
 @rpc("any_peer", "call_local")
 func sync_all_token_placements(token_placement_data: Array):
-	print("Received token placement sync with ", token_placement_data.size(), " tokens")
+	print("Received complete token placement sync with ", token_placement_data.size(), " tokens")
 	
-	# Clear existing tokens
+	# --- Step 1: Clear all old tokens and placements ---
 	for token in get_parent().get_node("Tokens").get_children():
 		token.queue_free()
 	
-	# Clear placement occupied states
 	for placement in get_parent().get_node("TokenPlacements").get_children():
 		placement.set_occupied(false)
 		placement.current_token = null
-	
-	# Wait a frame to ensure tokens are cleared
-	await get_tree().process_frame
-	
-	# Recreate tokens from data
+
+	# --- Step 2: Create new tokens and set their DATA ONLY ---
+	var new_tokens = []
 	for token_info in token_placement_data:
 		var token = token_scene.instantiate()
 		get_parent().get_node("Tokens").add_child(token, true)
 		
-		# Set token data with the explicit owner ID
+		# Set all the data variables
 		token.set_token_data(token_info.biome, token_info.owner, token_info.is_energy)
-		print("Creating token with owner: ", token_info.owner)
-		
-		# Apply material based on owner
-		apply_player_material(token, token_info.owner)
-		
+		# IMPORTANT: Make sure the data you send includes the is_blighted status
+		if token_info.has("is_blighted"):
+			token.is_blighted = token_info.is_blighted
 		token.global_position = token_info.position
+		
+		new_tokens.append(token)
+
+	# --- Step 3: WAIT for one frame for nodes to be ready ---
+	await get_tree().process_frame
+
+	# --- Step 4: Set the VISUALS on the now-ready tokens ---
+	for i in range(new_tokens.size()):
+		var token = new_tokens[i]
+		var token_info = token_placement_data[i]
+		
+		# Apply material
+		apply_player_material(token, token_info.owner)
+		# Set the blight state silently
+		if token_info.has("is_blighted"):
+			token.update_blight_state_silently(token_info.is_blighted)
 		
 		# Connect to placement
 		var placement = get_token_placement_at_position(token_info.position)
@@ -1880,8 +1900,8 @@ func sync_all_token_placements(token_placement_data: Array):
 			placement.set_occupied(true)
 			placement.current_token = token
 			token.token_placement = placement
-	
-	# Update UI
+			
+	# --- Step 5: Update UI ---
 	update_token_ui()
 
 

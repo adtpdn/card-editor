@@ -982,7 +982,7 @@ func activate_sigil_pattern(token, pattern_id):
 			point_counter.add_biome_points(biome_type, points_to_add)
 		else:
 			# If client, send a request to the host
-			point_counter.rpc_id(1, "add_biome_points", biome_type, points_to_add)
+			point_counter.rpc_id(1, "request_add_biome_points", biome_type, points_to_add)
 
 # Check if mana is available for this biome
 func check_mana_available(biome_type: int) -> bool:
@@ -1014,12 +1014,9 @@ func consume_mana(biome_type: int):
 
 func get_current_round() -> int:
 	# Ensure you have a 'current_round' variable in your GameStateManager
-	if game_state_manager and game_state_manager.current_round <=0 :
-		return game_state_manager.current_round
-	
-	# Fallback if the variable isn't found
-	print("WARNING: 'current_round' not found in GameStateManager. Defaulting to round 1.")
-	return 1
+	#print("game state manager current round : ", game_state_manager.current_round)
+	return game_state_manager.current_round
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Sigil Effect Implementation

@@ -191,6 +191,15 @@ func sync_turn_state(new_turn_index: int):
 	token_manager.update_token_ui()
 
 @rpc("any_peer", "call_local")
+func sync_blight_animation(token_pos: Vector3, is_blighted: bool):
+	# Find the token at the given position.
+	var token = token_manager.find_token_at_position(token_pos) # You need a helper function for this.
+	
+	if token:
+		# Tell the token to ONLY play the animation.
+		token.play_blight_animation(is_blighted)
+
+@rpc("any_peer", "call_local")
 func sync_token_blight(token_position: Vector3, is_blighted: bool):
 	# Forward to token manager to handle the actual state change
 	token_manager.sync_token_blight(token_position, is_blighted)
