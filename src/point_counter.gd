@@ -64,20 +64,7 @@ var last_button_press_time = 0.0
 const BUTTON_PRESS_COOLDOWN = 0.25
 
 func _ready():
-	# The server (authority) will manage the points.
 	update_all_stacks()
-
-
-# This function is now just for requesting regular point adjustments.
-#func on_button_pressed(biome_string: String, delta: int):
-	#var current_time = Time.get_ticks_msec() / 1000.0
-	#if current_time - last_button_press_time < BUTTON_PRESS_COOLDOWN:
-		#return
-	#last_button_press_time = current_time
-	#
-	#var game_node = get_parent()
-	#if game_node and game_node.has_method("request_point_adjustment"):
-		#game_node.request_point_adjustment(biome_string, delta)
 
 #================================#
 #         MAGIC on SIGIL         #
@@ -272,7 +259,13 @@ func update_stack(stack_node: Node3D, points: int, biome: String):
 	for i in range(points):
 		var block = create_block(biome)
 		stack_node.add_child(block)
-		block.position.y = i * (BLOCK_HEIGHT + BLOCK_SPACING)
+		if stack_node.name.contains("Magic"):
+			block.position.y = i * (BLOCK_HEIGHT + BLOCK_SPACING)
+			block.rotation_degrees.z = 180.0
+		else:
+			block.position.y = i * (BLOCK_HEIGHT + BLOCK_SPACING) + 0.2
+			block.rotation_degrees.y = 45.0
+			
 
 # This RPC is now called by the server to broadcast the state to all clients.
 # We change it to 'any_peer' so the server can call it on clients.
