@@ -22,6 +22,12 @@ signal card_selected(card)
 signal card_clicked(card)
 signal card_added(card)
 
+# VAR for card Placement
+# ----------------------
+@export var accepted_card_types: PackedInt32Array = [CardResource.CardType]
+@export var max_cards: int = 1 # limit card that stacked
+@export var collection_name: String = "CardCollection"
+# ----------------------
 
 @onready var dropzone_collision: CollisionShape3D = $DropZone/CollisionShape3D
 
@@ -43,14 +49,17 @@ signal card_added(card)
 
 @onready var place_mesh = $PlaceMesh
 
+# Default VAR
+# ----------------------
 var cards: Array[Card3D] = []
 var card_indicies = {}
-
+# ----------------------
 var hover_disabled: bool = false # disable card hover animation (useful when dragging other cards around)
 var _hovered_card: Card3D # card currently hovered
 var _preview_drop_index: int = -1
-
+# ----------------------
 var card_index
+# ----------------------
 
 func _ready():
 	if self.name == "Hand":
