@@ -21,7 +21,7 @@ const player_hud_scene = preload("res://scenes/player_ui/player_hud.tscn")
 # Game State Variables
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 var game_started = false
-var current_round: int = 0
+var current_round: int = 1
 var current_turn_index = 0
 var max_players = 4 # Maximum players allowed
 var initial_player_order: Array = [] # NEW: Stores the original player order for consistent color indexing.
@@ -337,7 +337,7 @@ func next_turn():
 
 	if players.size() > 0:
 		var is_end_of_round = (current_turn_index == players.size() - 1)
-		
+		print("is end round : ", is_end_of_round)
 		if is_end_of_round and current_round > 0:
 			print("Last player's turn ended. A full round is complete.")
 			print("--- Checking for biome domination ---")
@@ -360,9 +360,8 @@ func next_turn():
 		var tokens = token_manager.get_player_tokens(previous_player)
 
 		current_turn_index = (current_turn_index + 1) % players.size()
-		var next_player = players[current_turn_index]
-		print("Next player: ", next_player)
-
+		var next_player = game.players[current_turn_index]
+		
 		tokens = token_manager.get_player_tokens(next_player)
 		get_parent().rpc("set_current_turn", next_player)
 

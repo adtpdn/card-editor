@@ -104,8 +104,15 @@ func handle_sigil_input(position: Vector2):
 				if found_token.is_energy and turn_phase_manager.current_phase == turn_phase_manager.Phase.PLAY_SIGIL:
 					_on_token_clicked(found_token)
 					return true  # Token was handled
-			
+	elif is_sigil_mode and result:
+		var found_token = result.collider.get_parent().get_parent()
+		if is_sigil_a:
+			perform_push_pull(selected_energy_token,found_token, true)
+		elif is_sigil_b:
+			perform_push_pull(selected_energy_token,found_token, false)
+		
 	return false  # No token was handled
+
 
 # Connect to new tokens added to the scene
 func _connect_to_new_token(token):
@@ -128,6 +135,7 @@ func connect_sigil_buttons():
 func _on_sigil_a_pressed():
 	print("")
 	print("sigil a pressed")
+	is_sigil_a = true
 	if selected_energy_token.owner_id == multiplayer.get_unique_id():
 		is_sigil_mode = true
 	#print("selected energy token : ", selected_energy_token)
@@ -145,6 +153,7 @@ func _on_sigil_a_pressed():
 func _on_sigil_b_pressed():
 	print("")
 	print("sigil b pressed")
+	is_sigil_b = true
 	if selected_energy_token.owner_id == multiplayer.get_unique_id():
 		is_sigil_mode = true
 	# Check if we have a selected token
@@ -528,10 +537,6 @@ func _on_token_clicked(token):
 				selected_energy_token.highlight(false)
 			
 			selected_energy_token = token
-			
-			# Only set sigil mode for the current player
-			#if token.owner_id == multiplayer.get_unique_id():
-				#is_sigil_mode = true
 			
 			# Highlight the token to show it's selected
 			token.highlight(true)
