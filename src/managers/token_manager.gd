@@ -135,87 +135,105 @@ func _input(event):
 # Core Token Planting Functions
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # This function is triggered when the player clicks the main "Token" button
-func _on_token_selected():
-	print("Token button clicked")
-	
+func _on_token_selected() -> void:
+	# 1. Perform validation checks.
+	if not _can_toggle_token_selection():
+		return
+
+	# 2. Toggle the selection state.
+	is_token_selected = not is_token_selected
+	print("Token selection mode toggled to: %s" % is_token_selected)
+
+	# 3. Update the UI and placement highlights based on the new state.
+	if is_token_selected:
+		_activate_placement_highlights()
+	else:
+		unhighlight_all_token_placements()
+
+	update_token_ui()
+
+# -----------------------------------------------------------------------------
+# PRIVATE HELPER FUNCTIONS (_on_token_selected)
+# -----------------------------------------------------------------------------
+func _can_toggle_token_selection() -> bool:
 	var player_id = multiplayer.get_unique_id()
-	if !game_state_manager.is_valid_player_turn(player_id):
+	if not game_state_manager.is_valid_player_turn(player_id):
 		print("Not your turn!")
 		is_token_selected = false
 		update_token_ui()
-		return
-	
-	var tokens = get_player_tokens(player_id)
-	if tokens.size() <= 0:
+		return false
+
+	if get_player_tokens(player_id).size() <= 0:
 		print("No tokens left!")
 		is_token_selected = false
 		update_token_ui()
-		return
-	
+		return false
+
 	var current_time = Time.get_ticks_msec() / 1000.0
 	if current_time - last_token_selection_time < TOKEN_PLACEMENT_COOLDOWN:
-		return
-	
+		return false
+
 	last_token_selection_time = current_time
-	
-	# Initialize tokens planted counter for this player if needed
-	if !tokens_planted_this_turn.has(player_id):
-		tokens_planted_this_turn[player_id] = 0
-	
-	
-	# Toggle selection state
-	is_token_selected = !is_token_selected
-	print("Token selection mode: " + str(is_token_selected))
-	
-	if is_token_selected:
-		# Check current phase and highlight appropriate placements
-		var current_phase = turn_phase_manager.current_phase
-		
-		# First unhighlight all placements to ensure clean state
-		unhighlight_all_token_placements()
-		
-		if current_phase == turn_phase_manager.Phase.PLANT_BIOME and game_state_manager.current_round == 0:
-			for placement in get_parent().get_node("TokenPlacements").get_children():
-				if !placement.is_occupied and placement.place_id == -1:
-					placement.set_biome_placement()
-					placement.set_highlight(true)
-					notification.show_instruction_label("Plant Token on Biome")
-			return
-		
-		# Highlight based on phase
-		if is_plant_extra:
-			# If this is an extra token (from card effect)
-			if card_manager.active_card != null:
-				for placement in get_parent().get_node("TokenPlacements").get_children():
-					if !placement.is_occupied:
-						placement.set_highlight(true)
-						placement.set_biome_placement()
-						placement.set_sigil_placement()
-						notification.show_instruction_label("Plant Extra Token on Biome or Sigil")
-				
-		
-		elif current_phase == turn_phase_manager.Phase.PLANT_BIOME:
-			# In biome phase, highlight biome locations (place_id == -1)
-			for placement in get_parent().get_node("TokenPlacements").get_children():
-				if !placement.is_occupied and placement.place_id == -1:
-					placement.set_biome_placement()
-					placement.set_highlight(true)
-					notification.show_instruction_label("Plant Token on Biome")
-		
-		elif current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD:
-			# In sigil phase, highlight sigil locations (place_id != -1)
-			for placement in get_parent().get_node("TokenPlacements").get_children():
-				if !placement.is_occupied and placement.place_id != -1:
-					placement.set_sigil_placement()
-					placement.set_highlight(true)
-					notification.show_instruction_label("Plant Token on Sigil")
+	return true
+
+
+# Determines which placement locations to highlight based on the current game phase
+# or active card effects.
+func _activate_placement_highlights() -> void:
+	unhighlight_all_token_placements() # Clear previous highlights first.
+
+	var current_phase = turn_phase_manager.current_phase
+
+	# Case 1: Special rule for the very first round of the game.
+	if current_phase == turn_phase_manager.Phase.PLANT_BIOME and game_state_manager.current_round == 0:
+		_highlight_placements_for_mode("biome_only")
+		return
+
+	# Case 2: A card effect is active that allows placing extra tokens.
+	if is_plant_extra:
+		_highlight_placements_for_mode("extra_token")
+		return
+
+	# Case 3: Regular turn phases.
+	match current_phase:
+		turn_phase_manager.Phase.PLANT_BIOME:
+			_highlight_placements_for_mode("biome_only")
+		turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD:
+			_highlight_placements_for_mode("sigil_only")
+
+
+# A helper function that iterates through all placements and highlights them
+# based on the specified mode. This reduces code duplication.
+func _highlight_placements_for_mode(mode: String) -> void:
+	var instruction_text := ""
+	var highlight_biome := false
+	var highlight_sigil := false
+
+	match mode:
+		"biome_only":
+			instruction_text = "Plant Token on a Biome Location"
+			highlight_biome = true
+		"sigil_only":
+			instruction_text = "Plant Token on a Sigil Location"
+			highlight_sigil = true
+		"extra_token":
+			instruction_text = "Plant Extra Token on a Biome or Sigil"
+			highlight_biome = true
+			highlight_sigil = true
+
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if not placement.is_occupied:
+			var is_biome_placement = (placement.place_id == -1)
 			
-	else:
-		# Unhighlight all placements when deselecting
-		unhighlight_all_token_placements()
+			if (highlight_biome and is_biome_placement) or (highlight_sigil and not is_biome_placement):
+				if highlight_biome:
+					placement.set_biome_placement()
+				if highlight_sigil:
+					placement.set_sigil_placement()
+				placement.set_highlight(true)
 	
-	# Update UI to show selection state
-	update_token_ui()
+	notification.show_instruction_label(instruction_text)
+
 
 func handle_touch(position: Vector2) -> void:
 	# 1. Perform initial validation checks. Exit early if input is not allowed.

@@ -106,11 +106,16 @@ func handle_sigil_input(position: Vector2):
 					return true  # Token was handled
 	elif is_sigil_mode and result:
 		var found_token = result.collider.get_parent().get_parent()
-		if is_sigil_a:
+		if is_sigil_a and found_token.biome_type == selected_energy_token.biome_type:
 			perform_push_pull(selected_energy_token,found_token, true)
-		elif is_sigil_b:
+		elif is_sigil_a and found_token.biome_type != selected_energy_token.biome_type:
 			perform_push_pull(selected_energy_token,found_token, false)
-		
+		if is_sigil_b and found_token.biome_type == selected_energy_token.biome_type:
+			perform_push_pull(selected_energy_token,found_token, true)
+		elif is_sigil_b and found_token.biome_type != selected_energy_token.biome_type:
+			perform_push_pull(selected_energy_token,found_token, false)
+		elif is_sigil_c:
+			perform_blight_unblight(selected_energy_token, found_token, )
 	return false  # No token was handled
 
 
@@ -1104,16 +1109,16 @@ func show_blight_unblight_direction_ui(energy_token):
 		#print("target token : ", target_token)
 		#print("target token owner id : ", target_token.owner_id)
 		#print("energy token owner id : ", energy_token.owner_id)
-		var choose_id 
-		if !target_token.is_blighted and target_token.owner_id != energy_token.owner_id:
-			choose_id = 0
-		elif target_token.is_blighted and target_token.owner_id == energy_token.owner_id:
-			choose_id = 1
-		else: 
-			return
+		#var choose_id 
+		#if !target_token.is_blighted and target_token.owner_id != energy_token.owner_id:
+			#choose_id = 0
+		#elif target_token.is_blighted and target_token.owner_id == energy_token.owner_id:
+			#choose_id = 1
+		#else: 
+			#return
 
 		# Connect signal
-		perform_blight_unblight(energy_token, target_token, choose_id == 0)
+		perform_blight_unblight(energy_token, target_token)
 
 
 # Show UI for push/pull direction selection
@@ -1152,7 +1157,7 @@ func show_push_pull_direction_ui(energy_token):
 	print("==============================\n")
 
 # Perform actual blight or unblight
-func perform_blight_unblight(energy_token, token, is_blight: bool):
+func perform_blight_unblight(energy_token, token):
 	print("perform blight unblight")
 	
 	_selected_token = token
