@@ -413,7 +413,6 @@ func _on_token_selected():
 					placement.set_biome_placement()
 					placement.set_highlight(true)
 					notification.show_instruction_label("Plant Token on Biome")
-			#turn_phase_manager.count_plant += 1
 			return
 		
 		# Highlight based on phase
