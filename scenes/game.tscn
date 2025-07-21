@@ -14,7 +14,7 @@
 [ext_resource type="Material" uid="uid://c6acp7vu62y16" path="res://assets/meshes/corner_slice_2_mat.tres" id="12_gxtfn"]
 [ext_resource type="Material" uid="uid://dlp8ve03x2jgc" path="res://assets/meshes/corner_slice_3_mat.tres" id="13_twgab"]
 [ext_resource type="Material" uid="uid://c7ugxmqk3hnld" path="res://assets/meshes/corner_slice_4_mat.tres" id="14_02fa5"]
-[ext_resource type="PackedScene" uid="uid://j5dwjwxb7bas" path="res://assets/meshes/animagic_slice.glb" id="15_nepv3"]
+[ext_resource type="PackedScene" uid="uid://j5dwjwxb7bas" path="res://assets/meshes/elementals_card.glb" id="15_nepv3"]
 [ext_resource type="PackedScene" uid="uid://cj4b00y883ujc" path="res://assets/meshes/game_board.glb" id="16_7025r"]
 [ext_resource type="PackedScene" uid="uid://cqkw6uj4kgxav" path="res://scenes/token/token_placement_location_magic.tscn" id="17_m4url"]
 [ext_resource type="PackedScene" uid="uid://u5swx58xo14j" path="res://scenes/token/token_placement_location.tscn" id="18_8ool0"]

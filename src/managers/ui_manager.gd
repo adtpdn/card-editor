@@ -86,6 +86,12 @@ func update_turn_indicator():
 				var is_active = child.name == "Player_" + str(current_player_id)
 				child.set_active(is_active)
 
+# Round Indicator
+func update_round_indicator():
+	var round_label = get_parent().get_node_or_null("RightUI/RoundLabel")
+	if round_label:
+		round_label.text = "Round: %d" % game.game_state_manager.round_count
+
 func setup_debug_ui():
 	# Create FPS display
 	fps_label = Label.new()

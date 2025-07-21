@@ -358,3 +358,10 @@ func sync_card_planted(card_data: Dictionary, biome_slot: int, player_id: int):
 		# Set a flag to prevent it from re-triggering effects
 		card.set_meta("remote_planted", true)
 		target_slot.append_card(card)
+
+# Round Counter
+func on_new_round(round_number: int):
+	print("New round started: %d" % round_number)
+	# Call your card flip or reveal logic here
+	if has_node("CardManager"):
+		get_node("CardManager").reveal_cards()

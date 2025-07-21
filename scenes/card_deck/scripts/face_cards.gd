@@ -17,7 +17,6 @@ enum card_on_biome {
 	Desert = 4
 }
 
-var card_resource = 
 
 #var data: Dictionary = _generate_all_face_cards()
 
