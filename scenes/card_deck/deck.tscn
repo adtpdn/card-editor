@@ -26,22 +26,9 @@ size = Vector2(40, 20)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_28kt0"]
 albedo_color = Color(0.207843, 0.396078, 0.301961, 1)
 
-[node name="Deck" type="Node3D"]
+[node name="CardSystem" type="Node3D"]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0)
 script = ExtResource("1_rgf87")
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.0885658)
-visible = false
-shadow_enabled = true
-shadow_opacity = 0.65
-shadow_blur = 5.0
-
-[node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 9)
-visible = false
-current = true
-fov = 84.375
 
 [node name="Table" type="Node3D" parent="."]
 script = ExtResource("1_3x582")
@@ -64,13 +51,13 @@ mesh = SubResource("PlaneMesh_tbve4")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_28kt0")
 
-[node name="Deck" parent="." instance=ExtResource("6_4uqre")]
+[node name="ActionCardDeck" parent="." instance=ExtResource("6_4uqre")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -9.84359, 0.0964201, -0.686903)
 script = ExtResource("8_v3qdk")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Deck"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ActionCardDeck"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.111376)
 visible = false
 mesh = ExtResource("9_5khp3")
 
-[connection signal="card_3d_mouse_up" from="Deck" to="Table" method="_on_face_card_3d_card_3d_mouse_up"]
+[connection signal="card_3d_mouse_up" from="ActionCardDeck" to="Table" method="_on_face_card_3d_card_3d_mouse_up"]

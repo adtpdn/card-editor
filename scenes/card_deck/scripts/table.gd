@@ -56,24 +56,6 @@ func reset_available_cards():
 	if deck_seed != 0:
 		shuffle_deck()
 
-#func _input(event):
-	#if event.is_action_pressed("ui_down"):
-		#add_card()
-	#elif event.is_action_pressed("ui_up"):
-		#remove_card()
-	#elif event.is_action_pressed("ui_left"):
-		#clear_cards()
-	#elif event.is_action_pressed("ui_right"):
-		#if pile.card_layout_strategy is PileCardLayout and hand.card_layout_strategy is LineCardLayout:
-			#var layout := LineCardLayout.new()
-			#pile.card_layout_strategy = layout
-		#elif hand.card_layout_strategy is LineCardLayout:
-			#hand.card_layout_strategy = FanCardLayout.new()
-		#elif pile.card_layout_strategy is LineCardLayout:
-			#pile.card_layout_strategy = PileCardLayout.new()
-		#elif hand.card_layout_strategy is FanCardLayout:
-			#hand.card_layout_strategy = LineCardLayout.new()
-
 func instantiate_face_card(card_index) -> FaceCard3D:
 	var scene = load("res://scenes/card_deck/scenes/face_card_3d.tscn")
 	var face_card_3d: FaceCard3D = scene.instantiate()

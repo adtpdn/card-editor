@@ -50,10 +50,12 @@ elemental_material_path = ""
 
 [node name="ElementalsBackMesh" type="MeshInstance3D" parent="CardMesh" index="2"]
 transform = Transform3D(27.475, 0, 0, 0, -1.20097e-06, -27.475, 0, 27.475, -1.20097e-06, 0, 0, -0.01)
+visible = false
 mesh = SubResource("ArrayMesh_vld16")
 skeleton = NodePath("")
 
 [node name="ElementalsFrontMesh" type="MeshInstance3D" parent="CardMesh" index="3"]
 transform = Transform3D(27.475, 0, 0, 0, -1.20097e-06, -27.475, 0, 27.475, -1.20097e-06, 0, 0, 0.01)
+visible = false
 mesh = SubResource("ArrayMesh_vld16")
 skeleton = NodePath("")

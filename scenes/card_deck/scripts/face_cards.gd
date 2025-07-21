@@ -1,13 +1,13 @@
 class_name FaceCards
 extends Resource
 
-enum card_id {
-	Zero = 0,
-	One = 1,
-	Two = 2,
-	Three = 3,
-	Four = 4
-}
+#enum card_id {
+	#Zero = 0,
+	#One = 1,
+	#Two = 2,
+	#Three = 3,
+	#Four = 4
+#}
 
 enum card_on_biome {
 	Hand = -1 ,
