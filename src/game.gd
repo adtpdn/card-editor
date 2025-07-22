@@ -179,7 +179,8 @@ func sync_player_colors(colors: Dictionary):
 
 @rpc("any_peer", "call_local")
 func sync_player_tokens(tokens: Array):
-	token_manager.sync_player_tokens(tokens)
+	for id in players.size():
+		token_manager.sync_player_tokens(tokens, players[id])
 
 @rpc("any_peer", "call_local")
 func sync_turn_state(new_turn_index: int):

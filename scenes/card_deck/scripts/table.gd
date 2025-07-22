@@ -150,7 +150,7 @@ func add_card():
 				# Mark sigil as placed and check for phase completion
 				turn_phase_manager.sigil_placed = true
 				print("sigil placed true")
-				if token_manager.is_plant_extra:
+				if card_manager.is_plant_extra:
 					game.token_button.disabled = false
 				else:
 					game.token_button.disabled = true
