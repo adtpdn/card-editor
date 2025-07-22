@@ -24,6 +24,16 @@ var max_hand_size = 3  # Maximum cards a player can hold
 var initial_hand_size = 2  # Starting cards for each player
 var network_synced = true
 
+# Add variables for card effects
+var is_take_off_mode := false
+var is_unblight_mode := false
+var is_refresh_energy_mode := false
+var is_swap_energy_mode := false  
+var is_plant_extra := false
+
+var first_swap_token = null  
+
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -128,25 +138,100 @@ func create_remote_card(card_data: Dictionary, biome_slot: int) -> FaceCard3D:
 	
 	return face_card
 
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ---        Card Effects      ---
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Start of Card Effect Logic
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 func unblight_card_effect():
 	print("unblight card effect")
-	token_manager._on_unblight_token()
+	is_unblight_mode = true
+	
+	# Ensure token selection mode is off
+	token_manager.is_token_selected = false
+	# Highlight our token.is_blighted
+	var tokens = token_manager.tokens
+	var player_id = multiplayer.get_unique_id()
+	for token in tokens.get_children():
+		if !token.is_energy and token.owner_id == player_id and token.is_blighted:
+			token.outerglow.show()
+	
+	token_manager.unhighlight_all_token_placements()
+	token_manager.update_token_ui()
 
 func take_off_card_effect():
 	print("take off card effect")
-	token_manager._on_take_off_energy()
+	is_take_off_mode = true
+
+	# Ensure token selection mode is off
+	token_manager.is_token_selected = false
+	
+	# Highlight our token.is_blighted
+	var tokens = token_manager.tokens
+	for token in tokens.get_children():
+		if token.is_energy:
+			token.outerglow.show()
+	
+	token_manager.unhighlight_all_token_placements()
+	token_manager.update_token_ui()
 
 func refresh_energy_card_effect():
 	print("refresh energy card effect")
-	token_manager._on_refresh_energy()
+	is_refresh_energy_mode = true
+	
+	# Ensure token selection mode is off
+	token_manager.is_token_selected = false
+	
+	# Highlight our token.is_blighted
+	var tokens = token_manager.tokens
+	var player_id = multiplayer.get_unique_id()
+	for token in tokens.get_children():
+		if token.is_energy and token.owner_id == player_id and token.is_blighted:
+			token.outerglow.show()
+	
+	token_manager.unhighlight_all_token_placements()
+	token_manager.update_token_ui()
 
 func swap_energy_card_effect():
 	print("swap energy card effect")
-	token_manager._on_swap_energy()
+	is_swap_energy_mode = true
+	is_take_off_mode = false
+	is_unblight_mode = false
+	is_refresh_energy_mode = false
+	first_swap_token = null  # Reset first token selection
+	
+	# Ensure token selection mode is off
+	token_manager.is_token_selected = false
+	
+	# Highlight our token.is_blighted
+	var tokens = token_manager.tokens
+	var player_id = multiplayer.get_unique_id()
+	for token in tokens.get_children():
+		if token.is_energy and token.owner_id == player_id:
+			token.outerglow.show()
+	
+	token_manager.unhighlight_all_token_placements()
+	token_manager.update_token_ui()
 
 func plant_extra_card_effect():
 	print("plant extra token card effect")
-	token_manager._on_plant_extra_token()
+	var player_id = multiplayer.get_unique_id()
+	
+	# Temporarily increase max tokens per turn by 1
+	token_manager.max_tokens_per_turn += 1
+	
+	# Set the plant extra flag
+	is_plant_extra = true
+	
+	# Enable placing on both sigil and biome locations
+	token_manager.can_plant_on_sigil = true
+	token_manager.can_plant_on_biome = true
+	
+	# Sync changes to all clients if we're the server
+	if multiplayer.is_server():
+		token_manager.rpc("sync_token_planting_state", player_id, token_manager.tokens_planted_this_turn.get(player_id, 0), 
+			true, true, token_manager.max_tokens_per_turn)
+	else:
+		# Request server to sync our changes
+		token_manager.rpc_id(1, "request_token_planting_state_update", player_id, true, true, token_manager.max_tokens_per_turn)
+	
+	# Update UI to show token button as active
+	token_manager.update_token_ui()

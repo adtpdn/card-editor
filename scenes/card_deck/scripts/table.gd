@@ -9,8 +9,10 @@ var card_index
 var rng = RandomNumberGenerator.new()
 
 @onready var hand: CardCollection3D = $DragController/Hand
+@onready var card_manager 
 
 func _ready():
+	card_manager = get_node("/root/Game/CardManager")
 	# Debug the action cards resource
 	print("Debugging action cards resource:")
 	for i in range(actions_cards.cards.size()):
@@ -135,7 +137,7 @@ func add_card():
 			var current_phase = turn_phase_manager.current_phase
 			
 			# If we're in the biome phase, drawing a card means we skip this phase
-			if token_manager.is_plant_extra:
+			if card_manager.is_plant_extra:
 				pass
 			
 			elif current_phase == turn_phase_manager.Phase.PLANT_BIOME:

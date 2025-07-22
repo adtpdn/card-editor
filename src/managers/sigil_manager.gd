@@ -14,6 +14,7 @@ signal sigil_mode_changed(enabled)
 @onready var token_manager = $"../TokenManager"
 @onready var network_manager = $"../NetworkManager"
 @onready var game_state_manager = $"../GameStateManager" 
+@onready var card_manager = $"../CardManager"
 @onready var point_counter = $"../PointCounter"
 @onready var deck = $"../Deck"
 @onready var turn_phase_manager = $"../TurnPhaseManager"
@@ -87,7 +88,7 @@ func handle_sigil_input(position: Vector2):
 	var result = space_state.intersect_ray(query)
 	
 	
-	if !is_sigil_mode and !token_manager.is_take_off_mode and !token_manager.is_unblight_mode and !token_manager.is_refresh_energy_mode and !token_manager.is_swap_energy_mode and !token_manager.is_plant_extra:
+	if !is_sigil_mode and !card_manager.is_take_off_mode and !card_manager.is_unblight_mode and !card_manager.is_refresh_energy_mode and !card_manager.is_swap_energy_mode and !card_manager.is_plant_extra:
 		print("goin to result")
 		print("result : ", result)
 		if result :

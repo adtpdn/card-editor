@@ -61,14 +61,6 @@ var last_token_placement_time = 0.0
 # Token scene reference
 var token_scene = preload("res://scenes/token/token_3d.tscn")
 
-# Add variables for card effects
-var is_take_off_mode := false
-var is_unblight_mode := false
-var is_refresh_energy_mode := false
-var is_swap_energy_mode := false  
-var is_plant_extra := false
-
-var first_swap_token = null  
 
 # Tracking player token counts
 var player_token_counts = {}
@@ -190,7 +182,7 @@ func _activate_placement_highlights() -> void:
 		return
 
 	# Case 2: A card effect is active that allows placing extra tokens.
-	if is_plant_extra:
+	if card_manager.is_plant_extra:
 		_highlight_placements_for_mode("extra_token")
 		return
 
@@ -283,7 +275,7 @@ func _can_process_input() -> bool:
 func _get_current_input_mode() -> String:
 	if is_token_selected:
 		return "PLACING_TOKEN"
-	if is_take_off_mode or is_unblight_mode or is_refresh_energy_mode or is_swap_energy_mode:
+	if card_manager.is_take_off_mode or card_manager.is_unblight_mode or card_manager.is_refresh_energy_mode or card_manager.is_swap_energy_mode:
 		return "TARGETING_FOR_EFFECT"
 	return "IDLE_OR_SIGIL"
 
@@ -352,16 +344,16 @@ func _handle_idle_or_sigil_action(position: Vector2, collider: Node) -> void:
 func _handle_card_effect_action(token: Node3D) -> void:
 	var effect_was_processed := true
 
-	if is_take_off_mode and token.is_energy:
+	if card_manager.is_take_off_mode and token.is_energy:
 		_process_card_effect("take_off_energy", token)
-		is_take_off_mode = false
-	elif is_unblight_mode and not token.is_energy and token.is_blighted:
+		card_manager.is_take_off_mode = false
+	elif card_manager.is_unblight_mode and not token.is_energy and token.is_blighted:
 		_process_card_effect("unblight_token", token)
-		is_unblight_mode = false
-	elif is_refresh_energy_mode and token.is_energy and token.is_blighted:
+		card_manager.is_unblight_mode = false
+	elif card_manager.is_refresh_energy_mode and token.is_energy and token.is_blighted:
 		_process_card_effect("refresh_energy", token)
-		is_refresh_energy_mode = false
-	elif is_swap_energy_mode and token.is_energy:
+		card_manager.is_refresh_energy_mode = false
+	elif card_manager.is_swap_energy_mode and token.is_energy:
 		_process_swap_energy_selection(token)
 		# Swap is a multi-step process, so we return early and don't mark card as played yet.
 		return
@@ -386,33 +378,33 @@ func _process_card_effect(effect_name: String, token: Node3D) -> void:
 # Contains the specific two-step logic for the Swap Energy card effect.
 func _process_swap_energy_selection(token: Node3D) -> void:
 	# First token selection
-	if first_swap_token == null:
+	if card_manager.first_swap_token == null:
 		if token.owner_id == multiplayer.get_unique_id():
-			first_swap_token = token
-			first_swap_token.highlight(true)
+			card_manager.first_swap_token = token
+			card_manager.first_swap_token.highlight(true)
 			# Highlight other valid targets
 			for t in tokens.get_children():
-				var is_valid_target = t != first_swap_token and t.is_energy and t.biome_type == first_swap_token.biome_type
+				var is_valid_target = t != card_manager.first_swap_token and t.is_energy and t.biome_type == card_manager.first_swap_token.biome_type
 				t.outerglow.visible = is_valid_target
 		else:
 			print("You must select your own token first for a swap.")
 	# Second token selection
 	else:
-		var is_valid_target = token != first_swap_token and token.biome_type == first_swap_token.biome_type and token.owner_id != first_swap_token.owner_id
+		var is_valid_target = token != card_manager.first_swap_token and token.biome_type == card_manager.first_swap_token.biome_type and token.owner_id != card_manager.first_swap_token.owner_id
 		if is_valid_target:
 			# Perform the swap
 			if multiplayer.is_server():
-				swap_energy_tokens(first_swap_token.global_position, token.global_position)
+				swap_energy_tokens(card_manager.first_swap_token.global_position, token.global_position)
 				point_counter.add_magic_points_from_biome(token.biome_type)
 			else:
-				rpc_id(1, "request_swap_energy_tokens", first_swap_token.global_position, token.global_position)
+				rpc_id(1, "request_swap_energy_tokens", card_manager.first_swap_token.global_position, token.global_position)
 				point_counter.rpc_id(1, "request_add_magic_points", token.biome_type)
 
 			# Reset state after swap is initiated
 			unhighlight_outerglow()
-			first_swap_token.highlight(false)
-			first_swap_token = null
-			is_swap_energy_mode = false
+			card_manager.first_swap_token.highlight(false)
+			card_manager.first_swap_token = null
+			card_manager.is_swap_energy_mode = false
 			turn_phase_manager.card_played = true
 
 
@@ -441,9 +433,9 @@ func request_token_placement(token_index: int, position: Vector3, biome_type: in
 	remove_token(player_id, token_index)
 	notification.hide_panel()
 
-	if is_plant_extra:
+	if card_manager.is_plant_extra:
 		point_counter.request_add_magic_points.rpc(token_data.biome)
-		is_plant_extra = false
+		card_manager.is_plant_extra = false
 
 	# 4. Broadcast the confirmed placement to all clients.
 	rpc("sync_token_placement", player_id, token_data, position)
@@ -507,7 +499,10 @@ func _create_token_instance(player_id: int, token_data: Dictionary, placement: N
 	token.is_blighted = is_blighted
 	token.global_position = placement.global_position
 	apply_player_material(token, player_id)
-
+	
+	if token.is_blighted:
+		token.rotation_degrees.z = 180
+	
 	# Link the token and its placement location.
 	token.token_placement = placement
 	placement.set_occupied(true)
@@ -521,8 +516,8 @@ func _update_state_after_placement(player_id: int, token: Node) -> void:
 		tokens_planted_this_turn[player_id] = 0
 	tokens_planted_this_turn[player_id] += 1
 
-	if is_plant_extra:
-		is_plant_extra = false
+	if card_manager.is_plant_extra:
+		card_manager.is_plant_extra = false
 
 	is_token_selected = false
 	unhighlight_all_token_placements()
@@ -653,12 +648,12 @@ func reset_turn_token_counters(player_id: int):
 	can_plant_on_biome = false  # Start with only sigil planting enabled
 	
 	# Reset ALL card effect flags - this is important
-	is_plant_extra = false
-	is_take_off_mode = false
-	is_unblight_mode = false
-	is_refresh_energy_mode = false
-	is_swap_energy_mode = false
-	first_swap_token = null
+	card_manager.is_plant_extra = false
+	card_manager.is_take_off_mode = false
+	card_manager.is_unblight_mode = false
+	card_manager.is_refresh_energy_mode = false
+	card_manager.is_swap_energy_mode = false
+	card_manager.first_swap_token = null
 	
 	# Reset sigil mode if it's the local player's turn ending
 	if player_id == multiplayer.get_unique_id() and sigil_manager != null:
@@ -679,9 +674,9 @@ func reset_turn_token_counters(player_id: int):
 	unhighlight_all_token_placements()
 	
 	# Reset any highlighting on tokens
-	if first_swap_token:
-		first_swap_token.highlight(false)
-		first_swap_token = null
+	if card_manager.first_swap_token:
+		card_manager.first_swap_token.highlight(false)
+		card_manager.first_swap_token = null
 		
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # End of Token Data and State Management
@@ -690,99 +685,6 @@ func reset_turn_token_counters(player_id: int):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Start of Card Effect Logic
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-func _on_take_off_energy():
-	print("Take Off Energy mode activate")
-	is_take_off_mode = true
-
-	# Ensure token selection mode is off
-	is_token_selected = false
-	
-	# Highlight our token.is_blighted
-	for token in tokens.get_children():
-		if token.is_energy:
-			token.outerglow.show()
-	
-	unhighlight_all_token_placements()
-	update_token_ui()
-
-func _on_unblight_token():
-	print("Unblight mode activated")
-	is_unblight_mode = true
-	
-	# Ensure token selection mode is off
-	is_token_selected = false
-	
-	# Highlight our token.is_blighted
-	var player_id = multiplayer.get_unique_id()
-	for token in tokens.get_children():
-		if !token.is_energy and token.owner_id == player_id and token.is_blighted:
-			token.outerglow.show()
-	
-	unhighlight_all_token_placements()
-	update_token_ui()
-
-func _on_refresh_energy():
-	print("Refresh energy mode activated")
-	is_refresh_energy_mode = true
-	
-	# Ensure token selection mode is off
-	is_token_selected = false
-	
-	# Highlight our token.is_blighted
-	var player_id = multiplayer.get_unique_id()
-	for token in tokens.get_children():
-		if token.is_energy and token.owner_id == player_id and token.is_blighted:
-			token.outerglow.show()
-	
-	unhighlight_all_token_placements()
-	update_token_ui()
-
-func _on_swap_energy():
-	print("Swap energy mode activated")
-	is_swap_energy_mode = true
-	is_take_off_mode = false
-	is_unblight_mode = false
-	is_refresh_energy_mode = false
-	first_swap_token = null  # Reset first token selection
-	
-	# Ensure token selection mode is off
-	is_token_selected = false
-	
-	# Highlight our token.is_blighted
-	var player_id = multiplayer.get_unique_id()
-	for token in tokens.get_children():
-		if token.is_energy and token.owner_id == player_id:
-			token.outerglow.show()
-	
-	unhighlight_all_token_placements()
-	update_token_ui()
-
-func _on_plant_extra_token():
-	print("Plant extra token card effect activated")
-	var player_id = multiplayer.get_unique_id()
-	
-	# Temporarily increase max tokens per turn by 1
-	max_tokens_per_turn += 1
-	print("Max tokens per turn increased to: " + str(max_tokens_per_turn))
-	
-	# Set the plant extra flag
-	is_plant_extra = true
-	
-	# Enable placing on both sigil and biome locations
-	can_plant_on_sigil = true
-	can_plant_on_biome = true
-	
-	# Sync changes to all clients if we're the server
-	if multiplayer.is_server():
-		rpc("sync_token_planting_state", player_id, tokens_planted_this_turn.get(player_id, 0), 
-			true, true, max_tokens_per_turn)
-	else:
-		# Request server to sync our changes
-		rpc_id(1, "request_token_planting_state_update", player_id, true, true, max_tokens_per_turn)
-	
-	# Update UI to show token button as active
-	update_token_ui()
-
 # -----------------------------------------------------------------------------
 # HELPER FUNCTIONS ( Networking Card Plant)
 # -----------------------------------------------------------------------------
@@ -912,10 +814,10 @@ func sync_energy_token_swap(first_token_position: Vector3, second_token_position
 	apply_player_material(second_token, first_token_owner)
 	
 	# Reset swap mode
-	is_swap_energy_mode = false
-	if first_swap_token:
-		first_swap_token.highlight(false)
-		first_swap_token = null
+	card_manager.is_swap_energy_mode = false
+	if card_manager.first_swap_token:
+		card_manager.first_swap_token.highlight(false)
+		card_manager.first_swap_token = null
 	
 	# Always unhighlight token placements after any token action
 	unhighlight_all_token_placements()
@@ -1062,8 +964,8 @@ func sync_token_removal_at_position(token_position: Vector3, player_id: int, bio
 	unhighlight_all_token_placements()
 	
 	# Reset remove and blight modes
-	is_take_off_mode = false
-	is_unblight_mode = false
+	card_manager.is_take_off_mode = false
+	card_manager.is_unblight_mode = false
 
 
 ## Unblight 
@@ -1152,8 +1054,8 @@ func sync_token_blight(token_position: Vector3, is_blighted: bool):
 		#unhighlight_all_token_placements()
 		
 		# Reset remove and blight modes
-		is_take_off_mode = false
-		is_unblight_mode = false
+		card_manager.is_take_off_mode = false
+		card_manager.is_unblight_mode = false
 		
 	else:
 		print("No token found at position for blight sync: " + str(token_position))
@@ -1920,8 +1822,8 @@ func update_token_ui():
 	else:
 		token_button.disabled = false
 	
-	print("is plant extra : ", is_plant_extra)
-	if is_plant_extra:
+	print("is plant extra : ", card_manager.is_plant_extra)
+	if card_manager.is_plant_extra:
 		token_button.disabled = false
 	
 	# Visual feedback for selection state

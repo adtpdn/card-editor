@@ -236,11 +236,11 @@ func unhighlight_marker_mesh():
 
 # Resets all card data for the sigil activation
 func reset_card_variables():
-	token_manager.is_take_off_mode = false
-	token_manager.is_unblight_mode = false
-	token_manager.is_refresh_energy_mode = false
-	token_manager.is_swap_energy_mode = false  
-	token_manager.is_plant_extra = false
+	card_manager.is_take_off_mode = false
+	card_manager.is_unblight_mode = false
+	card_manager.is_refresh_energy_mode = false
+	card_manager.is_swap_energy_mode = false  
+	card_manager.is_plant_extra = false
 
 # Resets all phases for a new turn
 func reset_phases():
@@ -557,7 +557,7 @@ func _on_token_placed(player_id, biome, location):
 			token_button.disabled = true
 	
 	# Check current phase and placement type
-	if token_manager.is_plant_extra:
+	if card_manager.is_plant_extra:
 		pass
 	elif current_phase == Phase.PLANT_BIOME:
 		# In biome planting phase
@@ -573,7 +573,7 @@ func _on_token_placed(player_id, biome, location):
 		# In sigil/card phase
 		if placement.place_id != -1:  # This is SIGIL placement (place_id != -1)
 			print("TurnPhaseManager: Sigil placement detected in PLANT_SIGIL_AND_CARD phase")
-			if !token_manager.is_plant_extra:
+			if !card_manager.is_plant_extra:
 				sigil_placed = true
 				token_button.disabled = true
 			check_phase_two_completion()
