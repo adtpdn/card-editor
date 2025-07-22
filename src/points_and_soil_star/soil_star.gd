@@ -8,7 +8,9 @@ extends Control
 
 
 func increase_soil_star(_count: int) -> void:
-	if current_soil_star >= 5:
+	if current_soil_star + _count >= 5:
+		current_soil_star = 5
+		soil_star_label.text = str(current_soil_star)
 		return
 	current_soil_star += _count
 	soil_star_label.text = str(current_soil_star)

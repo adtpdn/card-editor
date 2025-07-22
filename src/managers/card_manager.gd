@@ -66,11 +66,6 @@ func is_hand_full():
 	return player_hand.cards.size() >= max_hand_size
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ---     Card Management      ---
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # --- Card Drawing & Discarding ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 func draw_card():
@@ -583,3 +578,20 @@ func unblight_token(token_position):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # End of Card Effect Logic
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Helper Functions
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+func reset_all_effect_modes():
+	is_take_off_mode = false
+	is_unblight_mode = false
+	is_refresh_energy_mode = false
+	is_swap_energy_mode = false
+	is_plant_extra = false # If this should also be reset
+	if first_swap_token:
+		first_swap_token.highlight(false)
+		first_swap_token = null
+
+	# This part still needs to be in token_manager
+	# token_manager.unhighlight_outerglow() 
+	# token_manager.unhighlight_all_token_placements()

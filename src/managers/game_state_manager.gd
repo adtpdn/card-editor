@@ -354,8 +354,6 @@ func next_turn():
 		var previous_player = players[current_turn_index]
 		token_manager.reset_turn_token_counters(previous_player)
 		
-		token_manager.sync_complete_token_state()
-		
 		# Explicitly sync blighted token state
 		var tokens = token_manager.get_player_tokens(previous_player)
 

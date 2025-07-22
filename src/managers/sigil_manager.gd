@@ -6,7 +6,6 @@ signal signal_other_player_token
 signal sigil_activated(sigil_type, token)
 signal sigil_mode_changed(enabled)
 
-
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # References to other managers
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -20,8 +19,6 @@ signal sigil_mode_changed(enabled)
 @onready var turn_phase_manager = $"../TurnPhaseManager"
 @onready var tokens = $"../Tokens"
 @onready var notification = $"../Notification"
-
-
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Sigil Pattern Constants
@@ -40,14 +37,9 @@ var is_sigil_a = false
 var is_sigil_b = false
 var is_sigil_c := false
 
-
-
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-func _ready():
-	pass
-
 func initialize():
 	print("SigilManager initializing...")
 
@@ -111,12 +103,14 @@ func handle_sigil_input(position: Vector2):
 			perform_push_pull(selected_energy_token,found_token, true)
 		elif is_sigil_a and found_token.biome_type != selected_energy_token.biome_type:
 			perform_push_pull(selected_energy_token,found_token, false)
+		
 		if is_sigil_b and found_token.biome_type == selected_energy_token.biome_type:
 			perform_push_pull(selected_energy_token,found_token, true)
 		elif is_sigil_b and found_token.biome_type != selected_energy_token.biome_type:
 			perform_push_pull(selected_energy_token,found_token, false)
-		elif is_sigil_c:
-			perform_blight_unblight(selected_energy_token, found_token, )
+		
+		if is_sigil_c:
+			perform_blight_unblight(selected_energy_token, found_token)
 	return false  # No token was handled
 
 

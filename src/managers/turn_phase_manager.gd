@@ -708,3 +708,50 @@ func update_phase_ui():
 	print("TurnPhaseManager: update_phase_ui compatibility function called")
 	# Not used in this implementation
 	pass
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Phase Management
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Enable only sigil placement locations
+func enable_sigil_placement():
+	token_manager.is_token_selected = true
+	
+	# Unhighlight all first
+	token_manager.unhighlight_all_token_placements()
+	
+	# Highlight only sigil locations (place_id == -1)
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if !placement.is_occupied and placement.place_id == -1:
+			placement.set_highlight(true)
+	
+	# Update the UI
+	token_manager.update_token_ui()
+
+# Enable only biome placement locations
+func enable_biome_placement():
+	token_manager.is_token_selected = true
+	
+	# Unhighlight all first
+	token_manager.unhighlight_all_token_placements()
+	
+	# Highlight only biome locations (place_id != -1)
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if !placement.is_occupied and placement.place_id != -1:
+			placement.set_highlight(true)
+	
+	# Update the UI
+	token_manager.update_token_ui()
+
+# Disable sigil placement
+func disable_sigil_placement():
+	if token_manager.is_token_selected:
+		token_manager.is_token_selected = false
+		token_manager.unhighlight_all_token_placements()
+		token_manager.update_token_ui()
+
+# Disable biome placement
+func disable_biome_placement():
+	if token_manager.is_token_selected:
+		token_manager.is_token_selected = false
+		token_manager.unhighlight_all_token_placements()
+		token_manager.update_token_ui()

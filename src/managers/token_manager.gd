@@ -2,21 +2,6 @@
 class_name TokenManager
 extends Node
 
-# TOKEN MANAGER SECTIONS:
-# - References & Constants
-# - Variables & State Management 
-# - Initialization & Setup
-# - Token Management
-# - Placement & Selection
-# - Token Placement Generation
-# - UI Management
-# - Turn Management
-# - Card Effects
-# - Card Effect Implementation
-# - Network Synchronization
-# - Helper Functions
-# - Phase Management
-
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # References to other managers
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -60,7 +45,6 @@ var last_token_placement_time = 0.0
 
 # Token scene reference
 var token_scene = preload("res://scenes/token/token_3d.tscn")
-
 
 # Tracking player token counts
 var player_token_counts = {}
@@ -168,7 +152,6 @@ func _can_toggle_token_selection() -> bool:
 	last_token_selection_time = current_time
 	return true
 
-
 # Determines which placement locations to highlight based on the current game phase
 # or active card effects.
 func _activate_placement_highlights() -> void:
@@ -192,7 +175,6 @@ func _activate_placement_highlights() -> void:
 			_highlight_placements_for_mode("biome_only")
 		turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD:
 			_highlight_placements_for_mode("sigil_only")
-
 
 # A helper function that iterates through all placements and highlights them
 # based on the specified mode. This reduces code duplication.
@@ -225,7 +207,9 @@ func _highlight_placements_for_mode(mode: String) -> void:
 				placement.set_highlight(true)
 	
 	notification.show_instruction_label(instruction_text)
-
+# -----------------------------------------------------------------------------
+# END PRIVATE HELPER FUNCTIONS (_on_token_selected)
+# -----------------------------------------------------------------------------
 
 func handle_touch(position: Vector2) -> void:
 	# 1. Perform initial validation checks. Exit early if input is not allowed.
@@ -362,6 +346,7 @@ func _handle_card_effect_action(token: Node3D) -> void:
 
 	if effect_was_processed:
 		turn_phase_manager.card_played = true
+		card_manager.reset_all_effect_modes() # Call the new function
 		unhighlight_outerglow()
 		unhighlight_all_token_placements()
 
@@ -406,15 +391,18 @@ func _process_swap_energy_selection(token: Node3D) -> void:
 			card_manager.first_swap_token = null
 			card_manager.is_swap_energy_mode = false
 			turn_phase_manager.card_played = true
-
+# -----------------------------------------------------------------------------
+# END PRIVATE HELPER FUNCTIONS (Handle Touch)
+# -----------------------------------------------------------------------------
 
 @rpc("any_peer")
 func request_token_placement(token_index: int, position: Vector3, biome_type: int, is_blighted: bool = false) -> void:
 	if not multiplayer.is_server():
 		return
 
+	# Determine the player ID from the sender.
 	var player_id: int = multiplayer.get_remote_sender_id()
-	if player_id == 0: # If this is a local server request
+	if player_id == 0: # This is a local server request.
 		player_id = multiplayer.get_unique_id()
 
 	# 1. Perform all validation checks.
@@ -433,11 +421,19 @@ func request_token_placement(token_index: int, position: Vector3, biome_type: in
 	remove_token(player_id, token_index)
 	notification.hide_panel()
 
+	# 4. If the plant extra card effect is active, award the magic points.
 	if card_manager.is_plant_extra:
-		point_counter.request_add_magic_points.rpc(token_data.biome)
+		# Call the RPC on point_counter to add 2 magic points to the biome.
+		print("token data biome : ", token_data.biome)
+		point_counter.rpc_id(1, "request_add_magic_points", token_data.biome)
+		
+		# Reset the flag immediately after use.
+		card_manager.is_plant_extra = false
+		
+		# Reset the flag immediately after use.
 		card_manager.is_plant_extra = false
 
-	# 4. Broadcast the confirmed placement to all clients.
+	# 5. Broadcast the confirmed token placement to all clients.
 	rpc("sync_token_placement", player_id, token_data, position)
 
 @rpc("any_peer", "call_local")
@@ -477,7 +473,11 @@ func _is_placement_request_valid(player_id: int, token_index: int, placement: No
 		printerr("Invalid or occupied placement for player %d" % player_id)
 		return false
 
-	# Check if the placement is valid for the current game phase.
+	# If the "Plant Extra" card effect is active, bypass the phase-based placement rules.
+	if card_manager.is_plant_extra:
+		return true # The UI has already highlighted valid spots, so we can approve.
+
+	# Check if the placement is valid for the current game phase (normal rules).
 	var current_phase = turn_phase_manager.current_phase
 	if current_phase == turn_phase_manager.Phase.PLANT_BIOME and placement.place_id != -1:
 		return false
@@ -628,16 +628,6 @@ func remove_token(player_id: int, token_index: int):
 		return true
 	return false
 
-func can_place_token(player_id: int, token_index: int) -> bool:
-	if not player_tokens.has(player_id) or token_index >= player_tokens[player_id].size():
-		return false
-	return true
-
-func set_player_tokens(player_id: int, tokens: Array):
-	if tokens == null:
-		tokens = []
-	player_tokens[player_id] = tokens.duplicate()
-
 func reset_turn_token_counters(player_id: int):
 	# Reset the tokens planted counter for this player
 	if tokens_planted_this_turn.has(player_id):
@@ -746,43 +736,6 @@ func sync_token_movement(from_position: Vector3, to_position: Vector3):
 	
 	# Ensure the player material is still correct
 	apply_player_material(token, token.owner_id)
-
-func sync_complete_token_state():
-	if !multiplayer.is_server():
-		return
-	
-	print("Syncing complete token state to all clients")
-	
-	# 1. Sync token counts for all players
-	var players = get_parent().players
-	for pid in players:
-		var tokens = get_player_tokens(pid)
-		player_token_counts[pid] = tokens.size()
-		print("Player ", pid, " has ", tokens.size(), " tokens")
-		rpc("sync_player_tokens", tokens, pid)
-	
-	# 2. Sync token placements
-	var placement_data = []
-	for placement in get_parent().get_node("TokenPlacements").get_children():
-		if placement.is_occupied:
-			placement_data.append({
-				"position": placement.global_position,
-				"occupied": true
-			})
-	
-	# 3. Sync actual tokens
-	var token_data = []
-	for token in get_parent().get_node("Tokens").get_children():
-		token_data.append({
-			"position": token.global_position,
-			"biome": token.biome_type,
-			"owner": token.owner_id,
-			"is_energy": token.is_energy,
-			"is_blighted": token.is_blighted
-		})
-	
-	# Send comprehensive sync to all players
-	rpc("receive_complete_token_state", placement_data, token_data)
 
 @rpc("any_peer", "call_local")
 func receive_complete_token_state(placement_data: Array, token_data: Array):
@@ -985,11 +938,9 @@ func setup_token_ui():
 	# Initialize the UI state
 	update_token_ui()
 
-
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Token Management
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 func apply_player_material(token: Node, player_id: int):
 	# Ensure the token has the correct owner_id
 	if token.owner_id != player_id:
@@ -1001,33 +952,9 @@ func apply_player_material(token: Node, player_id: int):
 	else:
 		print("Warning: Token does not have update_material method")
 
-
-
-func get_placed_tokens_for_player(player_id: int) -> Array:
-	var game = get_tree().get_root().get_node("Game")
-	if !game:
-		return []
-		
-	var placed_tokens = []
-	var tokens_node = game.get_node("Tokens")
-	if tokens_node:
-		for token in tokens_node.get_children():
-			if token.owner_id == player_id:
-				placed_tokens.append(token)
-	
-	return placed_tokens
-
-
-
-
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Placement & Selection
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-
-
-
-
 func unhighlight_outerglow():
 	# First handle the local call
 	_unhighlight_outerglow_local()
@@ -1270,58 +1197,6 @@ func sync_existing_tokens(tokens_data: Array):
 		if placement:
 			placement.set_occupied(true)
 
-func sync_existing_game_state(new_peer_id: int):
-	# Sync tokens
-	var tokens_data = []
-	for token in get_parent().get_node("Tokens").get_children():
-		tokens_data.append({
-			"biome": token.biome_type,
-			"type": token.token_type,
-			"position": token.global_position
-		})
-	
-	# Sync occupied locations
-	var occupied_locations = []
-	for placement in get_parent().get_node("TokenPlacements").get_children():
-		if placement.is_occupied:
-			occupied_locations.append(placement.global_position)
-	
-	get_parent().rpc_id(new_peer_id, "receive_game_state", tokens_data, occupied_locations)
-
-@rpc("any_peer", "call_local")
-func receive_game_state(tokens_data: Array, occupied_locations: Array):
-	#print("Receiving game state")
-	
-	# Clear existing tokens
-	for token in get_parent().get_node("Tokens").get_children():
-		token.queue_free()
-	
-	# Recreate tokens
-	for token_info in tokens_data:
-		var token = token_scene.instantiate()
-		get_parent().get_node("Tokens").add_child(token, true)
-		token.set_token_data(token_info.biome, token_info.type)
-		token.global_position = token_info.position
-		
-		# Apply player-specific material
-		apply_player_material(token, token_info.type)  # type is used as player_id here
-	
-	# Mark occupied locations
-	for pos in occupied_locations:
-		var placement = get_token_placement_at_position(pos)
-		if placement:
-			placement.set_occupied(true)
-
-func distribute_initial_tokens_to_client(peer_id: int):
-	if !multiplayer.is_server():
-		return
-		
-	#print("Distributing initial tokens to client: ", peer_id)
-	initialize_player_tokens(peer_id)
-	var tokens = get_player_tokens(peer_id)
-	rpc_id(peer_id, "sync_player_tokens", tokens)
-	#print("Sent initial tokens to client: ", tokens)
-
 func force_resync_token_colors():
 	if !multiplayer.is_server():
 		return
@@ -1388,58 +1263,6 @@ func sync_token_colors(token_data: Array):
 				if token.has_method("update_material"):
 					token.update_material()
 
-@rpc("any_peer", "call_local")
-func sync_all_token_placements(token_placement_data: Array):
-	print("Received complete token placement sync with ", token_placement_data.size(), " tokens")
-	
-	# --- Step 1: Clear all old tokens and placements ---
-	for token in get_parent().get_node("Tokens").get_children():
-		token.queue_free()
-	
-	for placement in get_parent().get_node("TokenPlacements").get_children():
-		placement.set_occupied(false)
-		placement.current_token = null
-
-	# --- Step 2: Create new tokens and set their DATA ONLY ---
-	var new_tokens = []
-	for token_info in token_placement_data:
-		var token = token_scene.instantiate()
-		get_parent().get_node("Tokens").add_child(token, true)
-		
-		# Set all the data variables
-		token.set_token_data(token_info.biome, token_info.owner, token_info.is_energy)
-		# IMPORTANT: Make sure the data you send includes the is_blighted status
-		if token_info.has("is_blighted"):
-			token.is_blighted = token_info.is_blighted
-		token.global_position = token_info.position
-		
-		new_tokens.append(token)
-
-	# --- Step 3: WAIT for one frame for nodes to be ready ---
-	await get_tree().process_frame
-
-	# --- Step 4: Set the VISUALS on the now-ready tokens ---
-	for i in range(new_tokens.size()):
-		var token = new_tokens[i]
-		var token_info = token_placement_data[i]
-		
-		# Apply material
-		apply_player_material(token, token_info.owner)
-		# Set the blight state silently
-		if token_info.has("is_blighted"):
-			token.update_blight_state_silently(token_info.is_blighted)
-		
-		# Connect to placement
-		var placement = get_token_placement_at_position(token_info.position)
-		if placement:
-			placement.set_occupied(true)
-			placement.current_token = token
-			token.token_placement = placement
-			
-	# --- Step 5: Update UI ---
-	update_token_ui()
-
-
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Helper Functions
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1463,29 +1286,33 @@ func unhighlight_all_token_placements():
 		placement.set_highlight(false)
 
 func update_token_ui():
-	var current_phase = turn_phase_manager.current_phase
 	var token_button = get_parent().get_node("RightUI/TokenButton")
 	if !token_button:
 		return
-		
+
 	var player_id = multiplayer.get_unique_id()
-	
-	# Token button is always visible for local player
+	var players = game.players
+	var game_started = game.game_started
+	var is_my_turn = false
+	if game_started and players.size() > 0 and game_state_manager.current_turn_index < players.size():
+		is_my_turn = (player_id == players[game_state_manager.current_turn_index])
+
+	# Get the token count for the local player
+	var token_count = 0
+	if player_tokens.has(player_id):
+		token_count = player_tokens[player_id].size()
+
+	# Update the button text with the local player's token count
+	token_button.text = "Tokens: " + str(token_count)
+
+	var max_tokens_reached = tokens_planted_this_turn.get(player_id, 0) >= max_tokens_per_turn
+
 	token_button.visible = true
-	
-	# But only enabled during their turn, if they have tokens, and haven't reached max tokens
-	#token_button.disabled = !is_my_turn || token_count <= 0 || max_tokens_reached
-	print("current phase ")
-	if current_phase >= 1 and turn_phase_manager.sigil_placed:
-		token_button.disabled = true
-	else:
-		token_button.disabled = false
-	
-	print("is plant extra : ", card_manager.is_plant_extra)
+	token_button.disabled = !is_my_turn or token_count <= 0 or max_tokens_reached
+
 	if card_manager.is_plant_extra:
 		token_button.disabled = false
-	
-	# Visual feedback for selection state
+
 	if is_token_selected:
 		token_button.modulate = Color(1.2, 1.2, 0.8, 1)
 	else:
@@ -1497,22 +1324,22 @@ func save_player_token_count(player_id: int):
 	player_token_counts[player_id] = tokens.size()
 	print("Saved token count for player ", player_id, ": ", tokens.size())
 
-func reset_token_buttons():
-	var token_button = get_parent().get_node("RightUI/TokenButton")
-	# Reset token button state
-	if token_button:
-		# Disconnect any existing signals
-		if token_button.pressed.is_connected(_on_token_selected):
-			token_button.pressed.disconnect(_on_token_selected)
-			
-		# Reset button state
-		token_button.button_pressed = false  
-		token_button.disabled = true
-		token_button.visible = true  # Keep it visible
-		token_button.modulate = Color(0.5, 0.5, 0.5, 0.5)
-		
-		# Reset token selection state
-		is_token_selected = false
+#func reset_token_buttons():
+	#var token_button = get_parent().get_node("RightUI/TokenButton")
+	## Reset token button state
+	#if token_button:
+		## Disconnect any existing signals
+		#if token_button.pressed.is_connected(_on_token_selected):
+			#token_button.pressed.disconnect(_on_token_selected)
+			#
+		## Reset button state
+		#token_button.button_pressed = false  
+		#token_button.disabled = true
+		#token_button.visible = true  # Keep it visible
+		#token_button.modulate = Color(0.5, 0.5, 0.5, 0.5)
+		#
+		## Reset token selection state
+		#is_token_selected = false
 
 @rpc("authority", "reliable")
 func notify_invalid_placement():
@@ -1597,50 +1424,3 @@ func request_token_movement(from_position: Vector3, to_position: Vector3):
 	
 	# Sync to all clients
 	rpc("sync_token_movement", from_position, to_position)
-
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Phase Management
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Enable only sigil placement locations
-func enable_sigil_placement():
-	is_token_selected = true
-	
-	# Unhighlight all first
-	unhighlight_all_token_placements()
-	
-	# Highlight only sigil locations (place_id == -1)
-	for placement in get_parent().get_node("TokenPlacements").get_children():
-		if !placement.is_occupied and placement.place_id == -1:
-			placement.set_highlight(true)
-	
-	# Update the UI
-	update_token_ui()
-
-# Enable only biome placement locations
-func enable_biome_placement():
-	is_token_selected = true
-	
-	# Unhighlight all first
-	unhighlight_all_token_placements()
-	
-	# Highlight only biome locations (place_id != -1)
-	for placement in get_parent().get_node("TokenPlacements").get_children():
-		if !placement.is_occupied and placement.place_id != -1:
-			placement.set_highlight(true)
-	
-	# Update the UI
-	update_token_ui()
-
-# Disable sigil placement
-func disable_sigil_placement():
-	if is_token_selected:
-		is_token_selected = false
-		unhighlight_all_token_placements()
-		update_token_ui()
-
-# Disable biome placement
-func disable_biome_placement():
-	if is_token_selected:
-		is_token_selected = false
-		unhighlight_all_token_placements()
-		update_token_ui()

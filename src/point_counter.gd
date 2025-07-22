@@ -70,15 +70,16 @@ func _ready():
 #         MAGIC on SIGIL         #
 #================================#
 
-@rpc("any_peer")
+@rpc("any_peer", "call_local")
 func request_add_magic_points(biome: Biome):
 	# The is_multiplayer_authority() check is now redundant because of the decorator,
 	# but it's good practice to keep for clarity.
 	if not is_multiplayer_authority():
 		return
 
+	print("request add magic points")
 	add_magic_points_from_biome(biome)
-	
+
 	# After updating the points on the server, we sync the new values with all clients.
 	sync_point_values.rpc(
 		forest_points, desert_points, mountain_points, water_points,
@@ -93,6 +94,7 @@ func add_magic_points_from_biome(biome: Biome):
 			forest_magic_points = validate_points(new_points)
 		Biome.DESERT:
 			var new_points = desert_magic_points + 2
+			print("desert points : ", new_points)
 			desert_magic_points = validate_points(new_points)
 		Biome.MOUNTAIN:
 			var new_points = mountain_magic_points + 2
