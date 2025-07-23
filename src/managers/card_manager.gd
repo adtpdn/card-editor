@@ -33,7 +33,6 @@ var is_plant_extra := false
 
 var first_swap_token = null  
 
-
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

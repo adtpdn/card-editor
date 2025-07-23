@@ -18,10 +18,10 @@ script = ExtResource("1_g74jl")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 0
-offset_left = -325.0
-offset_top = -64.0
-offset_right = -185.0
-offset_bottom = -4.0
+offset_left = -229.0
+offset_top = -59.0
+offset_right = -129.0
+offset_bottom = 1.0
 
 [node name="PointsLabel" type="Label" parent="HBoxContainer"]
 layout_mode = 2

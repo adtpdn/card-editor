@@ -15,6 +15,7 @@ extends Node
 @onready var turn_phase_manager = $"../TurnPhaseManager"
 @onready var tokens = $"../Tokens"
 @onready var notification = $"../Notification"
+@onready var soil_star_actions = $"../SoilStarActions"
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -157,6 +158,11 @@ func _can_toggle_token_selection() -> bool:
 func _activate_placement_highlights() -> void:
 	unhighlight_all_token_placements() # Clear previous highlights first.
 
+	# soil star case
+	if soil_star_actions.is_playing_extra_token_from_soil_star:
+		_highlight_placements_for_mode("extra_token")
+		return
+
 	var current_phase = turn_phase_manager.current_phase
 
 	# Case 1: Special rule for the very first round of the game.
@@ -191,7 +197,7 @@ func _highlight_placements_for_mode(mode: String) -> void:
 			instruction_text = "Plant Token on a Sigil Location"
 			highlight_sigil = true
 		"extra_token":
-			instruction_text = "Plant Extra Token on a Biome or Sigil"
+			instruction_text = "Plant Extra Token on any valid location"
 			highlight_biome = true
 			highlight_sigil = true
 
@@ -199,12 +205,14 @@ func _highlight_placements_for_mode(mode: String) -> void:
 		if not placement.is_occupied:
 			var is_biome_placement = (placement.place_id == -1)
 			
-			if (highlight_biome and is_biome_placement) or (highlight_sigil and not is_biome_placement):
-				if highlight_biome:
-					placement.set_biome_placement()
-				if highlight_sigil:
-					placement.set_sigil_placement()
+			# Determine if this placement should be shown and highlighted
+			var should_highlight = (highlight_biome and is_biome_placement) or (highlight_sigil and not is_biome_placement)
+			
+			if should_highlight:
+				placement.show() # Directly control visibility here
 				placement.set_highlight(true)
+			else:
+				placement.hide() # Ensure others are hidden
 	
 	notification.show_instruction_label(instruction_text)
 # -----------------------------------------------------------------------------
@@ -442,7 +450,10 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	if not placement or placement.is_occupied:
 		printerr("Token placement sync failed: Invalid or occupied placement at %s" % position)
 		return
-
+	
+	if soil_star_actions.is_playing_extra_token_from_soil_star:
+		soil_star_actions.is_playing_extra_token_from_soil_star = false
+	
 	# 1. Create the token and set its visual properties.
 	var token = _create_token_instance(player_id, token_data, placement)
 
@@ -460,6 +471,9 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 # PRIVATE HELPER FUNCTIONS request_token_placement and sync_token_placement
 # -----------------------------------------------------------------------------
 func _is_placement_request_valid(player_id: int, token_index: int, placement: Node) -> bool:
+	if soil_star_actions.is_playing_extra_token_from_soil_star:
+		return true # If using the action, always allow placement
+	
 	if not game_state_manager.is_valid_player_turn(player_id):
 		get_parent().rpc_id(player_id, "notify_invalid_placement")
 		return false

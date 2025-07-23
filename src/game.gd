@@ -16,11 +16,15 @@ extends Node
 @onready var token_placements = $TokenPlacements
 @onready var tokens = $Tokens
 @onready var notification = $Notification
+@onready var soil_star_actions = $SoilStarActions
+@onready var player_uis = $PlayerUIs
 
 @onready var sigil_a_button = $SigilContainer/SigilAButton
 @onready var sigil_b_button = $SigilContainer/SigilBButton
 @onready var sigil_c_button = $SigilContainer/SigilCButton
 @onready var token_button = $RightUI/TokenButton
+@onready var end_turn_button = $RightUI/EndTurnButton
+@onready var end_phase_button = $RightUI/EndPhaseButton
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Core Game State

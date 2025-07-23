@@ -119,28 +119,40 @@ func plant_card(card):
 	var game = get_node("/root/Game/")
 	var turn_phase_manager = game.turn_phase_manager
 	var card_manager = game.card_manager
-	
+	var soil_star_actions = game.soil_star_actions # Get soil star actions reference
 	
 	card_manager.active_card = card
-	
-	turn_phase_manager.card_played = true
-	
-	# Get the explicit resource card_id (not an index)
+
+	# Check if this card play is from the soil star action
+	if soil_star_actions.is_playing_from_soil_star_action:
+		# It is, so don't count it as the turn's main card play.
+		# Reset the flag immediately.
+		soil_star_actions.is_playing_from_soil_star_action = false
+		
+		# Now, find the active player's soil star node and decrease the stars.
+		var active_player_ui = soil_star_actions._get_active_player_ui()
+		if active_player_ui:
+			var soil_star_node = active_player_ui.get_node_or_null("SoilStar")
+			if soil_star_node:
+				# This action costs 1 soil star.
+				var cost = soil_star_actions.button_rules[soil_star_actions.play_card_button]
+				soil_star_node.decrease_soil_star(cost)
+	else:
+		# This is a normal card play during Phase 2.
+		turn_phase_manager.card_played = true
+
+	# The rest of the function remains the same
 	var resource_card_id = card.card_id
 	var resource_card_name = card.card_name
 	
 	print("Planting card with resource card_id:", resource_card_id, "to biome slot:", card_slot_biome)
 	
-	# Sync the card planting across the network
 	if game.network_manager and game.network_manager.multiplayer and game.network_manager.multiplayer.get_peers().size() > 0:
-		# Get the player ID
 		var player_id = game.network_manager.multiplayer.get_unique_id()
-		
-		# Send resource card_id, biome slot info, and player ID to all clients
 		game.network_manager.sync_card_planted(resource_card_id, card_slot_biome, player_id, resource_card_name)
 	
-	# Then trigger the local effect based on the card's actual resource card_id
 	execute_card_effect(resource_card_id)
+
 
 func execute_card_effect(card_id: int):
 	var game = get_node("/root/Game/")
@@ -293,24 +305,19 @@ func _on_card_pressed(card: Card3D):
 	var game = get_node("/root/Game")
 	var turn_phase_manager = game.turn_phase_manager
 	var notification = game.notification
-	
+	var soil_star_actions = game.soil_star_actions # Get soil star actions reference
+
 	var parent = card.get_parent()
 	
-	# Disabled pressed card
-	# probably as a card or elemental
 	if parent.name != "Hand" :
-		#print("pressed hand")
 		return
 	
-	if turn_phase_manager.card_played:
-		#print("card played")
-		return
-	
-	# Phase plant on sigil and card only
-	# Disabled card movement
-	if turn_phase_manager.current_phase == 1: 
+	# Allow playing a card if it's the right phase OR if using the soil star action
+	var can_play_normally = turn_phase_manager.current_phase == 1 and not turn_phase_manager.card_played
+	var can_play_from_soil_star = soil_star_actions.is_playing_from_soil_star_action
+
+	if can_play_normally or can_play_from_soil_star:
 		if can_select_card(card):
-			#print('card pressed')
 			notification.show_instruction_label("Play a Card")
 			card_selected.emit(card)
 			
