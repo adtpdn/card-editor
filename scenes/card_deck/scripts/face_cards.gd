@@ -1,13 +1,13 @@
 class_name FaceCards
 extends Resource
 
-enum card_id {
-	Zero = 0,
-	One = 1,
-	Two = 2,
-	Three = 3,
-	Four = 4
-}
+#enum card_id {
+	#Zero = 0,
+	#One = 1,
+	#Two = 2,
+	#Three = 3,
+	#Four = 4
+#}
 
 enum card_on_biome {
 	Hand = -1 ,
@@ -17,7 +17,6 @@ enum card_on_biome {
 	Desert = 4
 }
 
-var card_resource = 
 
 #var data: Dictionary = _generate_all_face_cards()
 

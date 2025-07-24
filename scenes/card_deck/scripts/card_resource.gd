@@ -1,7 +1,7 @@
 extends Resource
 class_name CardResource
 
-enum CardType {ACTION, AREA}
+enum CardType {ACTION, ELEMENTAL}
 
 @export var card_id : int = -1
 @export var card_on_biome : int = -1
@@ -13,8 +13,9 @@ enum CardType {ACTION, AREA}
 @export var revealed: bool = true
 @export var front_mesh_material: StandardMaterial3D 
 @export var back_mesh_material: StandardMaterial3D
+@export var elemental_cost: int = 0
 
-func _init(p_id = -1, p_biome= -1, p_name = "New Card", p_type = CardType.ACTION, p_cost = 1, p_effect1 = "", p_effect2 = ""):
+func _init(p_id = -1, p_biome= -1, p_name = "New Card", p_type = CardType.ACTION, p_cost = 1, p_effect1 = "", p_effect2 = "", p_elemental_cost=0):
 	card_id = p_id
 	card_on_biome = p_biome
 	card_name = p_name
@@ -22,6 +23,7 @@ func _init(p_id = -1, p_biome= -1, p_name = "New Card", p_type = CardType.ACTION
 	cost_to_draw = p_cost
 	effect1 = p_effect1
 	effect2 = p_effect2
+	elemental_cost = p_elemental_cost
 
 func to_dictionary() -> Dictionary:
 	return {
@@ -34,7 +36,8 @@ func to_dictionary() -> Dictionary:
 		"effect2": effect2,
 		"revealed": revealed,
 		"front_mesh_material": front_mesh_material,
-		"back_mesh_material": back_mesh_material
+		"back_mesh_material": back_mesh_material,
+		"elemental_cost": elemental_cost
 	}
 
 func from_dictionary(data: Dictionary) -> void:
@@ -48,6 +51,7 @@ func from_dictionary(data: Dictionary) -> void:
 	revealed = data["revealed"]
 	front_mesh_material = data["front_mesh_material"]
 	back_mesh_material = data.get("back_mesh_material", "")
+	elemental_cost = data.get("elemental_cost", 0)
 
 func _get_property_list():
 	var properties = []

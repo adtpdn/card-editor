@@ -1,4 +1,5 @@
 [gd_scene load_steps=30 format=4 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=48 format=4 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://src/game.gd" id="1_e1j6l"]
 [ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://src/managers/turn_phase_manager.gd" id="2_pl11u"]
@@ -14,17 +15,24 @@
 [ext_resource type="Material" uid="uid://c6acp7vu62y16" path="res://assets/meshes/corner_slice_2_mat.tres" id="12_gxtfn"]
 [ext_resource type="Material" uid="uid://dlp8ve03x2jgc" path="res://assets/meshes/corner_slice_3_mat.tres" id="13_twgab"]
 [ext_resource type="Material" uid="uid://c7ugxmqk3hnld" path="res://assets/meshes/corner_slice_4_mat.tres" id="14_02fa5"]
-[ext_resource type="PackedScene" uid="uid://j5dwjwxb7bas" path="res://assets/meshes/animagic_slice.glb" id="15_nepv3"]
+[ext_resource type="Script" uid="uid://dj0ce7mbddmyx" path="res://scenes/card_deck/scripts/card_collection_3d.gd" id="15_bhx41"]
 [ext_resource type="PackedScene" uid="uid://cj4b00y883ujc" path="res://assets/meshes/game_board.glb" id="16_7025r"]
 [ext_resource type="PackedScene" uid="uid://cqkw6uj4kgxav" path="res://scenes/token/token_placement_location_magic.tscn" id="17_m4url"]
 [ext_resource type="PackedScene" uid="uid://u5swx58xo14j" path="res://scenes/token/token_placement_location.tscn" id="18_8ool0"]
-[ext_resource type="PackedScene" uid="uid://cogovef2ukws3" path="res://scenes/card_deck/deck.tscn" id="19_pr1ej"]
+[ext_resource type="Script" uid="uid://cnqv71xds5itu" path="res://scenes/card_deck/scripts/deck_pile.gd" id="19_v2yb1"]
 [ext_resource type="PackedScene" uid="uid://ct3mj6rfjmily" path="res://scenes/sigil_mesh.tscn" id="20_05nbr"]
+[ext_resource type="Script" uid="uid://bh3yi5yf57wpw" path="res://scenes/card_deck/scripts/table.gd" id="20_js0lu"]
 [ext_resource type="Script" uid="uid://inns47cokwch" path="res://src/point_counter.gd" id="21_0sl42"]
+[ext_resource type="Script" uid="uid://bfmtf7hh4lc0h" path="res://scenes/card_deck/scripts/drag_controller.gd" id="21_gxtfn"]
 [ext_resource type="PackedScene" uid="uid://bchy4wmtwdsy" path="res://scenes/pop_up.tscn" id="22_oaba0"]
 [ext_resource type="Script" uid="uid://copi64l3fv7vm" path="res://src/pop_up.gd" id="23_458eo"]
 [ext_resource type="PackedScene" uid="uid://dneiapwmkd0eu" path="res://scenes/player_ui/player_turn.tscn" id="24_h3rex"]
 [ext_resource type="PackedScene" uid="uid://dxe1h1c8t2n61" path="res://scenes/points_and_soil_star/soil_star_actions.tscn" id="25_pl11u"]
+[ext_resource type="Script" uid="uid://dauol4rysxcqw" path="res://scenes/card_deck/scripts/card_layouts/pile_card_layout.gd" id="25_02fa5"]
+[ext_resource type="Script" uid="uid://8v3bpke27xiw" path="res://scenes/card_deck/scripts/card_layouts/fan_card_layout.gd" id="26_nepv3"]
+[ext_resource type="PackedScene" uid="uid://bjx4ugu14qx3w" path="res://scenes/card_deck/scenes/face_card_3d.tscn" id="27_7025r"]
+[ext_resource type="Script" uid="uid://bqibbhjbko4ra" path="res://scenes/card_deck/scripts/card_3d.gd" id="28_m4url"]
+[ext_resource type="PlaneMesh" uid="uid://dxvj3gkbbknem" path="res://scenes/card_deck/card_3d_back_mesh.tres" id="29_8ool0"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0k8a4"]
 resource_name = "Corner.001"
@@ -66,6 +74,81 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_4ivmr")
 
+[sub_resource type="Resource" id="Resource_v2yb1"]
+script = ExtResource("25_02fa5")
+pile_y_offset = 0.0
+metadata/_custom_type_script = "uid://dauol4rysxcqw"
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wljb1"]
+size = Vector3(61.7336, 1.60791, 55.8478)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0wk4a"]
+resource_name = "Elemental_Blue_1"
+transparency = 1
+cull_mode = 2
+albedo_color = Color(0.55, 0.55, 0.55, 0.623529)
+roughness = 0.5
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_27083"]
+_surfaces = [{
+"aabb": AABB(-0.0453736, -0.00104126, -0.0434318, 0.0914393, 0.0020775, 0.0783865),
+"format": 34896613377,
+"index_count": 60,
+"index_data": PackedByteArray("AAABAAIAAQADAAIAAgADAAQAAgAEAAAAAQAFAAMABQAEAAMABgAFAAEAAAAEAAcABgAIAAUAAAAHAAkAAQAKAAYAAQAAAAoACgAIAAYACgAAAAkACwAFAAgACgALAAgABAAFAAsACQALAAoABAALAAcACQAHAAsA"),
+"name": "Elemental_Blue_1",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 12,
+"vertex_data": PackedByteArray("//8R/yc+AABkfv////8AAInZ//8r6wAAidnaASvrAAD//+0AJz4AAGR+2gH//wAAeiL///7rAADFfwAAAAAAAHoi2gH+6wAAxX8k/gAAAAAAABH/uz0AAAAA7QC7PQAA")
+}]
+blend_shape_mode = 0
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_vld16"]
+resource_name = "elementals_card_Curve_012"
+_surfaces = [{
+"aabb": AABB(-0.0453736, -0.00104126, -0.0434318, 0.0914393, 0.0020775, 0.0783865),
+"attribute_data": PackedByteArray("egDMOuGAZf+RJz7rQP+oOqaAHQAM2Bnr5IBo/0D/qDoM2BnreADKOoonTOumgB4AQgaEyoYIkfpCBpH6hgiEyg0NkfrJCtypDQ3cqckKkfr8A/p9QgYdx/4DHcdABvp9QgYlmoYIhMpCBoTKhgglmoYI0KnJCpH6hgiR+skK0Kn+Ax3HQAaR+vwDkfpCBh3H"),
+"format": 34896613399,
+"index_count": 60,
+"index_data": PackedByteArray("AAABAAIAAQAAAAMAAwAAAAQAAQADAAUABgAHAAgABwAGAAkACQAGAAoABwAJAAsADAANAA4ADAAPAA0AEAARABIAEAATABEAFAAVABYAFAAXABUAGAAZABoAGAAbABkAHAAdAB4AHAAfAB0AIAAhACIAIAAjACEA"),
+"material": SubResource("StandardMaterial3D_0wk4a"),
+"name": "Elemental_Blue_1",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 36,
+"vertex_data": PackedByteArray("//8R/yc+8f9kfv/////t/4nZ//8r67H/AAAR/7s9+f/FfyT+AAD3/3oi///+6///ZH7aAf//AcD//+0AJz4BwInZ2gEr6wHAAADtALs9AcB6ItoB/usBwMV/AAAAAAHAZH7/////bfqJ2doBK+tt+onZ//8r6236ZH7aAf//bfqJ2f//K+uI2///7QAnPojb//8R/yc+iNuJ2doBK+uI2///Ef8nPo7BxX8AAAAAjsHFfyT+AACOwf//7QAnPo7BeiL///7rr/pkftoB//+v+mR+/////6/6eiLaAf7rr/oAABH/uz3a2noi2gH+69raeiL///7r2toAAO0Auz3a2sV/JP4AAIzBAADtALs9jMEAABH/uz2MwcV/AAAAAIzB9j/w//Q/6//TP6j/+n8DQPd/BUD8P/z/7f/cf/L/5n9s/9l+xf8cgM//F4DB/x6A9UIJvfVCCb31Qgm99UIJvdrR2dHa0dnR2tHZ0drR2dG/bT+Sv20/kr9tP5K/bT+SK73TQiu900IrvdNCK73TQsmtNlLJrTZSya02UsmtNlI2kshtNpLIbTaSyG02ksht")
+}]
+blend_shape_mode = 0
+shadow_mesh = SubResource("ArrayMesh_27083")
+
+[sub_resource type="Resource" id="Resource_nrrdr"]
+script = ExtResource("25_02fa5")
+pile_y_offset = 0.0
+metadata/_custom_type_script = "uid://dauol4rysxcqw"
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_bpvrg"]
+points = PackedVector3Array(-2, 2.5, 0, -2, -2.5, 0, 1, -2.5, 0, 1, 2.5, 0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xruwk"]
+transparency = 1
+albedo_color = Color(0.239216, 0.239216, 0.239216, 0.498039)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_xruwk"]
+material = SubResource("StandardMaterial3D_xruwk")
+size = Vector2(2, 3)
+orientation = 2
+
+[sub_resource type="Resource" id="Resource_b2mrn"]
+script = ExtResource("26_nepv3")
+direction = 0
+metadata/_custom_type_script = "uid://8v3bpke27xiw"
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_tbve4"]
+size = Vector2(40, 20)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_28kt0"]
+albedo_color = Color(0.207843, 0.396078, 0.301961, 1)
+
 [sub_resource type="Theme" id="Theme_qhcbd"]
 
 [node name="Game" type="Node"]
@@ -96,7 +179,7 @@ script = ExtResource("8_qouja")
 script = ExtResource("9_wljb1")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 17, 0)
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 20.69, 0.12)
 fov = 50.0
 size = 14.966
 
@@ -137,32 +220,6 @@ transform = Transform3D(0.0118577, 0, -0.99993, 0, 1, 0, 0.99993, 0, 0.0118577, 
 mesh = SubResource("ArrayMesh_5ih7k")
 skeleton = NodePath("")
 surface_material_override/0 = ExtResource("14_02fa5")
-
-[node name="Elementals" type="Node3D" parent="."]
-
-[node name="elemental_slice_1" parent="Elementals" instance=ExtResource("15_nepv3")]
-transform = Transform3D(19.7909, 0, 8.40072, 0, 21.5, 0, -8.40072, 0, 19.7909, -1.86, -0.05, -4.359)
-
-[node name="elemental_slice_2" parent="Elementals" instance=ExtResource("15_nepv3")]
-transform = Transform3D(8.05404, 0, 19.9345, 0, 21.5, 0, -19.9345, 0, 8.05404, -4.4, -0.05, -1.777)
-
-[node name="elemental_slice_3" parent="Elementals" instance=ExtResource("15_nepv3")]
-transform = Transform3D(-8.65322, 0, 19.6818, 0, 21.5, 0, -19.6818, 0, -8.65322, -4.34302, -0.05, 1.87676)
-
-[node name="elemental_slice_4" parent="Elementals" instance=ExtResource("15_nepv3")]
-transform = Transform3D(-19.9482, 0, 8.01993, 0, 21.5, 0, -8.01993, 0, -19.9482, -1.77623, -0.05, 4.38778)
-
-[node name="elemental_slice_5" parent="Elementals" instance=ExtResource("15_nepv3")]
-transform = Transform3D(-19.7174, 0, -8.57173, 0, 21.5, 0, 8.57173, 0, -19.7174, 1.86888, -0.0499998, 4.35084)
-
-[node name="elemental_slice_6" parent="Elementals" instance=ExtResource("15_nepv3")]
-transform = Transform3D(-8.11871, 0, -19.9082, 0, 21.5, 0, 19.9082, 0, -8.11871, 4.39151, -0.0499998, 1.78868)
-
-[node name="elemental_slice_7" parent="Elementals" instance=ExtResource("15_nepv3")]
-transform = Transform3D(8.40279, 0, -19.79, 0, 21.5, 0, 19.79, 0, 8.40279, 4.3393, -0.0499988, -1.86926)
-
-[node name="elemental_slice_8" parent="Elementals" instance=ExtResource("15_nepv3")]
-transform = Transform3D(19.9719, 0, -7.96071, 0, 21.5, 0, 7.96071, 0, 19.9719, 1.7631, -0.0499988, -4.38707)
 
 [node name="SigilMesh" parent="." instance=ExtResource("20_05nbr")]
 
@@ -726,7 +783,152 @@ accepted_biome = 1
 
 [node name="Tokens" type="Node3D" parent="."]
 
-[node name="Deck" parent="." instance=ExtResource("19_pr1ej")]
+[node name="Deck" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0)
+script = ExtResource("19_v2yb1")
+
+[node name="Table" type="Node3D" parent="Deck"]
+script = ExtResource("20_js0lu")
+
+[node name="DragController" type="Node3D" parent="Deck/Table"]
+script = ExtResource("21_gxtfn")
+
+[node name="elemental_slice_1" type="Node3D" parent="Deck/Table/DragController"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.86, 4.359, 0.0300002)
+script = ExtResource("15_bhx41")
+card_slot_biome = 0
+card_layout_strategy = SubResource("Resource_v2yb1")
+
+[node name="DropZone" type="StaticBody3D" parent="Deck/Table/DragController/elemental_slice_1"]
+transform = Transform3D(0.032538, 0.00114419, 5.00141e-11, 0, -1.42316e-09, 0.0325581, 0.00114419, -0.032538, -1.42228e-09, 0, 0, 0)
+collision_layer = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Deck/Table/DragController/elemental_slice_1/DropZone"]
+transform = Transform3D(1, 8.75443e-07, 6.02851e-14, -8.75443e-07, 1, 9.87654e-13, 1.0103e-14, -7.10543e-14, 1, -1.07791, -61.8802, 1.01178)
+shape = SubResource("BoxShape3D_wljb1")
+disabled = true
+debug_color = Color(0, 0.6, 0.701961, 1)
+
+[node name="PlaceMesh" type="MeshInstance3D" parent="Deck/Table/DragController/elemental_slice_1"]
+transform = Transform3D(19.7909, -2.28455e-06, 8.40072, 8.40072, -1.36865e-06, -19.7909, 2.63771e-06, 21.5, -3.67207e-07, 0, 0, 0)
+mesh = SubResource("ArrayMesh_vld16")
+skeleton = NodePath("")
+
+[node name="elemental_slice_2" type="Node3D" parent="Deck/Table/DragController"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.48216, 1.82396, 0.0300001)
+script = ExtResource("15_bhx41")
+card_slot_biome = 0
+card_layout_strategy = SubResource("Resource_v2yb1")
+
+[node name="DropZone" type="StaticBody3D" parent="Deck/Table/DragController/elemental_slice_2"]
+transform = Transform3D(0.032538, 0.00114419, 5.00141e-11, 0, -1.42316e-09, 0.0325581, 0.00114419, -0.032538, -1.42228e-09, 0, 0, 0)
+collision_layer = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Deck/Table/DragController/elemental_slice_2/DropZone"]
+transform = Transform3D(1, 8.75443e-07, 6.02851e-14, -8.75443e-07, 1, 9.87654e-13, 1.0103e-14, -7.10543e-14, 1, -1.07791, -61.8802, 1.01178)
+shape = SubResource("BoxShape3D_wljb1")
+disabled = true
+debug_color = Color(0, 0.6, 0.701961, 1)
+
+[node name="PlaceMesh" type="MeshInstance3D" parent="Deck/Table/DragController/elemental_slice_2"]
+transform = Transform3D(8.05407, -1.31217e-06, 19.9345, 19.9345, -2.85846e-06, -8.05407, 3.14187e-06, 21.5, 1.45826e-07, 0.0900002, -0.0600001, 3.72529e-09)
+mesh = SubResource("ArrayMesh_vld16")
+skeleton = NodePath("")
+
+[node name="elemental_slice_3" type="Node3D" parent="Deck/Table/DragController"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.44216, -1.79604, 0.0299999)
+script = ExtResource("15_bhx41")
+card_slot_biome = 0
+card_layout_strategy = SubResource("Resource_v2yb1")
+
+[node name="DropZone" type="StaticBody3D" parent="Deck/Table/DragController/elemental_slice_3"]
+transform = Transform3D(0.032538, 0.00114419, 5.00141e-11, 0, -1.42316e-09, 0.0325581, 0.00114419, -0.032538, -1.42228e-09, 0, 0, 0)
+collision_layer = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Deck/Table/DragController/elemental_slice_3/DropZone"]
+transform = Transform3D(1, 8.75443e-07, 6.02851e-14, -8.75443e-07, 1, 9.87654e-13, 1.0103e-14, -7.10543e-14, 1, -1.07791, -61.8802, 1.01178)
+shape = SubResource("BoxShape3D_wljb1")
+disabled = true
+debug_color = Color(0, 0.6, 0.701961, 1)
+
+[node name="PlaceMesh" type="MeshInstance3D" parent="Deck/Table/DragController/elemental_slice_3"]
+transform = Transform3D(-8.40072, 4.28853e-07, 19.7909, 19.7909, -3.22434e-06, 8.40072, 3.13559e-06, 21.5, 8.65088e-07, 0.0900002, -0.0600001, 1.86265e-09)
+mesh = SubResource("ArrayMesh_vld16")
+skeleton = NodePath("")
+
+[node name="elemental_slice_4" type="Node3D" parent="Deck/Table/DragController"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.84216, -4.32604, 0.0299998)
+script = ExtResource("15_bhx41")
+card_slot_biome = 0
+card_layout_strategy = SubResource("Resource_v2yb1")
+
+[node name="DropZone" type="StaticBody3D" parent="Deck/Table/DragController/elemental_slice_4"]
+transform = Transform3D(0.032538, 0.00114419, 5.00141e-11, 0, -1.42316e-09, 0.0325581, 0.00114419, -0.032538, -1.42228e-09, 0, 0, 0)
+collision_layer = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Deck/Table/DragController/elemental_slice_4/DropZone"]
+transform = Transform3D(1, 8.75443e-07, 6.02851e-14, -8.75443e-07, 1, 9.87654e-13, 1.0103e-14, -7.10543e-14, 1, -1.07791, -61.8802, 1.01178)
+shape = SubResource("BoxShape3D_wljb1")
+disabled = true
+debug_color = Color(0, 0.6, 0.701961, 1)
+
+[node name="PlaceMesh" type="MeshInstance3D" parent="Deck/Table/DragController/elemental_slice_4"]
+transform = Transform3D(-19.9345, 1.91866e-06, 8.05407, 8.05407, -2.25197e-06, 19.9345, 2.62256e-06, 21.5, 1.36924e-06, 0.0900002, -0.0599999, 1.86265e-09)
+mesh = SubResource("ArrayMesh_vld16")
+skeleton = NodePath("")
+
+[node name="Pile" type="Node3D" parent="Deck/Table/DragController"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.21456, 0.135766, -0.0238362)
+script = ExtResource("15_bhx41")
+card_slot_biome = 0
+card_layout_strategy = SubResource("Resource_nrrdr")
+
+[node name="DropZone" type="StaticBody3D" parent="Deck/Table/DragController/Pile"]
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, -1, 0, 2)
+collision_layer = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Deck/Table/DragController/Pile/DropZone"]
+shape = SubResource("ConvexPolygonShape3D_bpvrg")
+disabled = true
+debug_color = Color(0, 0.6, 0.701961, 1)
+
+[node name="PlaceMesh" type="MeshInstance3D" parent="Deck/Table/DragController/Pile"]
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, -0.2, -0.1)
+mesh = SubResource("PlaneMesh_xruwk")
+
+[node name="Hand" type="Node3D" parent="Deck/Table/DragController"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 2.76, 7.23243)
+top_level = true
+script = ExtResource("15_bhx41")
+card_layout_strategy = SubResource("Resource_b2mrn")
+
+[node name="DropZone" type="StaticBody3D" parent="Deck/Table/DragController/Hand"]
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, -1, 0, 2)
+collision_layer = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Deck/Table/DragController/Hand/DropZone"]
+shape = SubResource("ConvexPolygonShape3D_bpvrg")
+disabled = true
+debug_color = Color(0, 0.6, 0.701961, 1)
+
+[node name="PlaceMesh" type="MeshInstance3D" parent="Deck/Table/DragController/Hand"]
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, -0.2, -0.1)
+mesh = SubResource("PlaneMesh_xruwk")
+
+[node name="TableSurface" type="MeshInstance3D" parent="Deck/Table"]
+transform = Transform3D(0.9, 0, 0, 0, -4.37114e-08, -1.7, 0, 1, -7.43094e-08, 0, 0, -1)
+mesh = SubResource("PlaneMesh_tbve4")
+skeleton = NodePath("../..")
+surface_material_override/0 = SubResource("StandardMaterial3D_28kt0")
+
+[node name="Deck" parent="Deck" instance=ExtResource("27_7025r")]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -9.84359, 0.0964201, -0.686903)
+script = ExtResource("28_m4url")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Deck/Deck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.111376)
+visible = false
+mesh = ExtResource("29_8ool0")
 
 [node name="PointCounter" type="Node3D" parent="."]
 transform = Transform3D(-0.00947704, 0, 0.999955, 0, 1, 0, -0.999955, 0, -0.00947704, -6.88334, 0, 0.0452511)
@@ -1015,4 +1217,17 @@ mouse_filter = 2
 
 [node name="SoilStarActions" parent="." instance=ExtResource("25_pl11u")]
 
+[connection signal="mouse_entered" from="Deck/Table/DragController/elemental_slice_1/DropZone" to="Deck/Table/DragController/elemental_slice_1" method="_on_drop_zone_mouse_entered"]
+[connection signal="mouse_exited" from="Deck/Table/DragController/elemental_slice_1/DropZone" to="Deck/Table/DragController/elemental_slice_1" method="_on_drop_zone_mouse_exited"]
+[connection signal="mouse_entered" from="Deck/Table/DragController/elemental_slice_2/DropZone" to="Deck/Table/DragController/elemental_slice_2" method="_on_drop_zone_mouse_entered"]
+[connection signal="mouse_exited" from="Deck/Table/DragController/elemental_slice_2/DropZone" to="Deck/Table/DragController/elemental_slice_2" method="_on_drop_zone_mouse_exited"]
+[connection signal="mouse_entered" from="Deck/Table/DragController/elemental_slice_3/DropZone" to="Deck/Table/DragController/elemental_slice_3" method="_on_drop_zone_mouse_entered"]
+[connection signal="mouse_exited" from="Deck/Table/DragController/elemental_slice_3/DropZone" to="Deck/Table/DragController/elemental_slice_3" method="_on_drop_zone_mouse_exited"]
+[connection signal="mouse_entered" from="Deck/Table/DragController/elemental_slice_4/DropZone" to="Deck/Table/DragController/elemental_slice_4" method="_on_drop_zone_mouse_entered"]
+[connection signal="mouse_exited" from="Deck/Table/DragController/elemental_slice_4/DropZone" to="Deck/Table/DragController/elemental_slice_4" method="_on_drop_zone_mouse_exited"]
+[connection signal="mouse_entered" from="Deck/Table/DragController/Pile/DropZone" to="Deck/Table/DragController/Pile" method="_on_drop_zone_mouse_entered"]
+[connection signal="mouse_exited" from="Deck/Table/DragController/Pile/DropZone" to="Deck/Table/DragController/Pile" method="_on_drop_zone_mouse_exited"]
+[connection signal="mouse_entered" from="Deck/Table/DragController/Hand/DropZone" to="Deck/Table/DragController/Hand" method="_on_drop_zone_mouse_entered"]
+[connection signal="mouse_exited" from="Deck/Table/DragController/Hand/DropZone" to="Deck/Table/DragController/Hand" method="_on_drop_zone_mouse_exited"]
+[connection signal="card_3d_mouse_up" from="Deck/Deck" to="Deck/Table" method="_on_face_card_3d_card_3d_mouse_up"]
 [connection signal="pressed" from="ResetButton" to="." method="_on_reset_button_pressed"]

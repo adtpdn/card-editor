@@ -18,6 +18,7 @@ extends Node
 @onready var notification = $Notification
 @onready var soil_star_actions = $SoilStarActions
 @onready var player_uis = $PlayerUIs
+@onready var soil_star = $SoilStar
 
 @onready var sigil_a_button = $SigilContainer/SigilAButton
 @onready var sigil_b_button = $SigilContainer/SigilBButton
@@ -74,31 +75,16 @@ func _ready():
 	print("Game initialized.")
 
 func start_game():
-	# Debug the card_manager initialization
 	print("Starting game - initializing card system")
-	
 	if multiplayer.is_server():
 		game_started = true
-		
-
-		
-	# Initialize the deck with a seed first
-	$Deck/Table.initialize_deck_with_seed(randi())
-	
-	# Draw initial cards for the host player
-	card_manager.initialize_starting_hand()
-	
-	# If there are clients, they will get their cards when they connect
-	if network_manager.multiplayer.is_server() and network_manager.multiplayer.get_peers().size() > 0:
-		for peer_id in network_manager.multiplayer.get_peers():
-			# Send the current deck state to the connected peer
-			network_manager.rpc_id(peer_id, "receive_deck_seed", $Deck/Table.deck_seed)
-			network_manager.rpc_id(peer_id, "receive_deck_state", $Deck/Table.available_cards)
-			
-			# Tell the client to initialize their starting hand
-			rpc_id(peer_id, "initialize_client_starting_hand")
-
-	# Sync game state to all clients
+		$Deck/Table.initialize_deck_with_seed(randi())
+		card_manager.initialize_starting_hand()
+		if network_manager.multiplayer.get_peers().size() > 0:
+			for peer_id in network_manager.multiplayer.get_peers():
+				network_manager.rpc_id(peer_id, "receive_deck_seed", $Deck/Table.deck_seed)
+				network_manager.rpc_id(peer_id, "receive_deck_state", $Deck/Table.available_cards, $Deck/Table.elemental_cards)
+				rpc_id(peer_id, "initialize_client_starting_hand")
 	rpc("sync_game_state", players, game_started)
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -185,6 +171,9 @@ func sync_player_colors(colors: Dictionary):
 func sync_player_tokens(tokens: Array):
 	for id in players.size():
 		token_manager.sync_player_tokens(tokens, players[id])
+
+
+
 
 @rpc("any_peer", "call_local")
 func sync_turn_state(new_turn_index: int):
@@ -283,6 +272,31 @@ func add_player(player_id):
 func remove_player(player_id):
 	game_state_manager.remove_player(player_id)
 
+@rpc("any_peer", "call_local")
+func sync_elemental_purchase(card_data: Dictionary, player_id: int, new_soil_star: int):
+	var table = $Deck/Table
+	var soil_star_node = soil_star
+	var hand = $Deck/Table/DragController/Hand
+	soil_star_node.current_soil_star = new_soil_star
+	soil_star_node.sync_soil_stars()
+	var card_resource = CardResource.new()
+	card_resource.from_dictionary(card_data)
+	var card = table.instantiate_face_card(card_resource.get_meta("original_card_index", -1))
+	hand.append_card(card)
+	card.global_position = $Deck.global_position
+	print("Synced Elemental card purchase for player:", player_id, "card:", card_resource.card_name)
+
+@rpc("any_peer", "call_local")
+func sync_initial_planted_cards(planted_cards_data: Array, available_cards: Array, elemental_cards: Array):
+	var table = $Deck/Table
+	table.available_cards = available_cards
+	table.elemental_cards = elemental_cards
+	for data in planted_cards_data:
+		var card_resource = CardResource.new()
+		card_resource.from_dictionary(data.card_data)
+		var location = get_node("TokenPlacements").get_node(data.location_name)
+		location.plant_card(card_resource, data.slot_index)
+	print("Synced initial planted Elemental cards")
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---   Game Engine Handlers   ---
@@ -372,3 +386,10 @@ func sync_card_planted(card_data: Dictionary, biome_slot: int, player_id: int):
 		# Set a flag to prevent it from re-triggering effects
 		card.set_meta("remote_planted", true)
 		target_slot.append_card(card)
+
+# Round Counter
+func on_new_round(round_number: int):
+	print("New round started: %d" % round_number)
+	# Call your card flip or reveal logic here
+	if has_node("CardManager"):
+		get_node("CardManager").reveal_cards()

@@ -22,6 +22,7 @@ const player_hud_scene = preload("res://scenes/player_ui/player_hud.tscn")
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 var game_started = false
 var current_round: int = 1
+var round_count
 var current_turn_index = 0
 var max_players = 4 # Maximum players allowed
 var initial_player_order: Array = [] # NEW: Stores the original player order for consistent color indexing.
@@ -357,8 +358,18 @@ func next_turn():
 		# Explicitly sync blighted token state
 		var tokens = token_manager.get_player_tokens(previous_player)
 
+		# Advance Turn
 		current_turn_index = (current_turn_index + 1) % players.size()
+		
+		# If wrapped to 0, a new round started
+		if current_turn_index == 0:
+			round_count += 1
+			print("=== New Round: ", round_count, " ===")
+			# Trigger card flip event here (see next step)
+			get_parent().call_deferred("on_new_round", round_count)
+		
 		var next_player = game.players[current_turn_index]
+		
 		
 		tokens = token_manager.get_player_tokens(next_player)
 		get_parent().rpc("set_current_turn", next_player)

@@ -11,9 +11,6 @@ Usage:
 class_name Card3D
 extends Node3D
 
-#@export var card_back_mesh = $CardMesh/CardBackMesh
-#@export var card_front_mesh = $CardMesh/CardFrontMesh
-
 @export var hover_scale_factor: float = 1.15
 @export var hover_pos_move: Vector3 = Vector3(0, 0.7, 0)
 @export var move_tween_duration: float = 0.08

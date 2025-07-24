@@ -65,6 +65,16 @@ func is_hand_full():
 	return player_hand.cards.size() >= max_hand_size
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ---     Card Management      ---
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+# Revealing Card ( handle from new card logic )
+func reveal_cards():
+	# Flip/reveal the cards logic here
+	print("Revealing cards for new round")
+	# Implement flipping/revealing visual here
+
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # --- Card Drawing & Discarding ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 func draw_card():
