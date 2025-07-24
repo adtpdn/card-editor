@@ -1,16 +1,11 @@
-[gd_scene load_steps=7 format=4 uid="uid://bjx4ugu14qx3w"]
+[gd_scene load_steps=8 format=4 uid="uid://bjx4ugu14qx3w"]
 
 [ext_resource type="PackedScene" uid="uid://dxpc2iac0hjpw" path="res://scenes/card_deck/scenes/card_3d.tscn" id="1_mhw3m"]
 [ext_resource type="Script" uid="uid://6wm1hceldkj1" path="res://scenes/card_deck/scripts/face_card_3d.gd" id="2_swl73"]
-[ext_resource type="Texture2D" uid="uid://eegggfl60op7" path="res://assets/cards/elementals/elemental_blue_01.png" id="3_nhk3k"]
+[ext_resource type="Material" uid="uid://b2jdqh0ex1sps" path="res://assets/cards/elementals/ElementalsFrontMesh.tres" id="3_nhk3k"]
+[ext_resource type="Material" uid="uid://bya1xnhb72ssn" path="res://assets/cards/elementals/ElementalsBackMesh.tres" id="3_pk3x0"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0wk4a"]
-resource_name = "Elemental_Blue_1"
-cull_mode = 2
-albedo_texture = ExtResource("3_nhk3k")
-roughness = 0.5
-
-[sub_resource type="ArrayMesh" id="ArrayMesh_27083"]
+[sub_resource type="ArrayMesh" id="ArrayMesh_nepv3"]
 _surfaces = [{
 "aabb": AABB(-0.0453736, -0.00104126, -0.0434318, 0.0914393, 0.0020775, 0.0783865),
 "format": 34896613377,
@@ -24,7 +19,7 @@ _surfaces = [{
 }]
 blend_shape_mode = 0
 
-[sub_resource type="ArrayMesh" id="ArrayMesh_vld16"]
+[sub_resource type="ArrayMesh" id="ArrayMesh_2nix7"]
 resource_name = "elementals_card_Curve_012"
 _surfaces = [{
 "aabb": AABB(-0.0453736, -0.00104126, -0.0434318, 0.0914393, 0.0020775, 0.0783865),
@@ -32,7 +27,7 @@ _surfaces = [{
 "format": 34896613399,
 "index_count": 60,
 "index_data": PackedByteArray("AAABAAIAAQAAAAMAAwAAAAQAAQADAAUABgAHAAgABwAGAAkACQAGAAoABwAJAAsADAANAA4ADAAPAA0AEAARABIAEAATABEAFAAVABYAFAAXABUAGAAZABoAGAAbABkAHAAdAB4AHAAfAB0AIAAhACIAIAAjACEA"),
-"material": SubResource("StandardMaterial3D_0wk4a"),
+"material": ExtResource("3_pk3x0"),
 "name": "Elemental_Blue_1",
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
@@ -40,7 +35,25 @@ _surfaces = [{
 "vertex_data": PackedByteArray("//8R/yc+8f9kfv/////t/4nZ//8r67H/AAAR/7s9+f/FfyT+AAD3/3oi///+6///ZH7aAf//AcD//+0AJz4BwInZ2gEr6wHAAADtALs9AcB6ItoB/usBwMV/AAAAAAHAZH7/////bfqJ2doBK+tt+onZ//8r6236ZH7aAf//bfqJ2f//K+uI2///7QAnPojb//8R/yc+iNuJ2doBK+uI2///Ef8nPo7BxX8AAAAAjsHFfyT+AACOwf//7QAnPo7BeiL///7rr/pkftoB//+v+mR+/////6/6eiLaAf7rr/oAABH/uz3a2noi2gH+69raeiL///7r2toAAO0Auz3a2sV/JP4AAIzBAADtALs9jMEAABH/uz2MwcV/AAAAAIzB9j/w//Q/6//TP6j/+n8DQPd/BUD8P/z/7f/cf/L/5n9s/9l+xf8cgM//F4DB/x6A9UIJvfVCCb31Qgm99UIJvdrR2dHa0dnR2tHZ0drR2dG/bT+Sv20/kr9tP5K/bT+SK73TQiu900IrvdNCK73TQsmtNlLJrTZSya02UsmtNlI2kshtNpLIbTaSyG02ksht")
 }]
 blend_shape_mode = 0
-shadow_mesh = SubResource("ArrayMesh_27083")
+shadow_mesh = SubResource("ArrayMesh_nepv3")
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_7025r"]
+resource_name = "elementals_card_Curve_012"
+_surfaces = [{
+"aabb": AABB(-0.0453736, -0.00104126, -0.0434318, 0.0914393, 0.0020775, 0.0783865),
+"attribute_data": PackedByteArray("egDMOuGAZf+RJz7rQP+oOqaAHQAM2Bnr5IBo/0D/qDoM2BnreADKOoonTOumgB4AQgaEyoYIkfpCBpH6hgiEyg0NkfrJCtypDQ3cqckKkfr8A/p9QgYdx/4DHcdABvp9QgYlmoYIhMpCBoTKhgglmoYI0KnJCpH6hgiR+skK0Kn+Ax3HQAaR+vwDkfpCBh3H"),
+"format": 34896613399,
+"index_count": 60,
+"index_data": PackedByteArray("AAABAAIAAQAAAAMAAwAAAAQAAQADAAUABgAHAAgABwAGAAkACQAGAAoABwAJAAsADAANAA4ADAAPAA0AEAARABIAEAATABEAFAAVABYAFAAXABUAGAAZABoAGAAbABkAHAAdAB4AHAAfAB0AIAAhACIAIAAjACEA"),
+"material": ExtResource("3_nhk3k"),
+"name": "Elemental_Blue_1",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 36,
+"vertex_data": PackedByteArray("//8R/yc+8f9kfv/////t/4nZ//8r67H/AAAR/7s9+f/FfyT+AAD3/3oi///+6///ZH7aAf//AcD//+0AJz4BwInZ2gEr6wHAAADtALs9AcB6ItoB/usBwMV/AAAAAAHAZH7/////bfqJ2doBK+tt+onZ//8r6236ZH7aAf//bfqJ2f//K+uI2///7QAnPojb//8R/yc+iNuJ2doBK+uI2///Ef8nPo7BxX8AAAAAjsHFfyT+AACOwf//7QAnPo7BeiL///7rr/pkftoB//+v+mR+/////6/6eiLaAf7rr/oAABH/uz3a2noi2gH+69raeiL///7r2toAAO0Auz3a2sV/JP4AAIzBAADtALs9jMEAABH/uz2MwcV/AAAAAIzB9j/w//Q/6//TP6j/+n8DQPd/BUD8P/z/7f/cf/L/5n9s/9l+xf8cgM//F4DB/x6A9UIJvfVCCb31Qgm99UIJvdrR2dHa0dnR2tHZ0drR2dG/bT+Sv20/kr9tP5K/bT+SK73TQiu900IrvdNCK73TQsmtNlLJrTZSya02UsmtNlI2kshtNpLIbTaSyG02ksht")
+}]
+blend_shape_mode = 0
+shadow_mesh = SubResource("ArrayMesh_nepv3")
 
 [node name="FaceCard3D" instance=ExtResource("1_mhw3m")]
 script = ExtResource("2_swl73")
@@ -51,11 +64,11 @@ elemental_material_path = ""
 [node name="ElementalsBackMesh" type="MeshInstance3D" parent="CardMesh" index="2"]
 transform = Transform3D(27.475, 0, 0, 0, -1.20097e-06, -27.475, 0, 27.475, -1.20097e-06, 0, 0, -0.01)
 visible = false
-mesh = SubResource("ArrayMesh_vld16")
+mesh = SubResource("ArrayMesh_2nix7")
 skeleton = NodePath("")
 
 [node name="ElementalsFrontMesh" type="MeshInstance3D" parent="CardMesh" index="3"]
 transform = Transform3D(27.475, 0, 0, 0, -1.20097e-06, -27.475, 0, 27.475, -1.20097e-06, 0, 0, 0.01)
 visible = false
-mesh = SubResource("ArrayMesh_vld16")
+mesh = SubResource("ArrayMesh_7025r")
 skeleton = NodePath("")

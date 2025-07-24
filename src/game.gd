@@ -18,7 +18,6 @@ extends Node
 @onready var notification = $Notification
 @onready var soil_star_actions = $SoilStarActions
 @onready var player_uis = $PlayerUIs
-@onready var soil_star = $SoilStar
 
 @onready var sigil_a_button = $SigilContainer/SigilAButton
 @onready var sigil_b_button = $SigilContainer/SigilBButton
@@ -275,7 +274,7 @@ func remove_player(player_id):
 @rpc("any_peer", "call_local")
 func sync_elemental_purchase(card_data: Dictionary, player_id: int, new_soil_star: int):
 	var table = $Deck/Table
-	var soil_star_node = soil_star
+	var soil_star_node = soil_star_actions._get_active_player_ui()
 	var hand = $Deck/Table/DragController/Hand
 	soil_star_node.current_soil_star = new_soil_star
 	soil_star_node.sync_soil_stars()

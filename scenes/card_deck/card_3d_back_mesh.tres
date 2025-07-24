@@ -1,10 +1,7 @@
-[gd_resource type="PlaneMesh" load_steps=3 format=3 uid="uid://dxvj3gkbbknem"]
+[gd_resource type="PlaneMesh" load_steps=2 format=3 uid="uid://dxvj3gkbbknem"]
 
-[ext_resource type="Texture2D" uid="uid://cbpt07uuhs6gd" path="res://assets/cards/2D/back-card.png" id="1_40l5n"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xfn5y"]
-albedo_texture = ExtResource("1_40l5n")
+[ext_resource type="Material" uid="uid://b2jdqh0ex1sps" path="res://assets/cards/elementals/ElementalsFrontMesh.tres" id="1_qjd7q"]
 
 [resource]
-material = SubResource("StandardMaterial3D_xfn5y")
+material = ExtResource("1_qjd7q")
 size = Vector2(2.5, 3.5)

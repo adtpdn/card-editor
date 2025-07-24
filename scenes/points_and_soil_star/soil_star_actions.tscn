@@ -149,7 +149,7 @@ text = "Play Extra Token
 
 [node name="PlaySigilMagicButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
-text = "Play Extra Token
+text = "Play Sigil
 (3 soil star)
 "
 

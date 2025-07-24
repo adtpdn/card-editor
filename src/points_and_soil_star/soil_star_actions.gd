@@ -32,7 +32,7 @@ func _ready():
 		play_elemental_face_up   : 2,
 		buy_card_button          : 2,
 		play_extra_token_button  : 3,
-		play_sigil_magic_button  : 1,
+		play_sigil_magic_button  : 3,
 		buy_elemental_button     : 4,
 		swap_elemental_button    : 5,
 	}
@@ -66,6 +66,13 @@ func _show_hide_right_ui_panel():
 # ----------------------------------------------------------------
 # Apply the star rules once per panel open
 func apply_button_rules():
+	# First, check if it's the player's turn. If not, disable all buttons and exit.
+	var local_player_id = multiplayer.get_unique_id()
+	if not game.game_state_manager.is_valid_player_turn(local_player_id):
+		for btn in button_rules.keys():
+			btn.disabled = true
+		return
+	
 	var stars := _get_current_soil_star()
 	for btn in button_rules.keys():
 		btn.disabled = stars < button_rules[btn]

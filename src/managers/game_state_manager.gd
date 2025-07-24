@@ -362,11 +362,11 @@ func next_turn():
 		current_turn_index = (current_turn_index + 1) % players.size()
 		
 		# If wrapped to 0, a new round started
-		if current_turn_index == 0:
-			round_count += 1
-			print("=== New Round: ", round_count, " ===")
-			# Trigger card flip event here (see next step)
-			get_parent().call_deferred("on_new_round", round_count)
+		#if current_turn_index == 0:
+			#round_count += 1
+			#print("=== New Round: ", round_count, " ===")
+			## Trigger card flip event here (see next step)
+			#get_parent().call_deferred("on_new_round", round_count)
 		
 		var next_player = game.players[current_turn_index]
 		

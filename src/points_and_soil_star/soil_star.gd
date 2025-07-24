@@ -4,7 +4,6 @@ extends Control
 @onready var game = get_node("/root/Game")
 @onready var soil_star_label = $HBoxContainer/SoilStarLabel
 @onready var soil_star_texture = $HBoxContainer/SoilStarTexture
-@onready var purchase_button = $HBoxContainer/PurchaseButton
 
 @export var current_soil_star : int = 0 
 
