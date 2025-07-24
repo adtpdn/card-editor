@@ -1,0 +1,34 @@
+[gd_scene load_steps=5 format=3 uid="uid://d1uvcisduvvj"]
+
+[ext_resource type="Script" uid="uid://dj0ce7mbddmyx" path="res://src/cards_and_deck/card_collection_3d.gd" id="1_0ckh6"]
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_bpvrg"]
+points = PackedVector3Array(-2, 2.5, 0, -2, -2.5, 0, 1, -2.5, 0, 1, 2.5, 0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xruwk"]
+transparency = 1
+albedo_color = Color(0.239216, 0.239216, 0.239216, 0.498039)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_xruwk"]
+material = SubResource("StandardMaterial3D_xruwk")
+size = Vector2(2, 3)
+orientation = 2
+
+[node name="CardCollection3D" type="Node3D"]
+script = ExtResource("1_0ckh6")
+
+[node name="DropZone" type="StaticBody3D" parent="."]
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, -1, 0, 2)
+collision_layer = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DropZone"]
+shape = SubResource("ConvexPolygonShape3D_bpvrg")
+disabled = true
+debug_color = Color(0, 0.6, 0.701961, 1)
+
+[node name="PlaceMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, -0.2, -0.1)
+mesh = SubResource("PlaneMesh_xruwk")
+
+[connection signal="mouse_entered" from="DropZone" to="." method="_on_drop_zone_mouse_entered"]
+[connection signal="mouse_exited" from="DropZone" to="." method="_on_drop_zone_mouse_exited"]

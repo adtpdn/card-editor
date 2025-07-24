@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CardResource" load_steps=4 format=3 uid="uid://db8ttmt0p2vow"]
+
+[ext_resource type="Material" uid="uid://dpcm11m2gvps0" path="res://assets/materials/cards_materials/elementals/ElementalsBlueBackMesh.tres" id="1_metf4"]
+[ext_resource type="Material" uid="uid://bpyvmw780gmfb" path="res://assets/materials/cards_materials/elementals/ElementalBlue02.tres" id="2_metf4"]
+[ext_resource type="Script" uid="uid://77vvo0ke2vww" path="res://src/cards_and_deck/card_resource.gd" id="3_0imuk"]
+
+[resource]
+script = ExtResource("3_0imuk")
+card_id = 1
+card_on_biome = -1
+card_name = "ElementalBlue02"
+card_type = 1
+cost_to_draw = 1
+effect1 = ""
+effect2 = ""
+revealed = true
+front_mesh_material = ExtResource("2_metf4")
+back_mesh_material = ExtResource("1_metf4")
+elemental_cost = 0

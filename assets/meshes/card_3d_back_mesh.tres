@@ -1,0 +1,7 @@
+[gd_resource type="PlaneMesh" load_steps=2 format=3 uid="uid://dxvj3gkbbknem"]
+
+[ext_resource type="Material" uid="uid://b2jdqh0ex1sps" path="res://assets/materials/cards_materials/elementals/ElementalRed01.tres" id="1_qjd7q"]
+
+[resource]
+material = ExtResource("1_qjd7q")
+size = Vector2(2.5, 3.5)

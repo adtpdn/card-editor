@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="DeckResource" load_steps=21 format=3 uid="uid://csara73v18rt1"]
+
+[ext_resource type="Script" uid="uid://77vvo0ke2vww" path="res://src/cards_and_deck/card_resource.gd" id="1_qe26o"]
+[ext_resource type="Resource" uid="uid://6c6f5lf615uq" path="res://assets/materials/cards_materials/elementals/elements_card/elemental_blue_01.tres" id="2_arn1k"]
+[ext_resource type="Resource" uid="uid://db8ttmt0p2vow" path="res://assets/materials/cards_materials/elementals/elements_card/elemental_blue_02.tres" id="3_8hjhh"]
+[ext_resource type="Resource" uid="uid://7b20exsaces" path="res://assets/materials/cards_materials/elementals/elements_card/elemental_blue_03.tres" id="4_76035"]
+[ext_resource type="Resource" uid="uid://tajlo8nf0doo" path="res://assets/materials/cards_materials/elementals/elements_card/elemental_blue_04.tres" id="5_umvc2"]
+[ext_resource type="Resource" uid="uid://du5chtlyy2t7f" path="res://assets/materials/cards_materials/elementals/elements_card/elemental_blue_05.tres" id="6_7s35g"]
+[ext_resource type="Resource" uid="uid://7ktkrb4voqbu" path="res://assets/materials/cards_materials/elementals/elements_card/elemental_blue_06.tres" id="7_qnlla"]
+[ext_resource type="Resource" uid="uid://dfaac0bk4efpt" path="res://assets/materials/cards_materials/elementals/elements_card/elemental_blue_07.tres" id="8_eyjb5"]
+[ext_resource type="Resource" uid="uid://m87jio74s4xn" path="res://assets/materials/cards_materials/elementals/elements_card/elemental_blue_08.tres" id="9_2iwbm"]
+[ext_resource type="Resource" uid="uid://boqp18avw0xb5" path="res://assets/materials/cards_materials/elementals/elements_card/elemental_blue_09.tres" id="10_c5p2y"]
+[ext_resource type="Resource" uid="uid://dhi53dpxht2cq" path="res://assets/materials/cards_materials/elementals/elements_card/elemental_red_01.tres" id="11_3s5l5"]
+[ext_resource type="Resource" uid="uid://4u1qqov2kq83" path="res://assets/materials/cards_materials/elementals/elements_card/elemental_red_02.tres" id="12_2bxvj"]
+[ext_resource type="Resource" uid="uid://dlhp2iupjsj8e" path="res://assets/materials/cards_materials/elementals/elements_card/elemental_red_03.tres" id="13_prapx"]
+[ext_resource type="Resource" uid="uid://xrtj22r34wmc" path="res://assets/materials/cards_materials/elementals/elements_card/elemental_red_04.tres" id="14_vly3k"]
+[ext_resource type="Resource" uid="uid://co0yn3000rjhv" path="res://assets/materials/cards_materials/elementals/elements_card/elemental_red_05.tres" id="15_fepkm"]
+[ext_resource type="Resource" uid="uid://bvqh6obo4pscj" path="res://assets/materials/cards_materials/elementals/elements_card/elemental_red_06.tres" id="16_i5i8b"]
+[ext_resource type="Resource" uid="uid://bsu8egbox47c2" path="res://assets/materials/cards_materials/elementals/elements_card/elemental_red_07.tres" id="17_0fbil"]
+[ext_resource type="Resource" uid="uid://dvh3ogbtun8rr" path="res://assets/materials/cards_materials/elementals/elements_card/elemental_red_08.tres" id="18_2urw2"]
+[ext_resource type="Resource" uid="uid://bw6l7kfj88mla" path="res://assets/materials/cards_materials/elementals/elements_card/elemental_red_09.tres" id="19_e8qfu"]
+[ext_resource type="Script" uid="uid://c0ll17r7c4jrc" path="res://src/cards_and_deck/deck_resource.gd" id="20_y6e1j"]
+
+[resource]
+script = ExtResource("20_y6e1j")
+cards = Array[ExtResource("1_qe26o")]([ExtResource("2_arn1k"), ExtResource("3_8hjhh"), ExtResource("4_76035"), ExtResource("5_umvc2"), ExtResource("6_7s35g"), ExtResource("7_qnlla"), ExtResource("8_eyjb5"), ExtResource("9_2iwbm"), ExtResource("10_c5p2y"), ExtResource("11_3s5l5"), ExtResource("12_2bxvj"), ExtResource("13_prapx"), ExtResource("14_vly3k"), ExtResource("15_fepkm"), ExtResource("16_i5i8b"), ExtResource("17_0fbil"), ExtResource("18_2urw2"), ExtResource("19_e8qfu")])

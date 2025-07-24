@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CardResource" load_steps=4 format=3 uid="uid://0r5wpa5dfhhm"]
+
+[ext_resource type="Material" uid="uid://drikh8gb0pvmj" path="res://assets/materials/cards_materials/actions/CFM_00_Back_Card.tres" id="1_nhbq2"]
+[ext_resource type="Script" uid="uid://77vvo0ke2vww" path="res://src/cards_and_deck/card_resource.gd" id="1_s1i1q"]
+[ext_resource type="Material" uid="uid://dkopvrn8ofrcc" path="res://assets/materials/cards_materials/actions/CFM_07_Take_Off_Energy.tres" id="2_bxeim"]
+
+[resource]
+script = ExtResource("1_s1i1q")
+card_id = 1
+card_on_biome = -1
+card_name = "Take Off Energy"
+card_type = 0
+cost_to_draw = 1
+effect1 = "Take off 1 energy your or other player energy on a sigil magic "
+effect2 = ""
+revealed = true
+front_mesh_material = ExtResource("2_bxeim")
+back_mesh_material = ExtResource("1_nhbq2")
