@@ -36,8 +36,6 @@ var player_hands = {}
 var player_slots = [false, false, false, false] # Track occupied slots
 var max_players = 4 # Maximum players allowed
 
-# --- FIX ---
-# Player colors are now defined here in the main game script.
 const player_colors = [
 	Color(1, 0, 0),# Red
 	Color(0, 1, 0),# Green
@@ -53,15 +51,10 @@ signal turn_changed
 func _ready():
 	print("Game initializing...")
 	
-	# Initialize all manager components
 	token_manager.initialize()
 	network_manager.initialize()
 	game_state_manager.initialize()
 	
-	# Don't call initialize_starting_hand here, let start_game do it
-	# card_manager.initialize_starting_hand()
-	
-	# Start the game - this will handle card initialization
 	start_game()
 	
 	if has_node("TurnPhaseManager"):
@@ -69,7 +62,6 @@ func _ready():
 	if has_node("SigilManager"):
 		$SigilManager.initialize()
 	
-	# Connect input events to token manager
 	set_process_input(true)
 	print("Game initialized.")
 
@@ -77,15 +69,27 @@ func start_game():
 	print("Starting game - initializing card system")
 	if multiplayer.is_server():
 		game_started = true
-		$Deck/Table.initialize_deck_with_seed(randi())
+		var table_node = $Deck/Table
+		
+		# Initialize the deck with a random seed
+		table_node.initialize_deck_with_seed(randi())
+		
+		# --- THIS IS THE FIX ---
+		# Call the card planting function right after the deck is ready.
+		table_node.plant_initial_elemental_cards()
+		# --- END OF FIX ---
+		
+		# Initialize the player's starting hand
 		card_manager.initialize_starting_hand()
+		
 		if network_manager.multiplayer.get_peers().size() > 0:
 			for peer_id in network_manager.multiplayer.get_peers():
-				network_manager.rpc_id(peer_id, "receive_deck_seed", $Deck/Table.deck_seed)
-				network_manager.rpc_id(peer_id, "receive_deck_state", $Deck/Table.available_cards, $Deck/Table.elemental_cards)
+				network_manager.rpc_id(peer_id, "receive_deck_seed", table_node.deck_seed)
+				network_manager.rpc_id(peer_id, "receive_deck_state", table_node.available_cards, table_node.elemental_cards)
 				rpc_id(peer_id, "initialize_client_starting_hand")
 	rpc("sync_game_state", players, game_started)
 
+# ... (the rest of your game.gd file remains the same)
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---  	Color Management 	  ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
