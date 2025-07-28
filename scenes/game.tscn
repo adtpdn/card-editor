@@ -1,35 +1,35 @@
 [gd_scene load_steps=48 format=4 uid="uid://dpmxlw8f4fyvd"]
 
-[ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://src/game.gd" id="1_e1j6l"]
-[ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://src/managers/turn_phase_manager.gd" id="2_pl11u"]
-[ext_resource type="Script" uid="uid://ckodjk0ue4j3n" path="res://src/managers/token_manager.gd" id="3_bhx41"]
-[ext_resource type="Script" uid="uid://b51yqiry8444l" path="res://src/managers/network_manager.gd" id="4_qnb83"]
-[ext_resource type="Script" uid="uid://crljukaucgphk" path="res://src/managers/game_state_manager.gd" id="5_sww3w"]
-[ext_resource type="Script" uid="uid://dpaobk3mip7va" path="res://src/managers/card_manager.gd" id="6_suyxu"]
-[ext_resource type="Script" uid="uid://22sqj66kc86h" path="res://src/managers/ui_manager.gd" id="7_sgl2t"]
-[ext_resource type="Script" uid="uid://b33jfe6s6f3g4" path="res://src/managers/sigil_manager.gd" id="8_qouja"]
-[ext_resource type="Script" uid="uid://di0aebdoy5x2n" path="res://src/managers/domination_manager.gd" id="9_wljb1"]
+[ext_resource type="Script" path="res://src/game.gd" id="1_e1j6l"]
+[ext_resource type="Script" path="res://src/managers/turn_phase_manager.gd" id="2_pl11u"]
+[ext_resource type="Script" path="res://src/managers/token_manager.gd" id="3_bhx41"]
+[ext_resource type="Script" path="res://src/managers/network_manager.gd" id="4_qnb83"]
+[ext_resource type="Script" path="res://src/managers/game_state_manager.gd" id="5_sww3w"]
+[ext_resource type="Script" path="res://src/managers/card_manager.gd" id="6_suyxu"]
+[ext_resource type="Script" path="res://src/managers/ui_manager.gd" id="7_sgl2t"]
+[ext_resource type="Script" path="res://src/managers/sigil_manager.gd" id="8_qouja"]
+[ext_resource type="Script" path="res://src/managers/domination_manager.gd" id="9_wljb1"]
 [ext_resource type="Texture2D" uid="uid://b2pgilhnxrgc3" path="res://assets/meshes/corner_slice_4.png" id="10_v2yb1"]
 [ext_resource type="Material" uid="uid://lvi74dkr8iac" path="res://assets/meshes/corner_slice_1_mat.tres" id="11_js0lu"]
 [ext_resource type="Material" uid="uid://c6acp7vu62y16" path="res://assets/meshes/corner_slice_2_mat.tres" id="12_gxtfn"]
 [ext_resource type="Material" uid="uid://dlp8ve03x2jgc" path="res://assets/meshes/corner_slice_3_mat.tres" id="13_twgab"]
 [ext_resource type="Material" uid="uid://c7ugxmqk3hnld" path="res://assets/meshes/corner_slice_4_mat.tres" id="14_02fa5"]
-[ext_resource type="Script" uid="uid://dj0ce7mbddmyx" path="res://scenes/card_deck/scripts/card_collection_3d.gd" id="15_bhx41"]
+[ext_resource type="Script" path="res://scenes/card_deck/scripts/card_collection_3d.gd" id="15_bhx41"]
 [ext_resource type="PackedScene" uid="uid://cj4b00y883ujc" path="res://assets/meshes/game_board.glb" id="16_7025r"]
 [ext_resource type="PackedScene" uid="uid://cqkw6uj4kgxav" path="res://scenes/token/token_placement_location_magic.tscn" id="17_m4url"]
 [ext_resource type="PackedScene" uid="uid://u5swx58xo14j" path="res://scenes/token/token_placement_location.tscn" id="18_8ool0"]
-[ext_resource type="Script" uid="uid://cnqv71xds5itu" path="res://scenes/card_deck/scripts/deck_pile.gd" id="19_v2yb1"]
+[ext_resource type="Script" path="res://scenes/card_deck/scripts/deck_pile.gd" id="19_v2yb1"]
 [ext_resource type="PackedScene" uid="uid://ct3mj6rfjmily" path="res://scenes/sigil_mesh.tscn" id="20_05nbr"]
-[ext_resource type="Script" uid="uid://bh3yi5yf57wpw" path="res://scenes/card_deck/scripts/table.gd" id="20_js0lu"]
-[ext_resource type="Script" uid="uid://inns47cokwch" path="res://src/point_counter.gd" id="21_0sl42"]
-[ext_resource type="Script" uid="uid://bfmtf7hh4lc0h" path="res://scenes/card_deck/scripts/drag_controller.gd" id="21_gxtfn"]
+[ext_resource type="Script" path="res://scenes/card_deck/scripts/table.gd" id="20_js0lu"]
+[ext_resource type="Script" path="res://src/point_counter.gd" id="21_0sl42"]
+[ext_resource type="Script" path="res://scenes/card_deck/scripts/drag_controller.gd" id="21_gxtfn"]
 [ext_resource type="PackedScene" uid="uid://bchy4wmtwdsy" path="res://scenes/pop_up.tscn" id="22_oaba0"]
-[ext_resource type="Script" uid="uid://copi64l3fv7vm" path="res://src/pop_up.gd" id="23_458eo"]
+[ext_resource type="Script" path="res://src/pop_up.gd" id="23_458eo"]
 [ext_resource type="PackedScene" uid="uid://dneiapwmkd0eu" path="res://scenes/player_ui/player_turn.tscn" id="24_h3rex"]
-[ext_resource type="Script" uid="uid://dauol4rysxcqw" path="res://scenes/card_deck/scripts/card_layouts/pile_card_layout.gd" id="25_02fa5"]
-[ext_resource type="Script" uid="uid://8v3bpke27xiw" path="res://scenes/card_deck/scripts/card_layouts/fan_card_layout.gd" id="26_nepv3"]
+[ext_resource type="Script" path="res://scenes/card_deck/scripts/card_layouts/pile_card_layout.gd" id="25_02fa5"]
+[ext_resource type="Script" path="res://scenes/card_deck/scripts/card_layouts/fan_card_layout.gd" id="26_nepv3"]
 [ext_resource type="PackedScene" uid="uid://bjx4ugu14qx3w" path="res://scenes/card_deck/scenes/face_card_3d.tscn" id="27_7025r"]
-[ext_resource type="Script" uid="uid://bqibbhjbko4ra" path="res://scenes/card_deck/scripts/card_3d.gd" id="28_m4url"]
+[ext_resource type="Script" path="res://scenes/card_deck/scripts/card_3d.gd" id="28_m4url"]
 [ext_resource type="PlaneMesh" uid="uid://dxvj3gkbbknem" path="res://scenes/card_deck/card_3d_back_mesh.tres" id="29_8ool0"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0k8a4"]
@@ -805,7 +805,6 @@ collision_layer = 2
 transform = Transform3D(1, 8.75443e-07, 6.02851e-14, -8.75443e-07, 1, 9.87654e-13, 1.0103e-14, -7.10543e-14, 1, -1.07791, -61.8802, 1.01178)
 shape = SubResource("BoxShape3D_wljb1")
 disabled = true
-debug_color = Color(0, 0.6, 0.701961, 1)
 
 [node name="PlaceMesh" type="MeshInstance3D" parent="Deck/Table/DragController/elemental_slice_1"]
 transform = Transform3D(19.7909, -2.28455e-06, 8.40072, 8.40072, -1.36865e-06, -19.7909, 2.63771e-06, 21.5, -3.67207e-07, 0, 0, 0)
@@ -826,7 +825,6 @@ collision_layer = 2
 transform = Transform3D(1, 8.75443e-07, 6.02851e-14, -8.75443e-07, 1, 9.87654e-13, 1.0103e-14, -7.10543e-14, 1, -1.07791, -61.8802, 1.01178)
 shape = SubResource("BoxShape3D_wljb1")
 disabled = true
-debug_color = Color(0, 0.6, 0.701961, 1)
 
 [node name="PlaceMesh" type="MeshInstance3D" parent="Deck/Table/DragController/elemental_slice_2"]
 transform = Transform3D(8.05407, -1.31217e-06, 19.9345, 19.9345, -2.85846e-06, -8.05407, 3.14187e-06, 21.5, 1.45826e-07, 0.0900002, -0.0600001, 3.72529e-09)
@@ -847,7 +845,6 @@ collision_layer = 2
 transform = Transform3D(1, 8.75443e-07, 6.02851e-14, -8.75443e-07, 1, 9.87654e-13, 1.0103e-14, -7.10543e-14, 1, -1.07791, -61.8802, 1.01178)
 shape = SubResource("BoxShape3D_wljb1")
 disabled = true
-debug_color = Color(0, 0.6, 0.701961, 1)
 
 [node name="PlaceMesh" type="MeshInstance3D" parent="Deck/Table/DragController/elemental_slice_3"]
 transform = Transform3D(-8.40072, 4.28853e-07, 19.7909, 19.7909, -3.22434e-06, 8.40072, 3.13559e-06, 21.5, 8.65088e-07, 0.0900002, -0.0600001, 1.86265e-09)
@@ -868,7 +865,6 @@ collision_layer = 2
 transform = Transform3D(1, 8.75443e-07, 6.02851e-14, -8.75443e-07, 1, 9.87654e-13, 1.0103e-14, -7.10543e-14, 1, -1.07791, -61.8802, 1.01178)
 shape = SubResource("BoxShape3D_wljb1")
 disabled = true
-debug_color = Color(0, 0.6, 0.701961, 1)
 
 [node name="PlaceMesh" type="MeshInstance3D" parent="Deck/Table/DragController/elemental_slice_4"]
 transform = Transform3D(-19.9345, 1.91866e-06, 8.05407, 8.05407, -2.25197e-06, 19.9345, 2.62256e-06, 21.5, 1.36924e-06, 0.0900002, -0.0599999, 1.86265e-09)
@@ -888,7 +884,6 @@ collision_layer = 2
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Deck/Table/DragController/Pile/DropZone"]
 shape = SubResource("ConvexPolygonShape3D_bpvrg")
 disabled = true
-debug_color = Color(0, 0.6, 0.701961, 1)
 
 [node name="PlaceMesh" type="MeshInstance3D" parent="Deck/Table/DragController/Pile"]
 transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, -0.2, -0.1)
@@ -907,7 +902,6 @@ collision_layer = 2
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Deck/Table/DragController/Hand/DropZone"]
 shape = SubResource("ConvexPolygonShape3D_bpvrg")
 disabled = true
-debug_color = Color(0, 0.6, 0.701961, 1)
 
 [node name="PlaceMesh" type="MeshInstance3D" parent="Deck/Table/DragController/Hand"]
 transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, -0.2, -0.1)

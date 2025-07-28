@@ -15,7 +15,7 @@ config/version="0.0.1"
 run/main_scene="res://scenes/game.tscn"
 config/use_custom_user_dir=true
 config/custom_user_dir_name="Botanimagic"
-config/features=PackedStringArray("4.4", "Forward Plus")
+config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://thumb.png"
 
 [display]
