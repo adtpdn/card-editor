@@ -27,6 +27,7 @@ enum Phase {
 @onready var end_phase_button = $"../RightUI/EndPhaseButton"
 @onready var token_button = $"../RightUI/TokenButton"
 
+var count_plant = 0
 
 # Phase tracking
 var current_phase: Phase = Phase.NONE
@@ -168,6 +169,16 @@ func enter_current_phase():
 	
 	notification.hide()
 	
+	if game_state_manager.current_round == 0 and count_plant <= 1:
+		match current_phase:
+			Phase.PLANT_BIOME:
+				var end_turn_button = get_parent().get_node("RightUI/EndTurnButton")
+				token_manager.can_plant_on_biome = true
+				token_manager.can_plant_on_sigil = false
+				end_phase_button.disabled = true
+				end_turn_button.disabled = true
+				return
+	
 	match current_phase:
 		Phase.PLANT_BIOME:
 			print("TurnPhaseManager: Setting up PLANT_BIOME phase")
@@ -186,7 +197,6 @@ func enter_current_phase():
 			# Disable tokens and cards
 			token_manager.can_plant_on_biome = false
 			token_manager.can_plant_on_sigil = false
-			token_button.disabled = true
 			reset_card_variables()
 			highlight_marker_mesh()
 		Phase.END_TURN:
@@ -226,11 +236,11 @@ func unhighlight_marker_mesh():
 
 # Resets all card data for the sigil activation
 func reset_card_variables():
-	token_manager.is_take_off_mode = false
-	token_manager.is_unblight_mode = false
-	token_manager.is_refresh_energy_mode = false
-	token_manager.is_swap_energy_mode = false  
-	token_manager.is_plant_extra = false
+	card_manager.is_take_off_mode = false
+	card_manager.is_unblight_mode = false
+	card_manager.is_refresh_energy_mode = false
+	card_manager.is_swap_energy_mode = false  
+	card_manager.is_plant_extra = false
 
 # Resets all phases for a new turn
 func reset_phases():
@@ -338,6 +348,16 @@ func show_phase_two_progress():
 # Advances to the next phase in sequence
 func advance_to_next_phase():
 	print("TurnPhaseManager: Advancing to next phase from: ", current_phase)
+	
+	print("count plant : ", count_plant)
+	if game_state_manager.current_round == 0:
+		if count_plant == 2:
+			var end_turn_button = get_parent().get_node("RightUI/EndTurnButton")
+			end_turn_button.disabled = false
+			token_button.disabled = true
+			count_plant = 0
+			current_phase = Phase.END_TURN
+		return
 	
 	# Store the current phase for reference
 	var previous_phase = current_phase
@@ -468,22 +488,13 @@ func on_token_button_pressed():
 		token_manager.can_plant_on_biome = false
 		token_manager.can_plant_on_sigil = true
 		token_manager._on_token_selected()
-	#else:
-		#print("TurnPhaseManager: Wrong phase for token placement: ", current_phase)
-		## Not in token planting phase, show notification
-		#var dialog = AcceptDialog.new()
-		#dialog.dialog_text = "You cannot place tokens in the " + phase_names[current_phase] + " phase."
-		#dialog.title = "Wrong Phase"
-		#get_parent().add_child(dialog)
-		#dialog.popup_centered()
-		
-		# Auto-close after 1.5 seconds
-		#await get_tree().create_timer(3.0).timeout
-		#if is_instance_valid(dialog) and dialog.visible:
-			#dialog.queue_free()
+
 
 func _on_end_phase_button_pressed():
 	print("TurnPhaseManager: End phase button pressed")
+	
+	if game_state_manager.current_round == 0:
+		return
 	
 	match current_phase:
 		Phase.PLANT_BIOME:
@@ -535,8 +546,18 @@ func _on_token_placed(player_id, biome, location):
 	
 	print("TurnPhaseManager: Placement found with place_id: ", placement.place_id)
 	
+	if game_state_manager.current_round == 0:
+		count_plant += 1
+		print("TurnPhaseManager: count_plant incremented to: ", count_plant)
+		
+		# If we've reached 2 plants, update UI accordingly
+		if count_plant == 2:
+			var end_turn_button = get_parent().get_node("RightUI/EndTurnButton")
+			end_turn_button.disabled = false
+			token_button.disabled = true
+	
 	# Check current phase and placement type
-	if token_manager.is_plant_extra:
+	if card_manager.is_plant_extra:
 		pass
 	elif current_phase == Phase.PLANT_BIOME:
 		# In biome planting phase
@@ -552,8 +573,9 @@ func _on_token_placed(player_id, biome, location):
 		# In sigil/card phase
 		if placement.place_id != -1:  # This is SIGIL placement (place_id != -1)
 			print("TurnPhaseManager: Sigil placement detected in PLANT_SIGIL_AND_CARD phase")
-			if !token_manager.is_plant_extra:
+			if !card_manager.is_plant_extra:
 				sigil_placed = true
+				token_button.disabled = true
 			check_phase_two_completion()
 
 func _on_card_placed(card, slot_index, location_name):
@@ -686,3 +708,50 @@ func update_phase_ui():
 	print("TurnPhaseManager: update_phase_ui compatibility function called")
 	# Not used in this implementation
 	pass
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Phase Management
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Enable only sigil placement locations
+func enable_sigil_placement():
+	token_manager.is_token_selected = true
+	
+	# Unhighlight all first
+	token_manager.unhighlight_all_token_placements()
+	
+	# Highlight only sigil locations (place_id == -1)
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if !placement.is_occupied and placement.place_id == -1:
+			placement.set_highlight(true)
+	
+	# Update the UI
+	token_manager.update_token_ui()
+
+# Enable only biome placement locations
+func enable_biome_placement():
+	token_manager.is_token_selected = true
+	
+	# Unhighlight all first
+	token_manager.unhighlight_all_token_placements()
+	
+	# Highlight only biome locations (place_id != -1)
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if !placement.is_occupied and placement.place_id != -1:
+			placement.set_highlight(true)
+	
+	# Update the UI
+	token_manager.update_token_ui()
+
+# Disable sigil placement
+func disable_sigil_placement():
+	if token_manager.is_token_selected:
+		token_manager.is_token_selected = false
+		token_manager.unhighlight_all_token_placements()
+		token_manager.update_token_ui()
+
+# Disable biome placement
+func disable_biome_placement():
+	if token_manager.is_token_selected:
+		token_manager.is_token_selected = false
+		token_manager.unhighlight_all_token_placements()
+		token_manager.update_token_ui()

@@ -101,20 +101,13 @@ func update_material():
 	else:
 		print("Cannot update material - missing dependencies")
 
-func set_blighted(blighted: bool):
-	if is_blighted != blighted:
-		is_blighted = blighted
-		
-		# Play the appropriate animation
-		if is_blighted:
-			print("blight animation")
-			animation_player.play("blight")
-		else:
-			animation_player.play("unblight")
-			
-		# Sync the animation to all clients
-		print('sync token blight')
-		game.rpc("sync_token_blight", global_position, is_blighted)
+# This is a NEW function that ONLY plays the animation.
+# It will be the target of your RPC call.
+func play_blight_animation(blighted: bool):
+	if blighted:
+		animation_player.play("blight")
+	else:
+		animation_player.play("unblight")
 
 func remove_token():
 	# Mark the placement as unoccupied

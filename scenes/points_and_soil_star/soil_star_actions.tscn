@@ -1,0 +1,171 @@
+[gd_scene load_steps=6 format=3 uid="uid://dxe1h1c8t2n61"]
+
+[ext_resource type="Script" uid="uid://caj22v5gobskg" path="res://src/points_and_soil_star/soil_star_actions.gd" id="1_y4igk"]
+
+[sub_resource type="Animation" id="Animation_4fpxp"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("VBoxContainer:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1925, 299)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("VBoxContainer:layout_mode")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+
+[sub_resource type="Animation" id="Animation_0r44c"]
+resource_name = "hide_actions"
+length = 0.2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("VBoxContainer:layout_mode")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("VBoxContainer:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(197, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_y4igk"]
+resource_name = "show_actions"
+length = 0.2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("VBoxContainer:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(197, 0), Vector2(0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("VBoxContainer:layout_mode")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_34idh"]
+_data = {
+&"RESET": SubResource("Animation_4fpxp"),
+&"hide_actions": SubResource("Animation_0r44c"),
+&"show_actions": SubResource("Animation_y4igk")
+}
+
+[node name="SoilStarActions" type="Control"]
+layout_mode = 3
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -193.0
+offset_top = -220.0
+offset_bottom = 239.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_y4igk")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = 4.0
+offset_top = -229.5
+offset_right = 196.0
+offset_bottom = 230.5
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="PlayCardButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Play a Card 
+(1 soil star)"
+
+[node name="PlayElementalFaceDownButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Play Elemental on Hand 
+Face Down (1 soil star)"
+
+[node name="PlayElementalFaceUpButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Play Elemental on Hand 
+Face Up (2 soil star)"
+
+[node name="BuyCardButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Buy a Card
+(2 soil star)"
+
+[node name="PlayExtraTokenButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Play Extra Token
+(3 soil star)
+"
+
+[node name="PlaySigilMagicButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Play Sigil
+(3 soil star)
+"
+
+[node name="BuyElementalButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Buy an Elemental
+(4 soil star)
+"
+
+[node name="SwapElementalButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Swap an Elemental
+(5 soil star)
+"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_34idh")
+}

@@ -47,20 +47,21 @@ func hide_placement():
  
 func set_biome_placement():
 	var game = get_node("/root/Game")
+	var card_manager = game.card_manager
 	var turn_phase_manager = game.turn_phase_manager
 	var token_manager = game.token_manager
 	if turn_phase_manager.current_phase == 0 and place_id == -1:
 		self.show()
-	if token_manager.is_plant_extra:
+	if card_manager.is_plant_extra:
 		self.show()
 
 func set_sigil_placement():
 	var game = get_node("/root/Game")
 	var turn_phase_manager = game.turn_phase_manager
-	var token_manager = game.token_manager
+	var card_manager = game.card_manager
 	if turn_phase_manager.current_phase == 1 and place_id != -1:
 		self.show()
-	if token_manager.is_plant_extra:
+	if card_manager.is_plant_extra:
 		self.show()
 
 func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: Vector3, shape_idx: int):

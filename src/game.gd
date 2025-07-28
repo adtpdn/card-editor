@@ -16,12 +16,15 @@ extends Node
 @onready var token_placements = $TokenPlacements
 @onready var tokens = $Tokens
 @onready var notification = $Notification
-@onready var soil_star = $SoilStar
+@onready var soil_star_actions = $SoilStarActions
+@onready var player_uis = $PlayerUIs
 
 @onready var sigil_a_button = $SigilContainer/SigilAButton
 @onready var sigil_b_button = $SigilContainer/SigilBButton
 @onready var sigil_c_button = $SigilContainer/SigilCButton
 @onready var token_button = $RightUI/TokenButton
+@onready var end_turn_button = $RightUI/EndTurnButton
+@onready var end_phase_button = $RightUI/EndPhaseButton
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Core Game State
@@ -33,8 +36,6 @@ var player_hands = {}
 var player_slots = [false, false, false, false] # Track occupied slots
 var max_players = 4 # Maximum players allowed
 
-# --- FIX ---
-# Player colors are now defined here in the main game script.
 const player_colors = [
 	Color(1, 0, 0),# Red
 	Color(0, 1, 0),# Green
@@ -50,15 +51,10 @@ signal turn_changed
 func _ready():
 	print("Game initializing...")
 	
-	# Initialize all manager components
 	token_manager.initialize()
 	network_manager.initialize()
 	game_state_manager.initialize()
 	
-	# Don't call initialize_starting_hand here, let start_game do it
-	# card_manager.initialize_starting_hand()
-	
-	# Start the game - this will handle card initialization
 	start_game()
 	
 	if has_node("TurnPhaseManager"):
@@ -66,7 +62,6 @@ func _ready():
 	if has_node("SigilManager"):
 		$SigilManager.initialize()
 	
-	# Connect input events to token manager
 	set_process_input(true)
 	print("Game initialized.")
 
@@ -74,15 +69,27 @@ func start_game():
 	print("Starting game - initializing card system")
 	if multiplayer.is_server():
 		game_started = true
-		$Deck/Table.initialize_deck_with_seed(randi())
+		var table_node = $Deck/Table
+		
+		# Initialize the deck with a random seed
+		table_node.initialize_deck_with_seed(randi())
+		
+		# --- THIS IS THE FIX ---
+		# Call the card planting function right after the deck is ready.
+		table_node.plant_initial_elemental_cards()
+		# --- END OF FIX ---
+		
+		# Initialize the player's starting hand
 		card_manager.initialize_starting_hand()
+		
 		if network_manager.multiplayer.get_peers().size() > 0:
 			for peer_id in network_manager.multiplayer.get_peers():
-				network_manager.rpc_id(peer_id, "receive_deck_seed", $Deck/Table.deck_seed)
-				network_manager.rpc_id(peer_id, "receive_deck_state", $Deck/Table.available_cards, $Deck/Table.elemental_cards)
+				network_manager.rpc_id(peer_id, "receive_deck_seed", table_node.deck_seed)
+				network_manager.rpc_id(peer_id, "receive_deck_state", table_node.available_cards, table_node.elemental_cards)
 				rpc_id(peer_id, "initialize_client_starting_hand")
 	rpc("sync_game_state", players, game_started)
 
+# ... (the rest of your game.gd file remains the same)
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---  	Color Management 	  ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
@@ -165,7 +172,9 @@ func sync_player_colors(colors: Dictionary):
 
 @rpc("any_peer", "call_local")
 func sync_player_tokens(tokens: Array):
-	token_manager.sync_player_tokens(tokens)
+	for id in players.size():
+		token_manager.sync_player_tokens(tokens, players[id])
+
 
 
 
@@ -177,6 +186,15 @@ func sync_turn_state(new_turn_index: int):
 	# Update local UI
 	game_state_manager.update_turn_controls()
 	token_manager.update_token_ui()
+
+@rpc("any_peer", "call_local")
+func sync_blight_animation(token_pos: Vector3, is_blighted: bool):
+	# Find the token at the given position.
+	var token = token_manager.find_token_at_position(token_pos) # You need a helper function for this.
+	
+	if token:
+		# Tell the token to ONLY play the animation.
+		token.play_blight_animation(is_blighted)
 
 @rpc("any_peer", "call_local")
 func sync_token_blight(token_position: Vector3, is_blighted: bool):
@@ -260,7 +278,7 @@ func remove_player(player_id):
 @rpc("any_peer", "call_local")
 func sync_elemental_purchase(card_data: Dictionary, player_id: int, new_soil_star: int):
 	var table = $Deck/Table
-	var soil_star_node = soil_star
+	var soil_star_node = soil_star_actions._get_active_player_ui()
 	var hand = $Deck/Table/DragController/Hand
 	soil_star_node.current_soil_star = new_soil_star
 	soil_star_node.sync_soil_stars()

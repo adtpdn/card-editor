@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CardResource" load_steps=4 format=3 uid="uid://co0yn3000rjhv"]
+
+[ext_resource type="Material" uid="uid://f6nfxgmoiawj" path="res://assets/materials/cards_materials/elementals/ElementalsRedBackMesh.tres" id="1_8ocwb"]
+[ext_resource type="Material" uid="uid://dl2wep1kgqded" path="res://assets/materials/cards_materials/elementals/ElementalRed05.tres" id="2_8ocwb"]
+[ext_resource type="Script" uid="uid://77vvo0ke2vww" path="res://src/cards_and_deck/card_resource.gd" id="3_ie8vp"]
+
+[resource]
+script = ExtResource("3_ie8vp")
+card_id = 4
+card_on_biome = -1
+card_name = "ElementalRed05"
+card_type = 1
+cost_to_draw = 1
+effect1 = ""
+effect2 = ""
+revealed = true
+front_mesh_material = ExtResource("2_8ocwb")
+back_mesh_material = ExtResource("1_8ocwb")
+elemental_cost = 0
