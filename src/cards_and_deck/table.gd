@@ -8,7 +8,7 @@ extends Node3D
 @export var elementals_ids_arr = []
 
 # This holds the pre-instantiated elemental card nodes for initial placement (server-side only)
-var elemental_deck_nodes: Array[FaceCard3D] = []
+var elemental_deck_nodes := []
 
 var rng = RandomNumberGenerator.new()
 
@@ -30,11 +30,7 @@ func _ready():
 	if elemental_deck:
 		elemental_deck.connect("card_3d_mouse_up", _on_elemental_deck_pressed)
 
-	# Connect to the network manager's signal. This is the new, robust way to trigger deck setup.
-	#if game.network_manager:
-		#game.network_manager.server_created.connect(setup_decks_for_new_game)
-
-	# All instances now ONLY populate their decks with a default, unshuffled order.
+	# All instances populate their decks with a default, unshuffled order.
 	reset_decks()
 
 # --- Deck Setup and Shuffling (Server-Side) ---
@@ -45,13 +41,13 @@ func setup_decks_for_new_game():
 	if not multiplayer.is_server(): return
 
 	shuffle_decks()
+	_create_elemental_deck_nodes()
 	rpc("client_receive_shuffled_decks", available_cards, elementals_ids_arr)
 	plant_initial_elemental_cards()
 	sync_initial_board_state()
 
 # Populates the deck arrays with sequential IDs.
 func reset_decks():
-	print("reset decks")
 	available_cards.clear()
 	elementals_ids_arr.clear()
 	for i in range(actions_cards.cards.size()):
@@ -62,13 +58,10 @@ func reset_decks():
 # Shuffles the decks. ONLY the server should run this.
 func shuffle_decks():
 	if not multiplayer.is_server(): return
-	
-	print('shuffled decks')
 	rng.randomize()
 	available_cards.shuffle()
 	elementals_ids_arr.shuffle()
 	print("Server has shuffled the decks. Elementals order: ", elementals_ids_arr)
-
 
 # Initializes both decks with a seed, shuffles them, and syncs with clients.
 # THIS FUNCTION ONLY RUNS ON THE SERVER.
@@ -104,15 +97,13 @@ func _create_elemental_deck_nodes():
 	for i in range(count):
 		var card_index_from_deck = elementals_ids_arr[i]
 		var card_instance = instantiate_face_card(card_index_from_deck, true)
-		card_instance.rotation_degrees.y = 180
 		elemental_deck_nodes.append(card_instance)
-	print("Elemental node pool created with %d cards." % elemental_deck_nodes.size())
+		
+	print("Player %d created an elemental node pool with %d cards." % [multiplayer.get_unique_id(), elemental_deck_nodes.size()])
 
-# Deals the initial 8 cards to the board slices.
+# Deals the initial 8 cards to the board slices. (Server only)
 func plant_initial_elemental_cards():
 	if not multiplayer.is_server(): return
-	
-	_create_elemental_deck_nodes()
 	
 	var drag_controller = $DragController
 	if elemental_deck_nodes.is_empty():
@@ -129,9 +120,13 @@ func plant_initial_elemental_cards():
 			print("Warning: Could not find slice or ran out of cards for initial placement.")
 			break
 
-# Gathers data about the initial board state and sends it to clients.
-func sync_initial_board_state():
+# Gathers data about the initial board state and sends it to clients. (Server only)
+func sync_initial_board_state(peer_id: int = 0):
 	if not multiplayer.is_server(): return
+	
+	# Wait a single frame to ensure the board state is settled from any recent additions.
+	# This prevents a race condition where a client connects before the server has finished placing cards.
+	await get_tree().process_frame
 	
 	var elemental_slice_cards_data = []
 	var drag_controller = $DragController
@@ -148,7 +143,16 @@ func sync_initial_board_state():
 				})
 	
 	if not elemental_slice_cards_data.is_empty():
-		rpc("client_receive_initial_slices", elemental_slice_cards_data)
+		if peer_id > 0:
+			# If a specific peer is targeted, send only to them.
+			rpc_id(peer_id, "client_receive_initial_slices", elemental_slice_cards_data)
+			print("Sent initial board state to new peer: %d" % peer_id)
+		else:
+			# Otherwise, broadcast to all connected peers.
+			rpc("client_receive_initial_slices", elemental_slice_cards_data)
+			print("Broadcasted initial board state to all peers.")
+	else:
+		print("WARNING: sync_initial_board_state was called, but no cards were found on the board slices.")
 
 # This function handles the local player's action of adding a card to their hand.
 func add_card(card_data: Dictionary, is_elemental: bool):
@@ -172,14 +176,25 @@ func client_receive_shuffled_decks(shuffled_actions: Array, shuffled_elementals:
 	available_cards = shuffled_actions
 	elementals_ids_arr = shuffled_elementals
 	print("Client received shuffled decks. Elementals order: ", elementals_ids_arr)
+	
+	# Now that the client has the shuffled list, it builds its own identical node pool.
+	_create_elemental_deck_nodes()
 
 @rpc("any_peer", "call_local")
 func client_receive_initial_slices(slice_data: Array):
 	if multiplayer.is_server(): return
+	print("client receive initial slices")
 
-	await ready
 	var drag_controller = $DragController
 	if not drag_controller: return
+
+	# To stay in sync, clients must remove the 8 dealt cards from their node pool,
+	# just like the server did using pop_front().
+	for i in range(slice_data.size()):
+		if not elemental_deck_nodes.is_empty():
+			elemental_deck_nodes.pop_front()
+	
+	print("Client removed dealt cards. Remaining nodes: %d" % elemental_deck_nodes.size())
 
 	print("Client syncing initial elemental slices.")
 	for data in slice_data:
@@ -208,7 +223,6 @@ func instantiate_face_card(card_index: int, is_elemental: bool = false) -> FaceC
 			print("Error: Invalid elemental card index: ", card_index)
 			face_card_3d.queue_free(); return null
 		card_resource = elementals_cards.cards[card_index]
-		
 	else:
 		if card_index < 0 or card_index >= actions_cards.cards.size():
 			print("Error: Invalid action card index: ", card_index)
@@ -233,7 +247,10 @@ func _on_action_deck_pressed():
 	rpc_id(1, "server_draw_card", multiplayer.get_unique_id(), false)
 
 func _on_elemental_deck_pressed():
-	rpc_id(1, "server_draw_card", multiplayer.get_unique_id(), true)
+	if multiplayer.is_server():
+		pass
+	else:
+		rpc_id(1, "server_draw_card", multiplayer.get_unique_id(), true)
 
 @rpc("authority")
 func server_draw_card(player_id: int, is_elemental: bool):
