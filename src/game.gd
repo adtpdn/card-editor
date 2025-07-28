@@ -76,7 +76,7 @@ func start_game():
 		
 		# --- THIS IS THE FIX ---
 		# Call the card planting function right after the deck is ready.
-		table_node.plant_initial_elemental_cards()
+		#table_node.plant_initial_elemental_cards()
 		# --- END OF FIX ---
 		
 		# Initialize the player's starting hand
@@ -127,10 +127,10 @@ func sync_initial_order(order_from_server: Array):
 		initial_player_order = order_from_server
 		print("[%d] Received and set initial player order for colors in game.gd: %s" % [multiplayer.get_unique_id(), str(initial_player_order)])
 
-@rpc("any_peer", "call_remote")
+@rpc("any_peer", "call_local")
 func initialize_client_starting_hand():
-	print("Client initializing starting hand...")
-	card_manager.initialize_starting_hand()
+	if not multiplayer.is_server():
+		card_manager.initialize_starting_hand()
 	
 	# Debug the client's hand after initialization
 	print("Client hand after initialization:")

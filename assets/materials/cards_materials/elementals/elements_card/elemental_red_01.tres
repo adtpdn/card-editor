@@ -8,7 +8,7 @@
 script = ExtResource("3_rdvjf")
 card_id = 0
 card_on_biome = -1
-card_name = ""
+card_name = "ElementalRed01"
 card_type = 1
 cost_to_draw = 1
 effect1 = ""

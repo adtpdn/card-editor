@@ -878,7 +878,6 @@ debug_color = Color(0, 0.6, 0.701961, 1)
 
 [node name="PlaceMesh" type="MeshInstance3D" parent="Deck/Table/DragController/elemental_slice_1"]
 transform = Transform3D(21.5001, 0, 0, 0, -9.39795e-07, -21.5001, 0, 21.5, -9.39797e-07, -0.0137296, -0.0599999, 0.0893497)
-visible = false
 mesh = SubResource("ArrayMesh_vld16")
 skeleton = NodePath("")
 

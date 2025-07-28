@@ -1,6 +1,8 @@
 # network_manager.gd
 extends Node
 
+signal server_created
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # References to other managers
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -136,6 +138,8 @@ func _on_host_pressed():
 		multiplayer.multiplayer_peer = multiplayer_peer
 		var host_id = multiplayer.get_unique_id()
 		
+		game.deck.table.setup_decks_for_new_game()
+		
 		# Initialize host data
 		game.players = [host_id]  # Reset players array
 		game.initial_player_order = [host_id]
@@ -154,6 +158,7 @@ func _on_host_pressed():
 		
 		# Start broadcasting server info
 		setup_network_discovery()
+		server_created.emit()
 	else:
 		if connect_status:
 			connect_status.text = "Failed to create server: " + str(error)
@@ -242,12 +247,35 @@ func _on_peer_connected(new_peer_id):
 		if game.players.size() >= game.max_players:
 			multiplayer_peer.disconnect_peer(new_peer_id)
 			return
-			
+		
 		print("New peer connected: ", new_peer_id)
 		
 		# 1. Add the new player to the server's master list
 		game.players.append(new_peer_id)
 		
+		# Get the table node to access its data and RPCs
+		var table = get_node("/root/Game/Deck/Table")
+		
+		# Send the already-shuffled decks to the NEW player ONLY.
+		table.rpc_id(new_peer_id, "client_receive_shuffled_decks", table.available_cards, table.elementals_ids_arr)
+		
+		# Gather the current board state and send it to the NEW player ONLY.
+		var elemental_slice_cards_data = []
+		var drag_controller = table.get_node("DragController")
+		for i in range(1, 9):
+			var slice_name = "elemental_slice_" + str(i)
+			var elemental_slice = drag_controller.get_node_or_null(slice_name)
+			if elemental_slice and elemental_slice.cards.size() > 0:
+				var card = elemental_slice.cards[0]
+				var original_index = card.get_meta("original_card_index", -1)
+				if original_index != -1:
+					elemental_slice_cards_data.append({
+						"card_index": original_index,
+						"slice_index": i
+					})
+		
+		if not elemental_slice_cards_data.is_empty():
+			table.rpc_id(new_peer_id, "client_receive_initial_slices", elemental_slice_cards_data)
 		
 		# 2. Initialize the new player's tokens ON THE SERVER
 		token_manager.initialize_player_tokens(new_peer_id)

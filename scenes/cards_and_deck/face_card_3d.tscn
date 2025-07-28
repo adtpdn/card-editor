@@ -63,15 +63,19 @@ back_material_path = ""
 elemental_front_material_path = ""
 elemental_back_material_path = ""
 
+[node name="CardBackMesh" parent="CardMesh" index="0"]
+visible = false
+
+[node name="CardFrontMesh" parent="CardMesh" index="1"]
+visible = false
+
 [node name="ElementalsBackMesh" type="MeshInstance3D" parent="CardMesh" index="2"]
 transform = Transform3D(27.475, 0, 0, 0, -1.20097e-06, -27.475, 0, 27.475, -1.20097e-06, 0, 0, -0.01)
-visible = false
 mesh = SubResource("ArrayMesh_2nix7")
 skeleton = NodePath("")
 
 [node name="ElementalsFrontMesh" type="MeshInstance3D" parent="CardMesh" index="3"]
 transform = Transform3D(27.475, 0, 0, 0, -1.20097e-06, -27.475, 0, 27.475, -1.20097e-06, 0, 0, 0.01)
-visible = false
 material_override = ExtResource("4_2nix7")
 mesh = SubResource("ArrayMesh_7025r")
 skeleton = NodePath("")

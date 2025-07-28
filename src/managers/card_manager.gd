@@ -37,31 +37,41 @@ var first_swap_token = null
 # Initialization
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 func _ready():
-	# Get references to card-related nodes
+	await get_parent().ready
 	player_hand = deck.hand
+	# The server will call initialize_starting_hand for itself when the game starts.
+	# Clients will be told to initialize by the server via an RPC.
+	if multiplayer.is_server():
+		initialize_starting_hand()
 
 func initialize_starting_hand():
-	print("Initializing starting hand with", initial_hand_size, "cards")
-	# Get a reference to the player's hand
+	print("Initializing starting hand with", initial_hand_size, "cards for player", multiplayer.get_unique_id())
+	
 	player_hand = deck.hand
 	
-	# Make sure hand is empty before initializing
 	if player_hand and player_hand.cards.size() > 0:
-		print("Hand already has cards, skipping initialization")
+		print("Hand already has cards, skipping initialization.")
 		return
 	
-	# Draw the initial cards - should be 2
+	# Request the initial cards from the server.
+	# The server will handle drawing and syncing.
 	for i in range(initial_hand_size):
-		var success = draw_card()
-		if success:
-			# Verify the card IDs of the cards in the hand
-			var last_card = player_hand.cards[player_hand.cards.size() - 1]
-			print("Added initial card with card_id:", last_card.card_id)
+		# We are requesting a non-elemental (action) card.
+		var player_id = multiplayer.get_unique_id()
+		
+		# If the current instance is the server, it calls the function directly.
+		# If it's a client, it sends an RPC to the server (ID 1).
+		if multiplayer.is_server():
+			deck.table.server_draw_card(player_id, false)
+		else:
+			deck.table.rpc_id(1, "server_draw_card", player_id, false)
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # --- Card Distribution & Deck  ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 func is_hand_full():
+	if not player_hand:
+		player_hand = deck.hand
 	return player_hand.cards.size() >= max_hand_size
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -84,6 +94,8 @@ func draw_card():
 		# The network sync is handled inside add_card(), so we don't need to do it here
 		var success = deck.table.add_card()
 		return success
+		
+		return true
 	else:
 		print("Hand is full! Maximum cards:", max_hand_size)
 		return false
