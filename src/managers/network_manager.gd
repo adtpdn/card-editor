@@ -259,6 +259,9 @@ func _on_peer_connected(new_peer_id):
 		# Send the already-shuffled decks to the NEW player ONLY.
 		table.rpc_id(new_peer_id, "client_receive_shuffled_decks", table.available_cards, table.elementals_ids_arr)
 		
+				# Send the valid elemental indices to the NEW player ONLY
+		table.rpc_id(new_peer_id, "sync_valid_elemental_indices", table.valid_elemental_indices)
+		
 		# Gather the current board state and send it to the NEW player ONLY.
 		var elemental_slice_cards_data = []
 		var drag_controller = table.get_node("DragController")

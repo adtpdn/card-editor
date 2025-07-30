@@ -1,4 +1,4 @@
-[gd_scene load_steps=59 format=4 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=58 format=4 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://src/game.gd" id="1_e1j6l"]
 [ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://src/managers/turn_phase_manager.gd" id="2_pl11u"]
@@ -29,8 +29,8 @@
 [ext_resource type="Script" uid="uid://dauol4rysxcqw" path="res://src/cards_and_deck/card_layouts/pile_card_layout.gd" id="25_02fa5"]
 [ext_resource type="PackedScene" uid="uid://dxe1h1c8t2n61" path="res://scenes/points_and_soil_star/soil_star_actions.tscn" id="25_pl11u"]
 [ext_resource type="Script" uid="uid://8v3bpke27xiw" path="res://src/cards_and_deck/card_layouts/fan_card_layout.gd" id="26_nepv3"]
-[ext_resource type="Texture2D" uid="uid://d2saurvkwpx4s" path="res://assets/cards/elementals/elemental_blue_back.png" id="27_js0lu"]
 [ext_resource type="Texture2D" uid="uid://cbpt07uuhs6gd" path="res://assets/cards/2D/back-card.png" id="28_gxtfn"]
+[ext_resource type="Material" uid="uid://f6nfxgmoiawj" path="res://assets/materials/cards_materials/elementals/ElementalsRedBackMesh.tres" id="28_js0lu"]
 [ext_resource type="Script" uid="uid://bqibbhjbko4ra" path="res://src/cards_and_deck/card_3d.gd" id="28_m4url"]
 [ext_resource type="PlaneMesh" uid="uid://dxvj3gkbbknem" path="res://assets/meshes/card_3d_back_mesh.tres" id="29_8ool0"]
 [ext_resource type="Material" uid="uid://b2jdqh0ex1sps" path="res://assets/materials/cards_materials/elementals/ElementalRed01.tres" id="30_02fa5"]
@@ -159,9 +159,6 @@ size = Vector2(2.5, 3.5)
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_21kd5"]
 points = PackedVector3Array(-1.25, 1.75, 0, -1.25, -1.75, 0, 1.25, -1.75, 0, 1.25, 1.75, 0)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gxtfn"]
-albedo_texture = ExtResource("27_js0lu")
-
 [sub_resource type="ArrayMesh" id="ArrayMesh_nepv3"]
 _surfaces = [{
 "aabb": AABB(-0.0453736, -0.00104126, -0.0434318, 0.0914393, 0.0020775, 0.0783865),
@@ -184,7 +181,7 @@ _surfaces = [{
 "format": 34896613399,
 "index_count": 60,
 "index_data": PackedByteArray("AAABAAIAAQAAAAMAAwAAAAQAAQADAAUABgAHAAgABwAGAAkACQAGAAoABwAJAAsADAANAA4ADAAPAA0AEAARABIAEAATABEAFAAVABYAFAAXABUAGAAZABoAGAAbABkAHAAdAB4AHAAfAB0AIAAhACIAIAAjACEA"),
-"material": SubResource("StandardMaterial3D_gxtfn"),
+"material": ExtResource("28_js0lu"),
 "name": "Elemental_Blue_1",
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
@@ -878,6 +875,7 @@ debug_color = Color(0, 0.6, 0.701961, 1)
 
 [node name="PlaceMesh" type="MeshInstance3D" parent="Deck/Table/DragController/elemental_slice_1"]
 transform = Transform3D(21.5001, 0, 0, 0, -9.39795e-07, -21.5001, 0, 21.5, -9.39797e-07, -0.0137296, -0.0599999, 0.0893497)
+visible = false
 mesh = SubResource("ArrayMesh_vld16")
 skeleton = NodePath("")
 

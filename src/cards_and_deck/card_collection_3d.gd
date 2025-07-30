@@ -76,14 +76,9 @@ func prepend_card(card: Card3D):
 	insert_card(card, 0)
 
 func insert_card(card: Card3D, index: int):
-	# Check if this is a card being added to a hand and we're at max capacity
+	# FIX: Removed hand-full check from this general function.
+	# The check is now performed in table.gd before the draw action is initiated.
 	var game = get_node("/root/Game/")
-	var turn_phase_manager = game.turn_phase_manager
-
-	if self.name == "Hand":
-		if game and game.card_manager and game.card_manager.is_hand_full():
-			print("Cannot insert card - hand is full!")
-			return
 	
 	card.card_3d_mouse_down.connect(_on_card_pressed.bind(card))
 	card.card_3d_mouse_up.connect(_on_card_clicked.bind(card))
@@ -94,20 +89,17 @@ func insert_card(card: Card3D, index: int):
 	cards.append(card)
 	add_child(card)
 	card.card_parent = card.get_parent().name
-	print('card parent : ', card.card_parent)
-	#print("node name : ", self.name)
 	
 	# Actions Plant Restriction
 	if card.card_parent == "Pile" and card.card_type == CardResource.CardType.ACTION:
 		card.scale = Vector3(0.7, 0.7, 0.7)
-		plant_card(card)
+		if not card.has_meta("remote_planted"):
+			plant_card(card)
 		hide_last_card()
 		
 	elif card.card_parent.begins_with("elemental_slice_") and card.card_type == CardResource.CardType.ELEMENTAL:
 		card.position = place_mesh.position
 		card.rotation_degrees.z = card.get_parent().rotation_degrees.z
-		print("rotation degress : ",place_mesh.rotation_degrees )
-		print("card rotation degress : ", card.rotation_degrees)
 		plant_elemental_card(card)
 		
 	for i in range(index, cards.size()):
@@ -118,7 +110,6 @@ func insert_card(card: Card3D, index: int):
 
 func hide_last_card() -> void :
 	var pile = get_parent()
-	print("pile : ", pile )
 	var cards = cards
 	
 	for id in cards.size():
@@ -250,8 +241,6 @@ func remove_all() -> Array[Card3D]:
 
 
 func apply_card_layout():
-	print("apply card ")
-	#print("cards : ", cards.position)
 	card_layout_strategy.update_card_positions(cards, card_move_tween_duration)
 
 

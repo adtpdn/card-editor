@@ -49,7 +49,7 @@ signal turn_changed
 # Initialization
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 func _ready():
-	print("Game initializing...")
+	#print("Game initializing...")
 	
 	token_manager.initialize()
 	network_manager.initialize()
@@ -63,21 +63,16 @@ func _ready():
 		$SigilManager.initialize()
 	
 	set_process_input(true)
-	print("Game initialized.")
+	#print("Game initialized.")
 
 func start_game():
-	print("Starting game - initializing card system")
+	#print("Starting game - initializing card system")
 	if multiplayer.is_server():
 		game_started = true
 		var table_node = $Deck/Table
 		
 		# Initialize the deck with a random seed
 		table_node.initialize_deck_with_seed(randi())
-		
-		# --- THIS IS THE FIX ---
-		# Call the card planting function right after the deck is ready.
-		#table_node.plant_initial_elemental_cards()
-		# --- END OF FIX ---
 		
 		# Initialize the player's starting hand
 		card_manager.initialize_starting_hand()
@@ -89,7 +84,6 @@ func start_game():
 				rpc_id(peer_id, "initialize_client_starting_hand")
 	rpc("sync_game_state", players, game_started)
 
-# ... (the rest of your game.gd file remains the same)
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---  	Color Management 	  ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
@@ -141,7 +135,7 @@ func initialize_client_starting_hand():
 
 @rpc("any_peer", "call_local")
 func sync_game_state(game_players, has_started):
-	print("Syncing game state from server")
+	#print("Syncing game state from server")
 	players = game_players
 	game_started = has_started
 	initial_player_order = game_players

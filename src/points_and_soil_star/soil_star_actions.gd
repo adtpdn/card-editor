@@ -33,7 +33,7 @@ func _ready():
 		buy_card_button          : 2,
 		play_extra_token_button  : 3,
 		play_sigil_magic_button  : 3,
-		buy_elemental_button     : 4,
+		buy_elemental_button     : 1,
 		swap_elemental_button    : 5,
 	}
 	connect_action_buttons()
@@ -142,8 +142,8 @@ func _on_BuyCardButton_pressed():
 	print("buy_card_button pressed")
 	
 	# 1. Check if hand is full
-	if game.card_manager.is_hand_full():
-		game.notification.show_instruction_label("Your hand is full!")
+	if game.card_manager.is_action_hand_full():
+		game.notification.show_instruction_label("Your action card hand is full!")
 		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
 		return
 		
@@ -162,16 +162,9 @@ func _on_BuyCardButton_pressed():
 	
 	# 3. All checks passed, perform the action
 	soil_star_node.decrease_soil_star(cost)
-	var card_drawn = game.deck.table.add_card()
 	
-	if card_drawn:
-		game.notification.show_instruction_label("You drew a card!")
-		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
-	else:
-		game.notification.show_instruction_label("The deck is empty!")
-		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
-		# If drawing failed, refund the stars.
-		soil_star_node.increase_soil_star(cost)
+	# This now calls the same logic as clicking the deck
+	game.deck.table._on_action_deck_pressed()
 
 	# 4. Close the panel
 	_show_hide_actions_panel()
@@ -244,8 +237,29 @@ func _on_PlaySigilMagicButton_pressed():
 	# 5. Close the panel
 	_show_hide_actions_panel()
 
-func _on_BuyElementalButton_pressed():            
-	print("buy_elemental_button pressed")
+func _on_BuyElementalButton_pressed():
+	print("Buy Elemental Button pressed")
+	var cost = button_rules[buy_elemental_button]
+
+	# 1. Client-side validation: Check hand size first.
+	if game.card_manager.is_elemental_hand_full():
+		game.notification.show_instruction_label("Your elemental hand is full!")
+		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
+		return
+
+	# 2. Client-side validation: Check if the player has enough stars.
+	if _get_current_soil_star() < cost:
+		game.notification.show_instruction_label("Not enough Soil Stars!")
+		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
+		return
+
+	# 3. If all local checks pass, call the new centralized drawing function.
+	var table = get_node("/root/Game/Deck/Table")
+	if is_instance_valid(table):
+		table._draw_local_elemental_card(cost)
+	
+	# 4. Close the actions panel.
+	_show_hide_actions_panel()
 
 func _on_SwapElementalButton_pressed():           
 	print("swap_elemental_button pressed")

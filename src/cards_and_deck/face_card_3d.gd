@@ -1,14 +1,12 @@
 class_name FaceCard3D
 extends Card3D
 
-# REMOVED the local enum definition to avoid type conflicts.
-# enum CardType {ACTION, ELEMENTAL}
-
 var card_id : int = -1
 var card_on_biome = -1
 var card_name : String = ""
 # The card_type variable now explicitly uses the enum from CardResource.
 var card_type : CardResource.CardType = CardResource.CardType.ACTION
+var elemental_type : CardResource.ElementalType = CardResource.ElementalType.NONE
 var card_parent : String = ""
 
 func _ready():
@@ -50,7 +48,7 @@ func prep_card_mesh():
 			var material = load(path)
 			
 			if material:
-				$CardMesh/ElementalFrontMesh.set_surface_override_material(0, material)
+				$CardMesh/ElementalsFrontMesh.set_surface_override_material(0, material)
 
 @export var elemental_back_material_path: String:
 	set(path):
@@ -58,4 +56,4 @@ func prep_card_mesh():
 			var material = load(path)
 			
 			if material:
-				$CardMesh/ElementalBackMesh.set_surface_override_material(0, material)
+				$CardMesh/ElementalsBackMesh.set_surface_override_material(0, material)

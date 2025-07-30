@@ -1,10 +1,9 @@
-[gd_scene load_steps=9 format=4 uid="uid://bjx4ugu14qx3w"]
+[gd_scene load_steps=8 format=4 uid="uid://bjx4ugu14qx3w"]
 
 [ext_resource type="PackedScene" uid="uid://dxpc2iac0hjpw" path="res://scenes/cards_and_deck/card_3d.tscn" id="1_mhw3m"]
 [ext_resource type="Script" uid="uid://6wm1hceldkj1" path="res://src/cards_and_deck/face_card_3d.gd" id="2_swl73"]
 [ext_resource type="Material" uid="uid://f6nfxgmoiawj" path="res://assets/materials/cards_materials/elementals/ElementalsRedBackMesh.tres" id="3_2nix7"]
 [ext_resource type="Material" uid="uid://b2jdqh0ex1sps" path="res://assets/materials/cards_materials/elementals/ElementalRed01.tres" id="3_nhk3k"]
-[ext_resource type="Material" uid="uid://bkph4yom5daqu" path="res://assets/materials/cards_materials/elementals/ElementalBlue01.tres" id="4_2nix7"]
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_nepv3"]
 _surfaces = [{
@@ -57,6 +56,7 @@ blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_nepv3")
 
 [node name="FaceCard3D" instance=ExtResource("1_mhw3m")]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
 script = ExtResource("2_swl73")
 front_material_path = ""
 back_material_path = ""
@@ -76,6 +76,5 @@ skeleton = NodePath("")
 
 [node name="ElementalsFrontMesh" type="MeshInstance3D" parent="CardMesh" index="3"]
 transform = Transform3D(27.475, 0, 0, 0, -1.20097e-06, -27.475, 0, 27.475, -1.20097e-06, 0, 0, 0.01)
-material_override = ExtResource("4_2nix7")
 mesh = SubResource("ArrayMesh_7025r")
 skeleton = NodePath("")

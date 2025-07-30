@@ -2,28 +2,25 @@ extends Resource
 class_name CardResource
 
 enum CardType {ACTION, ELEMENTAL}
+enum ElementalType {NONE, RED, BLUE}
 
 @export var card_id : int = -1
 @export var card_on_biome : int = -1
 @export var card_name: String = "New Card"
 @export var card_type: CardType = CardType.ACTION
-@export var cost_to_draw: int = 1
-@export var effect1: String = ""
-@export var effect2: String = ""
-@export var revealed: bool = true
+@export var elemental_type: ElementalType = ElementalType.NONE
 @export var front_mesh_material: StandardMaterial3D 
 @export var back_mesh_material: StandardMaterial3D
-@export var elemental_cost: int = 0
 
 func _init(p_id = -1, p_biome= -1, p_name = "New Card", p_type = CardType.ACTION, p_cost = 1, p_effect1 = "", p_effect2 = "", p_elemental_cost=0):
 	card_id = p_id
 	card_on_biome = p_biome
 	card_name = p_name
 	card_type = p_type
-	cost_to_draw = p_cost
-	effect1 = p_effect1
-	effect2 = p_effect2
-	elemental_cost = p_elemental_cost
+	#cost_to_draw = p_cost
+	#effect1 = p_effect1
+	#effect2 = p_effect2
+	#elemental_cost = p_elemental_cost
 
 func to_dictionary() -> Dictionary:
 	return {
@@ -31,13 +28,13 @@ func to_dictionary() -> Dictionary:
 		"card_on_biome": card_on_biome,
 		"card_name": card_name,
 		"card_type": card_type,
-		"cost_to_draw": cost_to_draw,
-		"effect1": effect1,
-		"effect2": effect2,
-		"revealed": revealed,
+		#"cost_to_draw": cost_to_draw,
+		#"effect1": effect1,
+		#"effect2": effect2,
+		#"revealed": revealed,
 		"front_mesh_material": front_mesh_material,
 		"back_mesh_material": back_mesh_material,
-		"elemental_cost": elemental_cost
+		#"elemental_cost": elemental_cost
 	}
 
 func from_dictionary(data: Dictionary) -> void:
@@ -45,13 +42,13 @@ func from_dictionary(data: Dictionary) -> void:
 	card_on_biome = data["card_on_biome"]
 	card_name = data["card_name"]
 	card_type = data["card_type"]
-	cost_to_draw = data["cost_to_draw"]
-	effect1 = data["effect1"]
-	effect2 = data["effect2"]
-	revealed = data["revealed"]
+	#cost_to_draw = data["cost_to_draw"]
+	#effect1 = data["effect1"]
+	#effect2 = data["effect2"]
+	#revealed = data["revealed"]
 	front_mesh_material = data["front_mesh_material"]
 	back_mesh_material = data.get("back_mesh_material", "")
-	elemental_cost = data.get("elemental_cost", 0)
+	#elemental_cost = data.get("elemental_cost", 0)
 
 func _get_property_list():
 	var properties = []
