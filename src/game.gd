@@ -74,14 +74,10 @@ func start_game():
 		# Initialize the deck with a random seed
 		table_node.initialize_deck_with_seed(randi())
 		
-		# Initialize the player's starting hand
-		card_manager.initialize_starting_hand()
-		
 		if network_manager.multiplayer.get_peers().size() > 0:
 			for peer_id in network_manager.multiplayer.get_peers():
 				network_manager.rpc_id(peer_id, "receive_deck_seed", table_node.deck_seed)
 				network_manager.rpc_id(peer_id, "receive_deck_state", table_node.available_cards, table_node.elemental_cards)
-				rpc_id(peer_id, "initialize_client_starting_hand")
 	rpc("sync_game_state", players, game_started)
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓

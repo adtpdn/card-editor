@@ -8,9 +8,17 @@ var card_name : String = ""
 var card_type : CardResource.CardType = CardResource.CardType.ACTION
 var elemental_type : CardResource.ElementalType = CardResource.ElementalType.NONE
 var card_parent : String = ""
+var owner_id: int = -1
+
 
 func _ready():
 	prep_card_mesh()
+
+@rpc("any_peer", "call_local")
+func _set_owner(id: int):
+	print("set owner : ", id)
+	owner_id = id
+
 
 func prep_card_mesh():
 	match card_type:

@@ -1,8 +1,3 @@
-# table.gd
-# This script manages the game's decks, including shuffling, dealing, and card instantiation.
-# It handles both action and elemental cards, synchronizing the deck state across the network.
-# Corrected: Refactored elemental card drawing to fix a bug when buying cards.
-
 extends Node3D
 
 @export var actions_cards = preload("res://assets/materials/cards_materials/actions/cards/action_cards.tres")
@@ -27,12 +22,12 @@ func _ready():
 	await game.ready # Ensure game node and its children are ready
 
 	card_manager = get_node("/root/Game/CardManager")
-
+	
 	# Connect deck click signals
-	var action_deck = get_node_or_null("../CardDeck")
+	var action_deck = get_node_or_null("../ActionDeck")
 	if action_deck:
 		action_deck.connect("card_3d_mouse_up", _on_action_deck_pressed)
-
+	
 	var elemental_deck = get_node_or_null("../ElementalDeck")
 	if elemental_deck:
 		elemental_deck.connect("card_3d_mouse_up", _on_elemental_deck_pressed)
@@ -75,7 +70,7 @@ func shuffle_decks():
 func initialize_deck_with_seed(seed_value: int):
 	# Populate and shuffle both decks
 	reset_and_shuffle_decks()
-
+	
 	# Sync the shuffled decks with all clients
 	rpc("client_receive_decks", available_cards, elementals_ids_arr)
 
@@ -84,13 +79,13 @@ func initialize_deck_with_seed(seed_value: int):
 func reset_and_shuffle_decks():
 	available_cards.clear()
 	elementals_ids_arr.clear()
-
+	
 	for i in range(actions_cards.cards.size()):
 		available_cards.append(i)
-
+	
 	for i in range(elementals_cards.cards.size()):
 		elementals_ids_arr.append(i)
-
+		
 	available_cards.shuffle()
 	elementals_ids_arr.shuffle()
 
@@ -99,24 +94,24 @@ func reset_and_shuffle_decks():
 # Creates a pool of card nodes from the shuffled elemental deck.
 func _create_elemental_deck_nodes():
 	elemental_deck_nodes.clear()
-
+	
 	var count = min(elementals_ids_arr.size(), 18)
 	for i in range(count):
 		var card_index_from_deck = elementals_ids_arr[i]
 		var card_instance = instantiate_face_card(card_index_from_deck, true)
 		elemental_deck_nodes.append(card_instance)
-
+		
 	print("Player %d created an elemental node pool with %d cards." % [multiplayer.get_unique_id(), elemental_deck_nodes.size()])
 
 # Deals the initial 8 cards to the board slices. (Server only)
 func plant_initial_elemental_cards():
 	if not multiplayer.is_server(): return
-
+	
 	var drag_controller = $DragController
 	if elemental_deck_nodes.is_empty():
 		print("Error: The elemental_deck_nodes pool is empty.")
 		return
-
+		
 	for i in range(1, 9): # Loop from 1 to 8
 		var slice_name = "elemental_slice_" + str(i)
 		var elemental_slice = drag_controller.get_node_or_null(slice_name)
@@ -126,15 +121,15 @@ func plant_initial_elemental_cards():
 		else:
 			print("Warning: Could not find slice or ran out of cards for initial placement.")
 			break
-
+	
 	# Calculate valid indices (RED cards only)
 	valid_elemental_indices.clear()
 	for i in range(elemental_deck_nodes.size()):
 		if elemental_deck_nodes[i].elemental_type == CardResource.ElementalType.RED:
 			valid_elemental_indices.append(i)
-
+	
 	print("Server filtered elemental deck to %d RED cards" % valid_elemental_indices.size())
-
+	
 	# Notify all clients about the valid indices
 	rpc("sync_valid_elemental_indices", valid_elemental_indices)
 
@@ -146,13 +141,13 @@ func sync_valid_elemental_indices(indices: Array):
 @rpc("any_peer", "call_local")
 func sync_filtered_elemental_deck_indices(red_indices: Array):
 	if multiplayer.is_server(): return  # Server already has the filtered deck
-
+	
 	# Create a new filtered array using the provided indices
 	var filtered_deck = []
 	for idx in red_indices:
 		if idx < elemental_deck_nodes.size():
 			filtered_deck.append(elemental_deck_nodes[idx])
-
+	
 	# Replace the original deck with the filtered one
 	elemental_deck_nodes = filtered_deck
 	print("Client filtered elemental deck nodes using indices. Remaining: %d" % elemental_deck_nodes.size())
@@ -160,11 +155,11 @@ func sync_filtered_elemental_deck_indices(red_indices: Array):
 # Gathers data about the initial board state and sends it to clients. (Server only)
 func sync_initial_board_state(peer_id: int = 0):
 	if not multiplayer.is_server(): return
-
+	
 	# Wait a single frame to ensure the board state is settled from any recent additions.
 	# This prevents a race condition where a client connects before the server has finished placing cards.
 	await get_tree().process_frame
-
+	
 	var elemental_slice_cards_data = []
 	var drag_controller = $DragController
 	for i in range(1, 9):
@@ -178,7 +173,7 @@ func sync_initial_board_state(peer_id: int = 0):
 					"card_index": original_index,
 					"slice_index": i
 				})
-
+	
 	if not elemental_slice_cards_data.is_empty():
 		if peer_id > 0:
 			# If a specific peer is targeted, send only to them.
@@ -195,12 +190,12 @@ func sync_initial_board_state(peer_id: int = 0):
 @rpc("any_peer", "call_local")
 func client_receive_shuffled_decks(shuffled_actions: Array, shuffled_elementals: Array):
 	if multiplayer.is_server(): return
-
+	
 	available_cards = shuffled_actions
 	elementals_ids_arr = shuffled_elementals
 	valid_elemental_indices.clear() # Reset valid indices
 	print("Client received shuffled decks. Elementals order: ", elementals_ids_arr)
-
+	
 	# Now that the client has the shuffled list, it builds its own identical node pool.
 	_create_elemental_deck_nodes()
 
@@ -217,7 +212,7 @@ func client_receive_initial_slices(slice_data: Array):
 	for i in range(slice_data.size()):
 		if not elemental_deck_nodes.is_empty():
 			elemental_deck_nodes.pop_front()
-
+	
 	print("Client removed dealt cards. Remaining nodes: %d" % elemental_deck_nodes.size())
 
 	print("Client syncing initial elemental slices.")
@@ -240,7 +235,7 @@ func client_receive_decks(shuffled_actions: Array, shuffled_elementals: Array):
 func instantiate_face_card(card_index: int, is_elemental: bool = false) -> FaceCard3D:
 	var scene = load("res://scenes/cards_and_deck/face_card_3d.tscn")
 	var face_card_3d: FaceCard3D = scene.instantiate()
-
+	
 	var card_resource: CardResource
 	if is_elemental:
 		if card_index < 0 or card_index >= elementals_cards.cards.size():
@@ -259,44 +254,41 @@ func instantiate_face_card(card_index: int, is_elemental: bool = false) -> FaceC
 		card_resource = actions_cards.cards[card_index]
 		face_card_3d.front_material_path = card_resource.front_mesh_material.resource_path
 		face_card_3d.back_material_path = card_resource.back_mesh_material.resource_path
-
+		
 	face_card_3d.card_id = card_resource.card_id
 	face_card_3d.card_name = card_resource.card_name
 	face_card_3d.card_type = card_resource.card_type
 	face_card_3d.set_meta("original_card_index", card_index)
-
+	
 	return face_card_3d
 
 # --- Card Drawing Logic ---
-
 func _on_action_deck_pressed():
 	var turn_phase_manager = game.turn_phase_manager
 	if turn_phase_manager.sigil_placed:
 		print("Cannot draw a card if sigil already placed")
 		return
 
+	# FIX: The local player checks their own hand.
 	if game.card_manager.is_action_hand_full():
 		print("Your action card hand is full!")
 		game.notification.show_instruction_label("Your action card hand is full!")
 		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
 		return
 
-	# If the current player is the server, call the function directly.
-	# Otherwise, send an RPC to the server.
 	if multiplayer.is_server():
 		server_draw_card(multiplayer.get_unique_id(), false)
 	else:
-		rpc_id(1, "server_draw_card", multiplayer.get_unique_id(), false)
+		rpc_id(1, "request_server_draw_card", multiplayer.get_unique_id(), false)
 
 func _on_elemental_deck_pressed():
-	# This function is now a simple wrapper.
-	_draw_local_elemental_card()
+	draw_local_elemental_card(0)
 
-# NEW FUNCTION: Centralized logic for drawing an elemental card locally.
-# This is now called by both clicking the deck and buying the card.
-func _draw_local_elemental_card(soil_star_cost: int = 0):
+# Centralized logic for drawing an elemental card. Can be called by clicking the deck or buying.
+func draw_local_elemental_card(soil_star_cost: int = 0):
 	print("Attempting to draw elemental card.")
 
+	# FIX: The local player checks their own hand.
 	if game.card_manager.is_elemental_hand_full():
 		print("Your elemental hand is full!")
 		game.notification.show_instruction_label("Your elemental hand is full!")
@@ -310,6 +302,20 @@ func _draw_local_elemental_card(soil_star_cost: int = 0):
 		return
 
 	var player_id = multiplayer.get_unique_id()
+
+	# Deduct cost if applicable
+	if soil_star_cost > 0:
+		var player_ui_path = "/root/Game/PlayerUIs/Player_%d_UI" % player_id
+		var player_ui = get_node_or_null(player_ui_path)
+		if player_ui:
+			var soil_star_node = player_ui.get_node_or_null("SoilStar")
+			if soil_star_node:
+				soil_star_node.decrease_soil_star(soil_star_cost)
+		if game.notification:
+			game.notification.show_instruction_label("You bought an elemental card!")
+			get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
+
+	# Draw from valid indices
 	var valid_index_position = 0
 	var actual_index = valid_elemental_indices[valid_index_position]
 
@@ -324,48 +330,38 @@ func _draw_local_elemental_card(soil_star_cost: int = 0):
 	valid_elemental_indices.remove_at(valid_index_position)
 	var data = { "id": card_original_index, "card_id": card_id }
 
-	add_card_to_hand(data, true)
-
-	if soil_star_cost > 0:
-		var player_ui_path = "/root/Game/PlayerUIs/Player_%d_UI" % player_id
-		var player_ui = get_node_or_null(player_ui_path)
-		if player_ui:
-			var soil_star_node = player_ui.get_node_or_null("SoilStar")
-			if soil_star_node:
-				soil_star_node.decrease_soil_star(soil_star_cost)
-		if game.notification:
-			game.notification.show_instruction_label("You bought an elemental card!")
-			get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
-
+	add_card_to_hand(player_id, data, true)
 
 	if multiplayer.is_server():
 		rpc("notify_elemental_drawn", player_id, card_original_index, valid_elemental_indices)
 	else:
 		rpc_id(1, "relay_elemental_drawn", player_id, card_original_index, valid_elemental_indices)
 
-
 @rpc("any_peer")
 func relay_elemental_drawn(player_id: int, card_index: int, new_valid_indices: Array):
 	if not multiplayer.is_server(): return
-	elementals_ids_arr.erase(card_index)
 	valid_elemental_indices = new_valid_indices.duplicate()
 	rpc("notify_elemental_drawn", player_id, card_index, valid_elemental_indices)
 
 @rpc("any_peer", "call_local")
 func notify_elemental_drawn(player_id: int, card_index: int, new_valid_indices: Array):
 	if player_id == multiplayer.get_unique_id(): return
-	elementals_ids_arr.erase(card_index)
 	valid_elemental_indices = new_valid_indices.duplicate()
 	print("Player %d drew an elemental card (index: %d)" % [player_id, card_index])
 
+# NEW RPC for clients to request a card from the server.
+@rpc("any_peer", "call_local")
+func request_server_draw_card(player_id: int, is_elemental: bool):
+	if not is_multiplayer_authority():
+		return
+	server_draw_card(player_id, is_elemental)
 
-@rpc("any_peer")
+# This is now a regular server-only function.
 func server_draw_card(player_id: int, is_elemental: bool):
+	# FIX: The server checks the hand of the player who made the request.
 	if is_elemental and game.card_manager.is_elemental_hand_full():
-		print("Player %d elemental hand is full." % player_id)
 		return
 	if not is_elemental and game.card_manager.is_action_hand_full():
-		print("Player %d action hand is full." % player_id)
 		return
 
 	var deck_array = elementals_ids_arr if is_elemental else available_cards
@@ -375,29 +371,31 @@ func server_draw_card(player_id: int, is_elemental: bool):
 
 	var card_original_index = deck_array.pop_front()
 	var card_resource = elementals_cards.cards[card_original_index] if is_elemental else actions_cards.cards[card_original_index]
-
+	
 	var data = { "id": card_original_index, "card_id": card_resource.card_id }
-
+	
 	rpc("client_receive_card", player_id, data, is_elemental)
-
 
 @rpc("any_peer", "call_local")
 func client_receive_card(player_id: int, card_data: Dictionary, is_elemental: bool):
+	# All clients must remove the drawn card from their local deck array to stay in sync.
 	if is_elemental:
 		elementals_ids_arr.erase(card_data["id"])
 	else:
 		available_cards.erase(card_data["id"])
 
+	# Only the player who requested the card actually adds it to their hand.
 	if player_id == multiplayer.get_unique_id():
-		add_card_to_hand(card_data, is_elemental)
+		add_card_to_hand(player_id, card_data, is_elemental)
 
-func add_card_to_hand(card_data: Dictionary, is_elemental: bool):
+func add_card_to_hand(player_id: int, card_data: Dictionary, is_elemental: bool):
 	var card = instantiate_face_card(card_data["id"], is_elemental)
 	if card:
+		card.owner_id = player_id
 		hand.append_card(card)
-		var deck_node_path = "../ElementalDeck" if is_elemental else "../CardDeck"
+		var deck_node_path = "../ElementalDeck" if is_elemental else "../ActionDeck"
 		card.global_position = get_node(deck_node_path).global_position
-
+		
 		if not is_elemental:
 			var turn_phase_manager = game.turn_phase_manager
 			if turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and not turn_phase_manager.sigil_placed:

@@ -40,10 +40,6 @@ var first_swap_token = null
 func _ready():
 	await get_parent().ready
 	player_hand = deck.hand
-	# The server will call initialize_starting_hand for itself when the game starts.
-	# Clients will be told to initialize by the server via an RPC.
-	if multiplayer.is_server():
-		initialize_starting_hand()
 
 func initialize_starting_hand():
 	print("Initializing starting hand with", initial_hand_size, "cards for player", multiplayer.get_unique_id())
@@ -65,7 +61,7 @@ func initialize_starting_hand():
 		if multiplayer.is_server():
 			deck.table.server_draw_card(player_id, false)
 		else:
-			deck.table.rpc_id(1, "server_draw_card", player_id, false)
+			deck.table.rpc_id(1, "request_server_draw_card", player_id, false)
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # --- Card Distribution & Deck  ---
@@ -73,26 +69,34 @@ func initialize_starting_hand():
 func is_hand_full():
 	if not player_hand:
 		player_hand = deck.hand
-	# Corrected: Check against the total of both card types.
-	return player_hand.cards.size() >= (max_action_cards + max_elemental_cards)
+	
+	var card_count = 0
+	var player_id = multiplayer.get_unique_id()
+	for card in player_hand.cards:
+		if card.owner_id == player_id:
+			card_count += 1
+			
+	return card_count >= (max_action_cards + max_elemental_cards)
 
-# Checks if the hand has reached the maximum number of action cards.
+# MODIFIED: This function now takes a player_id to check a specific player's hand.
 func is_action_hand_full():
 	if not player_hand:
 		player_hand = deck.hand
 	var action_card_count = 0
+	var player_id = multiplayer.get_unique_id()
 	for card in player_hand.cards:
-		if card.card_type == CardResource.CardType.ACTION:
+		if card.owner_id == player_id and card.card_type == CardResource.CardType.ACTION:
 			action_card_count += 1
 	return action_card_count >= max_action_cards
 
-# Checks if the hand has reached the maximum number of elemental cards.
+# MODIFIED: This function now takes a player_id to check a specific player's hand.
 func is_elemental_hand_full():
 	if not player_hand:
 		player_hand = deck.hand
 	var elemental_card_count = 0
+	var player_id = multiplayer.get_unique_id()
 	for card in player_hand.cards:
-		if card.card_type == CardResource.CardType.ELEMENTAL:
+		if card.owner_id == player_id and card.card_type == CardResource.CardType.ELEMENTAL:
 			elemental_card_count += 1
 	return elemental_card_count >= max_elemental_cards
 

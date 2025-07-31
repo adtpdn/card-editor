@@ -1084,26 +1084,26 @@ mesh = SubResource("PlaneMesh_tbve4")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_28kt0")
 
-[node name="CardDeck" type="Node3D" parent="Deck"]
+[node name="ActionDeck" type="Node3D" parent="Deck"]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -9.84359, -2.72963, -0.686903)
 script = ExtResource("28_m4url")
 
-[node name="CardMesh" type="Node3D" parent="Deck/CardDeck"]
+[node name="CardMesh" type="Node3D" parent="Deck/ActionDeck"]
 
-[node name="CardBackMesh" type="MeshInstance3D" parent="Deck/CardDeck/CardMesh"]
+[node name="CardBackMesh" type="MeshInstance3D" parent="Deck/ActionDeck/CardMesh"]
 transform = Transform3D(-1, -8.74228e-08, -4.37114e-08, 4.37114e-08, 1.91069e-15, -1, 8.74228e-08, -1, 1.91069e-15, 0, 0, 0)
 mesh = ExtResource("29_8ool0")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_j6x5i")
 
-[node name="CardFrontMesh" type="MeshInstance3D" parent="Deck/CardDeck/CardMesh"]
+[node name="CardFrontMesh" type="MeshInstance3D" parent="Deck/ActionDeck/CardMesh"]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
 mesh = SubResource("PlaneMesh_o3bng")
 skeleton = NodePath("../..")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="Deck/CardDeck"]
+[node name="StaticBody3D" type="StaticBody3D" parent="Deck/ActionDeck"]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Deck/CardDeck/StaticBody3D"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Deck/ActionDeck/StaticBody3D"]
 transform = Transform3D(1, 0, 0, 0, -1, 8.74228e-08, 0, -8.74228e-08, -1, 0, 0, 0)
 shape = SubResource("ConvexPolygonShape3D_21kd5")
 
@@ -1441,9 +1441,9 @@ mouse_filter = 2
 [connection signal="mouse_exited" from="Deck/Table/DragController/Pile/DropZone" to="Deck/Table/DragController/Pile" method="_on_drop_zone_mouse_exited"]
 [connection signal="mouse_entered" from="Deck/Table/DragController/Hand/DropZone" to="Deck/Table/DragController/Hand" method="_on_drop_zone_mouse_entered"]
 [connection signal="mouse_exited" from="Deck/Table/DragController/Hand/DropZone" to="Deck/Table/DragController/Hand" method="_on_drop_zone_mouse_exited"]
-[connection signal="input_event" from="Deck/CardDeck/StaticBody3D" to="Deck/CardDeck" method="_on_static_body_3d_input_event"]
-[connection signal="mouse_entered" from="Deck/CardDeck/StaticBody3D" to="Deck/CardDeck" method="_on_static_body_3d_mouse_entered"]
-[connection signal="mouse_exited" from="Deck/CardDeck/StaticBody3D" to="Deck/CardDeck" method="_on_static_body_3d_mouse_exited"]
+[connection signal="input_event" from="Deck/ActionDeck/StaticBody3D" to="Deck/ActionDeck" method="_on_static_body_3d_input_event"]
+[connection signal="mouse_entered" from="Deck/ActionDeck/StaticBody3D" to="Deck/ActionDeck" method="_on_static_body_3d_mouse_entered"]
+[connection signal="mouse_exited" from="Deck/ActionDeck/StaticBody3D" to="Deck/ActionDeck" method="_on_static_body_3d_mouse_exited"]
 [connection signal="input_event" from="Deck/ElementalDeck/StaticBody3D" to="Deck/ElementalDeck" method="_on_static_body_3d_input_event"]
 [connection signal="mouse_entered" from="Deck/ElementalDeck/StaticBody3D" to="Deck/ElementalDeck" method="_on_static_body_3d_mouse_entered"]
 [connection signal="mouse_exited" from="Deck/ElementalDeck/StaticBody3D" to="Deck/ElementalDeck" method="_on_static_body_3d_mouse_exited"]

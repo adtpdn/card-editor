@@ -17,6 +17,7 @@ extends Control
 # Mapping:  button  ->  minimum soil stars required to enable it
 # This dictionary is now initialized in _ready() to ensure nodes are loaded.
 var button_rules := {}
+var is_buy_action_card := false
 var is_playing_from_soil_star_action := false
 var is_playing_extra_token_from_soil_star := false
 var is_activating_sigil_from_soil_star := false
@@ -140,6 +141,7 @@ func _on_PlayElementalFaceUpButton_pressed():
 
 func _on_BuyCardButton_pressed():                   
 	print("buy_card_button pressed")
+	var turn_phase_manager = game.turn_phase_manager
 	
 	# 1. Check if hand is full
 	if game.card_manager.is_action_hand_full():
@@ -159,12 +161,15 @@ func _on_BuyCardButton_pressed():
 		game.notification.show_instruction_label("Not enough Soil Stars!")
 		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
 		return
-	
-	# 3. All checks passed, perform the action
-	soil_star_node.decrease_soil_star(cost)
+	turn_phase_manager.sigil_placed = false
 	
 	# This now calls the same logic as clicking the deck
-	game.deck.table._on_action_deck_pressed()
+	if !game.deck.table._on_action_deck_pressed():
+		return
+	
+	turn_phase_manager.sigil_placed = true
+	# 3. All checks passed, perform the action
+	soil_star_node.decrease_soil_star(cost)
 
 	# 4. Close the panel
 	_show_hide_actions_panel()
@@ -256,7 +261,7 @@ func _on_BuyElementalButton_pressed():
 	# 3. If all local checks pass, call the new centralized drawing function.
 	var table = get_node("/root/Game/Deck/Table")
 	if is_instance_valid(table):
-		table._draw_local_elemental_card(cost)
+		table.draw_local_elemental_card(cost)
 	
 	# 4. Close the actions panel.
 	_show_hide_actions_panel()
