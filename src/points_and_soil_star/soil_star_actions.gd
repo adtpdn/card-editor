@@ -34,7 +34,7 @@ func _ready():
 		buy_card_button          : 2,
 		play_extra_token_button  : 3,
 		play_sigil_magic_button  : 3,
-		buy_elemental_button     : 1,
+		buy_elemental_button     : 4,
 		swap_elemental_button    : 5,
 	}
 	connect_action_buttons()
@@ -143,8 +143,9 @@ func _on_BuyCardButton_pressed():
 	print("buy_card_button pressed")
 	var turn_phase_manager = game.turn_phase_manager
 	
+	var player_id = multiplayer.get_unique_id()
 	# 1. Check if hand is full
-	if game.card_manager.is_action_hand_full():
+	if game.card_manager.is_action_hand_full(player_id):
 		game.notification.show_instruction_label("Your action card hand is full!")
 		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
 		return
@@ -164,8 +165,7 @@ func _on_BuyCardButton_pressed():
 	turn_phase_manager.sigil_placed = false
 	
 	# This now calls the same logic as clicking the deck
-	if !game.deck.table._on_action_deck_pressed():
-		return
+	game.deck.table._on_action_deck_pressed()
 	
 	turn_phase_manager.sigil_placed = true
 	# 3. All checks passed, perform the action
@@ -246,8 +246,9 @@ func _on_BuyElementalButton_pressed():
 	print("Buy Elemental Button pressed")
 	var cost = button_rules[buy_elemental_button]
 
+	var local_player_id = multiplayer.get_unique_id()
 	# 1. Client-side validation: Check hand size first.
-	if game.card_manager.is_elemental_hand_full():
+	if game.card_manager.is_elemental_hand_full(local_player_id):
 		game.notification.show_instruction_label("Your elemental hand is full!")
 		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
 		return

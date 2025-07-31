@@ -66,12 +66,11 @@ func initialize_starting_hand():
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # --- Card Distribution & Deck  ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-func is_hand_full():
+func is_hand_full(player_id: int):
 	if not player_hand:
 		player_hand = deck.hand
 	
 	var card_count = 0
-	var player_id = multiplayer.get_unique_id()
 	for card in player_hand.cards:
 		if card.owner_id == player_id:
 			card_count += 1
@@ -79,37 +78,24 @@ func is_hand_full():
 	return card_count >= (max_action_cards + max_elemental_cards)
 
 # MODIFIED: This function now takes a player_id to check a specific player's hand.
-func is_action_hand_full():
+func is_action_hand_full(player_id: int):
 	if not player_hand:
 		player_hand = deck.hand
 	var action_card_count = 0
-	var player_id = multiplayer.get_unique_id()
 	for card in player_hand.cards:
 		if card.owner_id == player_id and card.card_type == CardResource.CardType.ACTION:
 			action_card_count += 1
 	return action_card_count >= max_action_cards
 
 # MODIFIED: This function now takes a player_id to check a specific player's hand.
-func is_elemental_hand_full():
+func is_elemental_hand_full(player_id: int):
 	if not player_hand:
 		player_hand = deck.hand
 	var elemental_card_count = 0
-	var player_id = multiplayer.get_unique_id()
 	for card in player_hand.cards:
 		if card.owner_id == player_id and card.card_type == CardResource.CardType.ELEMENTAL:
 			elemental_card_count += 1
 	return elemental_card_count >= max_elemental_cards
-
-
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ---     Card Management      ---
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-# Revealing Card ( handle from new card logic )
-func reveal_cards():
-	# Flip/reveal the cards logic here
-	print("Revealing cards for new round")
-	# Implement flipping/revealing visual here
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # --- Card Drawing & Discarding ---

@@ -270,7 +270,7 @@ func _on_action_deck_pressed():
 		return
 
 	# FIX: The local player checks their own hand.
-	if game.card_manager.is_action_hand_full():
+	if game.card_manager.is_action_hand_full(multiplayer.get_unique_id()):
 		print("Your action card hand is full!")
 		game.notification.show_instruction_label("Your action card hand is full!")
 		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
@@ -287,9 +287,10 @@ func _on_elemental_deck_pressed():
 # Centralized logic for drawing an elemental card. Can be called by clicking the deck or buying.
 func draw_local_elemental_card(soil_star_cost: int = 0):
 	print("Attempting to draw elemental card.")
-
+	var player_id = multiplayer.get_unique_id()
+	
 	# FIX: The local player checks their own hand.
-	if game.card_manager.is_elemental_hand_full():
+	if game.card_manager.is_elemental_hand_full(player_id):
 		print("Your elemental hand is full!")
 		game.notification.show_instruction_label("Your elemental hand is full!")
 		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
@@ -300,8 +301,6 @@ func draw_local_elemental_card(soil_star_cost: int = 0):
 		game.notification.show_instruction_label("No valid elemental cards left!")
 		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
 		return
-
-	var player_id = multiplayer.get_unique_id()
 
 	# Deduct cost if applicable
 	if soil_star_cost > 0:
@@ -359,9 +358,9 @@ func request_server_draw_card(player_id: int, is_elemental: bool):
 # This is now a regular server-only function.
 func server_draw_card(player_id: int, is_elemental: bool):
 	# FIX: The server checks the hand of the player who made the request.
-	if is_elemental and game.card_manager.is_elemental_hand_full():
+	if is_elemental and game.card_manager.is_elemental_hand_full(player_id):
 		return
-	if not is_elemental and game.card_manager.is_action_hand_full():
+	if not is_elemental and game.card_manager.is_action_hand_full(player_id):
 		return
 
 	var deck_array = elementals_ids_arr if is_elemental else available_cards
