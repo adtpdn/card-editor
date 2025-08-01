@@ -871,6 +871,7 @@ collision_layer = 2
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.07791, -61.8802, 1.01178)
 shape = SubResource("BoxShape3D_wljb1")
 disabled = true
+debug_color = Color(0, 0.6, 0.701961, 1)
 
 [node name="PlaceMesh" type="MeshInstance3D" parent="Deck/Table/DragController/elemental_slice_1"]
 transform = Transform3D(21.5001, 0, 0, 0, -9.39795e-07, -21.5001, 0, 21.5, -9.39797e-07, -0.0137296, -0.0599999, 0.0893497)
@@ -893,6 +894,7 @@ collision_layer = 2
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.07791, -61.8802, 1.01178)
 shape = SubResource("BoxShape3D_wljb1")
 disabled = true
+debug_color = Color(0, 0.6, 0.701961, 1)
 
 [node name="PlaceMesh" type="MeshInstance3D" parent="Deck/Table/DragController/elemental_slice_2"]
 transform = Transform3D(21.5001, 0, 0, 0, -9.39795e-07, -21.5001, 0, 21.5, -9.39797e-07, -0.0137296, -0.0599999, 0.0893497)
@@ -915,6 +917,7 @@ collision_layer = 2
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.07791, -61.8802, 1.01178)
 shape = SubResource("BoxShape3D_wljb1")
 disabled = true
+debug_color = Color(0, 0.6, 0.701961, 1)
 
 [node name="PlaceMesh" type="MeshInstance3D" parent="Deck/Table/DragController/elemental_slice_3"]
 transform = Transform3D(21.5001, 0, 0, 0, -9.39795e-07, -21.5001, 0, 21.5, -9.39797e-07, -0.0137296, -0.0599999, 0.0893497)
@@ -937,6 +940,7 @@ collision_layer = 2
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.07791, -61.8802, 1.01178)
 shape = SubResource("BoxShape3D_wljb1")
 disabled = true
+debug_color = Color(0, 0.6, 0.701961, 1)
 
 [node name="PlaceMesh" type="MeshInstance3D" parent="Deck/Table/DragController/elemental_slice_4"]
 transform = Transform3D(21.5001, 0, 0, 0, -9.39795e-07, -21.5001, 0, 21.5, -9.39797e-07, -0.0137296, -0.0599999, 0.0893497)

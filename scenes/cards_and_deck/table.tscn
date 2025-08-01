@@ -1,13 +1,10 @@
-[gd_scene load_steps=12 format=3 uid="uid://usdfp6fqxnev"]
+[gd_scene load_steps=11 format=3 uid="uid://usdfp6fqxnev"]
 
 [ext_resource type="Script" uid="uid://bfmtf7hh4lc0h" path="res://src/cards_and_deck/drag_controller.gd" id="2_07uyt"]
 [ext_resource type="PackedScene" uid="uid://d1uvcisduvvj" path="res://scenes/cards_and_deck/card_collection_3d.tscn" id="3_pqjp5"]
 [ext_resource type="Script" uid="uid://byo1dipcckvtb" path="res://src/cards_and_deck/card_layouts/line_card_layout.gd" id="4_t7f8m"]
 [ext_resource type="Script" uid="uid://8v3bpke27xiw" path="res://src/cards_and_deck/card_layouts/fan_card_layout.gd" id="5_rd2gk"]
 [ext_resource type="PackedScene" uid="uid://bjx4ugu14qx3w" path="res://scenes/cards_and_deck/face_card_3d.tscn" id="6_qtugc"]
-
-[sub_resource type="Resource" id="Resource_fopbw"]
-metadata/__load_path__ = "res://card_deck/table.gd"
 
 [sub_resource type="Resource" id="Resource_yq80r"]
 script = ExtResource("4_t7f8m")
@@ -39,7 +36,6 @@ current = true
 fov = 84.375
 
 [node name="Table" type="Node3D" parent="."]
-script = SubResource("Resource_fopbw")
 
 [node name="DragController" type="Node3D" parent="Table"]
 script = ExtResource("2_07uyt")
@@ -59,8 +55,6 @@ surface_material_override/0 = SubResource("StandardMaterial3D_glsqp")
 
 [node name="Deck" parent="." instance=ExtResource("6_qtugc")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 11.0863, 4.88531, -0.686903)
-rank = 14
-suit = 3
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Deck"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.111376)

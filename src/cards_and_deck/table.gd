@@ -10,7 +10,7 @@ extends Node3D
 # This holds the pre-instantiated elemental card nodes for initial placement (server-side only)
 var elemental_deck_nodes := []
 # Tracks which indices in elemental_deck_nodes are valid (RED)
-var valid_elemental_indices = []
+var red_elemental_indices = []
 
 var rng = RandomNumberGenerator.new()
 
@@ -123,20 +123,20 @@ func plant_initial_elemental_cards():
 			break
 	
 	# Calculate valid indices (RED cards only)
-	valid_elemental_indices.clear()
+	red_elemental_indices.clear()
 	for i in range(elemental_deck_nodes.size()):
 		if elemental_deck_nodes[i].elemental_type == CardResource.ElementalType.RED:
-			valid_elemental_indices.append(i)
+			red_elemental_indices.append(i)
 	
-	print("Server filtered elemental deck to %d RED cards" % valid_elemental_indices.size())
+	print("Server filtered elemental deck to %d RED cards" % red_elemental_indices.size())
 	
 	# Notify all clients about the valid indices
-	rpc("sync_valid_elemental_indices", valid_elemental_indices)
+	rpc("sync_red_elemental_indices", red_elemental_indices)
 
 @rpc("any_peer", "call_local")
-func sync_valid_elemental_indices(indices: Array):
-	valid_elemental_indices = indices.duplicate()
-	print("Received valid elemental indices. %d RED cards available." % valid_elemental_indices.size())
+func sync_red_elemental_indices(indices: Array):
+	red_elemental_indices = indices.duplicate()
+	print("Received valid elemental indices. %d RED cards available." % red_elemental_indices.size())
 
 @rpc("any_peer", "call_local")
 func sync_filtered_elemental_deck_indices(red_indices: Array):
@@ -193,7 +193,7 @@ func client_receive_shuffled_decks(shuffled_actions: Array, shuffled_elementals:
 	
 	available_cards = shuffled_actions
 	elementals_ids_arr = shuffled_elementals
-	valid_elemental_indices.clear() # Reset valid indices
+	red_elemental_indices.clear() # Reset valid indices
 	print("Client received shuffled decks. Elementals order: ", elementals_ids_arr)
 	
 	# Now that the client has the shuffled list, it builds its own identical node pool.
@@ -296,7 +296,7 @@ func draw_local_elemental_card(soil_star_cost: int = 0):
 		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
 		return
 
-	if valid_elemental_indices.is_empty():
+	if red_elemental_indices.is_empty():
 		print("No valid (RED) elemental cards left")
 		game.notification.show_instruction_label("No valid elemental cards left!")
 		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
@@ -316,7 +316,7 @@ func draw_local_elemental_card(soil_star_cost: int = 0):
 
 	# Draw from valid indices
 	var valid_index_position = 0
-	var actual_index = valid_elemental_indices[valid_index_position]
+	var actual_index = red_elemental_indices[valid_index_position]
 
 	if actual_index >= elemental_deck_nodes.size():
 		print("Invalid index in elemental_deck_nodes: %d" % actual_index)
@@ -326,26 +326,26 @@ func draw_local_elemental_card(soil_star_cost: int = 0):
 	var card_original_index = card.get_meta("original_card_index", -1)
 	var card_id = card.card_id
 
-	valid_elemental_indices.remove_at(valid_index_position)
+	red_elemental_indices.remove_at(valid_index_position)
 	var data = { "id": card_original_index, "card_id": card_id }
 
 	add_card_to_hand(player_id, data, true)
 
 	if multiplayer.is_server():
-		rpc("notify_elemental_drawn", player_id, card_original_index, valid_elemental_indices)
+		rpc("notify_elemental_drawn", player_id, card_original_index, red_elemental_indices)
 	else:
-		rpc_id(1, "relay_elemental_drawn", player_id, card_original_index, valid_elemental_indices)
+		rpc_id(1, "relay_elemental_drawn", player_id, card_original_index, red_elemental_indices)
 
 @rpc("any_peer")
 func relay_elemental_drawn(player_id: int, card_index: int, new_valid_indices: Array):
 	if not multiplayer.is_server(): return
-	valid_elemental_indices = new_valid_indices.duplicate()
-	rpc("notify_elemental_drawn", player_id, card_index, valid_elemental_indices)
+	red_elemental_indices = new_valid_indices.duplicate()
+	rpc("notify_elemental_drawn", player_id, card_index, red_elemental_indices)
 
 @rpc("any_peer", "call_local")
 func notify_elemental_drawn(player_id: int, card_index: int, new_valid_indices: Array):
 	if player_id == multiplayer.get_unique_id(): return
-	valid_elemental_indices = new_valid_indices.duplicate()
+	red_elemental_indices = new_valid_indices.duplicate()
 	print("Player %d drew an elemental card (index: %d)" % [player_id, card_index])
 
 # NEW RPC for clients to request a card from the server.
