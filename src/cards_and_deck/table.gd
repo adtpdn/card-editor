@@ -22,11 +22,6 @@ func _ready():
 	await game.ready # Ensure game node and its children are ready
 
 	card_manager = get_node("/root/Game/CardManager")
-	
-	# Connect deck click signals
-	#var action_deck = get_node_or_null("../ActionDeck")
-	#if action_deck:
-		#action_deck.connect("card_3d_mouse_up", _on_action_deck_pressed)
 
 	# All instances populate their decks with a default, unshuffled order.
 	reset_decks()

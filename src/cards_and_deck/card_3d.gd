@@ -33,6 +33,7 @@ var position_tween: Tween
 var rotate_tween: Tween
 var hover_tween: Tween
 
+enum PileType { NONE, ACTION, ELEMENTAL }
 
 func disable_collision():
 	$StaticBody3D/CollisionShape3D.disabled = true
@@ -45,7 +46,7 @@ func enable_collision():
 func set_hovered():
 	if hover_tween and hover_tween.is_running:
 		hover_tween.kill()
-		
+	
 	hover_tween = create_tween()
 	hover_tween.set_parallel(true)
 	hover_tween.set_ease(Tween.EASE_IN)
