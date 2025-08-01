@@ -247,6 +247,7 @@ fov = 50.0
 size = 14.966
 
 [node name="Biomes" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.16, 0)
 
 [node name="corner_slice_1" type="Node3D" parent="Biomes"]
 transform = Transform3D(21.5, 0, 0, 0, 21.5, 0, 0, 0, 21.5, 0, -0.15, 0)
@@ -287,7 +288,7 @@ surface_material_override/0 = ExtResource("14_02fa5")
 [node name="SigilMesh" parent="." instance=ExtResource("20_05nbr")]
 
 [node name="game_board" parent="." instance=ExtResource("16_7025r")]
-transform = Transform3D(22, 0, 0, 0, 22, 0, 0, 0, 22, 0, -0.132328, 0)
+transform = Transform3D(22, 0, 0, 0, 22, 0, 0, 0, 22, 0, -0.292328, 0)
 
 [node name="TokenPlacements" type="Node3D" parent="."]
 
