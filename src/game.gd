@@ -36,6 +36,9 @@ var player_hands = {}
 var player_slots = [false, false, false, false] # Track occupied slots
 var max_players = 4 # Maximum players allowed
 
+# Format: { player_id: BiomeType }
+var player_last_biome_placements = {}
+
 const player_colors = [
 	Color(1, 0, 0),# Red
 	Color(0, 1, 0),# Green

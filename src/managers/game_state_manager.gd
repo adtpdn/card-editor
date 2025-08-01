@@ -21,7 +21,7 @@ const player_hud_scene = preload("res://scenes/player_ui/player_hud.tscn")
 # Game State Variables
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 var game_started = false
-var current_round: int = 1
+var current_round: int = 0
 var round_count
 var current_turn_index = 0
 var max_players = 4 # Maximum players allowed
@@ -362,15 +362,7 @@ func next_turn():
 		# Advance Turn
 		current_turn_index = (current_turn_index + 1) % players.size()
 		
-		# If wrapped to 0, a new round started
-		#if current_turn_index == 0:
-			#round_count += 1
-			#print("=== New Round: ", round_count, " ===")
-			## Trigger card flip event here (see next step)
-			#get_parent().call_deferred("on_new_round", round_count)
-		
 		var next_player = game.players[current_turn_index]
-		
 		
 		tokens = token_manager.get_player_tokens(next_player)
 		get_parent().rpc("set_current_turn", next_player)
@@ -517,7 +509,9 @@ func update_player_hand_interaction():
 func advance_to_next_round():
 	if multiplayer.is_server():
 		current_round += 1
-		print("Server advancing to round: ", current_round)
+		# Clear the last biome placements for the new round
+		get_parent().player_last_biome_placements.clear()
+		print("Server advancing to round: ", current_round, " - Cleared last biome placements.")
 		# Explicitly sync the new round number to all clients
 		rpc("sync_current_round", current_round)
 

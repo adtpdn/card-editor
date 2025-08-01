@@ -24,16 +24,21 @@ func _ready():
 	card_manager = get_node("/root/Game/CardManager")
 	
 	# Connect deck click signals
+	#var action_deck = get_node_or_null("../ActionDeck")
+	#if action_deck:
+		#action_deck.connect("card_3d_mouse_up", _on_action_deck_pressed)
+
+	# All instances populate their decks with a default, unshuffled order.
+	reset_decks()
+
+func connect_decks():
 	var action_deck = get_node_or_null("../ActionDeck")
 	if action_deck:
 		action_deck.connect("card_3d_mouse_up", _on_action_deck_pressed)
 	
-	var elemental_deck = get_node_or_null("../ElementalDeck")
-	if elemental_deck:
-		elemental_deck.connect("card_3d_mouse_up", _on_elemental_deck_pressed)
-
-	# All instances populate their decks with a default, unshuffled order.
-	reset_decks()
+	#var elemental_deck = get_node_or_null("../ElementalDeck")
+	#if elemental_deck:
+		#elemental_deck.connect("card_3d_mouse_up", _on_elemental_deck_pressed)
 
 # --- Deck Setup and Shuffling (Server-Side) ---
 
@@ -264,6 +269,11 @@ func instantiate_face_card(card_index: int, is_elemental: bool = false) -> FaceC
 
 # --- Card Drawing Logic ---
 func _on_action_deck_pressed():
+	print("action deck pressed")
+	#var game_state_manager = game.game_state_manager
+	#if game_state_manager.current_round == 0:
+		#return
+	
 	var turn_phase_manager = game.turn_phase_manager
 	if turn_phase_manager.sigil_placed:
 		print("Cannot draw a card if sigil already placed")
@@ -395,8 +405,17 @@ func add_card_to_hand(player_id: int, card_data: Dictionary, is_elemental: bool)
 		var deck_node_path = "../ElementalDeck" if is_elemental else "../ActionDeck"
 		card.global_position = get_node(deck_node_path).global_position
 		
-		if not is_elemental:
+		if is_elemental:
+			card.face_down = false
+		
+		if not is_elemental and game.game_state_manager.current_round > 0:
 			var turn_phase_manager = game.turn_phase_manager
-			if turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and not turn_phase_manager.sigil_placed:
+			# Player draw a card in Plant Biome Phase
+			if turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_BIOME and !turn_phase_manager.is_draw_card:
+				print('draw card in plant on biome')
+				turn_phase_manager.is_draw_card = true
+				turn_phase_manager.check_phase_two_completion()
+			# Player draw a card in Plant Sigil and Card Phase
+			elif turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and not turn_phase_manager.sigil_placed:
 				turn_phase_manager.sigil_placed = true
 				turn_phase_manager.check_phase_two_completion()

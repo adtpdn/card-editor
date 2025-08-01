@@ -37,6 +37,9 @@ var completed_phases = {
 	Phase.PLAY_SIGIL: false
 }
 
+# Sub-phase tracking for PLANT_BIOME
+var is_draw_card := false
+
 # Sub-phase tracking for PLANT_SIGIL_AND_CARD
 var sigil_placed = false
 var card_played = false
@@ -169,6 +172,7 @@ func enter_current_phase():
 	
 	notification.hide()
 	
+	# Round 0 (plant 2 tokens)
 	if game_state_manager.current_round == 0 and count_plant <= 1:
 		match current_phase:
 			Phase.PLANT_BIOME:
@@ -179,6 +183,11 @@ func enter_current_phase():
 				end_turn_button.disabled = true
 				return
 	
+	# Connect action deck pressed signal
+	var table = game.deck.table
+	table.connect_decks()
+	
+	# Round 1 - 8
 	match current_phase:
 		Phase.PLANT_BIOME:
 			#print("TurnPhaseManager: Setting up PLANT_BIOME phase")
@@ -246,6 +255,7 @@ func reset_card_variables():
 func reset_phases():
 	#print("TurnPhaseManager: Resetting phases")
 	current_phase = Phase.NONE
+	is_draw_card = false
 	sigil_placed = false
 	card_played = false
 	
@@ -282,14 +292,17 @@ func complete_current_phase():
 # Check if phase 2 is complete (both sigil placed and card played)
 func check_phase_two_completion():
 	#print("TurnPhaseManager: Checking phase two completion. Sigil placed: ", sigil_placed, ", Card played: ", card_played)
-	if sigil_placed and card_played:
-		#print("TurnPhaseManager: Phase two complete, both actions done")
+	if is_draw_card:
+		print("check phase two comp")
+		completed_phases[Phase.PLANT_BIOME] = true
+		call_deferred("advance_to_next_phase")
+	
+	elif sigil_placed and card_played:
 		completed_phases[Phase.PLANT_SIGIL_AND_CARD] = true
-		
 		# Use call_deferred to avoid immediate phase change during signal processing
 		call_deferred("advance_to_next_phase")
+	
 	else:
-		#print("TurnPhaseManager: Phase two not yet complete")
 		# Update notification to show progress
 		show_phase_two_progress()
 
@@ -347,7 +360,7 @@ func show_phase_two_progress():
 
 # Advances to the next phase in sequence
 func advance_to_next_phase():
-	#print("TurnPhaseManager: Advancing to next phase from: ", current_phase)
+	print("TurnPhaseManager: Advancing to next phase from: ", current_phase)
 	
 	#print("count plant : ", count_plant)
 	if game_state_manager.current_round == 0:

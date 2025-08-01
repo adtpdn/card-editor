@@ -33,14 +33,38 @@ func check_domination_for_elemental_flips():
 
 	print("--- Checking Biome with most tokens for Elemental Flips ---")
 
-	var most_occupied_biome = _get_most_occupied_biome()
+	var biome_token_counts = _get_biome_token_counts()
+	
+	var winning_biomes = []
+	var max_count = 0
 
-	if most_occupied_biome != -1:
-		var biome_key = Biome.keys()[most_occupied_biome]
+	# First, find the highest token count.
+	for count in biome_token_counts.values():
+		if count > max_count:
+			max_count = count
+
+	# Second, find all biomes that achieved that high score.
+	if max_count > 0:
+		for biome_type in biome_token_counts:
+			if biome_token_counts[biome_type] == max_count:
+				winning_biomes.append(biome_type)
+
+	var winning_biome = -1
+
+	if winning_biomes.size() == 1:
+		# A single biome has the most tokens.
+		winning_biome = winning_biomes[0]
+		var biome_key = Biome.keys()[winning_biome]
 		print("The %s biome has the most tokens. Checking for elemental flip." % biome_key)
-		_flip_elemental_for_biome(most_occupied_biome)
+	elif winning_biomes.size() > 1:
+		# Tie-breaker logic.
+		print("Tie for most tokens between biomes: ", winning_biomes)
+		winning_biome = _resolve_domination_tie(winning_biomes)
+	
+	if winning_biome != -1:
+		_flip_elemental_for_biome(winning_biome)
 	else:
-		print("No single biome has the most tokens (tie or no tokens). No elemental flip.")
+		print("No single biome has the most tokens (tie could not be resolved or no tokens). No elemental flip.")
 
 # This function should be called SECOND at the end of a round, after flips.
 # It checks for PLAYER domination in each biome and awards stars.
@@ -87,10 +111,30 @@ func check_domination_for_soil_stars():
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # --- Private Helper and Logic Functions ---
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Tie-breaker logic based on last player's placement.
+func _resolve_domination_tie(tied_biomes: Array) -> int:
+	# Get the player turn order for this round.
+	var player_order = game.players.duplicate()
+	player_order.reverse() # Start checking from the last player of the round.
+
+	print("Resolving tie. Player check order: ", player_order)
+	print("Last biome placements: ", game.player_last_biome_placements)
+
+	for player_id in player_order:
+		if game.player_last_biome_placements.has(player_id):
+			var last_biome = game.player_last_biome_placements[player_id]
+			print("Checking player %d, last placed in biome %s" % [player_id, Biome.keys()[last_biome]])
+			# If their last placed biome is one of the tied ones, that biome wins.
+			if tied_biomes.has(last_biome):
+				print("Tie resolved! Player %d's last placement in %s wins." % [player_id, Biome.keys()[last_biome]])
+				return last_biome
+	
+	print("Tie could not be resolved by player placement history.")
+	return -1 # Tie could not be resolved.
 
 # NEW FUNCTION: Finds which biome has the most tokens in total, regardless of player.
 # Returns the Biome enum value if there's a clear winner, otherwise returns -1 for a tie.
-func _get_most_occupied_biome() -> int:
+func _get_biome_token_counts() -> Dictionary:
 	var biome_token_counts = {
 		Biome.FOREST: 0,
 		Biome.WATER: 0,
@@ -103,27 +147,9 @@ func _get_most_occupied_biome() -> int:
 		if not token.is_energy:
 			if biome_token_counts.has(token.biome_type):
 				biome_token_counts[token.biome_type] += 1
-
-	# --- Determine the winning biome ---
-	var winning_biomes = []
-	var max_count = 0
-
-	# First, find the highest token count.
-	for count in biome_token_counts.values():
-		if count > max_count:
-			max_count = count
-
-	# Second, find all biomes that achieved that high score.
-	if max_count > 0:
-		for biome_type in biome_token_counts:
-			if biome_token_counts[biome_type] == max_count:
-				winning_biomes.append(biome_type)
-
-	# If there is exactly one winning biome, return its type. Otherwise, it's a tie.
-	if winning_biomes.size() == 1:
-		return winning_biomes[0]
-	else:
-		return -1 # Indicates a tie or no tokens
+	
+	print("Total tokens per biome: ", biome_token_counts)
+	return biome_token_counts
 
 # Counts non-blighted, non-energy tokens to find the player with the most.
 # Returns a single winner ID, or -1 for a tie/no winner. (Used for Soil Stars)
