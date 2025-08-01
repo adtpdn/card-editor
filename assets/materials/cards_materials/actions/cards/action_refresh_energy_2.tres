@@ -16,3 +16,4 @@ effect2 = ""
 revealed = true
 front_mesh_material = ExtResource("2_n3un8")
 back_mesh_material = ExtResource("1_777n8")
+elemental_cost = 0
