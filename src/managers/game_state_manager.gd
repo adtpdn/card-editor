@@ -342,7 +342,8 @@ func next_turn():
 		if is_end_of_round and current_round > 0:
 			print("Last player's turn ended. A full round is complete.")
 			print("--- Checking for biome domination ---")
-			await domination_manager.check_domination_biomes()
+			await domination_manager.check_domination_for_elemental_flips()
+			await domination_manager.check_domination_for_soil_stars()
 			await reorder_players_after_round()
 			advance_to_next_round()
 		

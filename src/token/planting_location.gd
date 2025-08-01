@@ -13,7 +13,7 @@ const CARD_THICKNESS = 0.01
 const STACK_SPACING = 0.001
 signal card_placed(card: CardResource, slot_index: int, location_name: String)
 
-var Card3DScene = preload("res://card_3d.tscn")
+var Card3DScene = preload("res://scenes/cards_and_deck/card_3d.tscn")
 
 func _ready():
 	# Get all markers from the Markers node
@@ -47,7 +47,7 @@ func create_marker_material(highlighted: bool) -> StandardMaterial3D:
 	if highlighted:
 		# Different colors for different zones
 		var highlight_color = Color(0.2, 1.0, 0.2, 0.5)  # Green for action
-		if CardResource.CardType.AREA in accepted_card_types:
+		if CardResource.CardType.ELEMENTAL in accepted_card_types:
 			highlight_color = Color(0.2, 0.2, 1.0, 0.5)  # Blue for area
 		material.albedo_color = highlight_color
 	else:

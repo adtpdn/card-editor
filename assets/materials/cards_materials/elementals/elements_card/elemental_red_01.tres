@@ -8,12 +8,8 @@
 script = ExtResource("3_rdvjf")
 card_id = 0
 card_on_biome = -1
-card_name = ""
+card_name = "ElementalRed01"
 card_type = 1
-cost_to_draw = 1
-effect1 = ""
-effect2 = ""
-revealed = false
+elemental_type = 1
 front_mesh_material = ExtResource("2_22m7x")
 back_mesh_material = ExtResource("1_nfkrw")
-elemental_cost = 0

@@ -1,6 +1,8 @@
 # network_manager.gd
 extends Node
 
+signal server_created
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # References to other managers
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -136,24 +138,28 @@ func _on_host_pressed():
 		multiplayer.multiplayer_peer = multiplayer_peer
 		var host_id = multiplayer.get_unique_id()
 		
+		game.deck.table.setup_decks_for_new_game()
+		
 		# Initialize host data
 		game.players = [host_id]  # Reset players array
 		game.initial_player_order = [host_id]
 		game.player_hands[host_id] = []
-		#game.player_colors[host_id] = game.PLAYER_COLORS[0]
 		
 		# Initialize game state
 		token_manager.initialize_player_tokens(host_id)
 		var tokens = token_manager.get_player_tokens(host_id)
 		token_manager.update_token_ui()
-		#card_manager.distribute_initial_hand()
 		
-		#game_state_manager._add_player_ui(host_id)
 		game_state_manager.setup_player(host_id)
 		game_state_manager.start_game()
 		
+		# FIX: Deal initial hand to the host after the game has started.
+		await get_tree().create_timer(0.1).timeout # Short delay for stability
+		card_manager.initialize_starting_hand()
+		
 		# Start broadcasting server info
 		setup_network_discovery()
+		server_created.emit()
 	else:
 		if connect_status:
 			connect_status.text = "Failed to create server: " + str(error)
@@ -206,18 +212,13 @@ func attempt_connection(target_ip: String):
 	if error == OK:
 		multiplayer.multiplayer_peer = multiplayer_peer
 		
-		# Request initial game state if joining an existing game
 		get_tree().create_timer(1.0).timeout.connect(func():
 			if multiplayer.is_server():
 				return
 			var local_id = multiplayer.get_unique_id()
-			#game_state_manager._add_player_ui(local_id)
 			if local_id > 0:
 				print("Client requesting initial game state and cards")
-				# Request initial game state
 				game.rpc_id(1, "request_game_state_sync", local_id)
-				# Request initial cards
-				#game.card_manager.rpc_id(1, "request_initial_cards")
 		)
 		
 		var network_display = get_parent().get_node("RightUI/NetworkInfo/NetworkSideDisplay")
@@ -226,7 +227,6 @@ func attempt_connection(target_ip: String):
 	else:
 		if connect_status:
 			connect_status.text = "Connection failed: " + str(error)
-		# Retry after delay
 		await get_tree().create_timer(1.0).timeout
 		attempt_connection(target_ip)
 
@@ -242,12 +242,38 @@ func _on_peer_connected(new_peer_id):
 		if game.players.size() >= game.max_players:
 			multiplayer_peer.disconnect_peer(new_peer_id)
 			return
-			
+		
 		print("New peer connected: ", new_peer_id)
 		
 		# 1. Add the new player to the server's master list
 		game.players.append(new_peer_id)
 		
+		# Get the table node to access its data and RPCs
+		var table = get_node("/root/Game/Deck/Table")
+		
+		# Send the already-shuffled decks to the NEW player ONLY.
+		table.rpc_id(new_peer_id, "client_receive_shuffled_decks", table.available_cards, table.elementals_ids_arr)
+		
+		# Send the valid elemental indices to the NEW player ONLY
+		table.rpc_id(new_peer_id, "sync_valid_elemental_indices", table.valid_elemental_indices)
+		
+		# Gather the current board state and send it to the NEW player ONLY.
+		var elemental_slice_cards_data = []
+		var drag_controller = table.get_node("DragController")
+		for i in range(1, 9):
+			var slice_name = "elemental_slice_" + str(i)
+			var elemental_slice = drag_controller.get_node_or_null(slice_name)
+			if elemental_slice and elemental_slice.cards.size() > 0:
+				var card = elemental_slice.cards[0]
+				var original_index = card.get_meta("original_card_index", -1)
+				if original_index != -1:
+					elemental_slice_cards_data.append({
+						"card_index": original_index,
+						"slice_index": i
+					})
+		
+		if not elemental_slice_cards_data.is_empty():
+			table.rpc_id(new_peer_id, "client_receive_initial_slices", elemental_slice_cards_data)
 		
 		# 2. Initialize the new player's tokens ON THE SERVER
 		token_manager.initialize_player_tokens(new_peer_id)
@@ -255,9 +281,11 @@ func _on_peer_connected(new_peer_id):
 		# 3. Call the single authoritative function to sync the UI for ALL players
 		game_state_manager.rpc("sync_player_list_and_uis", game.players)
 		
-		# 4. Send the initial full game state to the NEW player ONLY
-		#var all_tokens = token_manager.player_tokens
-		#game.rpc_id(new_peer_id, "sync_initial_full_state", game.players, game.game_started, all_tokens)
+		# 4. FIX: Deal the initial hand to the new client.
+		#await get_tree().create_timer(1.0).timeout
+		#game.rpc_id(new_peer_id, "initialize_client_starting_hand")
+		table.rpc_id(1, "request_server_draw_card", new_peer_id, false)
+		table.server_draw_card(new_peer_id,false)
 
 func _on_peer_disconnected(peer_id):
 	# This logic only runs on the server
@@ -325,30 +353,25 @@ func _start_server_discovery():
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---    IP & UPnP Handling    ---
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 func get_local_ip() -> String:
 	var addresses = IP.get_local_addresses()
-	#print("address : ", addresses)
 	
-	# Priority 1: Find a 192.168.x.x address (common home/office network)
 	for ip in addresses:
 		if ip.begins_with("192.168."):
 			return ip
 	
-	# Priority 2: Find other common private network addresses
 	for ip in addresses:
 		if ip.begins_with("10.") or ip.begins_with("172.16.") or ip.begins_with("172.17.") or \
 		   ip.begins_with("172.18.") or ip.begins_with("172.19.") or ip.begins_with("172.2") or \
 		   ip.begins_with("172.30.") or ip.begins_with("172.31."):
 			return ip
 	
-	# Priority 3: Only use link-local as a last resort before localhost
 	for ip in addresses:
 		if ip.begins_with("169.254."):
 			return ip
 	
-	# Priority 4: Use localhost if nothing else is available
 	for ip in addresses:
 		if ip == "127.0.0.1":
 			return ip
@@ -360,9 +383,7 @@ func get_valid_ips() -> Array:
 	var addresses = IP.get_local_addresses()
 	
 	for ip in addresses:
-		# Filter for valid IPv4 addresses
 		if ip.count(".") == 3 and not ip.begins_with("127."):
-			# Check for mobile-specific IP patterns
 			if ip.begins_with("192.168.") or \
 			   ip.begins_with("10.") or \
 			   ip.begins_with("172."):
@@ -376,7 +397,6 @@ func setup_upnp() -> bool:
 	
 	if discover_result == UPNP.UPNP_RESULT_SUCCESS:
 		if upnp.get_gateway() and upnp.get_gateway().is_valid_gateway():
-			# Try to map both UDP and TCP
 			var map_result_udp = upnp.add_port_mapping(PORT, PORT, "GodotGameUDP", "UDP")
 			var map_result_tcp = upnp.add_port_mapping(PORT, PORT, "GodotGameTCP", "TCP")
 			
@@ -398,7 +418,7 @@ func cleanup_upnp():
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---    Mobile UI Support     ---
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 func setup_mobile_ui():
 	var ip_input = get_parent().get_node("RightUI/Menu/IPInput")
@@ -407,7 +427,6 @@ func setup_mobile_ui():
 		ip_input.placeholder_text = "Enter host IP..."
 
 func setup_mobile_network():
-	# Display local IP for hosting
 	var ip_input = get_parent().get_node("RightUI/Menu/IPInput")
 	var connect_status = get_parent().get_node("RightUI/Menu/ConnectStatus")
 	
@@ -415,7 +434,6 @@ func setup_mobile_network():
 		var addresses = IP.get_local_addresses()
 		var ip_text = "Available IPs:\n"
 		for ip in addresses:
-			# Only show IPv4 addresses that aren't localhost
 			if ip.count(".") == 3 and not ip.begins_with("127."):
 				ip_text += ip + "\n"
 		connect_status.text = ip_text
@@ -438,7 +456,7 @@ func _refresh_ip_display():
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---    Network Processing    ---
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 func _process(_delta):
 	if !is_host and listen_socket:
@@ -481,7 +499,7 @@ func _process(_delta):
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---    Network Cleanup      ---
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 func cleanup_network():
 	if broadcast_socket:
@@ -514,7 +532,7 @@ func _notification(what):
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---         Draw Card        ---
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 func sync_card_draw():
 	if multiplayer.is_server():
 		# Just sync the available_cards state

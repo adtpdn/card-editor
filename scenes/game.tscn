@@ -1,4 +1,4 @@
-[gd_scene load_steps=59 format=4 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=58 format=4 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://src/game.gd" id="1_e1j6l"]
 [ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://src/managers/turn_phase_manager.gd" id="2_pl11u"]
@@ -29,8 +29,8 @@
 [ext_resource type="Script" uid="uid://dauol4rysxcqw" path="res://src/cards_and_deck/card_layouts/pile_card_layout.gd" id="25_02fa5"]
 [ext_resource type="PackedScene" uid="uid://dxe1h1c8t2n61" path="res://scenes/points_and_soil_star/soil_star_actions.tscn" id="25_pl11u"]
 [ext_resource type="Script" uid="uid://8v3bpke27xiw" path="res://src/cards_and_deck/card_layouts/fan_card_layout.gd" id="26_nepv3"]
-[ext_resource type="Texture2D" uid="uid://d2saurvkwpx4s" path="res://assets/cards/elementals/elemental_blue_back.png" id="27_js0lu"]
 [ext_resource type="Texture2D" uid="uid://cbpt07uuhs6gd" path="res://assets/cards/2D/back-card.png" id="28_gxtfn"]
+[ext_resource type="Material" uid="uid://f6nfxgmoiawj" path="res://assets/materials/cards_materials/elementals/ElementalsRedBackMesh.tres" id="28_js0lu"]
 [ext_resource type="Script" uid="uid://bqibbhjbko4ra" path="res://src/cards_and_deck/card_3d.gd" id="28_m4url"]
 [ext_resource type="PlaneMesh" uid="uid://dxvj3gkbbknem" path="res://assets/meshes/card_3d_back_mesh.tres" id="29_8ool0"]
 [ext_resource type="Material" uid="uid://b2jdqh0ex1sps" path="res://assets/materials/cards_materials/elementals/ElementalRed01.tres" id="30_02fa5"]
@@ -159,9 +159,6 @@ size = Vector2(2.5, 3.5)
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_21kd5"]
 points = PackedVector3Array(-1.25, 1.75, 0, -1.25, -1.75, 0, 1.25, -1.75, 0, 1.25, 1.75, 0)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gxtfn"]
-albedo_texture = ExtResource("27_js0lu")
-
 [sub_resource type="ArrayMesh" id="ArrayMesh_nepv3"]
 _surfaces = [{
 "aabb": AABB(-0.0453736, -0.00104126, -0.0434318, 0.0914393, 0.0020775, 0.0783865),
@@ -184,7 +181,7 @@ _surfaces = [{
 "format": 34896613399,
 "index_count": 60,
 "index_data": PackedByteArray("AAABAAIAAQAAAAMAAwAAAAQAAQADAAUABgAHAAgABwAGAAkACQAGAAoABwAJAAsADAANAA4ADAAPAA0AEAARABIAEAATABEAFAAVABYAFAAXABUAGAAZABoAGAAbABkAHAAdAB4AHAAfAB0AIAAhACIAIAAjACEA"),
-"material": SubResource("StandardMaterial3D_gxtfn"),
+"material": ExtResource("28_js0lu"),
 "name": "Elemental_Blue_1",
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
@@ -1081,26 +1078,26 @@ mesh = SubResource("PlaneMesh_tbve4")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_28kt0")
 
-[node name="CardDeck" type="Node3D" parent="Deck"]
+[node name="ActionDeck" type="Node3D" parent="Deck"]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -9.84359, -2.72963, -0.686903)
 script = ExtResource("28_m4url")
 
-[node name="CardMesh" type="Node3D" parent="Deck/CardDeck"]
+[node name="CardMesh" type="Node3D" parent="Deck/ActionDeck"]
 
-[node name="CardBackMesh" type="MeshInstance3D" parent="Deck/CardDeck/CardMesh"]
+[node name="CardBackMesh" type="MeshInstance3D" parent="Deck/ActionDeck/CardMesh"]
 transform = Transform3D(-1, -8.74228e-08, -4.37114e-08, 4.37114e-08, 1.91069e-15, -1, 8.74228e-08, -1, 1.91069e-15, 0, 0, 0)
 mesh = ExtResource("29_8ool0")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_j6x5i")
 
-[node name="CardFrontMesh" type="MeshInstance3D" parent="Deck/CardDeck/CardMesh"]
+[node name="CardFrontMesh" type="MeshInstance3D" parent="Deck/ActionDeck/CardMesh"]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
 mesh = SubResource("PlaneMesh_o3bng")
 skeleton = NodePath("../..")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="Deck/CardDeck"]
+[node name="StaticBody3D" type="StaticBody3D" parent="Deck/ActionDeck"]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Deck/CardDeck/StaticBody3D"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Deck/ActionDeck/StaticBody3D"]
 transform = Transform3D(1, 0, 0, 0, -1, 8.74228e-08, 0, -8.74228e-08, -1, 0, 0, 0)
 shape = SubResource("ConvexPolygonShape3D_21kd5")
 
@@ -1438,9 +1435,9 @@ mouse_filter = 2
 [connection signal="mouse_exited" from="Deck/Table/DragController/Pile/DropZone" to="Deck/Table/DragController/Pile" method="_on_drop_zone_mouse_exited"]
 [connection signal="mouse_entered" from="Deck/Table/DragController/Hand/DropZone" to="Deck/Table/DragController/Hand" method="_on_drop_zone_mouse_entered"]
 [connection signal="mouse_exited" from="Deck/Table/DragController/Hand/DropZone" to="Deck/Table/DragController/Hand" method="_on_drop_zone_mouse_exited"]
-[connection signal="input_event" from="Deck/CardDeck/StaticBody3D" to="Deck/CardDeck" method="_on_static_body_3d_input_event"]
-[connection signal="mouse_entered" from="Deck/CardDeck/StaticBody3D" to="Deck/CardDeck" method="_on_static_body_3d_mouse_entered"]
-[connection signal="mouse_exited" from="Deck/CardDeck/StaticBody3D" to="Deck/CardDeck" method="_on_static_body_3d_mouse_exited"]
+[connection signal="input_event" from="Deck/ActionDeck/StaticBody3D" to="Deck/ActionDeck" method="_on_static_body_3d_input_event"]
+[connection signal="mouse_entered" from="Deck/ActionDeck/StaticBody3D" to="Deck/ActionDeck" method="_on_static_body_3d_mouse_entered"]
+[connection signal="mouse_exited" from="Deck/ActionDeck/StaticBody3D" to="Deck/ActionDeck" method="_on_static_body_3d_mouse_exited"]
 [connection signal="input_event" from="Deck/ElementalDeck/StaticBody3D" to="Deck/ElementalDeck" method="_on_static_body_3d_input_event"]
 [connection signal="mouse_entered" from="Deck/ElementalDeck/StaticBody3D" to="Deck/ElementalDeck" method="_on_static_body_3d_mouse_entered"]
 [connection signal="mouse_exited" from="Deck/ElementalDeck/StaticBody3D" to="Deck/ElementalDeck" method="_on_static_body_3d_mouse_exited"]

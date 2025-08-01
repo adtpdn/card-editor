@@ -11,7 +11,6 @@ func update_card_positions(cards: Array[Card3D], duration: float):
 		var card = cards[i]
 		if card != null:
 			card.animate_to_position(positions[i], duration)
-			print()
 			card.dragging_rotation(rotations[i])
 
 func update_card_position(card: Card3D, num_cards: int, index: int, duration: float):

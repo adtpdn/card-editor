@@ -64,13 +64,13 @@ signal phase_changed(phase)
 signal turn_action_completed(phase)
 
 func _ready():
-	print("TurnPhaseManager: _ready called")
+	#print("TurnPhaseManager: _ready called")
 	create_phase_popup()
 	
 	# Connect to token button
 	var token_button = game.get_node("RightUI/TokenButton")
 	if token_button:
-		print("TurnPhaseManager: Found token button")
+		#print("TurnPhaseManager: Found token button")
 		if token_button.pressed.is_connected(on_token_button_pressed):
 			token_button.pressed.disconnect(on_token_button_pressed)
 		token_button.pressed.connect(on_token_button_pressed)
@@ -79,11 +79,11 @@ func _ready():
 	
 	# Connect to token manager signals
 	if token_manager and token_manager.has_signal("token_placed"):
-		print("TurnPhaseManager: Connecting to token_placed signal")
+		#print("TurnPhaseManager: Connecting to token_placed signal")
 		if token_manager.token_placed.is_connected(_on_token_placed):
 			token_manager.token_placed.disconnect(_on_token_placed)
 		token_manager.token_placed.connect(_on_token_placed)
-		print("TurnPhaseManager: Connection to token_placed signal established!")
+		#print("TurnPhaseManager: Connection to token_placed signal established!")
 	else:
 		print("TurnPhaseManager: WARNING - token_placed signal not found in token_manager!")
 		print("TurnPhaseManager: Available signals in token_manager: ", token_manager.get_signal_list() if token_manager else "token_manager not found")
@@ -91,7 +91,7 @@ func _ready():
 	# Connect to sigil buttons
 	var sigil_container = game.get_node("SigilContainer")
 	if sigil_container:
-		print("TurnPhaseManager: Found sigil container")
+		#print("TurnPhaseManager: Found sigil container")
 		for child in sigil_container.get_children():
 			if child is Button:
 				if child.pressed.is_connected(_on_sigil_button_pressed.bind(child.name)):
@@ -103,7 +103,7 @@ func _ready():
 	# Connect to end turn button
 	var end_turn_button = game.get_node("RightUI/EndTurnButton")
 	if end_turn_button:
-		print("TurnPhaseManager: Found end turn button")
+		#print("TurnPhaseManager: Found end turn button")
 		if end_turn_button.pressed.is_connected(_on_end_turn_pressed):
 			end_turn_button.pressed.disconnect(_on_end_turn_pressed)
 		end_turn_button.pressed.connect(_on_end_turn_pressed)
@@ -111,13 +111,13 @@ func _ready():
 		print("TurnPhaseManager: End turn button not found!")
 
 func initialize():
-	print("")
-	print("TurnPhaseManager: initialize called")
+	#print("")
+	#print("TurnPhaseManager: initialize called")
 	reset_phases()
 
 # Creates the phase popup
 func create_phase_popup():
-	print("TurnPhaseManager: Creating phase popup")
+	#print("TurnPhaseManager: Creating phase popup")
 	
 	# Create popup panel
 	phase_notification = AcceptDialog.new()
@@ -131,13 +131,13 @@ func create_phase_popup():
 	# End phase button
 	end_phase_button.pressed.connect(_on_end_phase_button_pressed)
 	
-	print("TurnPhaseManager: Phase popup created")
+	#print("TurnPhaseManager: Phase popup created")
 
 # Sets the current active phase
 func set_phase(phase_id: Phase):
-	print("TurnPhaseManager: set_phase called with phase: ", phase_id)
+	#print("TurnPhaseManager: set_phase called with phase: ", phase_id)
 	if phase_id == current_phase:
-		print("TurnPhaseManager: Already in phase ", phase_id)
+		#print("TurnPhaseManager: Already in phase ", phase_id)
 		return
 		
 	# Exit current phase
@@ -181,32 +181,32 @@ func enter_current_phase():
 	
 	match current_phase:
 		Phase.PLANT_BIOME:
-			print("TurnPhaseManager: Setting up PLANT_BIOME phase")
+			#print("TurnPhaseManager: Setting up PLANT_BIOME phase")
 			# FIXED: In biome phase, we want to plant tokens on BIOME locations (place_id == -1)
 			token_manager.can_plant_on_biome = true
 			token_manager.can_plant_on_sigil = false
 			
 			 # Disable cards in first phase
 		Phase.PLANT_SIGIL_AND_CARD:
-			print("TurnPhaseManager: Setting up PLANT_SIGIL_AND_CARD phase")
+			#print("TurnPhaseManager: Setting up PLANT_SIGIL_AND_CARD phase")
 			# FIXED: In sigil phase, we want to plant tokens on SIGIL locations (place_id != -1)
 			token_manager.can_plant_on_biome = false
 			token_manager.can_plant_on_sigil = true
 		Phase.PLAY_SIGIL:
-			print("TurnPhaseManager: Setting up PLAY_SIGIL phase")
+			#print("TurnPhaseManager: Setting up PLAY_SIGIL phase")
 			# Disable tokens and cards
 			token_manager.can_plant_on_biome = false
 			token_manager.can_plant_on_sigil = false
 			reset_card_variables()
 			highlight_marker_mesh()
 		Phase.END_TURN:
-			print("TurnPhaseManager: Setting up END_TURN phase")
+			#print("TurnPhaseManager: Setting up END_TURN phase")
 			if game_state_manager:
 				game_state_manager._on_end_turn_pressed()
 
 # Actions when exiting a phase
 func exit_current_phase():
-	print("TurnPhaseManager: Exiting phase: ", current_phase)
+	#print("TurnPhaseManager: Exiting phase: ", current_phase)
 	
 	# Hide end phase button
 	end_phase_button.visible = false
@@ -224,13 +224,13 @@ func exit_current_phase():
 				sigil_manager.is_sigil_c = false
 
 func highlight_marker_mesh():
-	print("highlight marker mesh")
+	#print("highlight marker mesh")
 	for token in tokens.get_children():
 		if sigil_manager.check_for_sigil_a_pattern(token) or sigil_manager.check_for_sigil_b_pattern(token) or sigil_manager.check_for_sigil_c_pattern(token):
 			token.marker_mesh.show()
 
 func unhighlight_marker_mesh():
-	print("unhighlight marker mesh")
+	#print("unhighlight marker mesh")
 	for token in tokens.get_children():
 		token.marker_mesh.hide()
 
@@ -244,7 +244,7 @@ func reset_card_variables():
 
 # Resets all phases for a new turn
 func reset_phases():
-	print("TurnPhaseManager: Resetting phases")
+	#print("TurnPhaseManager: Resetting phases")
 	current_phase = Phase.NONE
 	sigil_placed = false
 	card_played = false
@@ -261,14 +261,14 @@ func reset_phases():
 	# Set initial phase when it's player's turn
 	var local_id = multiplayer.get_unique_id()
 	if game_state_manager.is_valid_player_turn(local_id):
-		print("TurnPhaseManager: It's the local player's turn, setting initial phase")
+		#print("TurnPhaseManager: It's the local player's turn, setting initial phase")
 		set_phase(Phase.PLANT_BIOME)
 	else:
 		print("TurnPhaseManager: Not the local player's turn")
 
 # Complete the current phase
 func complete_current_phase():
-	print("TurnPhaseManager: Completing phase: ", current_phase)
+	#print("TurnPhaseManager: Completing phase: ", current_phase)
 	
 	if current_phase == Phase.PLAY_SIGIL:
 		end_phase_button.disabled = true
@@ -281,21 +281,21 @@ func complete_current_phase():
 
 # Check if phase 2 is complete (both sigil placed and card played)
 func check_phase_two_completion():
-	print("TurnPhaseManager: Checking phase two completion. Sigil placed: ", sigil_placed, ", Card played: ", card_played)
+	#print("TurnPhaseManager: Checking phase two completion. Sigil placed: ", sigil_placed, ", Card played: ", card_played)
 	if sigil_placed and card_played:
-		print("TurnPhaseManager: Phase two complete, both actions done")
+		#print("TurnPhaseManager: Phase two complete, both actions done")
 		completed_phases[Phase.PLANT_SIGIL_AND_CARD] = true
 		
 		# Use call_deferred to avoid immediate phase change during signal processing
 		call_deferred("advance_to_next_phase")
 	else:
-		print("TurnPhaseManager: Phase two not yet complete")
+		#print("TurnPhaseManager: Phase two not yet complete")
 		# Update notification to show progress
 		show_phase_two_progress()
 
 # Show progress in phase 2
 func show_phase_two_progress():
-	print("TurnPhaseManager: Showing phase two progress")
+	#print("TurnPhaseManager: Showing phase two progress")
 	if current_phase != Phase.PLANT_SIGIL_AND_CARD:
 		return
 		
@@ -347,9 +347,9 @@ func show_phase_two_progress():
 
 # Advances to the next phase in sequence
 func advance_to_next_phase():
-	print("TurnPhaseManager: Advancing to next phase from: ", current_phase)
+	#print("TurnPhaseManager: Advancing to next phase from: ", current_phase)
 	
-	print("count plant : ", count_plant)
+	#print("count plant : ", count_plant)
 	if game_state_manager.current_round == 0:
 		if count_plant == 2:
 			var end_turn_button = get_parent().get_node("RightUI/EndTurnButton")
@@ -367,18 +367,18 @@ func advance_to_next_phase():
 	match current_phase:
 		Phase.PLANT_BIOME:
 			next_phase = Phase.PLANT_SIGIL_AND_CARD
-			print("TurnPhaseManager: Advancing from PLANT_BIOME to PLANT_SIGIL_AND_CARD")
+			#print("TurnPhaseManager: Advancing from PLANT_BIOME to PLANT_SIGIL_AND_CARD")
 		Phase.PLANT_SIGIL_AND_CARD:
 			next_phase = Phase.PLAY_SIGIL
-			print("TurnPhaseManager: Advancing from PLANT_SIGIL_AND_CARD to PLAY_SIGIL")
+			#print("TurnPhaseManager: Advancing from PLANT_SIGIL_AND_CARD to PLAY_SIGIL")
 		Phase.PLAY_SIGIL:
 			next_phase = Phase.END_TURN
-			print("TurnPhaseManager: Advancing from PLAY_SIGIL to END_TURN")
+			#print("TurnPhaseManager: Advancing from PLAY_SIGIL to END_TURN")
 		Phase.END_TURN:
-			print("TurnPhaseManager: Already at END_TURN, no further advancement")
+			#print("TurnPhaseManager: Already at END_TURN, no further advancement")
 			return
 		_:
-			print("TurnPhaseManager: Invalid phase: ", current_phase)
+			#print("TurnPhaseManager: Invalid phase: ", current_phase)
 			return
 	
 	# Exit current phase
@@ -396,19 +396,19 @@ func advance_to_next_phase():
 	# Show notification
 	show_phase_notification()
 	
-	print("TurnPhaseManager: Phase successfully advanced from ", previous_phase, " to ", current_phase)
+	#print("TurnPhaseManager: Phase successfully advanced from ", previous_phase, " to ", current_phase)
 
 
 # Helper function to enable/disable sigil buttons
 func enable_sigil_buttons(enabled: bool):
-	print("TurnPhaseManager: ", "Enabling" if enabled else "Disabling", " sigil buttons")
+	#print("TurnPhaseManager: ", "Enabling" if enabled else "Disabling", " sigil buttons")
 	var sigil_container = game.get_node("SigilContainer")
 	if sigil_container:
 		for child in sigil_container.get_children():
 			if child is Button:
 				child.disabled = !enabled
 				child.modulate = Color(1, 1, 1, 1) if enabled else Color(0.5, 0.5, 0.5, 0.5)
-		print("TurnPhaseManager: Sigil buttons ", "enabled" if enabled else "disabled")
+		#print("TurnPhaseManager: Sigil buttons ", "enabled" if enabled else "disabled")
 	else:
 		print("TurnPhaseManager: Sigil container not found!")
 
@@ -456,42 +456,42 @@ func show_requirement_notification(message: String):
 
 # Displays a notification about the current phase
 func show_phase_notification():
-	print("TurnPhaseManager: Showing phase notification for phase: ", current_phase)
+	#print("TurnPhaseManager: Showing phase notification for phase: ", current_phase)
 	if current_phase == Phase.NONE:
-		print("TurnPhaseManager: Not showing notification for NONE phase")
+		#print("TurnPhaseManager: Not showing notification for NONE phase")
 		return
 
 	# Add a description label
 	status_phase.show_instruction_label(phase_descriptions[current_phase])
 
-	print("TurnPhaseManager: Custom notification displayed")
+	#print("TurnPhaseManager: Custom notification displayed")
 
 # --------------------------------
 # Event handlers
 # --------------------------------
 
 func on_token_button_pressed():
-	print("TurnPhaseManager: Token button pressed")
+	#print("TurnPhaseManager: Token button pressed")
 	var local_id = multiplayer.get_unique_id()
 	if !game_state_manager.is_valid_player_turn(local_id):
-		print("TurnPhaseManager: Not player's turn")
+		#print("TurnPhaseManager: Not player's turn")
 		return
 		
 	# Check if we're in a valid token planting phase
 	if current_phase == Phase.PLANT_BIOME:
-		print("TurnPhaseManager: In PLANT_BIOME phase, enabling biome placement")
+		#print("TurnPhaseManager: In PLANT_BIOME phase, enabling biome placement")
 		token_manager.can_plant_on_biome = true
 		token_manager.can_plant_on_sigil = false
 		token_manager._on_token_selected()
 	elif current_phase == Phase.PLANT_SIGIL_AND_CARD:
-		print("TurnPhaseManager: In PLANT_SIGIL_AND_CARD phase, enabling sigil placement")
+		#print("TurnPhaseManager: In PLANT_SIGIL_AND_CARD phase, enabling sigil placement")
 		token_manager.can_plant_on_biome = false
 		token_manager.can_plant_on_sigil = true
 		token_manager._on_token_selected()
 
 
 func _on_end_phase_button_pressed():
-	print("TurnPhaseManager: End phase button pressed")
+	#print("TurnPhaseManager: End phase button pressed")
 	
 	if game_state_manager.current_round == 0:
 		return

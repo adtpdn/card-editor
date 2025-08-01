@@ -49,7 +49,7 @@ signal turn_changed
 # Initialization
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 func _ready():
-	print("Game initializing...")
+	#print("Game initializing...")
 	
 	token_manager.initialize()
 	network_manager.initialize()
@@ -63,10 +63,10 @@ func _ready():
 		$SigilManager.initialize()
 	
 	set_process_input(true)
-	print("Game initialized.")
+	#print("Game initialized.")
 
 func start_game():
-	print("Starting game - initializing card system")
+	#print("Starting game - initializing card system")
 	if multiplayer.is_server():
 		game_started = true
 		var table_node = $Deck/Table
@@ -74,22 +74,12 @@ func start_game():
 		# Initialize the deck with a random seed
 		table_node.initialize_deck_with_seed(randi())
 		
-		# --- THIS IS THE FIX ---
-		# Call the card planting function right after the deck is ready.
-		table_node.plant_initial_elemental_cards()
-		# --- END OF FIX ---
-		
-		# Initialize the player's starting hand
-		card_manager.initialize_starting_hand()
-		
 		if network_manager.multiplayer.get_peers().size() > 0:
 			for peer_id in network_manager.multiplayer.get_peers():
 				network_manager.rpc_id(peer_id, "receive_deck_seed", table_node.deck_seed)
 				network_manager.rpc_id(peer_id, "receive_deck_state", table_node.available_cards, table_node.elemental_cards)
-				rpc_id(peer_id, "initialize_client_starting_hand")
 	rpc("sync_game_state", players, game_started)
 
-# ... (the rest of your game.gd file remains the same)
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---  	Color Management 	  ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
@@ -127,10 +117,10 @@ func sync_initial_order(order_from_server: Array):
 		initial_player_order = order_from_server
 		print("[%d] Received and set initial player order for colors in game.gd: %s" % [multiplayer.get_unique_id(), str(initial_player_order)])
 
-@rpc("any_peer", "call_remote")
+@rpc("any_peer", "call_local")
 func initialize_client_starting_hand():
-	print("Client initializing starting hand...")
-	card_manager.initialize_starting_hand()
+	if not multiplayer.is_server():
+		card_manager.initialize_starting_hand()
 	
 	# Debug the client's hand after initialization
 	print("Client hand after initialization:")
@@ -141,7 +131,7 @@ func initialize_client_starting_hand():
 
 @rpc("any_peer", "call_local")
 func sync_game_state(game_players, has_started):
-	print("Syncing game state from server")
+	#print("Syncing game state from server")
 	players = game_players
 	game_started = has_started
 	initial_player_order = game_players

@@ -805,7 +805,7 @@ func receive_complete_token_state(placement_data: Array, token_data: Array):
 
 # Main initialization function that can be called from game.gd
 func initialize():
-	print("TokenManager initializing...")
+	#print("TokenManager initializing...")
 	
 	setup_token_placements()
 	setup_biome_borders()
@@ -818,7 +818,7 @@ func initialize():
 		
 		# Directly update token UI for host
 		var tokens = get_player_tokens(host_id)
-		print("Host initialized with " + str(tokens.size()) + " tokens")
+		#print("Host initialized with " + str(tokens.size()) + " tokens")
 		
 		# Force update the token button
 		var token_button = get_parent().get_node("RightUI/TokenButton")
@@ -826,7 +826,7 @@ func initialize():
 			token_button.text = "Tokens: " + str(tokens.size())
 			token_button.disabled = false  # Force enable for host
 		
-	print("TokenManager initialized.")
+	#print("TokenManager initialized.")
 
 func setup_token_placements():
 	# Only set up if not already set up
