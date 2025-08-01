@@ -457,7 +457,7 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	# 1. Create the token and set its visual properties.
 	var token = _create_token_instance(player_id, token_data, placement)
 
-	# Biome locations have a place_id > 0, while sigil locations are -1.
+	# Biome locations have a place_id == -1
 	if placement.place_id == -1 and !token.is_energy: # -1 is plant on biome
 		get_parent().player_last_biome_placements[player_id] = token.biome_type
 		print("Player %d last placed a token in biome %s" % [player_id, BiomeType.keys()[token.biome_type]])
