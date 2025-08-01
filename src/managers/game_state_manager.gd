@@ -517,7 +517,9 @@ func update_player_hand_interaction():
 func advance_to_next_round():
 	if multiplayer.is_server():
 		current_round += 1
-		print("Server advancing to round: ", current_round)
+		# Clear the last biome placements for the new round
+		get_parent().player_last_biome_placements.clear()
+		print("Server advancing to round: ", current_round, " - Cleared last biome placements.")
 		# Explicitly sync the new round number to all clients
 		rpc("sync_current_round", current_round)
 
