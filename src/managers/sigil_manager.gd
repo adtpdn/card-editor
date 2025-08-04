@@ -1048,30 +1048,38 @@ func perform_push_pull(energy_token, token, is_push: bool):
 func _on_blight_unblight_input():
 	print("blight unblight input")
 	if is_sigil_mode:
-		print("")
-		
 		if _selected_token == null:
 			show_blight_unblight_direction_ui(selected_energy_token)
 			return
 		
-		print("Processing push/pull input")
+		print("Processing blight/unblight input")
 		print("Target token : ", _selected_token)
-		print("Hit something at position: ", _selected_token.position)
 		
 		var target_token = _selected_token
 		
-		var is_blight_status = target_token.is_blighted
-		#_selected_token.set_blighted(!is_blight_status)
+		# MODIFICATION START: Determine if blighting or unblighting
+		if target_token.is_blighted:
+			# This is an UNBLIGHT action (target is one of our own)
+			# We just flip it in place.
+			game.rpc("sync_token_blight", target_token.global_position, false)
+		else:
+			# This is a BLIGHT action (target is an opponent's token)
+			# We need to move it. This must be done on the server.
+			if multiplayer.is_server():
+				token_manager.blight_token_and_move(target_token)
+			else:
+				# Clients request the server to perform the action.
+				rpc_id(1, "request_sigil_blight_move", target_token.get_path())
+		# MODIFICATION END
 		
 		# Clear the instruction label at the end of the operation
 		notification.hide_panel()
 		
-		game.rpc("sync_token_blight", _selected_token.global_position, !_selected_token.is_blighted)
-		
 		_selected_token = null
 		is_sigil_mode = false
 		token_manager.is_token_selected = false
-		selected_energy_token.highlight(false)
+		if is_instance_valid(selected_energy_token):
+			selected_energy_token.highlight(false)
 		selected_energy_token = null
 		is_sigil_c = false
 		is_blight_mode = false
@@ -1082,7 +1090,16 @@ func _on_blight_unblight_input():
 		for token in tokens:
 			token.outerglow.hide()
 		disable_all_sigil_buttons()
-		print("Blight")
+		print("Blight/Unblight action complete.")
+
+# NEW RPC to handle client requests for Sigil C blight
+@rpc("any_peer")
+func request_sigil_blight_move(token_path: NodePath):
+	if not multiplayer.is_server(): return
+	
+	var token = get_node_or_null(token_path)
+	if is_instance_valid(token):
+		token_manager.blight_token_and_move(token)
 
 # Function to handle the input for push/pull destination selection
 func _on_push_pull_input(_placement_pos):

@@ -104,7 +104,6 @@ func _ready():
 
 func _input(event):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		#print("event : ", event)
 		handle_touch(event.position)
 
 
@@ -458,7 +457,7 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 	var token = _create_token_instance(player_id, token_data, placement)
 
 	# Biome locations have a place_id == -1
-	if placement.place_id == -1 and !token.is_energy: # -1 is plant on biome
+	if placement.place_id == -1 and not token.is_energy: # -1 is plant on biome
 		get_parent().player_last_biome_placements[player_id] = token.biome_type
 		print("Player %d last placed a token in biome %s" % [player_id, BiomeType.keys()[token.biome_type]])
 
@@ -471,7 +470,7 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 
 	# 4. Emit signal for other systems to react to.
 	emit_signal("token_placed", player_id, token_data.biome, position)
-
+	
 # -----------------------------------------------------------------------------
 # PRIVATE HELPER FUNCTIONS request_token_placement and sync_token_placement
 # -----------------------------------------------------------------------------
@@ -495,7 +494,6 @@ func _is_placement_request_valid(player_id: int, token_index: int, placement: No
 	# If the "Plant Extra" card effect is active, bypass the phase-based placement rules.
 	if card_manager.is_plant_extra:
 		return true # The UI has already highlighted valid spots, so we can approve.
-
 	# Check if the placement is valid for the current game phase (normal rules).
 	var current_phase = turn_phase_manager.current_phase
 	if current_phase == turn_phase_manager.Phase.PLANT_BIOME and placement.place_id != -1:
@@ -591,6 +589,71 @@ func sync_all_tokens_on_board(all_tokens_data: Array) -> void:
 		if placement:
 			# Note: We pass token_data itself to the creation function
 			_create_token_instance(token_data.owner, token_data, placement)
+
+# -----------------------------------------------------------------------------
+# NEW Blight and Move Logic
+# -----------------------------------------------------------------------------
+
+# Called by card_manager or sigil_manager to start the blight process.
+# This function must only be called on the server.
+func blight_token_and_move(token: Node3D):
+	if not multiplayer.is_server(): return
+
+	if not is_instance_valid(token) or token.is_blighted:
+		return # Can't blight an invalid or already blighted token.
+
+	var original_pos = token.global_position
+	var biome_type = token.biome_type
+	
+	# Find a valid, unoccupied spot with place_id 10 in the same biome.
+	var new_placement = _find_available_blight_spot(biome_type)
+
+	if new_placement:
+		var new_pos = new_placement.global_position
+		# Broadcast the move to all clients (including the server).
+		rpc("sync_token_blight_move", original_pos, new_pos)
+	else:
+		# If no spot is available, just blight the token in place.
+		rpc("sync_token_blight", original_pos, true)
+
+# Helper to find a valid placement for a blighted token.
+func _find_available_blight_spot(biome_type: int) -> Node:
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if not placement.is_occupied and placement.accepted_biome == biome_type and placement.place_id == 10:
+			return placement # Return the first available spot.
+	return null # Return null if no spots are available.
+
+# RPC called on all clients to execute the token blight and move.
+@rpc("any_peer", "call_local")
+func sync_token_blight_move(original_position: Vector3, new_position: Vector3):
+	var token = find_token_at_position(original_position)
+	if not is_instance_valid(token):
+		printerr("Blight sync failed: Could not find token at original position.")
+		return
+	
+	var old_placement = get_token_placement_at_position(original_position)
+	var new_placement = get_token_placement_at_position(new_position)
+
+	if not is_instance_valid(new_placement):
+		printerr("Blight sync failed: Could not find new placement location.")
+		return
+
+	# Free up the old spot.
+	if is_instance_valid(old_placement):
+		old_placement.is_occupied = false
+		old_placement.current_token = null
+		
+	# Move the token.
+	token.global_position = new_position
+	
+	# Occupy the new spot.
+	new_placement.is_occupied = true
+	new_placement.current_token = token
+	token.token_placement = new_placement
+	
+	# Update the token's state and play the animation.
+	token.is_blighted = true
+	token.play_blight_animation(true)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # End of Core Token Planting Functions
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1271,7 +1334,7 @@ func sync_token_colors(token_data: Array):
 							print("Applied player 2 material to token")
 						2:
 							mesh.material_override = token_mat_player_3
-							print("Applied player 3 material to token") 
+							print("Applied player 3 material to token")
 						3:
 							mesh.material_override = token_mat_player_4
 							print("Applied player 4 material to token")

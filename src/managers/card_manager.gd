@@ -575,9 +575,24 @@ func request_unblight_token(token_position: Vector3):
 	if !game_state_manager.is_valid_player_turn(player_id):
 		return
 
-	# Process the token blighting
-	unblight_token(token_position)
-	print("Server processed token blight at: " + str(token_position))
+	# MODIFICATION START: This now handles both blighting and unblighting
+	var token = token_manager.find_token_at_position(token_position)
+	if not is_instance_valid(token):
+		print("Server could not find token to unblight/blight.")
+		return
+
+	# If the token is already blighted, it's an un-blight action (flip in place).
+	if token.is_blighted:
+		# The original 'unblight' logic is now just flipping it back.
+		unblight_token(token_position)
+	else:
+		# If it's NOT blighted, it's a blight action that requires MOVING.
+		# This is a new path that was not in the original code.
+		# We delegate this complex logic to the token manager.
+		token_manager.blight_token_and_move(token)
+
+	print("Server processed token unblight/blight at: " + str(token_position))
+	# MODIFICATION END
 
 func unblight_token(token_position):
 	# Find the token at this position
@@ -670,7 +685,7 @@ func sync_face_down_swap(player_id: int, hand_card_original_index: int, board_ca
 	if not board_card or not board_card is FaceCard3D:
 		print("Swap sync failed: could not find board card at path: ", board_card_path)
 		return
-		
+
 	var slice_collection = board_card.get_parent()
 	if not slice_collection or not slice_collection is CardCollection3D:
 		print("Swap sync failed: could not get slice collection from board card.")
