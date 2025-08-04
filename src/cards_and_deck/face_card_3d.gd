@@ -2,9 +2,8 @@ class_name FaceCard3D
 extends Card3D
 
 var card_id : int = -1
-var card_on_biome = -1
+var card_on_biome = -1 # Special for action card
 var card_name : String = ""
-# The card_type variable now explicitly uses the enum from CardResource.
 var card_type : CardResource.CardType = CardResource.CardType.ACTION
 var elemental_type : CardResource.ElementalType = CardResource.ElementalType.NONE
 var card_parent : String = ""
@@ -13,12 +12,13 @@ var owner_id: int = -1
 
 func _ready():
 	prep_card_mesh()
+	
+	set_scale_elemental()
 
-@rpc("any_peer", "call_local")
-func _set_owner(id: int):
-	print("set owner : ", id)
-	owner_id = id
-
+func set_scale_elemental():
+	# Set Default Instantiate ELemental Card Type
+	if card_type == CardResource.CardType.ELEMENTAL:
+		scale = Vector3(0.7, 0.7, 1)
 
 func prep_card_mesh():
 	match card_type:

@@ -183,10 +183,6 @@ func enter_current_phase():
 				end_turn_button.disabled = true
 				return
 	
-	# Connect action deck pressed signal
-	var table = game.deck.table
-	table.connect_decks()
-	
 	# Round 1 - 8
 	match current_phase:
 		Phase.PLANT_BIOME:

@@ -348,6 +348,10 @@ func next_turn():
 			advance_to_next_round()
 		
 		if is_end_of_round and current_round == 0 :
+			# Connect action deck pressed signal
+			var table = game.deck.table
+			table.connect_decks()
+			
 			advance_to_next_round()
 
 		var current_player = players[current_turn_index]
