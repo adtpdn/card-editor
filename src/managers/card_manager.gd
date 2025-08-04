@@ -631,54 +631,161 @@ func reset_all_effect_modes():
 	# token_manager.unhighlight_outerglow()
 	# token_manager.unhighlight_all_token_placements()
 
+# -------------------------------------------------------------------------
+# START: Elemental Face Down Swap Logic
+# -------------------------------------------------------------------------
 func perform_face_down_swap(board_card: FaceCard3D):
 	if not hand_card_for_swap or not board_card:
 		print("ERROR: Swap cannot be performed. Missing card references.")
 		return
 
-	var hand_collection = hand_card_for_swap.get_parent()
-	var slice_collection = board_card.get_parent()
+	# Get the necessary data to identify the cards across the network
+	var hand_card_original_index = hand_card_for_swap.get_meta("original_card_index", -1)
+	var board_card_path = board_card.get_path()
+	var player_id = multiplayer.get_unique_id()
 
-	var hand_card_index = hand_collection.cards.find(hand_card_for_swap)
-	var board_card_index = slice_collection.cards.find(board_card)
-	var slice_path = slice_collection.get_path()
+	if hand_card_original_index == -1:
+		print("ERROR: Card from hand is missing original_card_index metadata.")
+		return
 
+	# Client sends request to server, server executes directly
 	if multiplayer.is_server():
-		sync_face_down_swap(hand_card_index, slice_path, board_card_index)
+		sync_face_down_swap(player_id, hand_card_original_index, board_card_path)
 	else:
-		rpc_id(1, "request_face_down_swap", hand_card_index, slice_path, board_card_index)
+		rpc_id(1, "request_face_down_swap", player_id, hand_card_original_index, board_card_path)
 
 @rpc("any_peer")
-func request_face_down_swap(hand_card_idx: int, slice_path: NodePath, board_card_idx: int):
+func request_face_down_swap(player_id: int, hand_card_idx: int, board_card_path: NodePath):
 	if not multiplayer.is_server(): return
-	rpc("sync_face_down_swap", hand_card_idx, slice_path, board_card_idx)
+	# Server validates the request (omitted for brevity, but you'd check if it's the player's turn, etc.)
+	# Then broadcasts the confirmed action to all clients
+	rpc("sync_face_down_swap", player_id, hand_card_idx, board_card_path)
 
 @rpc("any_peer", "call_local")
-func sync_face_down_swap(hand_card_idx: int, slice_path: NodePath, board_card_idx: int):
-	var hand_collection = get_node("/root/Game/Deck/Table/DragController/Hand")
-	var slice_collection = get_node_or_null(slice_path)
-
-	if not hand_collection or not slice_collection:
-		print("Swap sync failed: could not find collections.")
+func sync_face_down_swap(player_id: int, hand_card_original_index: int, board_card_path: NodePath):
+	# This function now runs on ALL peers (including the server)
+	
+	# 1. Find the card on the board to be replaced
+	var board_card = get_node_or_null(board_card_path)
+	if not board_card or not board_card is FaceCard3D:
+		print("Swap sync failed: could not find board card at path: ", board_card_path)
+		return
+		
+	var slice_collection = board_card.get_parent()
+	if not slice_collection or not slice_collection is CardCollection3D:
+		print("Swap sync failed: could not get slice collection from board card.")
 		return
 
-	if hand_card_idx < 0 or hand_card_idx >= hand_collection.cards.size() or \
-	   board_card_idx < 0 or board_card_idx >= slice_collection.cards.size():
-		print("Swap sync failed: invalid card index.")
-		return
-
-	# Perform the swap
-	var card_from_hand = hand_collection.remove_card(hand_card_idx)
-	var card_to_remove = slice_collection.remove_card(board_card_idx)
+	# 2. Remove the old card from the board
+	var board_card_index = slice_collection.cards.find(board_card)
+	if board_card_index != -1:
+		var card_to_remove = slice_collection.remove_card(board_card_index)
+		card_to_remove.queue_free()
 	
-	if card_from_hand is FaceCard3D:
-		card_from_hand.face_down = true
+	# 3. The player who made the move removes the card from their hand
+	if player_id == multiplayer.get_unique_id():
+		var hand_collection = get_node("/root/Game/Deck/Table/DragController/Hand")
+		var card_in_hand_to_remove = null
+		for card in hand_collection.cards:
+			if card.get_meta("original_card_index", -2) == hand_card_original_index:
+				card_in_hand_to_remove = card
+				break
+		if card_in_hand_to_remove:
+			var hand_card_idx = hand_collection.cards.find(card_in_hand_to_remove)
+			hand_collection.remove_card(hand_card_idx)
+		else:
+			print("Swap sync warning: could not find card with index ", hand_card_original_index, " in local player's hand.")
 
-	slice_collection.insert_card(card_from_hand, board_card_idx)
-	card_to_remove.queue_free()
-	
+	# 4. Instantiate the new card and place it on the board
+	var table = get_node("/root/Game/Deck/Table")
+	var new_card_instance = table.instantiate_face_card(hand_card_original_index, true) # true for elemental
+	if new_card_instance:
+		new_card_instance.owner_id = player_id
+		new_card_instance.face_down = true # Ensure it's placed face down
+		slice_collection.append_card(new_card_instance)
+	else:
+		print("Swap sync failed: could not instantiate new card with index ", hand_card_original_index)
+
+	# 5. Reset the state
 	var game = get_node("/root/Game")
 	if game.soil_star_actions.is_swapping_elemental:
 		game.soil_star_actions.is_swapping_elemental = false
 		hand_card_for_swap = null
 		game.notification.hide_panel()
+# -------------------------------------------------------------------------
+# END: Elemental Face Down Swap Logic
+# -------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------
+# START: Elemental Face Up Swap Logic
+# -------------------------------------------------------------------------
+func perform_face_up_swap(board_card: FaceCard3D):
+	if not hand_card_for_swap or not board_card:
+		print("ERROR: Swap cannot be performed. Missing card references.")
+		return
+
+	var hand_card_original_index = hand_card_for_swap.get_meta("original_card_index", -1)
+	var board_card_path = board_card.get_path()
+	var player_id = multiplayer.get_unique_id()
+
+	if hand_card_original_index == -1:
+		print("ERROR: Card from hand is missing original_card_index metadata.")
+		return
+
+	if multiplayer.is_server():
+		sync_face_up_swap(player_id, hand_card_original_index, board_card_path)
+	else:
+		rpc_id(1, "request_face_up_swap", player_id, hand_card_original_index, board_card_path)
+
+@rpc("any_peer")
+func request_face_up_swap(player_id: int, hand_card_idx: int, board_card_path: NodePath):
+	if not multiplayer.is_server(): return
+	rpc("sync_face_up_swap", player_id, hand_card_idx, board_card_path)
+
+@rpc("any_peer", "call_local")
+func sync_face_up_swap(player_id: int, hand_card_original_index: int, board_card_path: NodePath):
+	var board_card = get_node_or_null(board_card_path)
+	if not board_card or not board_card is FaceCard3D:
+		print("Swap sync failed: could not find board card at path: ", board_card_path)
+		return
+		
+	var slice_collection = board_card.get_parent()
+	if not slice_collection or not slice_collection is CardCollection3D:
+		print("Swap sync failed: could not get slice collection from board card.")
+		return
+
+	var board_card_index = slice_collection.cards.find(board_card)
+	if board_card_index != -1:
+		var card_to_remove = slice_collection.remove_card(board_card_index)
+		card_to_remove.queue_free()
+	
+	if player_id == multiplayer.get_unique_id():
+		var hand_collection = get_node("/root/Game/Deck/Table/DragController/Hand")
+		var card_in_hand_to_remove = null
+		for card in hand_collection.cards:
+			if card.get_meta("original_card_index", -2) == hand_card_original_index:
+				card_in_hand_to_remove = card
+				break
+		if card_in_hand_to_remove:
+			var hand_card_idx = hand_collection.cards.find(card_in_hand_to_remove)
+			hand_collection.remove_card(hand_card_idx)
+		else:
+			print("Swap sync warning: could not find card with index ", hand_card_original_index, " in local player's hand.")
+
+	var table = get_node("/root/Game/Deck/Table")
+	var new_card_instance = table.instantiate_face_card(hand_card_original_index, true)
+	if new_card_instance:
+		new_card_instance.owner_id = player_id
+		new_card_instance.face_down = false # Ensure it's placed face UP
+		slice_collection.append_card(new_card_instance)
+	else:
+		print("Swap sync failed: could not instantiate new card with index ", hand_card_original_index)
+
+	var game = get_node("/root/Game")
+	if game.soil_star_actions.is_swapping_elemental_face_up:
+		game.soil_star_actions.is_swapping_elemental_face_up = false
+		hand_card_for_swap = null
+		game.notification.hide_panel()
+# -------------------------------------------------------------------------
+# END: Elemental Face Up Swap Logic
+# -------------------------------------------------------------------------

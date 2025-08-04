@@ -325,13 +325,14 @@ func _on_card_exit(card: Card3D):
 
 func _on_card_pressed(card: Card3D):
 	var game = get_node("/root/Game")
-	# NEW LOGIC FOR FACE-DOWN ELEMENTAL SWAP
+	var card_manager = game.card_manager
+	
+	# FACE-DOWN ELEMENTAL SWAP
 	if game.soil_star_actions.is_swapping_elemental:
-		var card_manager = game.card_manager
 		
 		# Step 1: Handle selection of the card from the player's hand
 		if card_manager.hand_card_for_swap == null:
-			if card.get_parent().name == "Hand" and card.card_type == CardResource.CardType.ELEMENTAL and card.face_down:
+			if card.get_parent().name == "Hand" and card.card_type == CardResource.CardType.ELEMENTAL:
 				card_manager.hand_card_for_swap = card
 				card.set_hovered() # Highlight the selected card
 				game.notification.show_instruction_label("Now select a face-down elemental on the board.")
@@ -344,6 +345,22 @@ func _on_card_pressed(card: Card3D):
 			else:
 				game.notification.show_instruction_label("Invalid selection. Please choose a face-down elemental on the board.")
 		return # Stop further processing of the click
+	
+	# HANDLE FACE-UP SWAP
+	if game.soil_star_actions.is_swapping_elemental_face_up:
+		if card_manager.hand_card_for_swap == null:
+			if card.get_parent().name == "Hand" and card is FaceCard3D and card.card_type == CardResource.CardType.ELEMENTAL:
+				card_manager.hand_card_for_swap = card
+				card.set_hovered()
+				game.notification.show_instruction_label("Now select a face-up elemental on the board.")
+			else:
+				game.notification.show_instruction_label("Invalid selection. Please choose a face-up elemental from your hand.")
+		else:
+			if card.get_parent().name.begins_with("elemental_slice_") and card is FaceCard3D and not card.face_down:
+				card_manager.perform_face_up_swap(card)
+			else:
+				game.notification.show_instruction_label("Invalid selection. Please choose a face-up elemental on the board.")
+		return
 	
 	var turn_phase_manager = game.turn_phase_manager
 	var notification = game.notification
