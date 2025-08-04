@@ -325,6 +325,26 @@ func _on_card_exit(card: Card3D):
 
 func _on_card_pressed(card: Card3D):
 	var game = get_node("/root/Game")
+	# NEW LOGIC FOR FACE-DOWN ELEMENTAL SWAP
+	if game.soil_star_actions.is_swapping_elemental:
+		var card_manager = game.card_manager
+		
+		# Step 1: Handle selection of the card from the player's hand
+		if card_manager.hand_card_for_swap == null:
+			if card.get_parent().name == "Hand" and card.card_type == CardResource.CardType.ELEMENTAL and card.face_down:
+				card_manager.hand_card_for_swap = card
+				card.set_hovered() # Highlight the selected card
+				game.notification.show_instruction_label("Now select a face-down elemental on the board.")
+			else:
+				game.notification.show_instruction_label("Invalid selection. Please choose a face-down elemental from your hand.")
+		# Step 2: Handle selection of the card on the board and execute the swap
+		else:
+			if card.get_parent().name.begins_with("elemental_slice_") and card.face_down:
+				card_manager.perform_face_down_swap(card)
+			else:
+				game.notification.show_instruction_label("Invalid selection. Please choose a face-down elemental on the board.")
+		return # Stop further processing of the click
+	
 	var turn_phase_manager = game.turn_phase_manager
 	var notification = game.notification
 	var soil_star_actions = game.soil_star_actions # Get soil star actions reference

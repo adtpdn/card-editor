@@ -21,6 +21,7 @@ var is_buy_action_card := false
 var is_playing_from_soil_star_action := false
 var is_playing_extra_token_from_soil_star := false
 var is_activating_sigil_from_soil_star := false
+var is_swapping_elemental := false 
 
 # ----------------------------------------------------------------
 var is_panel_status : bool = false   # true when the panel is open
@@ -34,7 +35,7 @@ func _ready():
 		buy_card_button          : 2,
 		play_extra_token_button  : 3,
 		play_sigil_magic_button  : 3,
-		buy_elemental_button     : 4,
+		buy_elemental_button     : 1,
 		swap_elemental_button    : 5,
 	}
 	connect_action_buttons()
@@ -135,6 +136,42 @@ func _on_PlayCardButton_pressed():
 
 func _on_PlayElementalFaceDownButton_pressed():   
 	print("play_elemental_face_down_button pressed")
+
+	# 1. Check cost
+	var cost = button_rules[play_elemental_face_down]
+	var active_player_ui = _get_active_player_ui()
+	if not active_player_ui: return
+
+	var soil_star_node = active_player_ui.get_node_or_null("SoilStar")
+	if not soil_star_node: return
+
+	if soil_star_node.current_soil_star < cost:
+		game.notification.show_instruction_label("Not enough Soil Stars!")
+		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
+		return
+
+	# 2. Check if hand has a face-down elemental card
+	var hand = game.deck.hand
+	var has_valid_card = false
+	for card in hand.cards:
+		if card is FaceCard3D and card.card_type == CardResource.CardType.ELEMENTAL and card.face_down:
+			has_valid_card = true
+			break
+	
+	if not has_valid_card:
+		game.notification.show_instruction_label("You have no face-down elemental cards to play.")
+		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
+		return
+
+	# 3. Deduct cost, set the flag, and instruct the player
+	soil_star_node.decrease_soil_star(cost)
+	is_swapping_elemental = true
+	game.card_manager.hand_card_for_swap = null # Reset any previously selected card
+	game.notification.show_instruction_label("Select a face-down elemental from your hand.")
+
+	# 4. Hide the actions panel to allow board interaction
+	_show_hide_actions_panel()
+
 
 func _on_PlayElementalFaceUpButton_pressed():     
 	print("play_elemental_face_up_button pressed")

@@ -24,6 +24,7 @@ var max_action_cards = 3      # Maximum action cards a player can hold
 var max_elemental_cards = 1   # Maximum elemental cards a player can hold
 var initial_hand_size = 2     # Starting cards for each player
 var network_synced = true
+var hand_card_for_swap: FaceCard3D = null
 
 # Add variables for card effects
 var is_take_off_mode := false
@@ -629,3 +630,55 @@ func reset_all_effect_modes():
 	# This part still needs to be in token_manager
 	# token_manager.unhighlight_outerglow()
 	# token_manager.unhighlight_all_token_placements()
+
+func perform_face_down_swap(board_card: FaceCard3D):
+	if not hand_card_for_swap or not board_card:
+		print("ERROR: Swap cannot be performed. Missing card references.")
+		return
+
+	var hand_collection = hand_card_for_swap.get_parent()
+	var slice_collection = board_card.get_parent()
+
+	var hand_card_index = hand_collection.cards.find(hand_card_for_swap)
+	var board_card_index = slice_collection.cards.find(board_card)
+	var slice_path = slice_collection.get_path()
+
+	if multiplayer.is_server():
+		sync_face_down_swap(hand_card_index, slice_path, board_card_index)
+	else:
+		rpc_id(1, "request_face_down_swap", hand_card_index, slice_path, board_card_index)
+
+@rpc("any_peer")
+func request_face_down_swap(hand_card_idx: int, slice_path: NodePath, board_card_idx: int):
+	if not multiplayer.is_server(): return
+	rpc("sync_face_down_swap", hand_card_idx, slice_path, board_card_idx)
+
+@rpc("any_peer", "call_local")
+func sync_face_down_swap(hand_card_idx: int, slice_path: NodePath, board_card_idx: int):
+	var hand_collection = get_node("/root/Game/Deck/Table/DragController/Hand")
+	var slice_collection = get_node_or_null(slice_path)
+
+	if not hand_collection or not slice_collection:
+		print("Swap sync failed: could not find collections.")
+		return
+
+	if hand_card_idx < 0 or hand_card_idx >= hand_collection.cards.size() or \
+	   board_card_idx < 0 or board_card_idx >= slice_collection.cards.size():
+		print("Swap sync failed: invalid card index.")
+		return
+
+	# Perform the swap
+	var card_from_hand = hand_collection.remove_card(hand_card_idx)
+	var card_to_remove = slice_collection.remove_card(board_card_idx)
+	
+	if card_from_hand is FaceCard3D:
+		card_from_hand.face_down = true
+
+	slice_collection.insert_card(card_from_hand, board_card_idx)
+	card_to_remove.queue_free()
+	
+	var game = get_node("/root/Game")
+	if game.soil_star_actions.is_swapping_elemental:
+		game.soil_star_actions.is_swapping_elemental = false
+		hand_card_for_swap = null
+		game.notification.hide_panel()
