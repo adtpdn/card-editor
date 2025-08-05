@@ -181,7 +181,8 @@ func unblight_card_effect():
 	var tokens = token_manager.tokens
 	var player_id = multiplayer.get_unique_id()
 	for token in tokens.get_children():
-		if !token.is_energy and token.owner_id == player_id and token.is_blighted:
+		var token_placement = token_manager.get_token_placement_at_position(token.global_position)
+		if !token.is_energy and token.owner_id == player_id and token.is_blighted and token_placement and token_placement.place_id == 10:
 			token.outerglow.show()
 
 	token_manager.unhighlight_all_token_placements()
@@ -581,10 +582,15 @@ func request_unblight_token(token_position: Vector3):
 		print("Server could not find token to unblight/blight.")
 		return
 
-	# If the token is already blighted, it's an un-blight action (flip in place).
+	# If the token is already blighted, it's an un-blight action.
 	if token.is_blighted:
-		# The original 'unblight' logic is now just flipping it back.
-		unblight_token(token_position)
+		var current_placement = token_manager.get_token_placement_at_position(token.global_position)
+		if is_instance_valid(current_placement) and current_placement.place_id == 10:
+			# If it's in a blight spot, move it back to a regular spot.
+			token_manager.unblight_token_and_move(token)
+		else:
+			# Otherwise, just un-blight it in place.
+			unblight_token(token_position)
 	else:
 		# If it's NOT blighted, it's a blight action that requires MOVING.
 		# This is a new path that was not in the original code.

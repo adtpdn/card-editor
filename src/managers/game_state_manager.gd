@@ -54,7 +54,7 @@ func initialize():
 	current_turn_index = 0
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ---     Game Start/Setup     ---
+# ---     Game Start/Setup     ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 func start_game():
@@ -116,7 +116,7 @@ func sync_game_start(current_players):
 	print("=== Game Start Complete ===\n")
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ---    Player Management     ---
+# ---    Player Management     ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 # --- THIS IS THE NEW, AUTHORITATIVE FUNCTION FOR SYNCING PLAYERS ---
@@ -211,7 +211,7 @@ func sync_player_colors(colors: Dictionary):
 				token.update_token_display()
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ---     Turn Management      ---
+# ---     Turn Management      ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 func get_player_color_index(player_id: int) -> int:
@@ -335,6 +335,11 @@ func next_turn():
 	print("\n=== Processing Next Turn ===")
 	print("Current players: ", players)
 	print("Current turn index: ", current_turn_index)
+	
+	# NEW: Process the blighted token cycle at the start of the turn transition.
+	if is_instance_valid(token_manager):
+		token_manager.process_blighted_token_cycle()
+		await get_tree().create_timer(0.5).timeout # Short delay for visual clarity
 
 	if players.size() > 0:
 		var is_end_of_round = (current_turn_index == players.size() - 1)

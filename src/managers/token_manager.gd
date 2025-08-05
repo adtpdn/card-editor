@@ -591,8 +591,40 @@ func sync_all_tokens_on_board(all_tokens_data: Array) -> void:
 			_create_token_instance(token_data.owner, token_data, placement)
 
 # -----------------------------------------------------------------------------
-# NEW Blight and Move Logic
+# Blight and Move Logic
 # -----------------------------------------------------------------------------
+# NEW: Called by GameStateManager at the start of each turn.
+func process_blighted_token_cycle():
+	if not multiplayer.is_server(): return
+
+	print("Processing blighted token cycle...")
+	var tokens_to_move = []
+	for token in get_parent().get_node("Tokens").get_children():
+		if token.is_blighted:
+			tokens_to_move.append(token)
+	
+	for token in tokens_to_move:
+		var current_placement = get_token_placement_at_position(token.global_position)
+		# Only move blighted tokens that are in the blight area (place_id == 10).
+		if not current_placement or current_placement.place_id != 10:
+			print("Skipping blighted token not in blight area (place_id: %d)." % [current_placement.place_id if current_placement else -99])
+			continue
+
+		var current_biome = token.biome_type
+		var next_biome = _get_next_biome(current_biome)
+		
+		var new_placement = _find_available_blight_spot(next_biome)
+		if new_placement:
+			# If a spot is found, move the token there.
+			rpc("sync_token_reposition", token.global_position, new_placement.global_position, next_biome)
+		else:
+			# If no spot is available in the next biome, it stays put for this turn.
+			print("No available blight spot in biome %s for token." % BiomeType.keys()[next_biome])
+
+# NEW: Helper to determine the next biome in the cycle.
+func _get_next_biome(current_biome: int) -> int:
+	var next_biome = (current_biome + 1) % 4 # Cycle through the 4 biomes
+	return next_biome
 
 # Called by card_manager or sigil_manager to start the blight process.
 # This function must only be called on the server.
@@ -616,10 +648,37 @@ func blight_token_and_move(token: Node3D):
 		# If no spot is available, just blight the token in place.
 		rpc("sync_token_blight", original_pos, true)
 
+# NEW: Specifically for UNBLIGHTING a token and moving it back to the main board.
+func unblight_token_and_move(token: Node3D):
+	if not multiplayer.is_server(): return
+	if not is_instance_valid(token) or not token.is_blighted:
+		return # Can only unblight a valid, blighted token.
+
+	var original_pos = token.global_position
+	var biome_type = token.biome_type
+
+	# Find an available NON-blight spot (place_id = -1) in the same biome.
+	var new_placement = _find_available_non_blight_spot(biome_type)
+
+	if new_placement:
+		var new_pos = new_placement.global_position
+		# Broadcast the move and unblight action.
+		rpc("sync_token_unblight_move", original_pos, new_pos)
+	else:
+		# If no spot is available, just unblight it in place.
+		rpc("sync_token_blight", original_pos, false)
+
 # Helper to find a valid placement for a blighted token.
 func _find_available_blight_spot(biome_type: int) -> Node:
 	for placement in get_parent().get_node("TokenPlacements").get_children():
 		if not placement.is_occupied and placement.accepted_biome == biome_type and placement.place_id == 10:
+			return placement # Return the first available spot.
+	return null # Return null if no spots are available.
+
+# NEW: Helper to find an available spot on the regular board.
+func _find_available_non_blight_spot(biome_type: int) -> Node:
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if not placement.is_occupied and placement.accepted_biome == biome_type and placement.place_id == -1:
 			return placement # Return the first available spot.
 	return null # Return null if no spots are available.
 
@@ -654,6 +713,39 @@ func sync_token_blight_move(original_position: Vector3, new_position: Vector3):
 	# Update the token's state and play the animation.
 	token.is_blighted = true
 	token.play_blight_animation(true)
+	
+# NEW RPC for unblighting and moving.
+@rpc("any_peer", "call_local")
+func sync_token_unblight_move(original_position: Vector3, new_position: Vector3):
+	var token = find_token_at_position(original_position)
+	if not is_instance_valid(token):
+		printerr("Unblight sync failed: Could not find token at original position.")
+		return
+
+	var old_placement = get_token_placement_at_position(original_position)
+	var new_placement = get_token_placement_at_position(new_position)
+
+	if not is_instance_valid(new_placement):
+		printerr("Unblight sync failed: Could not find new placement location.")
+		return
+
+	# Free up the old spot.
+	if is_instance_valid(old_placement):
+		old_placement.is_occupied = false
+		old_placement.current_token = null
+
+	# Move the token.
+	token.global_position = new_position
+
+	# Occupy the new spot.
+	new_placement.is_occupied = true
+	new_placement.current_token = token
+	token.token_placement = new_placement
+
+	# Update the token's state and play the animation.
+	token.is_blighted = false
+	token.play_blight_animation(false)
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # End of Core Token Planting Functions
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1506,3 +1598,31 @@ func request_token_movement(from_position: Vector3, to_position: Vector3):
 	
 	# Sync to all clients
 	rpc("sync_token_movement", from_position, to_position)
+
+# NEW RPC to handle the repositioning of a token during the blight cycle.
+@rpc("any_peer", "call_local")
+func sync_token_reposition(original_pos: Vector3, new_pos: Vector3, new_biome: int):
+	var token = find_token_at_position(original_pos)
+	if not is_instance_valid(token):
+		printerr("Blight cycle sync failed: Token not found at original position.")
+		return
+
+	var old_placement = get_token_placement_at_position(original_pos)
+	var new_placement = get_token_placement_at_position(new_pos)
+
+	if not is_instance_valid(new_placement):
+		printerr("Blight cycle sync failed: New placement location not found.")
+		return
+
+	# Update the old and new placement states
+	if is_instance_valid(old_placement):
+		old_placement.is_occupied = false
+		old_placement.current_token = null
+
+	new_placement.is_occupied = true
+	new_placement.current_token = token
+	
+	# Update the token's properties
+	token.global_position = new_pos
+	token.biome_type = new_biome
+	token.token_placement = new_placement

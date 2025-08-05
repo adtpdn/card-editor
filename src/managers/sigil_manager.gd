@@ -1059,9 +1059,12 @@ func _on_blight_unblight_input():
 		
 		# MODIFICATION START: Determine if blighting or unblighting
 		if target_token.is_blighted:
-			# This is an UNBLIGHT action (target is one of our own)
-			# We just flip it in place.
-			game.rpc("sync_token_blight", target_token.global_position, false)
+			# This is an UNBLIGHT action. It requires MOVING.
+			if multiplayer.is_server():
+				token_manager.unblight_token_and_move(target_token)
+			else:
+				# Clients request the server to perform the action.
+				rpc_id(1, "request_sigil_unblight_move", target_token.get_path())
 		else:
 			# This is a BLIGHT action (target is an opponent's token)
 			# We need to move it. This must be done on the server.
@@ -1100,6 +1103,15 @@ func request_sigil_blight_move(token_path: NodePath):
 	var token = get_node_or_null(token_path)
 	if is_instance_valid(token):
 		token_manager.blight_token_and_move(token)
+
+# NEW RPC to handle client requests for Sigil C unblight
+@rpc("any_peer")
+func request_sigil_unblight_move(token_path: NodePath):
+	if not multiplayer.is_server(): return
+	
+	var token = get_node_or_null(token_path)
+	if is_instance_valid(token):
+		token_manager.unblight_token_and_move(token)
 
 # Function to handle the input for push/pull destination selection
 func _on_push_pull_input(_placement_pos):
