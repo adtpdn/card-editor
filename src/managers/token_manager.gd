@@ -416,6 +416,7 @@ func request_token_placement(token_index: int, position: Vector3, biome_type: in
 	# 1. Perform all validation checks.
 	var placement = get_token_placement_at_position(position)
 	if not _is_placement_request_valid(player_id, token_index, placement):
+		print("placement req invalid")
 		return
 
 	# 2. Prepare the data for the new token.
@@ -476,6 +477,7 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 # PRIVATE HELPER FUNCTIONS request_token_placement and sync_token_placement
 # -----------------------------------------------------------------------------
 func _is_placement_request_valid(player_id: int, token_index: int, placement: Node) -> bool:
+	print("placement place id : ", placement.place_id)
 	if soil_star_actions.is_playing_extra_token_from_soil_star:
 		return true # If using the action, always allow placement
 	
@@ -497,10 +499,10 @@ func _is_placement_request_valid(player_id: int, token_index: int, placement: No
 		return true # The UI has already highlighted valid spots, so we can approve.
 	# Check if the placement is valid for the current game phase (normal rules).
 	var current_phase = turn_phase_manager.current_phase
-	if current_phase == turn_phase_manager.Phase.PLANT_BIOME and placement.place_id != -1:
+	var is_sigil_valid = (placement.place_id >= 0 and placement.place_id <= 7)
+	if current_phase == turn_phase_manager.Phase.PLANT_BIOME and is_sigil_valid:
 		return false
-	if current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and \
-	 (placement.place_id >= 0 and placement.place_id <= 7) :
+	if current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and placement.place_id == -1:
 		return false
 
 	return true
