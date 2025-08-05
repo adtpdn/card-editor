@@ -16,13 +16,14 @@ extends Control
 # ----------------------------------------------------------------
 # Mapping:  button  ->  minimum soil stars required to enable it
 # This dictionary is now initialized in _ready() to ensure nodes are loaded.
-var button_rules := {}
-var is_buy_action_card := false
-var is_playing_from_soil_star_action := false
-var is_playing_extra_token_from_soil_star := false
-var is_activating_sigil_from_soil_star := false
-var is_swapping_elemental := false 
+var button_rules : Dictionary= {}
+var is_buy_action_card : bool = false
+var is_playing_from_soil_star_action : bool = false
+var is_playing_extra_token_from_soil_star : bool= false
+var is_activating_sigil_from_soil_star : bool= false
+var is_swapping_elemental :bool = false 
 var is_swapping_elemental_face_up: bool = false
+var is_swapping_planted_elementals: bool = false
 
 # ----------------------------------------------------------------
 var is_panel_status : bool = false   # true when the panel is open
@@ -37,7 +38,7 @@ func _ready():
 		play_extra_token_button  : 3,
 		play_sigil_magic_button  : 3,
 		buy_elemental_button     : 1,
-		swap_elemental_button    : 5,
+		swap_elemental_button    : 1,
 	}
 	connect_action_buttons()
 
@@ -168,7 +169,7 @@ func _on_PlayElementalFaceDownButton_pressed():
 	soil_star_node.decrease_soil_star(cost)
 	is_swapping_elemental = true
 	game.card_manager.hand_card_for_swap = null # Reset any previously selected card
-	game.notification.show_instruction_label("Select a face-down elemental from your hand.")
+	game.notification.show_instruction_label("Select an elemental from your hand.")
 
 	# 4. Hide the actions panel to allow board interaction
 	_show_hide_actions_panel()
@@ -207,7 +208,7 @@ func _on_PlayElementalFaceUpButton_pressed():
 	soil_star_node.decrease_soil_star(cost)
 	is_swapping_elemental_face_up = true
 	game.card_manager.hand_card_for_swap = null # Reset any previously selected card
-	game.notification.show_instruction_label("Select a face-up elemental from your hand.")
+	game.notification.show_instruction_label("Select an elemental from your hand.")
 
 	# 4. Hide the actions panel to allow board interaction
 	_show_hide_actions_panel()
@@ -340,5 +341,53 @@ func _on_BuyElementalButton_pressed():
 	# 4. Close the actions panel.
 	_show_hide_actions_panel()
 
-func _on_SwapElementalButton_pressed():           
+func _on_SwapElementalButton_pressed():
 	print("swap_elemental_button pressed")
+
+	# 1. Check cost
+	var cost = button_rules[swap_elemental_button]
+	var active_player_ui = _get_active_player_ui()
+	if not active_player_ui: return
+
+	var soil_star_node = active_player_ui.get_node_or_null("SoilStar")
+	if not soil_star_node: return
+
+	if soil_star_node.current_soil_star < cost:
+		game.notification.show_instruction_label("Not enough Soil Stars!")
+		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
+		return
+
+	# 2. Check if there are at least two swappable elementals on the board
+	var player_id = multiplayer.get_unique_id()
+	var swappable_cards = 0
+	var drag_controller = get_node("/root/Game/Deck/Table/DragController")
+	for i in range(1, 9): # elemental_slice_1 to elemental_slice_8
+		var slice_node = drag_controller.get_node_or_null("elemental_slice_" + str(i))
+		if slice_node and not slice_node.cards.is_empty():
+			var card = slice_node.cards[0]
+			print('card : ', card)
+			# Card must be a face-up elemental owned by the player
+			if card is FaceCard3D:
+				swappable_cards += 1
+
+	if swappable_cards < 2:
+		game.notification.show_instruction_label("You need at least two elementals on the board to swap.")
+		get_tree().create_timer(3.5).timeout.connect(game.notification.hide_panel)
+		return
+
+	# 3. Deduct cost, set the flag, and instruct the player
+	soil_star_node.decrease_soil_star(cost)
+	is_swapping_planted_elementals = true
+	game.card_manager.first_selected_card_for_swap = null # Reset any previously selected card
+	game.notification.show_instruction_label("Select the first elemental on the board to swap.")
+
+	# 4. Highlight valid cards
+	for i in range(1, 9):
+		var slice_node = drag_controller.get_node_or_null("elemental_slice_" + str(i))
+		if slice_node and not slice_node.cards.is_empty():
+			var card = slice_node.cards[0]
+			if card is FaceCard3D:
+				card.set_hovered() # Use hover effect for highlighting
+
+	# 5. Hide the actions panel to allow board interaction
+	_show_hide_actions_panel()

@@ -203,9 +203,10 @@ func _highlight_placements_for_mode(mode: String) -> void:
 	for placement in get_parent().get_node("TokenPlacements").get_children():
 		if not placement.is_occupied:
 			var is_biome_placement = (placement.place_id == -1)
+			var is_sigil_placement = (placement.place_id >= 0 and placement.place_id <= 7)
 			
 			# Determine if this placement should be shown and highlighted
-			var should_highlight = (highlight_biome and is_biome_placement) or (highlight_sigil and not is_biome_placement)
+			var should_highlight = (highlight_biome and is_biome_placement) or (highlight_sigil and is_sigil_placement)
 			
 			if should_highlight:
 				placement.show() # Directly control visibility here
@@ -498,7 +499,8 @@ func _is_placement_request_valid(player_id: int, token_index: int, placement: No
 	var current_phase = turn_phase_manager.current_phase
 	if current_phase == turn_phase_manager.Phase.PLANT_BIOME and placement.place_id != -1:
 		return false
-	if current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and placement.place_id == -1:
+	if current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and \
+	 (placement.place_id >= 0 and placement.place_id <= 7) :
 		return false
 
 	return true

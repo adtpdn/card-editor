@@ -327,41 +327,67 @@ func _on_card_pressed(card: Card3D):
 	var game = get_node("/root/Game")
 	var card_manager = game.card_manager
 	
-	# FACE-DOWN ELEMENTAL SWAP
-	if game.soil_star_actions.is_swapping_elemental:
+	# CONSOLIDATED SWAP LOGIC
+	# The first card is selected from the hand, the second from the board.
+	if game.soil_star_actions.is_swapping_elemental or game.soil_star_actions.is_swapping_elemental_face_up:
 		
-		# Step 1: Handle selection of the card from the player's hand
-		if card_manager.hand_card_for_swap == null:
+		# Step 1: Selecting the first card (from hand)
+		if card_manager.first_selected_card_for_swap == null:
 			if card.get_parent().name == "Hand" and card.card_type == CardResource.CardType.ELEMENTAL:
-				card_manager.hand_card_for_swap = card
-				card.set_hovered() # Highlight the selected card
-				game.notification.show_instruction_label("Now select a face-down elemental on the board.")
-			else:
-				game.notification.show_instruction_label("Invalid selection. Please choose a face-down elemental from your hand.")
-		# Step 2: Handle selection of the card on the board and execute the swap
-		else:
-			if card.get_parent().name.begins_with("elemental_slice_") and card.face_down:
-				card_manager.perform_face_down_swap(card)
-			else:
-				game.notification.show_instruction_label("Invalid selection. Please choose a face-down elemental on the board.")
-		return # Stop further processing of the click
-	
-	# HANDLE FACE-UP SWAP
-	if game.soil_star_actions.is_swapping_elemental_face_up:
-		if card_manager.hand_card_for_swap == null:
-			if card.get_parent().name == "Hand" and card is FaceCard3D and card.card_type == CardResource.CardType.ELEMENTAL:
-				card_manager.hand_card_for_swap = card
+				card_manager.first_selected_card_for_swap = card
 				card.set_hovered()
-				game.notification.show_instruction_label("Now select a face-up elemental on the board.")
+				game.notification.show_instruction_label("Now select an elemental on the board to swap with.")
 			else:
-				game.notification.show_instruction_label("Invalid selection. Please choose a face-up elemental from your hand.")
+				game.notification.show_instruction_label("Invalid selection. Please choose an elemental from your hand first.")
+		
+		# Step 2: Selecting the second card (from board) and performing the swap
 		else:
-			if card.get_parent().name.begins_with("elemental_slice_") and card is FaceCard3D and not card.face_down:
+			var is_on_board = card.get_parent().name.begins_with("elemental_slice_")
+			if not is_on_board:
+				game.notification.show_instruction_label("Invalid selection. Please choose an elemental on the board.")
+				return
+
+			# Face-Down Swap (is_swapping_elemental is true)
+			if game.soil_star_actions.is_swapping_elemental and card.face_down:
+				card_manager.perform_face_down_swap(card)
+			# Face-Up Swap (is_swapping_elemental_face_up is true)
+			elif game.soil_star_actions.is_swapping_elemental_face_up and not card.face_down:
 				card_manager.perform_face_up_swap(card)
 			else:
-				game.notification.show_instruction_label("Invalid selection. Please choose a face-up elemental on the board.")
-		return
-	
+				var required_state = "face-down" if game.soil_star_actions.is_swapping_elemental else "face-up"
+				game.notification.show_instruction_label("Invalid selection. Please choose a %s elemental on the board." % required_state)
+
+		return # Stop further processing of the click
+
+	# HANDLE PLANTED ELEMENTAL SWAP
+	if game.soil_star_actions.is_swapping_planted_elementals:
+		# Check if the card is a valid target (on board, face-up, owned by player)
+		var is_valid_target = card.get_parent().name.begins_with("elemental_slice_") and \
+							  card is FaceCard3D
+
+		if not is_valid_target:
+			game.notification.show_instruction_label("Invalid selection. Please choose one of your face-up elementals on the board.")
+			return
+
+		if card_manager.first_selected_card_for_swap == null:
+			# This is the first card being selected
+			card_manager.first_selected_card_for_swap = card
+			card.set_hovered() # Keep it highlighted
+			game.notification.show_instruction_label("Now select the second elemental to swap with.")
+		else:
+			# This is the second card.
+			if card == card_manager.first_selected_card_for_swap:
+				# Player clicked the same card again, so deselect it.
+				card.remove_hovered()
+				card_manager.first_selected_card_for_swap = null
+				game.notification.show_instruction_label("Selection cancelled. Select the first elemental to swap.")
+				return
+
+			# Perform the swap
+			card_manager.perform_planted_elemental_swap(card_manager.first_selected_card_for_swap, card)
+
+		return # Stop further processing of the click
+
 	var turn_phase_manager = game.turn_phase_manager
 	var notification = game.notification
 	var soil_star_actions = game.soil_star_actions # Get soil star actions reference
@@ -379,8 +405,6 @@ func _on_card_pressed(card: Card3D):
 		if can_select_card(card):
 			notification.show_instruction_label("Play a Card")
 			card_selected.emit(card)
-			
-		
 
 func _on_card_clicked(card: Card3D):
 	#print("carc clicked")

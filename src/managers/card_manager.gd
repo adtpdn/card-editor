@@ -24,7 +24,7 @@ var max_action_cards = 3      # Maximum action cards a player can hold
 var max_elemental_cards = 1   # Maximum elemental cards a player can hold
 var initial_hand_size = 2     # Starting cards for each player
 var network_synced = true
-var hand_card_for_swap: FaceCard3D = null
+var first_selected_card_for_swap: FaceCard3D = null
 
 # Add variables for card effects
 var is_take_off_mode := false
@@ -638,9 +638,9 @@ func reset_all_effect_modes():
 	is_refresh_energy_mode = false
 	is_swap_energy_mode = false
 	is_plant_extra = false # If this should also be reset
-	if first_swap_token:
-		first_swap_token.highlight(false)
-		first_swap_token = null
+	if first_selected_card_for_swap:
+		first_selected_card_for_swap.highlight(false)
+		first_selected_card_for_swap = null
 
 	# This part still needs to be in token_manager
 	# token_manager.unhighlight_outerglow()
@@ -650,12 +650,12 @@ func reset_all_effect_modes():
 # START: Elemental Face Down Swap Logic
 # -------------------------------------------------------------------------
 func perform_face_down_swap(board_card: FaceCard3D):
-	if not hand_card_for_swap or not board_card:
+	if not first_selected_card_for_swap or not board_card:
 		print("ERROR: Swap cannot be performed. Missing card references.")
 		return
 
 	# Get the necessary data to identify the cards across the network
-	var hand_card_original_index = hand_card_for_swap.get_meta("original_card_index", -1)
+	var hand_card_original_index = first_selected_card_for_swap.get_meta("original_card_index", -1)
 	var board_card_path = board_card.get_path()
 	var player_id = multiplayer.get_unique_id()
 
@@ -725,7 +725,7 @@ func sync_face_down_swap(player_id: int, hand_card_original_index: int, board_ca
 	var game = get_node("/root/Game")
 	if game.soil_star_actions.is_swapping_elemental:
 		game.soil_star_actions.is_swapping_elemental = false
-		hand_card_for_swap = null
+		first_selected_card_for_swap = null
 		game.notification.hide_panel()
 # -------------------------------------------------------------------------
 # END: Elemental Face Down Swap Logic
@@ -735,11 +735,11 @@ func sync_face_down_swap(player_id: int, hand_card_original_index: int, board_ca
 # START: Elemental Face Up Swap Logic
 # -------------------------------------------------------------------------
 func perform_face_up_swap(board_card: FaceCard3D):
-	if not hand_card_for_swap or not board_card:
+	if not first_selected_card_for_swap or not board_card:
 		print("ERROR: Swap cannot be performed. Missing card references.")
 		return
 
-	var hand_card_original_index = hand_card_for_swap.get_meta("original_card_index", -1)
+	var hand_card_original_index = first_selected_card_for_swap.get_meta("original_card_index", -1)
 	var board_card_path = board_card.get_path()
 	var player_id = multiplayer.get_unique_id()
 
@@ -799,8 +799,110 @@ func sync_face_up_swap(player_id: int, hand_card_original_index: int, board_card
 	var game = get_node("/root/Game")
 	if game.soil_star_actions.is_swapping_elemental_face_up:
 		game.soil_star_actions.is_swapping_elemental_face_up = false
-		hand_card_for_swap = null
+		first_selected_card_for_swap = null
 		game.notification.hide_panel()
 # -------------------------------------------------------------------------
 # END: Elemental Face Up Swap Logic
+# -------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------
+# START: Planted Elemental Swap Logic
+# -------------------------------------------------------------------------
+
+func perform_planted_elemental_swap(card1: FaceCard3D, card2: FaceCard3D):
+	if not card1 or not card2:
+		print("ERROR: Swap cannot be performed. Missing card references.")
+		return
+
+	var card1_path = card1.get_path()
+	var card2_path = card2.get_path()
+
+	if multiplayer.is_server():
+		# Server executes directly and broadcasts
+		rpc("sync_planted_elemental_swap", card1_path, card2_path)
+	else:
+		# Client sends request to server
+		rpc_id(1, "request_planted_elemental_swap", card1_path, card2_path)
+
+@rpc("any_peer")
+func request_planted_elemental_swap(card1_path: NodePath, card2_path: NodePath):
+	if not multiplayer.is_server(): return
+	# Optional: Add validation here (e.g., check if sender owns both cards)
+	rpc("sync_planted_elemental_swap", card1_path, card2_path)
+
+@rpc("any_peer", "call_local")
+func sync_planted_elemental_swap(card1_path: NodePath, card2_path: NodePath):
+	var card1 = get_node_or_null(card1_path)
+	var card2 = get_node_or_null(card2_path)
+	var game = get_node("/root/Game")
+
+	if not card1 or not card2:
+		print("Swap sync failed: could not find one or both cards.")
+		# Reset state on failure
+		if game.soil_star_actions.is_swapping_planted_elementals:
+			game.soil_star_actions.is_swapping_planted_elementals = false
+			first_selected_card_for_swap = null
+			game.notification.hide_panel()
+		return
+
+	# 1. Get parents and original transforms
+	var parent1 = card1.get_parent()
+	var parent2 = card2.get_parent()
+	var original_pos1 = card1.position
+	var original_rot1 = card1.rotation
+	var original_pos2 = card2.position
+	var original_rot2 = card2.rotation
+
+	if not parent1 or not parent2:
+		print("Swap sync failed: could not get parents.")
+		return
+
+	# 2. Get indices
+	var index1 = parent1.cards.find(card1)
+	var index2 = parent2.cards.find(card2)
+
+	if index1 == -1 or index2 == -1:
+		print("Swap sync failed: could not find card indices.")
+		return
+
+	# 3. Remove cards from their collections WITHOUT freeing them
+	# We use remove_child directly to avoid the signal disconnections in remove_card
+	parent1.cards.remove_at(index1)
+	parent1.remove_child(card1)
+	parent2.cards.remove_at(index2)
+	parent2.remove_child(card2)
+
+	# 4. Add cards to the new parent collections
+	# We use add_child and then insert into the array to maintain control
+	parent1.add_child(card2)
+	parent1.cards.insert(index1, card2)
+	parent2.add_child(card1)
+	parent2.cards.insert(index2, card1)
+	
+	# 5. Update card_parent property
+	card1.card_parent = parent2.name
+	card2.card_parent = parent1.name
+	
+	# 6. Animate to new positions
+	# We don't need the full layout update, just animate the two swapped cards
+	card1.animate_to_position(original_pos2)
+	card1.dragging_rotation(original_rot2)
+	card2.animate_to_position(original_pos1)
+	card2.dragging_rotation(original_rot1)
+
+	# 7. Reset state on all clients
+	if game.soil_star_actions.is_swapping_planted_elementals:
+		game.soil_star_actions.is_swapping_planted_elementals = false
+		first_selected_card_for_swap = null
+		game.notification.hide_panel()
+		# Un-highlight all elementals
+		var drag_controller = get_node("/root/Game/Deck/Table/DragController")
+		for i in range(1, 9):
+			var slice_node = drag_controller.get_node_or_null("elemental_slice_" + str(i))
+			if slice_node and not slice_node.cards.is_empty():
+				var card = slice_node.cards[0]
+				card.remove_hovered()
+
+# -------------------------------------------------------------------------
+# END: Planted Elemental Swap Logic
 # -------------------------------------------------------------------------
