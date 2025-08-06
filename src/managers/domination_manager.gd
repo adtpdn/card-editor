@@ -5,6 +5,7 @@ extends Node
 @onready var game = get_node("/root/Game")
 @onready var token_manager = get_node("/root/Game/TokenManager")
 @onready var drag_controller = get_node("/root/Game/Deck/Table/DragController")
+@onready var elementals_manager = get_node("/root/Game/ElementalsManager")
 
 # Enum to make biome mapping clearer
 enum Biome { FOREST, WATER, MOUNTAIN, DESERT }
@@ -236,7 +237,7 @@ func flip_and_activate_elemental_card(slice_path: NodePath):
 		
 		# Excute elemental
 		if slice_node.has_method("execute_elemental_effect"):
-			slice_node.execute_elemental_effect(card.card_id)
+			elementals_manager.execute_elemental_effect(card.card_id, card.elemental_type, card)
 		else:
 			print("ERROR: CardCollection3D script on slice is missing 'execute_elemental_effect' function.")
 
