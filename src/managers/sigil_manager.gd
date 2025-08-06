@@ -946,6 +946,12 @@ func perform_blight_unblight(energy_token, token):
 	_selected_token = token
 	token_manager.is_token_selected = true
 	
+	print("target token : ", _selected_token.biome_type)
+	print("selected enery token : ", selected_energy_token.biome_type)
+	if _selected_token.biome_type != selected_energy_token.biome_type:
+		token_manager.is_token_selected = false
+		return
+	
 	_on_blight_unblight_input()
 
 
@@ -1063,6 +1069,7 @@ func _on_blight_unblight_input():
 			# We just flip it in place.
 			game.rpc("sync_token_blight", target_token.global_position, false)
 		else:
+			print("blight token other player ")
 			# This is a BLIGHT action (target is an opponent's token)
 			# We need to move it. This must be done on the server.
 			if multiplayer.is_server():

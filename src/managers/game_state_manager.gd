@@ -21,7 +21,7 @@ const player_hud_scene = preload("res://scenes/player_ui/player_hud.tscn")
 # Game State Variables
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 var game_started = false
-var current_round: int = 1
+var current_round: int = 0
 var round_count
 var current_turn_index = 0
 var max_players = 4 # Maximum players allowed

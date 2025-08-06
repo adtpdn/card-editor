@@ -233,6 +233,7 @@ func handle_touch(position: Vector2) -> void:
 
 	# 3. Determine the current input mode (placing, targeting, etc.).
 	var input_mode: String = _get_current_input_mode()
+	print("input mode : ", input_mode)
 
 	# 4. Delegate to the correct handler based on the input mode.
 	match input_mode:

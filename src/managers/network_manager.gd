@@ -282,10 +282,11 @@ func _on_peer_connected(new_peer_id):
 		game_state_manager.rpc("sync_player_list_and_uis", game.players)
 		
 		# 4. FIX: Deal the initial hand to the new client.
-		#await get_tree().create_timer(1.0).timeout
+		await get_tree().create_timer(1.0).timeout
 		#game.rpc_id(new_peer_id, "initialize_client_starting_hand")
 		table.rpc_id(1, "request_server_draw_card", new_peer_id, false)
 		table.server_draw_card(new_peer_id,false)
+
 
 func _on_peer_disconnected(peer_id):
 	# This logic only runs on the server

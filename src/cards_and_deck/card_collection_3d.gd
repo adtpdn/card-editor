@@ -120,11 +120,16 @@ func plant_elemental_card(card):
 	var game = get_node("/root/Game/")
 	var turn_phase_manager = game.turn_phase_manager
 	var card_manager = game.card_manager
+	var game_state_manager = game.game_state_manager
 	var soil_star_actions = game.soil_star_actions
-	
+
 	# The rest of the function remains the same
 	var resource_card_id = card.card_id
 	var resource_card_name = card.card_name
+
+	# Round 0 Plant Elemental
+	if game_state_manager.current_round == 0:
+		return
 	
 	print("Planting card with resource card_id:", resource_card_id, "to biome slot:", card_slot_biome)
 	
@@ -132,12 +137,15 @@ func plant_elemental_card(card):
 		var player_id = game.network_manager.multiplayer.get_unique_id()
 		game.network_manager.sync_card_planted(resource_card_id, card_slot_biome, player_id, resource_card_name)
 	
+
+	
 	execute_elemental_effect(card.card_id)
 
 func plant_card(card):
 	print("plant card")
 	var game = get_node("/root/Game/")
 	var turn_phase_manager = game.turn_phase_manager
+	var game_state_manager = game.game_state_manager
 	var card_manager = game.card_manager
 	var soil_star_actions = game.soil_star_actions # Get soil star actions reference
 	
