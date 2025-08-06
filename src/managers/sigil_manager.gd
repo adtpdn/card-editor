@@ -875,8 +875,10 @@ func show_blight_unblight_ui(energy_token):
 	# Showing outerglow for each token to select
 	var tokens_list = tokens.get_children()
 	for token in tokens_list:
+		# Condition to blight an opponent's token
 		if token.owner_id != energy_token.owner_id and !token.is_energy and !token.is_blighted and token.biome_type == energy_token.biome_type:
 			token.outerglow.show()
+		# Condition to unblight your own token
 		if token.owner_id == energy_token.owner_id and !token.is_energy and token.is_blighted and token.biome_type == energy_token.biome_type:
 			print("own token blight")
 			token.outerglow.show()
@@ -942,6 +944,13 @@ func show_push_pull_direction_ui(energy_token):
 # Perform actual blight or unblight
 func perform_blight_unblight(energy_token, token):
 	print("perform blight unblight")
+	
+	# NEW: Add this validation check at the beginning of the function
+	if token.biome_type != energy_token.biome_type:
+		print("Sigil C failed: Target token is not in the same biome.")
+		game.notification.show_instruction_label("Target must be in the same biome as the sigil.")
+		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
+		return # Stop the action if biomes do not match
 	
 	_selected_token = token
 	token_manager.is_token_selected = true
