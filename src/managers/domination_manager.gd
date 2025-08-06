@@ -234,6 +234,7 @@ func flip_and_activate_elemental_card(slice_path: NodePath):
 		print("Flipping card '%s' in slice '%s'" % [card.card_name, slice_node.name])
 		card.face_down = false
 		
+		# Excute elemental
 		if slice_node.has_method("execute_elemental_effect"):
 			slice_node.execute_elemental_effect(card.card_id)
 		else:
