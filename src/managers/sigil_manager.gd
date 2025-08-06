@@ -92,7 +92,7 @@ func handle_sigil_input(position: Vector2):
 			var found_token = result.collider.get_parent().get_parent()
 			print("found token : ", found_token)
 			
-			if found_token.name == "Pile" or found_token.name.begins_with("CardSlotBiome"):
+			if found_token.name == "Pile" or found_token.name.begins_with("CardSlotBiome") and found_token.name.has("elemental_slice_"):
 				pass
 			elif found_token.name == "ElementalDeck" or found_token.name == "ActionDeck" or found_token.name == "Deck": pass
 			elif found_token.name != "Hand":
@@ -1066,10 +1066,10 @@ func _on_blight_unblight_input():
 			# This is a BLIGHT action (target is an opponent's token)
 			# We need to move it. This must be done on the server.
 			if multiplayer.is_server():
-				token_manager.blight_token_and_move(target_token)
+				token_manager.blight_token_and_move(target_token.global_position)
 			else:
 				# Clients request the server to perform the action.
-				rpc_id(1, "request_sigil_blight_move", target_token.get_path())
+				rpc_id(1, "request_sigil_blight_move", target_token.global_position)
 		# MODIFICATION END
 		
 		# Clear the instruction label at the end of the operation
@@ -1094,12 +1094,11 @@ func _on_blight_unblight_input():
 
 # NEW RPC to handle client requests for Sigil C blight
 @rpc("any_peer")
-func request_sigil_blight_move(token_path: NodePath):
+func request_sigil_blight_move(token_pos: Vector3):
 	if not multiplayer.is_server(): return
 	
-	var token = get_node_or_null(token_path)
-	if is_instance_valid(token):
-		token_manager.blight_token_and_move(token)
+	if token_pos:
+		token_manager.blight_token_and_move(token_pos)
 
 # Function to handle the input for push/pull destination selection
 func _on_push_pull_input(_placement_pos):

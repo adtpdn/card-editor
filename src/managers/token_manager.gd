@@ -600,14 +600,19 @@ func sync_all_tokens_on_board(all_tokens_data: Array) -> void:
 
 # Called by card_manager or sigil_manager to start the blight process.
 # This function must only be called on the server.
-func blight_token_and_move(token: Node3D):
+func blight_token_and_move(token_pos : Vector3):
 	if not multiplayer.is_server(): return
 
-	if not is_instance_valid(token) or token.is_blighted:
+	var placement = get_token_placement_at_position(token_pos)
+	var token =  placement.current_token
+	print('token : ', token)
+	if token.is_blighted:
 		return # Can't blight an invalid or already blighted token.
 
 	var original_pos = token.global_position
 	var biome_type = token.biome_type
+	print('token biome type : ', token.biome_type)
+	print("selected token biome type : ",biome_type)
 	
 	# Find a valid, unoccupied spot with place_id 10 in the same biome.
 	var new_placement = _find_available_blight_spot(biome_type)
