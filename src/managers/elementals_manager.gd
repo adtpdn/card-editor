@@ -1,9 +1,12 @@
 extends Node
 
+
+# Blue Elementals Variables
 var sigil_a_disabled_biome: int = -1 
 var sigil_b_disabled_biome: int = -1 
 var sigil_c_disabled_biome: int = -1 
-var point_conversion_disabled_biome: int = -1
+var point_conversion_disabled_biome: int = -1 # blue elemental 6
+var increased_sigil_cost_biome: int = -1 # blue elemental 7
 
 func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, card_node: FaceCard3D):
 	print("execute elemental")
@@ -111,18 +114,21 @@ func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, c
 				point_conversion_disabled_biome = biome_index
 				print("Mana to point conversion is now disabled in biome index: ", point_conversion_disabled_biome)
 			7: 
-				print("Elemental Blue 08")
+				print("Elemental Blue 08: Increase Sigil activation cost to 2 Mana")
+				increased_sigil_cost_biome = biome_index
+				print("Sigil activation cost is now 2 in biome index: ", increased_sigil_cost_biome)
 			8: 
 				print("Elemental Blue 09")
 		if multiplayer.is_server():
-			sync_disabled_states.rpc(sigil_a_disabled_biome, sigil_b_disabled_biome, sigil_c_disabled_biome, point_conversion_disabled_biome)
+			sync_disabled_states.rpc(sigil_a_disabled_biome, sigil_b_disabled_biome, sigil_c_disabled_biome, point_conversion_disabled_biome, increased_sigil_cost_biome)
 
 @rpc("any_peer", "call_local")
-func sync_disabled_states(sigil_a_biome: int, sigil_b_biome: int, sigil_c_biome: int, point_conversion_biome: int):
+func sync_disabled_states(sigil_a_biome: int, sigil_b_biome: int, sigil_c_biome: int, point_conversion_biome: int, increased_cost_biome: int):
 	sigil_a_disabled_biome = sigil_a_biome
 	sigil_b_disabled_biome = sigil_b_biome
 	sigil_c_disabled_biome = sigil_c_biome
 	point_conversion_disabled_biome = point_conversion_biome
+	increased_sigil_cost_biome = increased_cost_biome
 	print("SYNC: Disabled sigil states updated -> A: %d, B: %d, C: %d" % [sigil_a_disabled_biome, sigil_b_disabled_biome, sigil_c_disabled_biome])
 
 # Helper function to determine the biome from a card node on a slice.

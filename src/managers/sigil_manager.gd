@@ -749,6 +749,13 @@ func show_pattern_activation_ui(token, patterns):
 func activate_sigil_pattern(token, pattern_id):
 	print("Activating pattern: ", pattern_id)
 	
+	# Determine the cost of activating the sigil
+	var elementals_manager = get_node("/root/Game/ElementalsManager")
+	var cost = 1
+	if elementals_manager and token.biome_type == elementals_manager.increased_sigil_cost_biome:
+		cost = 2
+		print("Sigil cost increased to 2 for this biome.")
+	
 	# Check if we have mana to spend
 	var mana_available = check_mana_available(token.biome_type)
 	if !mana_available:
@@ -762,7 +769,7 @@ func activate_sigil_pattern(token, pattern_id):
 		return
 	
 	# Consume mana
-	consume_mana(token.biome_type)
+	consume_mana(token.biome_type, cost)
 	
 	if soil_star_actions.is_activating_sigil_from_soil_star:
 		soil_star_actions.is_activating_sigil_from_soil_star = false
@@ -779,7 +786,6 @@ func activate_sigil_pattern(token, pattern_id):
 			show_blight_unblight_ui(token)
 	
 	# Check if point conversion is disabled for this biome
-	var elementals_manager = get_node("/root/Game/ElementalsManager")
 	if elementals_manager and token.biome_type == elementals_manager.point_conversion_disabled_biome:
 		print("Point conversion is disabled for this biome. Mana consumed, but no points awarded.")
 		notification.show_instruction_label("Mana consumed, but no points awarded due to an elemental effect.")
@@ -824,7 +830,7 @@ func check_mana_available(biome_type: int) -> bool:
 	return mana > 0
 
 # Consume mana for a sigil activation
-func consume_mana(biome_type: int):
+func consume_mana(biome_type: int, cost: int):
 	# Determine which mana to consume
 	var mana_biome = ""
 	
@@ -835,7 +841,7 @@ func consume_mana(biome_type: int):
 		BiomeType.DESERT: mana_biome = "desert_magic"
 	
 	# Use the point adjustment function to reduce mana by 1
-	game.request_point_adjustment(mana_biome, -1)
+	game.request_point_adjustment(mana_biome, -cost)
 
 
 func get_current_round() -> int:
