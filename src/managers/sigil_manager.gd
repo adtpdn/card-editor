@@ -778,6 +778,14 @@ func activate_sigil_pattern(token, pattern_id):
 		SigilPattern.SIGIL_C:
 			show_blight_unblight_ui(token)
 	
+	# Check if point conversion is disabled for this biome
+	var elementals_manager = get_node("/root/Game/ElementalsManager")
+	if elementals_manager and token.biome_type == elementals_manager.point_conversion_disabled_biome:
+		print("Point conversion is disabled for this biome. Mana consumed, but no points awarded.")
+		notification.show_instruction_label("Mana consumed, but no points awarded due to an elemental effect.")
+		get_tree().create_timer(2.5).timeout.connect(notification.hide_panel)
+		return # Exit before awarding points
+	
 	var current_round = get_current_round()
 	var points_to_add = 1 # Each sigil activation is worth 1 point
 

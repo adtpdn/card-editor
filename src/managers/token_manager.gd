@@ -34,6 +34,9 @@ var player_tokens = {}
 var selected_token_index = -1
 var current_selected_button: Button = null
 
+# Elementals
+var hidden_placement_ids = {} 
+
 # Modify token selection handling to use both biome and type
 var selected_token_biome = -1
 var selected_token_node
@@ -82,6 +85,7 @@ const token_mat_player_1 = preload("res://assets/materials/token_material/token_
 const token_mat_player_2 = preload("res://assets/materials/token_material/token_mat_player_2.tres")
 const token_mat_player_3 = preload("res://assets/materials/token_material/token_mat_player_3.tres")
 const token_mat_player_4 = preload("res://assets/materials/token_material/token_mat_player_4.tres")
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization & Setup
@@ -201,6 +205,12 @@ func _highlight_placements_for_mode(mode: String) -> void:
 			highlight_sigil = true
 
 	for placement in get_parent().get_node("TokenPlacements").get_children():
+		var current_biome = placement.accepted_biome
+		# If a placement is meant to be hidden by an effect, ensure it stays hidden.
+		if hidden_placement_ids.has(current_biome) and placement.place_id in hidden_placement_ids[current_biome]:
+			placement.hide()
+			continue # Skip any further logic for this placement
+
 		if not placement.is_occupied:
 			var is_biome_placement = (placement.place_id == -1)
 			var is_sigil_placement = (placement.place_id >= 0 and placement.place_id <= 7)
@@ -1636,3 +1646,73 @@ func sync_token_reposition(original_pos: Vector3, new_pos: Vector3, new_biome: i
 	token.global_position = new_pos
 	token.biome_type = new_biome
 	token.token_placement = new_placement
+
+
+## ELEMENTALS 
+func server_remove_token_at_pos(position: Vector3):
+	if not multiplayer.is_server():
+		return
+
+	var token = find_token_at_position(position)
+	if token:
+		print("Server removing token at position: " + str(position))
+		var player_id = token.owner_id
+		var biome_type = token.biome_type
+
+		var placement = get_token_placement_at_position(token.global_position)
+		if placement:
+			placement.set_occupied(false)
+			placement.current_token = null
+
+		if player_id != -1:
+			add_token_to_player(player_id, biome_type)
+
+		# The removal itself is synced to clients via an RPC.
+		rpc("sync_token_removal_at_position", position, player_id, biome_type)
+		
+		# The token node is freed on the server. The RPC will handle freeing it on clients.
+		token.queue_free()
+	else:
+		print("Server could not find token to remove at: " + str(position))
+
+@rpc("any_peer", "call_local")
+func hide_placements_by_id(ids_to_hide: Array, biome_type: int):
+	# Ensure the biome key exists in the dictionary
+	if not hidden_placement_ids.has(biome_type):
+		hidden_placement_ids[biome_type] = []
+
+	# Add new IDs and ensure the list is unique
+	var id_set = {}
+	for id in ids_to_hide:
+		id_set[id] = true
+	for id in hidden_placement_ids[biome_type]:
+		id_set[id] = true
+	hidden_placement_ids[biome_type] = id_set.keys()
+
+	var placements_node = get_node_or_null("/root/Game/TokenPlacements")
+	if not placements_node: return
+
+	for placement in placements_node.get_children():
+		# Only hide if the biome matches and the ID is in the list for that biome
+		if placement.accepted_biome == biome_type and placement.place_id in hidden_placement_ids[biome_type]:
+			placement.hide()
+
+
+@rpc("any_peer", "call_local")
+func sync_token_removal_at_position(token_position: Vector3, player_id: int, biome_type: int):
+	print("Syncing token removal at: " + str(token_position))
+
+	var token = find_token_at_position(token_position)
+	if token:
+		var placement = get_token_placement_at_position(token.global_position)
+		if placement:
+			placement.set_occupied(false)
+			placement.current_token = null
+
+		token.queue_free()
+
+		# Update the UI only for the affected player.
+		if player_id == multiplayer.get_unique_id():
+			update_token_ui()
+	else:
+		print("No token found at position for removal sync: " + str(token_position))
