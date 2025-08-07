@@ -1,3 +1,4 @@
+class_name Token3D
 extends Node3D
 
 enum BiomeType {FOREST, WATER, MOUNTAIN, DESERT}

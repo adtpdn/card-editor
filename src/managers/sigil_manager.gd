@@ -68,52 +68,53 @@ func initialize():
 
 # Handle input from player for sigil interactions
 func handle_sigil_input(position: Vector2):
-	print("handle sigil input")
 	var camera = game.get_node("Camera3D")
 	if !camera:
 		return false
-		
+
 	var from = camera.project_ray_origin(position)
 	var to = from + camera.project_ray_normal(position) * 1000
-	
+
 	var space_state = get_tree().get_root().get_world_3d().direct_space_state
 	var query = PhysicsRayQueryParameters3D.create(from, to)
 	var result = space_state.intersect_ray(query)
-	
-	
+
+	# Exit early if nothing was clicked
+	if not result:
+		return false
+
+	# --- REFACTOR START ---
+	# Safely get the main node that was clicked. The structure is usually CollisionShape3D -> StaticBody3D -> Main Node.
+	var clicked_node = result.collider.get_parent().get_parent()
+
+	# CRITICAL FIX: Verify that the clicked object is actually a Token3D.
+	# If it's a Card, the floor, or anything else, we ignore it in this function.
+	if not is_instance_valid(clicked_node) or not clicked_node is Token3D:
+		# This prevents the crash by stopping execution if we click a card or other object.
+		return false
+
+	# If we've reached this point, we know 'clicked_node' is a valid Token3D.
+	var found_token = clicked_node
+	# --- REFACTOR END ---
+
+	# Now we can safely use the original logic because we know 'found_token' is the correct type.
 	if !is_sigil_mode and !card_manager.is_take_off_mode and !card_manager.is_unblight_mode and !card_manager.is_refresh_energy_mode and !card_manager.is_swap_energy_mode and !card_manager.is_plant_extra:
-		print("goin to result")
-		print("result : ", result)
-		if result :
-			print("")
-			print("sigil manager")
-			#print("result : ", result)
-			
-			var found_token = result.collider.get_parent().get_parent()
-			print("found token : ", found_token)
-			
-			if found_token.name == "Pile" or found_token.name.begins_with("CardSlotBiome") and found_token.name.has("elemental_slice_"):
-				pass
-			elif found_token.name == "ElementalDeck" or found_token.name == "ActionDeck" or found_token.name == "Deck": pass
-			elif found_token.name != "Hand":
-				if found_token.is_energy and turn_phase_manager.current_phase == turn_phase_manager.Phase.PLAY_SIGIL:
-					_on_token_clicked(found_token)
-					return true  # Token was handled
-	elif is_sigil_mode and result:
-		var found_token = result.collider.get_parent().get_parent()
-		if is_sigil_a and found_token.biome_type == selected_energy_token.biome_type:
-			perform_push_pull(selected_energy_token,found_token, true)
-		elif is_sigil_a and found_token.biome_type != selected_energy_token.biome_type:
-			perform_push_pull(selected_energy_token,found_token, false)
-		
-		if is_sigil_b and found_token.biome_type == selected_energy_token.biome_type:
-			perform_push_pull(selected_energy_token,found_token, true)
-		elif is_sigil_b and found_token.biome_type != selected_energy_token.biome_type:
-			perform_push_pull(selected_energy_token,found_token, false)
-		
-		if is_sigil_c:
+		# This is the "idle" state, where a click on an energy token might start a sigil action.
+		if found_token.is_energy and turn_phase_manager.current_phase == turn_phase_manager.Phase.PLAY_SIGIL:
+			_on_token_clicked(found_token)
+			return true  # Input was handled
+
+	elif is_sigil_mode:
+		# This is the "active" state, where we are targeting another token to apply a sigil effect.
+		if is_sigil_a:
+			perform_push_pull(selected_energy_token, found_token, found_token.biome_type == selected_energy_token.biome_type)
+		elif is_sigil_b:
+			perform_push_pull(selected_energy_token, found_token, found_token.biome_type == selected_energy_token.biome_type)
+		elif is_sigil_c:
 			perform_blight_unblight(selected_energy_token, found_token)
-	return false  # No token was handled
+		return true # Input was handled
+
+	return false # No relevant action was taken
 
 
 # Connect to new tokens added to the scene

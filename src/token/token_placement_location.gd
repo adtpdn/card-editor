@@ -74,6 +74,14 @@ func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: 
 			print("Game not found or location is occupied")
 			return
 		
+		if game and game.has_node("TokenManager"):
+			# Call the handler function in TokenManager, passing this placement instance.
+			game.get_node("TokenManager").handle_placement_click(self)
+			
+		
+		if game and game.has_node("SigilManager"):
+			game.get_node("SigilManager").handle_sigil_input(event.position)
+		
 		var player_id = multiplayer.get_unique_id()
 		if !game.game_state_manager.is_valid_player_turn(player_id):
 			print("Not your turn!")
@@ -116,11 +124,11 @@ func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: 
 		hide_placement()
 
 func set_highlight(enabled: bool):
-	if is_occupied:  # Never highlight if occupied
+	if is_occupied:
 		is_highlighted = false
 		var material = StandardMaterial3D.new()
 		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		material.albedo_color = Color(0, 0, 0, 0)  # Fully transparent
+		material.albedo_color = Color(0, 0, 0, 0)
 		material.flags_transparent = true
 		material.flags_no_depth_test = true
 		$MarkerMesh.material_override = material
@@ -130,22 +138,18 @@ func set_highlight(enabled: bool):
 	var material = StandardMaterial3D.new()
 	
 	if enabled:
-		#print("enabled set highlight placement")
-		material.albedo_color = Color(0.736, 0.693, 0.454, 0.2)  # Yellow highlight
+		material.albedo_color = Color(0.736, 0.693, 0.454, 0.2)
 	else:
-		#print("disabled set highlight placement")
-		material.albedo_color = PLACEHOLDER_COLOR  # Neutral placeholder color
+		material.albedo_color = PLACEHOLDER_COLOR
 		
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	$MarkerMesh.material_override = material
 
 func set_occupied(occupied: bool):
-	#print("Setting occupied state to: ", occupied)
 	is_occupied = occupied
 	if occupied:
 		set_highlight(false)
 	else:
-		# If no longer occupied, clear the token reference
 		current_token = null
 
 func set_energy_placement(is_sigil_placement: bool):
@@ -198,14 +202,11 @@ func place_token(player_id: int, token_data: Dictionary):
 func _on_mouse_entered():
 	if !is_occupied:
 		var material = marker_mesh.material_override.duplicate()
-		#material.albedo_color = Color(0.643, 0.949, 0.475, 0.4)
 		material.albedo_color = Color(0.376, 0.709, 0.548, 0.4)
-		#material.albedo_color.a = 0.6
 		marker_mesh.material_override = material
 
 func _on_mouse_exited():
 	if !is_occupied:
 		var material = marker_mesh.material_override.duplicate()
-		#material.albedo_color.a = 0.3
 		material.albedo_color = Color(0.736, 0.693, 0.454, 0.2)
 		marker_mesh.material_override = material
