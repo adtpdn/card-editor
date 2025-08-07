@@ -399,7 +399,7 @@ func add_card_to_hand(player_id: int, card_data: Dictionary, is_elemental: bool)
 		hand.append_card(card)
 		var deck_node_path = "../ElementalDeck" if is_elemental else "../ActionDeck"
 		card.global_position = get_node(deck_node_path).global_position
-		
+	
 		if is_elemental:
 			card.face_down = false
 		

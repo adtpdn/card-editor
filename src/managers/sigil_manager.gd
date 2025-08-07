@@ -417,6 +417,14 @@ func get_token_id(token):
 func check_for_sigil_a_pattern(token) -> bool:
 	print("\n=== CHECKING SIGIL A PATTERN ===")
 	
+	var elementals_manager = get_node("/root/Game/ElementalsManager")
+	if elementals_manager and token.biome_type == elementals_manager.sigil_a_disabled_biome:
+		print("Sigil A is disabled for this biome by a blue elemental effect.")
+		# Optionally, show a notification to the player.
+		notification.show_instruction_label("Sigil A is disabled in this biome.")
+		get_tree().create_timer(2.0).timeout.connect(notification.hide_panel)
+		return false # Exit the function early if the effect is active.
+	
 	# Verify it's an energy token
 	if !token.is_energy:
 		print("Not an energy token")
@@ -506,6 +514,14 @@ func check_for_sigil_a_pattern(token) -> bool:
 func check_for_sigil_b_pattern(token) -> bool:
 	print("\n=== CHECKING SIGIL B PATTERN ===")
 	
+	# Check if Sigil B is disabled for this token's biome.
+	var elementals_manager = get_node("/root/Game/ElementalsManager")
+	if elementals_manager and token.biome_type == elementals_manager.sigil_b_disabled_biome:
+		print("Sigil B is disabled for this biome by a blue elemental effect.")
+		notification.show_instruction_label("Sigil B is disabled in this biome.")
+		get_tree().create_timer(2.0).timeout.connect(notification.hide_panel)
+		return false
+	
 	# Verify it's an energy token
 	if !token.is_energy:
 		print("Not an energy token")
@@ -593,6 +609,14 @@ func check_for_sigil_b_pattern(token) -> bool:
 
 func check_for_sigil_c_pattern(token) -> bool:
 	print("\n=== CHECKING SIGIL C PATTERN ===")
+	
+	# Check if Sigil C is disabled for this token's biome.
+	var elementals_manager = get_node("/root/Game/ElementalsManager")
+	if elementals_manager and token.biome_type == elementals_manager.sigil_c_disabled_biome:
+		print("Sigil C is disabled for this biome by a blue elemental effect.")
+		notification.show_instruction_label("Sigil C is disabled in this biome.")
+		get_tree().create_timer(2.0).timeout.connect(notification.hide_panel)
+		return false
 	
 	# Verify it's an energy token
 	if !token.is_energy:
@@ -955,6 +979,10 @@ func perform_blight_unblight(energy_token, token):
 	_selected_token = token
 	token_manager.is_token_selected = true
 	
+	if _selected_token.biome_type != selected_energy_token.biome_type:
+		token_manager.is_token_selected = false
+		return
+	
 	_on_blight_unblight_input()
 
 
@@ -1075,6 +1103,7 @@ func _on_blight_unblight_input():
 				# Clients request the server to perform the action.
 				rpc_id(1, "request_sigil_unblight_move", target_token.get_path())
 		else:
+			print("blight token other player ")
 			# This is a BLIGHT action (target is an opponent's token)
 			# We need to move it. This must be done on the server.
 			if multiplayer.is_server():
