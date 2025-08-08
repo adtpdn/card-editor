@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=4 uid="uid://bkgjhx6n3oi7s"]
 
-[ext_resource type="Script" uid="uid://inns47cokwch" path="res://src/point_counter.gd" id="1_26bwg"]
+[ext_resource type="Script" uid="uid://inns47cokwch" path="res://src/points_and_soil_star/point_counter.gd" id="1_26bwg"]
 [ext_resource type="Texture2D" uid="uid://c0j0akbot7qab" path="res://assets/meshes/point-block_point_block.png" id="2_64wex"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_05xrn"]

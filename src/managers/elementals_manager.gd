@@ -118,7 +118,28 @@ func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, c
 				increased_sigil_cost_biome = biome_index
 				print("Sigil activation cost is now 2 in biome index: ", increased_sigil_cost_biome)
 			8: 
-				print("Elemental Blue 09")
+				print("Elemental Blue 09: Set Mana based on Blighted Tokens")
+				var card_biome = _get_biome_from_slice(card_node)
+				if card_biome == -1:
+					print("ERROR: Could not determine elemental's biome for card_id 8.")
+					return
+				
+				var tokens_node = get_node("/root/Game/Tokens")
+				var blighted_token_count = 0
+				
+				# Count blighted tokens in the elemental's biome
+				for token in tokens_node.get_children():
+					if token.is_blighted and token.biome_type == card_biome and !token.is_energy:
+						blighted_token_count += 1
+				
+				print("Found %d blighted tokens in biome %d. Setting mana to this value." % [blighted_token_count, card_biome])
+
+				var point_counter = get_node("/root/Game/PointCounter")
+				print("point counter : ", point_counter)
+				if point_counter:
+					point_counter.server_set_mana_for_biome(card_biome, blighted_token_count)
+		
+		# Sync variable
 		if multiplayer.is_server():
 			sync_disabled_states.rpc(sigil_a_disabled_biome, sigil_b_disabled_biome, sigil_c_disabled_biome, point_conversion_disabled_biome, increased_sigil_cost_biome)
 
