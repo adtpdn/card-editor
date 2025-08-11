@@ -18,22 +18,21 @@ func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, c
 	# This function must only be executed on the server.
 	if not multiplayer.is_server():
 		return
-
+	
+	var biome_index = _get_biome_from_slice(card_node)
 	if _type == CardResource.ElementalType.RED:
 		print('Elemental RED Execute')
 		match _card_id:
 			0: _elemental_red_01_effect()
 			1: _elemental_red_02_effect()
-			2: _elemental_red_03_effect()
-			3: _elemental_red_04_effect()
+			2: _elemental_red_03_effect(biome_index)
+			3: _elemental_red_04_effect(biome_index)
 			4: _elemental_red_05_effect()
 			# Card 06 (ElementalRed06) is deferred
 			6: _elemental_red_07_effect(biome_index)
 			7: _elemental_red_08_effect()
 	elif  _type == CardResource.ElementalType.BLUE:
 		print("Elemental BLUE Execute")
-		var biome_index = _get_biome_from_slice(card_node)
-		
 		match _card_id:
 			0: 
 				print("Elemental Blue 01: Disable Sigil A in the elemental's biome")
@@ -198,40 +197,40 @@ func _elemental_red_02_effect():
 		token_manager.blight_token_and_move(token.global_position)
 
 # ElementalRed03 - Blight tokens in a biome if there are more than 4.
-func _elemental_red_03_effect():
-	for biome_type in domination_manager.Biome.values():
+func _elemental_red_03_effect(biome_type):
+	print("elemental red 03 activated")
+	for count in _get_all_tokens_in_biome(biome_type, false).size():
 		var all_tokens_in_biome = _get_all_tokens_in_biome(biome_type, false)
 		
 		if all_tokens_in_biome.size() > 4:
 			var dominant_players = domination_manager._get_all_dominant_players_in_biome(biome_type)
-			if dominant_players.is_empty():
-				continue
-
-			var target_player = dominant_players[0]
-			var player_tokens_in_biome = _get_player_tokens_in_biome(target_player, biome_type, false)
+			var target_player
 			
-			if player_tokens_in_biome.size() > 4:
-				var blight_count = player_tokens_in_biome.size() - 4
-				for i in range(blight_count):
-					token_manager.blight_token_and_move(player_tokens_in_biome[i].global_position)
+			if dominant_players.size() > 1:
+				var last_player = dominant_players.size() - 1
+				target_player = dominant_players[last_player]
+			else:
+				target_player = dominant_players[0]
+			var player_tokens_in_biome = _get_player_tokens_in_biome(target_player, biome_type, false)
+			token_manager.blight_token_and_move(player_tokens_in_biome[0].global_position)
 
 # ElementalRed04 - Maximum 5 tokens in a biome
-func _elemental_red_04_effect():
-	for biome_type in domination_manager.Biome.values():
+func _elemental_red_04_effect(biome_type):
+	print("elemental red 04 activated")
+	for count in _get_all_tokens_in_biome(biome_type, false).size():
 		var all_tokens_in_biome = _get_all_tokens_in_biome(biome_type, false)
 		
 		if all_tokens_in_biome.size() > 5:
 			var dominant_players = domination_manager._get_all_dominant_players_in_biome(biome_type)
-			if dominant_players.is_empty():
-				continue
-
-			var target_player = dominant_players[0]
-			var player_tokens_in_biome = _get_player_tokens_in_biome(target_player, biome_type, false)
+			var target_player
 			
-			if player_tokens_in_biome.size() > 5:
-				var blight_count = player_tokens_in_biome.size() - 5
-				for i in range(blight_count):
-					token_manager.blight_token_and_move(player_tokens_in_biome[i].global_position)
+			if dominant_players.size() > 1:
+				var last_player = dominant_players.size() - 1
+				target_player = dominant_players[last_player]
+			else:
+				target_player = dominant_players[0]
+			var player_tokens_in_biome = _get_player_tokens_in_biome(target_player, biome_type, false)
+			token_manager.blight_token_and_move(player_tokens_in_biome[0].global_position)
 
 # ElementalRed05 - Blighted tokens will dominate the Biome
 func _elemental_red_05_effect():
