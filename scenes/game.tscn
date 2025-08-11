@@ -22,7 +22,7 @@
 [ext_resource type="Script" uid="uid://cnqv71xds5itu" path="res://src/cards_and_deck/deck_pile.gd" id="19_v2yb1"]
 [ext_resource type="PackedScene" uid="uid://ct3mj6rfjmily" path="res://scenes/sigil_mesh.tscn" id="20_05nbr"]
 [ext_resource type="Script" uid="uid://bh3yi5yf57wpw" path="res://src/cards_and_deck/table.gd" id="20_js0lu"]
-[ext_resource type="Script" uid="uid://inns47cokwch" path="res://src/point_counter.gd" id="21_0sl42"]
+[ext_resource type="Script" path="res://src/point_counter.gd" id="21_0sl42"]
 [ext_resource type="Script" uid="uid://bfmtf7hh4lc0h" path="res://src/cards_and_deck/drag_controller.gd" id="21_gxtfn"]
 [ext_resource type="PackedScene" uid="uid://bchy4wmtwdsy" path="res://scenes/pop_up.tscn" id="22_oaba0"]
 [ext_resource type="Script" uid="uid://copi64l3fv7vm" path="res://src/pop_up.gd" id="23_458eo"]

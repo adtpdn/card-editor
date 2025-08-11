@@ -21,6 +21,34 @@ const BIOME_TO_SLICES = {
 
 var stars_awarded_this_turn = {}
 
+# --- MODIFICATION START ---
+# Dictionary to hold the notification text for each elemental card
+const ELEMENTAL_NOTIFICATION_TEXT = {
+	"BLUE": {
+		0: "Elemental Effect Activated:\nCannot use Sigil A pattern.",
+		1: "Elemental Effect Activated:\nCannot use Sigil B pattern.",
+		2: "Elemental Effect Activated:\nCannot use Sigil C pattern.",
+		3: "Elemental Effect Activated:\nCannot place token energy on blighted Sigil column.",
+		4: "Elemental Effect Activated:\nCannot place token energy on blighted Sigil column.",
+		5: "Elemental Effect Activated:\nCannot place token energy on blighted Sigil column.",
+		6: "Elemental Effect Activated:\nMana cannot be converted to points but remains in Mana slot.",
+		7: "Elemental Effect Activated:\nConsumes 2 Mana to activate Sigil Magic pattern.",
+		8: "Elemental Effect Activated:\nMana amount depends on blighted tokens in Biome."
+	},
+	"RED": {
+		0: "Elemental Effect Activated:\nRequires at least 1 blight token in a Biome, determined by dominance; if tied, from last player in reverse order.",
+		1: "Elemental Effect Activated:\nRequires at least 2 blight tokens in a Biome, determined by dominance; if tied, from last player in reverse order.",
+		2: "Elemental Effect Activated:\nMaximum 4 tokens in a Biome; excess tokens blighted from dominant player, or if tied, from last player in reverse order.",
+		3: "Elemental Effect Activated:\nMaximum 5 tokens in a Biome; excess tokens blighted from dominant player, or if tied, from last player in reverse order.",
+		4: "Elemental Effect Activated:\nBlighted tokens dominate the Biome.",
+		5: "Elemental Effect Activated:\n1 point counts as ½ point.",
+		6: "Elemental Effect Activated:\nDominant player in a Biome gains a card instead of a soil star.",
+		7: "Elemental Effect Activated:\nCannot plant tokens in a Biome.",
+		8: "Elemental Effect Activated:\nFewer tokens in a Biome dominate it."
+	}
+}
+# --- MODIFICATION END ---
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # --- Public API - Called from GameStateManager ---
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -269,6 +297,19 @@ func flip_and_activate_elemental_card(slice_path: NodePath):
 	if is_instance_valid(card) and card is FaceCard3D and card.face_down:
 		print("Flipping card '%s' in slice '%s'" % [card.card_name, slice_node.name])
 		card.face_down = false
+		
+		# --- MODIFICATION START ---
+		# Add a small delay to ensure this notification is shown last
+		await get_tree().create_timer(0.1).timeout
+		
+		# Show notification with the card's rule text
+		var card_type_str = "RED" if card.elemental_type == CardResource.ElementalType.RED else "BLUE"
+		if ELEMENTAL_NOTIFICATION_TEXT.has(card_type_str) and ELEMENTAL_NOTIFICATION_TEXT[card_type_str].has(card.card_id):
+			var notification_text = ELEMENTAL_NOTIFICATION_TEXT[card_type_str][card.card_id]
+			game.notification.show_instruction_label(notification_text)
+			await get_tree().create_timer(3.0).timeout
+			game.notification.hide_panel()
+		# --- MODIFICATION END ---
 		
 		# Excute elemental
 		if slice_node.has_method("execute_elemental_effect"):

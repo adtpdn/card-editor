@@ -421,8 +421,9 @@ func check_for_sigil_a_pattern(token) -> bool:
 	var elementals_manager = get_node("/root/Game/ElementalsManager")
 	if elementals_manager and token.biome_type == elementals_manager.sigil_a_disabled_biome:
 		print("Sigil A is disabled for this biome by a blue elemental effect.")
-		# Optionally, show a notification to the player.
-		notification.show_instruction_label("Sigil A is disabled in this biome.")
+		# --- MODIFICATION START ---
+		notification.show_instruction_label("Cannot use Sigil A pattern.")
+		# --- MODIFICATION END ---
 		get_tree().create_timer(2.0).timeout.connect(notification.hide_panel)
 		return false # Exit the function early if the effect is active.
 	
@@ -519,7 +520,9 @@ func check_for_sigil_b_pattern(token) -> bool:
 	var elementals_manager = get_node("/root/Game/ElementalsManager")
 	if elementals_manager and token.biome_type == elementals_manager.sigil_b_disabled_biome:
 		print("Sigil B is disabled for this biome by a blue elemental effect.")
-		notification.show_instruction_label("Sigil B is disabled in this biome.")
+		# --- MODIFICATION START ---
+		notification.show_instruction_label("Cannot use Sigil B pattern.")
+		# --- MODIFICATION END ---
 		get_tree().create_timer(2.0).timeout.connect(notification.hide_panel)
 		return false
 	
@@ -615,7 +618,9 @@ func check_for_sigil_c_pattern(token) -> bool:
 	var elementals_manager = get_node("/root/Game/ElementalsManager")
 	if elementals_manager and token.biome_type == elementals_manager.sigil_c_disabled_biome:
 		print("Sigil C is disabled for this biome by a blue elemental effect.")
-		notification.show_instruction_label("Sigil C is disabled in this biome.")
+		# --- MODIFICATION START ---
+		notification.show_instruction_label("Cannot use Sigil C pattern.")
+		# --- MODIFICATION END ---
 		get_tree().create_timer(2.0).timeout.connect(notification.hide_panel)
 		return false
 	

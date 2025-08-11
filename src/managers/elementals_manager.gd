@@ -9,6 +9,34 @@ var sigil_a_disabled_biome: int = -1
 var sigil_b_disabled_biome: int = -1
 var sigil_c_disabled_biome: int = -1
 
+# --- MODIFICATION START ---
+# Dictionary to hold the notification text for each elemental card
+const ELEMENTAL_NOTIFICATION_TEXT = {
+	"BLUE": {
+		0: "Elemental Effect Activated:\nCannot use Sigil A pattern.",
+		1: "Elemental Effect Activated:\nCannot use Sigil B pattern.",
+		2: "Elemental Effect Activated:\nCannot use Sigil C pattern.",
+		3: "Elemental Effect Activated:\nCannot place token energy on blighted Sigil column.",
+		4: "Elemental Effect Activated:\nCannot place token energy on blighted Sigil column.",
+		5: "Elemental Effect Activated:\nCannot place token energy on blighted Sigil column.",
+		6: "Elemental Effect Activated:\nMana cannot be converted to points but remains in Mana slot.",
+		7: "Elemental Effect Activated:\nConsumes 2 Mana to activate Sigil Magic pattern.",
+		8: "Elemental Effect Activated:\nMana amount depends on blighted tokens in Biome."
+	},
+	"RED": {
+		0: "Elemental Effect Activated:\nRequires at least 1 blight token in a Biome, determined by dominance; if tied, from last player in reverse order.",
+		1: "Elemental Effect Activated:\nRequires at least 2 blight tokens in a Biome, determined by dominance; if tied, from last player in reverse order.",
+		2: "Elemental Effect Activated:\nMaximum 4 tokens in a Biome; excess tokens blighted from dominant player, or if tied, from last player in reverse order.",
+		3: "Elemental Effect Activated:\nMaximum 5 tokens in a Biome; excess tokens blighted from dominant player, or if tied, from last player in reverse order.",
+		4: "Elemental Effect Activated:\nBlighted tokens dominate the Biome.",
+		5: "Elemental Effect Activated:\n1 point counts as ½ point.",
+		6: "Elemental Effect Activated:\nDominant player in a Biome gains a card instead of a soil star.",
+		7: "Elemental Effect Activated:\nCannot plant tokens in a Biome.",
+		8: "Elemental Effect Activated:\nFewer tokens in a Biome dominate it."
+	}
+}
+# --- MODIFICATION END ---
+
 func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, card_node: FaceCard3D):
 	# This function must only be executed on the server.
 	if not multiplayer.is_server():
@@ -25,9 +53,10 @@ func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, c
 				2: _elemental_red_03_effect()
 				3: _elemental_red_04_effect()
 				4: _elemental_red_05_effect()
-				# Card 06 (ElementalRed06) is deferred
-				6: _elemental_red_07_effect(biome_index)
-				7: _elemental_red_08_effect()
+				5: _elemental_red_06_effect()
+				6: _elemental_red_07_effect()
+				7: _elemental_red_08_effect(biome_index)
+				8: _elemental_red_09_effect()
 
 
 		CardResource.ElementalType.BLUE:
@@ -39,6 +68,22 @@ func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, c
 					sigil_b_disabled_biome = biome_index
 				2:
 					sigil_c_disabled_biome = biome_index
+				3: _elemental_blue_04_effect()
+				4: _elemental_blue_05_effect()
+				5: _elemental_blue_06_effect()
+				6: _elemental_blue_07_effect()
+				7: _elemental_blue_08_effect()
+				8: _elemental_blue_09_effect()
+			
+			# --- MODIFICATION START ---
+			# Add a small delay to ensure this notification is shown last
+			await get_tree().create_timer(0.1).timeout
+			# Show notification for blue elemental effects
+			var notification_text = ELEMENTAL_NOTIFICATION_TEXT["BLUE"][_card_id]
+			game.notification.show_instruction_label(notification_text)
+			await get_tree().create_timer(3.0).timeout
+			game.notification.hide_panel()
+			# --- MODIFICATION END ---
 			
 			sync_disabled_sigils.rpc(sigil_a_disabled_biome, sigil_b_disabled_biome, sigil_c_disabled_biome)
 
@@ -80,7 +125,7 @@ func _elemental_red_02_effect():
 	for token in tokens_to_blight:
 		token_manager.blight_token_and_move(token.global_position)
 
-# ElementalRed03 - Blight tokens in a biome if there are more than 4.
+# ElementalRed03 - Maximum 4 tokens in a Biome
 func _elemental_red_03_effect():
 	for biome_type in domination_manager.Biome.values():
 		var all_tokens_in_biome = _get_all_tokens_in_biome(biome_type, false)
@@ -93,12 +138,12 @@ func _elemental_red_03_effect():
 			var target_player = dominant_players[0]
 			var player_tokens_in_biome = _get_player_tokens_in_biome(target_player, biome_type, false)
 			
-			if player_tokens_in_biome.size() > 4:
-				var blight_count = player_tokens_in_biome.size() - 4
-				for i in range(blight_count):
+			var blight_count = all_tokens_in_biome.size() - 4
+			for i in range(blight_count):
+				if i < player_tokens_in_biome.size():
 					token_manager.blight_token_and_move(player_tokens_in_biome[i].global_position)
 
-# ElementalRed04 - Maximum 5 tokens in a biome
+# ElementalRed04 - Maximum 5 tokens in a Biome
 func _elemental_red_04_effect():
 	for biome_type in domination_manager.Biome.values():
 		var all_tokens_in_biome = _get_all_tokens_in_biome(biome_type, false)
@@ -111,12 +156,12 @@ func _elemental_red_04_effect():
 			var target_player = dominant_players[0]
 			var player_tokens_in_biome = _get_player_tokens_in_biome(target_player, biome_type, false)
 			
-			if player_tokens_in_biome.size() > 5:
-				var blight_count = player_tokens_in_biome.size() - 5
-				for i in range(blight_count):
+			var blight_count = all_tokens_in_biome.size() - 5
+			for i in range(blight_count):
+				if i < player_tokens_in_biome.size():
 					token_manager.blight_token_and_move(player_tokens_in_biome[i].global_position)
 
-# ElementalRed05 - Blighted tokens will dominate the Biome
+# ElementalRed05 - Blighted tokens dominate the Biome
 func _elemental_red_05_effect():
 	var target_biome = _find_target_biome_by_dominance()
 	if target_biome == -1:
@@ -141,15 +186,24 @@ func _elemental_red_05_effect():
 			if soil_star_node:
 				soil_star_node.increase_soil_star(1)
 
+# ElementalRed06 - 1 point counts as ½ point.
+func _elemental_red_06_effect():
+	# Placeholder for future implementation
+	pass
 
-# ElementalRed07 - Can’t plant token in a biome
-func _elemental_red_07_effect(biome_index: int):
+# ElementalRed07 - Dominant player in a Biome gains a card instead of a soil star.
+func _elemental_red_07_effect():
+	# Placeholder for future implementation
+	pass
+
+# ElementalRed08 - Cannot plant tokens in a Biome.
+func _elemental_red_08_effect(biome_index: int):
 	if biome_index != -1:
 		# We need a new variable in TokenManager to track this
 		token_manager.rpc("set_biome_planting_lock", biome_index, true)
 
-# ElementalRed08 - Less token in a biome will dominate the biome
-func _elemental_red_08_effect():
+# ElementalRed09 - Fewer tokens in a Biome dominate it.
+func _elemental_red_09_effect():
 	var target_biome = _find_target_biome_by_dominance()
 	if target_biome == -1:
 		return
@@ -167,6 +221,38 @@ func _elemental_red_08_effect():
 			var soil_star_node = player_ui.get_node_or_null("SoilStar")
 			if soil_star_node:
 				soil_star_node.increase_soil_star(1)
+
+# --- Elemental Blue Effect Implementations ---
+
+# ElementalBlue04 - Cannot place token energy on blighted Sigil column.
+func _elemental_blue_04_effect():
+	# Placeholder for future implementation
+	pass
+
+# ElementalBlue05 - Cannot place token energy on blighted Sigil column.
+func _elemental_blue_05_effect():
+	# Placeholder for future implementation
+	pass
+
+# ElementalBlue06 - Cannot place token energy on blighted Sigil column.
+func _elemental_blue_06_effect():
+	# Placeholder for future implementation
+	pass
+
+# ElementalBlue07 - Mana cannot be converted to points but remains in Mana slot.
+func _elemental_blue_07_effect():
+	# Placeholder for future implementation
+	pass
+
+# ElementalBlue08 - Consumes 2 Mana to activate Sigil Magic pattern.
+func _elemental_blue_08_effect():
+	# Placeholder for future implementation
+	pass
+
+# ElementalBlue09 - Mana amount depends on blighted tokens in Biome.
+func _elemental_blue_09_effect():
+	# Placeholder for future implementation
+	pass
 
 
 # --- Helper Functions ---
