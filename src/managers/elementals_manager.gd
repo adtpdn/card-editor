@@ -15,9 +15,21 @@ var increased_sigil_cost_biome: int = -1 # blue elemental 7
 
 func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, card_node: FaceCard3D):
 	print("execute elemental")
-	
+	# This function must only be executed on the server.
+	if not multiplayer.is_server():
+		return
+
 	if _type == CardResource.ElementalType.RED:
 		print('Elemental RED Execute')
+		match _card_id:
+			0: _elemental_red_01_effect()
+			1: _elemental_red_02_effect()
+			2: _elemental_red_03_effect()
+			3: _elemental_red_04_effect()
+			4: _elemental_red_05_effect()
+			# Card 06 (ElementalRed06) is deferred
+			6: _elemental_red_07_effect(biome_index)
+			7: _elemental_red_08_effect()
 	elif  _type == CardResource.ElementalType.BLUE:
 		print("Elemental BLUE Execute")
 		var biome_index = _get_biome_from_slice(card_node)
@@ -147,38 +159,6 @@ func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, c
 		# Sync variable
 		if multiplayer.is_server():
 			sync_disabled_states.rpc(sigil_a_disabled_biome, sigil_b_disabled_biome, sigil_c_disabled_biome, point_conversion_disabled_biome, increased_sigil_cost_biome)
-	# This function must only be executed on the server.
-	if not multiplayer.is_server():
-		return
-
-	var biome_index = _get_biome_from_slice(card_node)
-
-	match _type:
-		CardResource.ElementalType.RED:
-			print("Elemental RED Execute")
-			match _card_id:
-				0: _elemental_red_01_effect()
-				1: _elemental_red_02_effect()
-				2: _elemental_red_03_effect()
-				3: _elemental_red_04_effect()
-				4: _elemental_red_05_effect()
-				# Card 06 (ElementalRed06) is deferred
-				6: _elemental_red_07_effect(biome_index)
-				7: _elemental_red_08_effect()
-
-
-		CardResource.ElementalType.BLUE:
-			print("Elemental BLUE Execute")
-			match _card_id:
-				0:
-					sigil_a_disabled_biome = biome_index
-				1:
-					sigil_b_disabled_biome = biome_index
-				2:
-					sigil_c_disabled_biome = biome_index
-			
-			sync_disabled_sigils.rpc(sigil_a_disabled_biome, sigil_b_disabled_biome, sigil_c_disabled_biome)
-
 
 # --- Elemental Red Effect Implementations ---
 
