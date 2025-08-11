@@ -23,8 +23,8 @@ func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, c
 	if _type == CardResource.ElementalType.RED:
 		print('Elemental RED Execute')
 		match _card_id:
-			0: _elemental_red_01_effect()
-			1: _elemental_red_02_effect()
+			0: _elemental_red_01_effect(biome_index)
+			1: _elemental_red_02_effect(biome_index)
 			2: _elemental_red_03_effect(biome_index)
 			3: _elemental_red_04_effect(biome_index)
 			4: _elemental_red_05_effect()
@@ -162,39 +162,36 @@ func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, c
 # --- Elemental Red Effect Implementations ---
 
 # ElementalRed01 - Blight at least 1 token in a biome.
-func _elemental_red_01_effect():
-	var target_biome = _find_target_biome_by_dominance()
-	if target_biome == -1:
-		print("ElementalRed01: No single dominant biome found. No effect.")
-		return
-
-	var dominant_players = domination_manager._get_all_dominant_players_in_biome(target_biome)
-	if dominant_players.is_empty():
-		print("ElementalRed01: No dominant player in biome %s." % target_biome)
-		return
-	
-	var target_player = dominant_players[0] # In case of a tie, the tie-breaker already picked the biome
-	
-	var tokens_to_blight = _get_player_tokens_in_biome(target_player, target_biome, false, 1)
-	for token in tokens_to_blight:
-		token_manager.blight_token_and_move(token.global_position)
+func _elemental_red_01_effect(biome_type):
+	print("elemental red 01 activated")
+	for count in _get_all_tokens_in_biome(biome_type, false).size():
+		var blight_token_on_biome = _get_blight_token_in_biome(biome_type)
+		if blight_token_on_biome.size() < 1:
+			var dominant_players = domination_manager._get_all_dominant_players_in_biome(biome_type)
+			var target_player
+			if dominant_players.size() > 1:
+				var last_player = dominant_players.size() - 1
+				target_player = dominant_players[last_player]
+			else:
+				target_player = dominant_players[0]
+			var player_tokens_in_biome = _get_player_tokens_in_biome(target_player, biome_type, false)
+			token_manager.blight_token_and_move(player_tokens_in_biome[0].global_position)
 
 # ElementalRed02 - Blight at least 2 tokens in a biome.
-func _elemental_red_02_effect():
-	var target_biome = _find_target_biome_by_dominance()
-	if target_biome == -1:
-		print("ElementalRed02: No single dominant biome found. No effect.")
-		return
-
-	var dominant_players = domination_manager._get_all_dominant_players_in_biome(target_biome)
-	if dominant_players.is_empty():
-		return
-	
-	var target_player = dominant_players[0]
-	
-	var tokens_to_blight = _get_player_tokens_in_biome(target_player, target_biome, false, 2)
-	for token in tokens_to_blight:
-		token_manager.blight_token_and_move(token.global_position)
+func _elemental_red_02_effect(biome_type):
+	print("elemental red 02 activated")
+	for count in _get_all_tokens_in_biome(biome_type, false).size():
+		var blight_token_on_biome = _get_blight_token_in_biome(biome_type)
+		if blight_token_on_biome.size() < 2:
+			var dominant_players = domination_manager._get_all_dominant_players_in_biome(biome_type)
+			var target_player
+			if dominant_players.size() > 1:
+				var last_player = dominant_players.size() - 1
+				target_player = dominant_players[last_player]
+			else:
+				target_player = dominant_players[0]
+			var player_tokens_in_biome = _get_player_tokens_in_biome(target_player, biome_type, false)
+			token_manager.blight_token_and_move(player_tokens_in_biome[0].global_position)
 
 # ElementalRed03 - Blight tokens in a biome if there are more than 4.
 func _elemental_red_03_effect(biome_type):
@@ -211,6 +208,7 @@ func _elemental_red_03_effect(biome_type):
 				target_player = dominant_players[last_player]
 			else:
 				target_player = dominant_players[0]
+			
 			var player_tokens_in_biome = _get_player_tokens_in_biome(target_player, biome_type, false)
 			token_manager.blight_token_and_move(player_tokens_in_biome[0].global_position)
 
@@ -286,6 +284,15 @@ func _elemental_red_08_effect():
 
 
 # --- Helper Functions ---
+func _get_blight_token_in_biome(biome_type):
+	var all_tokens_in_biome = _get_all_tokens_in_biome(biome_type, true)
+	var blight_token_arr = []
+	for token in all_tokens_in_biome:
+		if token.is_blighted and not token.is_energy:
+			blight_token_arr.append(token)
+	
+	return blight_token_arr
+
 
 # Finds the target biome based on token dominance and tie-breaker rules.
 func _find_target_biome_by_dominance() -> int:
