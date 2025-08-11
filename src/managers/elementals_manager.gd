@@ -27,9 +27,10 @@ func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, c
 			2: _elemental_red_03_effect(biome_index)
 			3: _elemental_red_04_effect(biome_index)
 			4: _elemental_red_05_effect(biome_index)
-			# Card 06 (ElementalRed06) is deferred
+			5: pass 
 			6: _elemental_red_07_effect(biome_index)
-			7: _elemental_red_08_effect()
+			7: _elemental_red_08_effect(biome_index)
+			8: _elemental_red_09_effect(biome_index)
 	elif  _type == CardResource.ElementalType.BLUE:
 		print("Elemental BLUE Execute")
 		match _card_id:
@@ -235,31 +236,22 @@ func _elemental_red_05_effect(biome_index):
 	if domination_manager:
 		domination_manager.set_blighted_domination_biome(biome_index)
 
-# ElementalRed07 - Can’t plant token in a biome
 func _elemental_red_07_effect(biome_index: int):
+	print("Elemental Red 06 Effect: Winners in biome %d get a card instead of a star." % biome_index)
+	if domination_manager:
+		domination_manager.set_card_reward_biome(biome_index)
+
+# ElementalRed07 - Can’t plant token in a biome
+func _elemental_red_08_effect(biome_index: int):
 	if biome_index != -1:
 		# We need a new variable in TokenManager to track this
 		token_manager.rpc("set_biome_planting_lock", biome_index, true)
 
 # ElementalRed08 - Less token in a biome will dominate the biome
-func _elemental_red_08_effect():
-	var target_biome = _find_target_biome_by_dominance()
-	if target_biome == -1:
-		return
-	
-	# Use the new function from DominationManager
-	var least_dominant_players = domination_manager._get_least_dominant_players_in_biome(target_biome)
-	
-	if least_dominant_players.is_empty():
-		return
-		
-	# Award a soil star to the player(s) with the fewest tokens
-	for player_id in least_dominant_players:
-		var player_ui = game.soil_star_actions._get_active_player_ui()
-		if player_ui:
-			var soil_star_node = player_ui.get_node_or_null("SoilStar")
-			if soil_star_node:
-				soil_star_node.increase_soil_star(1)
+func _elemental_red_09_effect(biome_index):
+	print("Elemental Red 08 Effect: The player with the least tokens will dominate biome %d" % biome_index)
+	if domination_manager:
+		domination_manager.set_least_tokens_win_biome(biome_index)
 
 
 # --- Helper Functions ---

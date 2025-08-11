@@ -36,6 +36,8 @@ var current_selected_button: Button = null
 
 # Elementals
 var hidden_placement_ids = {} 
+# Variable to track biome where planting is locked
+var locked_planting_biome: int = -1
 
 # Modify token selection handling to use both biome and type
 var selected_token_biome = -1
@@ -242,6 +244,10 @@ func _highlight_placements_for_mode(mode: String) -> void:
 
 	for placement in get_parent().get_node("TokenPlacements").get_children():
 		var current_biome = placement.accepted_biome
+		if mode != "sigil_only":
+			if current_biome == locked_planting_biome and placement.place_id == -1 :
+				continue # Skip this placement entirely
+		
 		# If a placement is meant to be hidden by an effect, ensure it stays hidden.
 		if hidden_placement_ids.has(current_biome) and placement.place_id in hidden_placement_ids[current_biome]:
 			placement.hide()
@@ -1719,3 +1725,13 @@ func sync_token_removal_at_position(token_position: Vector3, player_id: int, bio
 			update_token_ui()
 	else:
 		print("No token found at position for removal sync: " + str(token_position))
+
+@rpc("any_peer", "call_local")
+func set_biome_planting_lock(biome_index: int, is_locked: bool):
+	if is_locked:
+		locked_planting_biome = biome_index
+		print("Token planting is now locked for biome: %d" % biome_index)
+	else:
+		# This part would be used if you have an effect that unlocks it
+		locked_planting_biome = -1 
+		print("Token planting lock removed.")

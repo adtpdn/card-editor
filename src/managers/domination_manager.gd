@@ -22,6 +22,10 @@ const BIOME_TO_SLICES = {
 var stars_awarded_this_turn = {}
 # Variable to track the biome affected by the elemental card
 var blighted_domination_biome: int = -1
+# Variable to track the biome that awards a card
+var card_reward_biome: int = -1
+# Variable to track the biome with the "least tokens win" rule
+var least_tokens_win_biome: int = -1
 
 # Function to set the affected biome
 func set_blighted_domination_biome(biome_index: int):
@@ -32,6 +36,22 @@ func set_blighted_domination_biome(biome_index: int):
 func sync_blighted_domination_biome(biome_index: int):
 	blighted_domination_biome = biome_index
 
+# Function to set the affected biome for card reward
+func set_card_reward_biome(biome_index: int):
+	card_reward_biome = biome_index
+	rpc("sync_card_reward_biome", biome_index)
+
+@rpc("any_peer", "call_local")
+func sync_card_reward_biome(biome_index: int):
+	card_reward_biome = biome_index
+
+func set_least_tokens_win_biome(biome_index: int):
+	least_tokens_win_biome = biome_index
+	rpc("sync_least_tokens_win_biome", biome_index)
+
+@rpc("any_peer", "call_local")
+func sync_least_tokens_win_biome(biome_index: int):
+	least_tokens_win_biome = biome_index
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # --- Public API - Called from GameStateManager ---
@@ -94,18 +114,33 @@ func check_domination_for_soil_stars():
 	# Loop through each biome
 	for biome_value in Biome.values():
 		var biome_name = Biome.keys()[biome_value]
-		var winners = _get_all_dominant_players_in_biome(biome_value)
+		var winners = []
 
-		# Log the results and tally the stars to be awarded
-		if winners.size() > 0:
+		if biome_value == least_tokens_win_biome:
+			print("Using 'least tokens win' rule for biome: %s" % biome_name)
+			winners = _get_least_dominant_players_in_biome(biome_value)
+		else:
+			winners = _get_all_dominant_players_in_biome(biome_value)
+		
+		if winners.is_empty():
+			if biome_value == blighted_domination_biome:
+				print("No blighted tokens in %s biome to determine domination." % biome_name)
+			else:
+				print("No non-blighted tokens in %s biome to determine domination." % biome_name)
+			continue
+
+		# MODIFIED --- Check if this biome awards a card instead of a star
+		if biome_value == card_reward_biome:
+			print("Biome %s has card reward active. Awarding cards to winners: %s" % [biome_name, str(winners)])
+			for winner_id in winners:
+				game.deck.table.server_draw_card(winner_id, false)
+		else:
+			# Original logic for awarding soil stars
 			if winners.size() == 1:
-				# Case 1: A single player dominates the biome.
 				var winner_id = winners[0]
 				print("Player %d dominates the %s biome for a soil star." % [winner_id, biome_name])
 				stars_awarded_this_turn[winner_id] += 1
 			else:
-				# Case 2: A tie between multiple players. All tied players get a star.
-				# This logic correctly handles ties in both normal and blighted-domination biomes.
 				if biome_value == blighted_domination_biome:
 					print("Domination is TIED in the BLIGHTED %s biome between players: %s. Awarding stars to all." % [biome_name, str(winners)])
 				else:
@@ -113,12 +148,6 @@ func check_domination_for_soil_stars():
 				
 				for winner_id in winners:
 					stars_awarded_this_turn[winner_id] += 1
-		else:
-			if biome_value == blighted_domination_biome:
-				print("No blighted tokens in %s biome to determine domination." % biome_name)
-			else:
-				print("No non-blighted tokens in %s biome to determine domination." % biome_name)
-
 
 	# Sync the results with all clients
 	var has_awards = false
@@ -131,6 +160,7 @@ func check_domination_for_soil_stars():
 		rpc("update_all_stars_and_notify", stars_awarded_this_turn)
 		# Wait on the server to let the notification be seen by players
 		await get_tree().create_timer(3.5).timeout
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # --- Private Helper and Logic Functions ---
@@ -156,7 +186,7 @@ func _resolve_domination_tie(tied_biomes: Array) -> int:
 	print("Tie could not be resolved by player placement history.")
 	return -1 # Tie could not be resolved.
 
-# NEW FUNCTION: Finds which biome has the most tokens in total, regardless of player.
+# Finds which biome has the most tokens in total, regardless of player.
 # Returns the Biome enum value if there's a clear winner, otherwise returns -1 for a tie.
 func _get_biome_token_counts() -> Dictionary:
 	var biome_token_counts = {
@@ -225,7 +255,7 @@ func _get_all_dominant_players_in_biome(biome_type: Biome) -> Array:
 	for player_id in game.players:
 		player_token_counts[player_id] = 0
 
-	# MODIFIED --- Check if we should count blighted tokens for this biome
+	# Check if we should count blighted tokens for this biome
 	var count_blighted = (biome_type == blighted_domination_biome)
 
 	for token in game.tokens.get_children():
