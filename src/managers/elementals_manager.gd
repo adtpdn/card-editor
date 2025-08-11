@@ -5,7 +5,6 @@ extends Node
 @onready var token_manager = get_node("/root/Game/TokenManager")
 @onready var domination_manager = get_node("/root/Game/DominationManager")
 
-
 # Blue Elementals Variables
 var sigil_a_disabled_biome: int = -1
 var sigil_b_disabled_biome: int = -1
@@ -27,7 +26,7 @@ func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, c
 			1: _elemental_red_02_effect(biome_index)
 			2: _elemental_red_03_effect(biome_index)
 			3: _elemental_red_04_effect(biome_index)
-			4: _elemental_red_05_effect()
+			4: _elemental_red_05_effect(biome_index)
 			# Card 06 (ElementalRed06) is deferred
 			6: _elemental_red_07_effect(biome_index)
 			7: _elemental_red_08_effect()
@@ -231,30 +230,10 @@ func _elemental_red_04_effect(biome_type):
 			token_manager.blight_token_and_move(player_tokens_in_biome[0].global_position)
 
 # ElementalRed05 - Blighted tokens will dominate the Biome
-func _elemental_red_05_effect():
-	var target_biome = _find_target_biome_by_dominance()
-	if target_biome == -1:
-		return
-
-	var player_blight_counts = {}
-	for player_id in game.players:
-		player_blight_counts[player_id] = _get_player_tokens_in_biome(player_id, target_biome, true).size()
-
-	var dominant_blight_player = -1
-	var max_blighted = 0
-	for player_id in player_blight_counts:
-		if player_blight_counts[player_id] > max_blighted:
-			max_blighted = player_blight_counts[player_id]
-			dominant_blight_player = player_id
-	
-	if dominant_blight_player != -1:
-		# Award a soil star to the player with the most blighted tokens
-		var player_ui = game.soil_star_actions._get_active_player_ui()
-		if player_ui:
-			var soil_star_node = player_ui.get_node_or_null("SoilStar")
-			if soil_star_node:
-				soil_star_node.increase_soil_star(1)
-
+func _elemental_red_05_effect(biome_index):
+	print("Elemental Red 05 Effect: Blighted tokens will now determine domination for biome %d" % biome_index)
+	if domination_manager:
+		domination_manager.set_blighted_domination_biome(biome_index)
 
 # ElementalRed07 - Can’t plant token in a biome
 func _elemental_red_07_effect(biome_index: int):

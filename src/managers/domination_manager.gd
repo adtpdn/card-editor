@@ -20,6 +20,18 @@ const BIOME_TO_SLICES = {
 }
 
 var stars_awarded_this_turn = {}
+# Variable to track the biome affected by the elemental card
+var blighted_domination_biome: int = -1
+
+# Function to set the affected biome
+func set_blighted_domination_biome(biome_index: int):
+	blighted_domination_biome = biome_index
+	rpc("sync_blighted_domination_biome", biome_index)
+
+@rpc("any_peer", "call_local")
+func sync_blighted_domination_biome(biome_index: int):
+	blighted_domination_biome = biome_index
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # --- Public API - Called from GameStateManager ---
@@ -87,15 +99,26 @@ func check_domination_for_soil_stars():
 		# Log the results and tally the stars to be awarded
 		if winners.size() > 0:
 			if winners.size() == 1:
-				print("Player %d dominates the %s biome for a soil star." % [winners[0], biome_name])
-			else:
-				print("Domination is TIED in the %s biome between players: %s" % [biome_name, str(winners)])
-			
-			# Add one star to the tally for each winner
-			for winner_id in winners:
+				# Case 1: A single player dominates the biome.
+				var winner_id = winners[0]
+				print("Player %d dominates the %s biome for a soil star." % [winner_id, biome_name])
 				stars_awarded_this_turn[winner_id] += 1
+			else:
+				# Case 2: A tie between multiple players. All tied players get a star.
+				# This logic correctly handles ties in both normal and blighted-domination biomes.
+				if biome_value == blighted_domination_biome:
+					print("Domination is TIED in the BLIGHTED %s biome between players: %s. Awarding stars to all." % [biome_name, str(winners)])
+				else:
+					print("Domination is TIED in the %s biome between players: %s. Awarding stars to all." % [biome_name, str(winners)])
+				
+				for winner_id in winners:
+					stars_awarded_this_turn[winner_id] += 1
 		else:
-			print("No non-blighted tokens in %s biome to determine domination." % biome_name)
+			if biome_value == blighted_domination_biome:
+				print("No blighted tokens in %s biome to determine domination." % biome_name)
+			else:
+				print("No non-blighted tokens in %s biome to determine domination." % biome_name)
+
 
 	# Sync the results with all clients
 	var has_awards = false
@@ -202,9 +225,20 @@ func _get_all_dominant_players_in_biome(biome_type: Biome) -> Array:
 	for player_id in game.players:
 		player_token_counts[player_id] = 0
 
+	# MODIFIED --- Check if we should count blighted tokens for this biome
+	var count_blighted = (biome_type == blighted_domination_biome)
+
 	for token in game.tokens.get_children():
-		if token.biome_type == biome_type and not token.is_blighted and not token.is_energy:
-			if player_token_counts.has(token.owner_id):
+		if token.biome_type == biome_type and not token.is_energy:
+			var should_count = false
+			if count_blighted:
+				if token.is_blighted:
+					should_count = true
+			else:
+				if not token.is_blighted:
+					should_count = true
+			
+			if should_count and player_token_counts.has(token.owner_id):
 				player_token_counts[token.owner_id] += 1
 
 	var winners = []
@@ -219,6 +253,7 @@ func _get_all_dominant_players_in_biome(biome_type: Biome) -> Array:
 				winners.append(player_id)
 	
 	return winners
+
 
 # Handles the logic for flipping the correct elemental card for a dominated biome.
 func _flip_elemental_for_biome(biome_type: Biome):
