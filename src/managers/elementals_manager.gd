@@ -12,6 +12,34 @@ var sigil_c_disabled_biome: int = -1
 var point_conversion_disabled_biome: int = -1 # blue elemental 6
 var increased_sigil_cost_biome: int = -1 # blue elemental 7
 
+# --- MODIFICATION START ---
+# Dictionary to hold the notification text for each elemental card
+const ELEMENTAL_NOTIFICATION_TEXT = {
+	"BLUE": {
+		0: "Elemental Effect Activated:\nCannot use Sigil A pattern.",
+		1: "Elemental Effect Activated:\nCannot use Sigil B pattern.",
+		2: "Elemental Effect Activated:\nCannot use Sigil C pattern.",
+		3: "Elemental Effect Activated:\nCannot place token energy on blighted Sigil column.",
+		4: "Elemental Effect Activated:\nCannot place token energy on blighted Sigil column.",
+		5: "Elemental Effect Activated:\nCannot place token energy on blighted Sigil column.",
+		6: "Elemental Effect Activated:\nMana cannot be converted to points but remains in Mana slot.",
+		7: "Elemental Effect Activated:\nConsumes 2 Mana to activate Sigil Magic pattern.",
+		8: "Elemental Effect Activated:\nMana amount depends on blighted tokens in Biome."
+	},
+	"RED": {
+		0: "Elemental Effect Activated:\nRequires at least 1 blight token in a Biome, determined by dominance; if tied, from last player in reverse order.",
+		1: "Elemental Effect Activated:\nRequires at least 2 blight tokens in a Biome, determined by dominance; if tied, from last player in reverse order.",
+		2: "Elemental Effect Activated:\nMaximum 4 tokens in a Biome; excess tokens blighted from dominant player, or if tied, from last player in reverse order.",
+		3: "Elemental Effect Activated:\nMaximum 5 tokens in a Biome; excess tokens blighted from dominant player, or if tied, from last player in reverse order.",
+		4: "Elemental Effect Activated:\nBlighted tokens dominate the Biome.",
+		5: "Elemental Effect Activated:\n1 point counts as ½ point.",
+		6: "Elemental Effect Activated:\nDominant player in a Biome gains a card instead of a soil star.",
+		7: "Elemental Effect Activated:\nCannot plant tokens in a Biome.",
+		8: "Elemental Effect Activated:\nFewer tokens in a Biome dominate it."
+	}
+}
+# --- MODIFICATION END ---
+
 func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, card_node: FaceCard3D):
 	print("execute elemental")
 	# This function must only be executed on the server.
@@ -252,6 +280,38 @@ func _elemental_red_09_effect(biome_index):
 	print("Elemental Red 08 Effect: The player with the least tokens will dominate biome %d" % biome_index)
 	if domination_manager:
 		domination_manager.set_least_tokens_win_biome(biome_index)
+
+# --- Elemental Blue Effect Implementations ---
+
+# ElementalBlue04 - Cannot place token energy on blighted Sigil column.
+func _elemental_blue_04_effect():
+	# Placeholder for future implementation
+	pass
+
+# ElementalBlue05 - Cannot place token energy on blighted Sigil column.
+func _elemental_blue_05_effect():
+	# Placeholder for future implementation
+	pass
+
+# ElementalBlue06 - Cannot place token energy on blighted Sigil column.
+func _elemental_blue_06_effect():
+	# Placeholder for future implementation
+	pass
+
+# ElementalBlue07 - Mana cannot be converted to points but remains in Mana slot.
+func _elemental_blue_07_effect():
+	# Placeholder for future implementation
+	pass
+
+# ElementalBlue08 - Consumes 2 Mana to activate Sigil Magic pattern.
+func _elemental_blue_08_effect():
+	# Placeholder for future implementation
+	pass
+
+# ElementalBlue09 - Mana amount depends on blighted tokens in Biome.
+func _elemental_blue_09_effect():
+	# Placeholder for future implementation
+	pass
 
 
 # --- Helper Functions ---
