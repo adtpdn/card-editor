@@ -12,7 +12,6 @@ var sigil_c_disabled_biome: int = -1
 var point_conversion_disabled_biome: int = -1 # blue elemental 6
 var increased_sigil_cost_biome: int = -1 # blue elemental 7
 
-# --- MODIFICATION START ---
 # Dictionary to hold the notification text for each elemental card
 const ELEMENTAL_NOTIFICATION_TEXT = {
 	"BLUE": {
@@ -38,7 +37,7 @@ const ELEMENTAL_NOTIFICATION_TEXT = {
 		8: "Elemental Effect Activated:\nFewer tokens in a Biome dominate it."
 	}
 }
-# --- MODIFICATION END ---
+
 
 func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, card_node: FaceCard3D):
 	print("execute elemental")
@@ -55,7 +54,7 @@ func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, c
 			2: _elemental_red_03_effect(biome_index)
 			3: _elemental_red_04_effect(biome_index)
 			4: _elemental_red_05_effect(biome_index)
-			5: pass 
+			5: _elemental_red_06_effect(biome_index)
 			6: _elemental_red_07_effect(biome_index)
 			7: _elemental_red_08_effect(biome_index)
 			8: _elemental_red_09_effect(biome_index)
@@ -264,20 +263,25 @@ func _elemental_red_05_effect(biome_index):
 	if domination_manager:
 		domination_manager.set_blighted_domination_biome(biome_index)
 
+# ElementalRed06 - Point in a biome will be cut in Half
+func _elemental_red_06_effect(biome_index):
+	print("Elemental Red 06 Effect: Point on biome will cut half " % biome_index)
+
+# ElementalRed07 - Card reward if dominate a biome
 func _elemental_red_07_effect(biome_index: int):
-	print("Elemental Red 06 Effect: Winners in biome %d get a card instead of a star." % biome_index)
+	print("Elemental Red 07 Effect: Winners in biome %d get a card instead of a star." % biome_index)
 	if domination_manager:
 		domination_manager.set_card_reward_biome(biome_index)
 
-# ElementalRed07 - Can’t plant token in a biome
+# ElementalRed08 - Can’t plant token in a biome
 func _elemental_red_08_effect(biome_index: int):
 	if biome_index != -1:
 		# We need a new variable in TokenManager to track this
 		token_manager.rpc("set_biome_planting_lock", biome_index, true)
 
-# ElementalRed08 - Less token in a biome will dominate the biome
+# ElementalRed09 - Less token in a biome will dominate the biome
 func _elemental_red_09_effect(biome_index):
-	print("Elemental Red 08 Effect: The player with the least tokens will dominate biome %d" % biome_index)
+	print("Elemental Red 09 Effect: The player with the least tokens will dominate biome %d" % biome_index)
 	if domination_manager:
 		domination_manager.set_least_tokens_win_biome(biome_index)
 
