@@ -161,6 +161,41 @@ func _get_dominant_player_in_biome(biome_type: Biome) -> int:
 	else:
 		return -1
 
+# --- NEW FUNCTION for ElementalRed08 ---
+# Finds the player(s) with the FEWEST tokens in a biome.
+func _get_least_dominant_players_in_biome(biome_type: Biome) -> Array:
+	var player_token_counts = {}
+	for player_id in game.players:
+		player_token_counts[player_id] = 0
+
+	# First, get a list of all players who have at least one token in the biome
+	var players_in_biome = []
+	for token in game.tokens.get_children():
+		if token.biome_type == biome_type and not token.is_blighted and not token.is_energy:
+			if not players_in_biome.has(token.owner_id):
+				players_in_biome.append(token.owner_id)
+			if player_token_counts.has(token.owner_id):
+				player_token_counts[token.owner_id] += 1
+	
+	# If no one has tokens, no one can be the least dominant
+	if players_in_biome.is_empty():
+		return []
+
+	var winners = []
+	# Start with a high number to find the minimum
+	var min_count = INF 
+	for player_id in players_in_biome:
+		if player_token_counts[player_id] < min_count:
+			min_count = player_token_counts[player_id]
+	
+	# Find all players who are tied for the minimum count
+	if min_count != INF:
+		for player_id in players_in_biome:
+			if player_token_counts[player_id] == min_count:
+				winners.append(player_id)
+	
+	return winners
+
 # A more general helper that returns an array of ALL players who are tied for domination. (Used for Soil Stars)
 func _get_all_dominant_players_in_biome(biome_type: Biome) -> Array:
 	var player_token_counts = {}
