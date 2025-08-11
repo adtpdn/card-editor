@@ -5,43 +5,160 @@ extends Node
 @onready var token_manager = get_node("/root/Game/TokenManager")
 @onready var domination_manager = get_node("/root/Game/DominationManager")
 
+
+# Blue Elementals Variables
 var sigil_a_disabled_biome: int = -1
 var sigil_b_disabled_biome: int = -1
 var sigil_c_disabled_biome: int = -1
+var point_conversion_disabled_biome: int = -1 # blue elemental 6
+var increased_sigil_cost_biome: int = -1 # blue elemental 7
 
 func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, card_node: FaceCard3D):
+	print("execute elemental")
 	# This function must only be executed on the server.
 	if not multiplayer.is_server():
 		return
 
-	var biome_index = _get_biome_from_slice(card_node)
+	if _type == CardResource.ElementalType.RED:
+		print('Elemental RED Execute')
+		match _card_id:
+			0: _elemental_red_01_effect()
+			1: _elemental_red_02_effect()
+			2: _elemental_red_03_effect()
+			3: _elemental_red_04_effect()
+			4: _elemental_red_05_effect()
+			# Card 06 (ElementalRed06) is deferred
+			6: _elemental_red_07_effect(biome_index)
+			7: _elemental_red_08_effect()
+	elif  _type == CardResource.ElementalType.BLUE:
+		print("Elemental BLUE Execute")
+		var biome_index = _get_biome_from_slice(card_node)
+		
+		match _card_id:
+			0: 
+				print("Elemental Blue 01: Disable Sigil A in the elemental's biome")
+				sigil_a_disabled_biome = biome_index
+				print("Sigil A is now disabled in biome index: ", sigil_a_disabled_biome)
+			1: 
+				print("Elemental Blue 02: Disable Sigil B in the elemental's biome")
+				sigil_b_disabled_biome = biome_index
+				print("Sigil B is now disabled in biome index: ", sigil_b_disabled_biome)
+			2: 
+				print("Elemental Blue 03: Disable Sigil C in the elemental's biome")
+				sigil_c_disabled_biome = biome_index
+				print("Sigil C is now disabled in biome index: ", sigil_c_disabled_biome)
+			3:
+				print("Elemental Blue 04: Remove Energy on Sigils")
+				var card_biome = _get_biome_from_slice(card_node)
+				if card_biome == -1:
+					print("ERROR: Could not determine elemental's biome for card_id 3.")
+					return
 
-	match _type:
-		CardResource.ElementalType.RED:
-			print("Elemental RED Execute")
-			match _card_id:
-				0: _elemental_red_01_effect()
-				1: _elemental_red_02_effect()
-				2: _elemental_red_03_effect()
-				3: _elemental_red_04_effect()
-				4: _elemental_red_05_effect()
-				# Card 06 (ElementalRed06) is deferred
-				6: _elemental_red_07_effect(biome_index)
-				7: _elemental_red_08_effect()
+				var token_manager = get_node("/root/Game/TokenManager")
+				var tokens_node = get_node("/root/Game/Tokens")
+				var positions_to_remove = {} # Use a dictionary to store unique positionse
 
+				# Find energy tokens on regular sigil locations (0-7) in the matching biome
+				for token in tokens_node.get_children():
+					if token.is_energy:
+						var placement = token_manager.get_token_placement_at_position(token.global_position)
+						if placement and (placement.place_id == 3 or placement.place_id == 5):
+							if placement.accepted_biome == card_biome:
+								positions_to_remove[token.global_position] = true
+				
+				print("position to remove : ", positions_to_remove)
+				# Execute the removal for all unique positions found
+				for pos in positions_to_remove.keys():
+					token_manager.server_remove_token_at_pos(pos)
 
-		CardResource.ElementalType.BLUE:
-			print("Elemental BLUE Execute")
-			match _card_id:
-				0:
-					sigil_a_disabled_biome = biome_index
-				1:
-					sigil_b_disabled_biome = biome_index
-				2:
-					sigil_c_disabled_biome = biome_index
+				# Hide the specified token placements via RPC, now with biome context
+				token_manager.rpc("hide_placements_by_id", [3, 5], card_biome)
 			
-			sync_disabled_sigils.rpc(sigil_a_disabled_biome, sigil_b_disabled_biome, sigil_c_disabled_biome)
+			4: 
+				print("Elemental Blue 05: Remove Energy on Sigils")
+				var card_biome = _get_biome_from_slice(card_node)
+				if card_biome == -1:
+					print("ERROR: Could not determine elemental's biome for card_id 4.")
+					return
 
+				var token_manager = get_node("/root/Game/TokenManager")
+				var tokens_node = get_node("/root/Game/Tokens")
+				var positions_to_remove = {} # Use a dictionary to store unique positionse
+
+				# Find energy tokens on regular sigil locations (0-7) in the matching biome
+				for token in tokens_node.get_children():
+					if token.is_energy:
+						var placement = token_manager.get_token_placement_at_position(token.global_position)
+						if placement and (placement.place_id == 1 or placement.place_id == 4):
+							if placement.accepted_biome == card_biome:
+								positions_to_remove[token.global_position] = true
+				
+				print("position to remove : ", positions_to_remove)
+				# Execute the removal for all unique positions found
+				for pos in positions_to_remove.keys():
+					token_manager.server_remove_token_at_pos(pos)
+
+				# Hide the specified token placements via RPC, now with biome context
+				token_manager.rpc("hide_placements_by_id", [1, 4], card_biome)
+			5: 
+				print("Elemental Blue 06: Remove Energy on Sigils")
+				var card_biome = _get_biome_from_slice(card_node)
+				if card_biome == -1:
+					print("ERROR: Could not determine elemental's biome for card_id 4.")
+					return
+
+				var token_manager = get_node("/root/Game/TokenManager")
+				var tokens_node = get_node("/root/Game/Tokens")
+				var positions_to_remove = {} # Use a dictionary to store unique positionse
+
+				# Find energy tokens on regular sigil locations (0-7) in the matching biome
+				for token in tokens_node.get_children():
+					if token.is_energy:
+						var placement = token_manager.get_token_placement_at_position(token.global_position)
+						if placement and (placement.place_id == 4 or placement.place_id == 5):
+							if placement.accepted_biome == card_biome:
+								positions_to_remove[token.global_position] = true
+				
+				print("position to remove : ", positions_to_remove)
+				# Execute the removal for all unique positions found
+				for pos in positions_to_remove.keys():
+					token_manager.server_remove_token_at_pos(pos)
+
+				# Hide the specified token placements via RPC, now with biome context
+				token_manager.rpc("hide_placements_by_id", [4, 5], card_biome)
+			6: 
+				print("Elemental Blue 07: Disable Mana to Point Conversion")
+				point_conversion_disabled_biome = biome_index
+				print("Mana to point conversion is now disabled in biome index: ", point_conversion_disabled_biome)
+			7: 
+				print("Elemental Blue 08: Increase Sigil activation cost to 2 Mana")
+				increased_sigil_cost_biome = biome_index
+				print("Sigil activation cost is now 2 in biome index: ", increased_sigil_cost_biome)
+			8: 
+				print("Elemental Blue 09: Set Mana based on Blighted Tokens")
+				var card_biome = _get_biome_from_slice(card_node)
+				if card_biome == -1:
+					print("ERROR: Could not determine elemental's biome for card_id 8.")
+					return
+				
+				var tokens_node = get_node("/root/Game/Tokens")
+				var blighted_token_count = 0
+				
+				# Count blighted tokens in the elemental's biome
+				for token in tokens_node.get_children():
+					if token.is_blighted and token.biome_type == card_biome and !token.is_energy:
+						blighted_token_count += 1
+				
+				print("Found %d blighted tokens in biome %d. Setting mana to this value." % [blighted_token_count, card_biome])
+
+				var point_counter = get_node("/root/Game/PointCounter")
+				print("point counter : ", point_counter)
+				if point_counter:
+					point_counter.server_set_mana_for_biome(card_biome, blighted_token_count)
+		
+		# Sync variable
+		if multiplayer.is_server():
+			sync_disabled_states.rpc(sigil_a_disabled_biome, sigil_b_disabled_biome, sigil_c_disabled_biome, point_conversion_disabled_biome, increased_sigil_cost_biome)
 
 # --- Elemental Red Effect Implementations ---
 
@@ -217,10 +334,12 @@ func _get_all_tokens_in_biome(biome_type: int, include_blighted: bool = true) ->
 	return all_tokens
 
 @rpc("any_peer", "call_local")
-func sync_disabled_sigils(sigil_a_biome: int, sigil_b_biome: int, sigil_c_biome: int):
+func sync_disabled_states(sigil_a_biome: int, sigil_b_biome: int, sigil_c_biome: int, point_conversion_biome: int, increased_cost_biome: int):
 	sigil_a_disabled_biome = sigil_a_biome
 	sigil_b_disabled_biome = sigil_b_biome
 	sigil_c_disabled_biome = sigil_c_biome
+	point_conversion_disabled_biome = point_conversion_biome
+	increased_sigil_cost_biome = increased_cost_biome
 	print("SYNC: Disabled sigil states updated -> A: %d, B: %d, C: %d" % [sigil_a_disabled_biome, sigil_b_disabled_biome, sigil_c_disabled_biome])
 
 # Helper function to determine the biome from a card node on a slice.

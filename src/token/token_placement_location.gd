@@ -74,9 +74,9 @@ func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: 
 			print("Game not found or location is occupied")
 			return
 		
-		if game and game.has_node("TokenManager"):
+		#if game and game.has_node("TokenManager"):
 			# Call the handler function in TokenManager, passing this placement instance.
-			game.get_node("TokenManager").handle_placement_click(self)
+			#game.get_node("TokenManager").handle_placement_click(self)
 			
 		
 		if game and game.has_node("SigilManager"):

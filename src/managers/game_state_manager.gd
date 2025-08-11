@@ -335,11 +335,6 @@ func next_turn():
 	print("\n=== Processing Next Turn ===")
 	print("Current players: ", players)
 	print("Current turn index: ", current_turn_index)
-	
-	# NEW: Process the blighted token cycle at the start of the turn transition.
-	if is_instance_valid(token_manager):
-		token_manager.process_blighted_token_cycle()
-		await get_tree().create_timer(0.5).timeout # Short delay for visual clarity
 
 	if players.size() > 0:
 		var is_end_of_round = (current_turn_index == players.size() - 1)
@@ -351,6 +346,11 @@ func next_turn():
 			await domination_manager.check_domination_for_soil_stars()
 			await reorder_players_after_round()
 			advance_to_next_round()
+				# NEW: Process the blighted token cycle at the start of the turn transition.
+			if is_instance_valid(token_manager):
+				token_manager.process_blighted_token_cycle()
+				await get_tree().create_timer(0.5).timeout # Short delay for visual clarity
+			
 		
 		if is_end_of_round and current_round == 0 :
 			# Connect action deck pressed signal
