@@ -156,7 +156,7 @@ func _elemental_red_05_effect(biome_index):
 
 # ElementalRed06 - Point in a biome will be cut in Half
 func _elemental_red_06_effect(biome_index):
-	print("Elemental Red 06 Effect: Point on biome will cut half " % biome_index)
+	print("Elemental Red 06 Effect: Point on biome %d will cut half " % biome_index)
 
 # ElementalRed07 - Card reward if dominate a biome
 func _elemental_red_07_effect(biome_index: int):

@@ -88,44 +88,59 @@ const ELEMENTAL_NOTIFICATION_TEXT = {
 # This function should be called FIRST at the end of a round.
 # It finds the biome with the most total tokens and triggers a card flip there.
 func check_domination_for_elemental_flips():
-	# This logic should only ever be run by the server.
 	if not multiplayer.is_server():
 		return
-
 	print("--- Checking Biome with most tokens for Elemental Flips ---")
 
+	# Step 1: Get the counts of revealed elementals for every biome.
+	var revealed_counts = _get_revealed_elemental_counts()
+	print("Revealed elementals per biome: ", revealed_counts)
+
+	# Step 2: Identify which biomes are still eligible (have less than 2 revealed).
+	var all_biomes = [Biome.FOREST, Biome.WATER, Biome.MOUNTAIN, Biome.DESERT]
+	var eligible_biomes = []
+	for biome in all_biomes:
+		if revealed_counts.get(biome, 0) < 2:
+			eligible_biomes.append(biome)
+
+	print("Eligible biomes for the next flip: ", eligible_biomes)
+
+	# Step 3: If no biomes are eligible, stop.
+	if eligible_biomes.is_empty():
+		print("All biomes have two revealed elementals. No flip will occur.")
+		return
+
+	# Step 4: Now, find the most dominant biome ONLY from the eligible list.
 	var biome_token_counts = _get_biome_token_counts()
-	
 	var winning_biomes = []
-	var max_count = 0
+	var max_count = -1 # Use -1 to correctly handle biomes with 0 tokens.
 
-	# First, find the highest token count.
-	for count in biome_token_counts.values():
-		if count > max_count:
-			max_count = count
+	# CRITICAL CHANGE: Loop only through 'eligible_biomes'.
+	for biome in eligible_biomes:
+		var token_count = biome_token_counts.get(biome, 0)
+		if token_count > max_count:
+			max_count = token_count
+			winning_biomes = [biome]
+		elif token_count == max_count and max_count > 0: # Only tie if there are tokens
+			winning_biomes.append(biome)
 
-	# Second, find all biomes that achieved that high score.
-	if max_count > 0:
-		for biome_type in biome_token_counts:
-			if biome_token_counts[biome_type] == max_count:
-				winning_biomes.append(biome_type)
-
+	# Step 5: Determine the final winning biome and flip the card.
 	var winning_biome = -1
-
-	if winning_biomes.size() == 1:
-		# A single biome has the most tokens.
+	if winning_biomes.is_empty():
+		print("No tokens found in any eligible biomes. No elemental flip.")
+		return
+	elif winning_biomes.size() == 1:
 		winning_biome = winning_biomes[0]
 		var biome_key = Biome.keys()[winning_biome]
 		print("The %s biome has the most tokens. Checking for elemental flip." % biome_key)
-	elif winning_biomes.size() > 1:
-		# Tie-breaker logic.
-		print("Tie for most tokens between biomes: ", winning_biomes)
+	else:
+		print("Tie for most tokens between eligible biomes: ", winning_biomes)
 		winning_biome = _resolve_domination_tie(winning_biomes)
-	
+
 	if winning_biome != -1:
 		_flip_elemental_for_biome(winning_biome)
 	else:
-		print("No single biome has the most tokens (tie could not be resolved or no tokens). No elemental flip.")
+		print("No single biome has the most tokens (tie could not be resolved). No elemental flip.")
 
 # This function should be called SECOND at the end of a round, after flips.
 # It checks for PLAYER domination in each biome and awards stars.
@@ -193,6 +208,29 @@ func check_domination_for_soil_stars():
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # --- Private Helper and Logic Functions ---
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+func _get_flipped_elemental_counts() -> Dictionary:
+	var counts = {}
+	# IMPORTANT: Adjust this path to wherever your elemental card slots are stored.
+	var elemental_slots_node = get_node_or_null("/root/Game/Board/ElementalCardSlots")
+	
+	if not elemental_slots_node:
+		print("ERROR in DominationManager: Elemental card slots node not found!")
+		return counts
+
+	# Loop through each slot to check for a flipped card
+	for slot in elemental_slots_node.get_children():
+		# Assuming the slot has properties 'has_card', 'card', and the card has 'is_flipped'
+		if slot.has_card and is_instance_valid(slot.card) and slot.card.is_flipped:
+			# Assuming the slot itself knows its biome
+			if "card_slot_biome" in slot:
+				var biome_index = slot.card_slot_biome
+				if not counts.has(biome_index):
+					counts[biome_index] = 0
+				counts[biome_index] += 1
+				
+	return counts
+
 # Tie-breaker logic based on last player's placement.
 func _resolve_domination_tie(tied_biomes: Array) -> int:
 	# Get the player turn order for this round.
@@ -214,6 +252,27 @@ func _resolve_domination_tie(tied_biomes: Array) -> int:
 	print("Tie could not be resolved by player placement history.")
 	return -1 # Tie could not be resolved.
 
+func _get_revealed_elemental_counts() -> Dictionary:
+	var counts = {}
+	if not is_instance_valid(drag_controller):
+		printerr("DominationManager Error: DragController node is not ready or valid!")
+		return counts
+
+	# Loop through each child of the drag controller to find the elemental slices.
+	for child in drag_controller.get_children():
+		if child.name.begins_with("elemental_slice_") and child is CardCollection3D:
+			var slot = child
+			# A revealed card is one that is NOT face_down.
+			if not slot.cards.is_empty():
+				var card = slot.cards[0] # Assuming one card per slice
+				if is_instance_valid(card) and card is FaceCard3D and not card.face_down:
+					if "card_slot_biome" in slot:
+						var biome_index = slot.card_slot_biome
+						if not counts.has(biome_index):
+							counts[biome_index] = 0
+						counts[biome_index] += 1
+	return counts
+
 # Finds which biome has the most tokens in total, regardless of player.
 # Returns the Biome enum value if there's a clear winner, otherwise returns -1 for a tie.
 func _get_biome_token_counts() -> Dictionary:
@@ -226,7 +285,7 @@ func _get_biome_token_counts() -> Dictionary:
 
 	# Count all non-energy tokens in each biome
 	for token in game.tokens.get_children():
-		if not token.is_energy:
+		if not token.is_energy and not token.is_blighted:
 			if biome_token_counts.has(token.biome_type):
 				biome_token_counts[token.biome_type] += 1
 	
