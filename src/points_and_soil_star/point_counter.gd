@@ -34,10 +34,10 @@ var mountain_points = 0
 var water_points = 0
 
 # Magic biome points
-var forest_magic_points = 3
-var desert_magic_points = 3
-var mountain_magic_points = 3
-var water_magic_points = 3
+var forest_magic_points = 5
+var desert_magic_points = 5
+var mountain_magic_points = 5
+var water_magic_points = 5
 
 const BLOCK_HEIGHT = 0.2
 const BLOCK_SPACING = 0.01
@@ -180,6 +180,7 @@ func update_player_score_label(player_id: int, new_total: int):
 	
 	# Finally, update the label's text if it was found.
 	if points_label:
+		points_control.increase_point(new_total)
 		points_label.text = str(new_total)
 	else:
 		print("UI update failed: No Label child found in %s." % points_control.name)
@@ -213,15 +214,19 @@ func add_points_to_biome(biome: Biome, amount: int):
 			# Add 2 to the existing forest magic points.
 			var new_points = forest_points + amount
 			forest_points = validate_points(new_points)
+			biome_points[Biome.FOREST] = forest_points
 		Biome.DESERT:
 			var new_points = desert_points + amount
 			desert_points = validate_points(new_points)
+			biome_points[Biome.DESERT] = desert_points
 		Biome.MOUNTAIN:
 			var new_points = mountain_points + amount
 			mountain_points = validate_points(new_points)
+			biome_points[Biome.MOUNTAIN] = mountain_points
 		Biome.WATER:
 			var new_points = water_points + amount
 			water_points = validate_points(new_points)
+			biome_points[Biome.WATER] = water_points
 
 
 #================================#
@@ -305,7 +310,14 @@ func sync_point_values(f: int, d: int, m: int, w: int, fm: int, dm: int, mm: int
 	desert_magic_points = dm
 	mountain_magic_points = mm
 	water_magic_points = wm
+	update_biome_points()
 	update_all_stacks()
+
+func update_biome_points():
+	biome_points[Biome.FOREST] = forest_points
+	biome_points[Biome.DESERT] = desert_points
+	biome_points[Biome.WATER] = water_points
+	biome_points[Biome.MOUNTAIN] = mountain_points
 
 func get_points(biome: String) -> int:
 	match biome:

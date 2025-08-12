@@ -12,7 +12,7 @@ extends Node
 @onready var sigil_manager = $SigilManager
 @onready var turn_phase_manager = $TurnPhaseManager
 @onready var score_manager = $ScoreManager
-@onready var score_update_timer = $ScoreUpdateTimer
+#@onready var score_update_timer = $ScoreUpdateTimer
 @onready var point_counter = $PointCounter
 @onready var deck = $Deck
 @onready var token_placements = $TokenPlacements

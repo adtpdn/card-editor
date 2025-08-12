@@ -7,10 +7,17 @@ extends Node
 @onready var point_counter = $"../PointCounter"
 @onready var game_state_manager = $"../GameStateManager"
 
+enum BiomeType {
+	FOREST,
+	WATER,
+	MOUNTAIN,
+	DESERT
+}
+
 # Score multipliers
 const CLAIMED_POINT_SCORE = 2
 const BIOME_POINT_SCORE = 2
-const SIGIL_COMBINATION_SCORE = 2
+const SIGIL_COMBINATION_SCORE = 1
 
 # Sigil Patterns from the image provided by the user
 const SIGIL_PATTERNS = [
@@ -30,16 +37,16 @@ func calculate_player_score(player_id: int) -> int:
 	
 	# 1. Unblighted Tokens Score (Points per biome occupied)
 	total_score += _calculate_unblighted_token_score(player_id)
-	
+	print('total score after count own tokens : ', total_score)
 	# 2. Claimed Points Score
 	total_score += _calculate_claimed_points_score(player_id)
-	
+	print('total score after claimed point score : ', total_score)
 	# 3. Biome Points Score
 	total_score += _calculate_biome_points_score(player_id)
-	
+	print('total score after biome points score : ', total_score)
 	# 4. Sigil Combination Score
 	total_score += _calculate_sigil_combination_score(player_id)
-	
+	print('total score after sigil combination : ', total_score)
 	return total_score
 
 # --- Score Calculation Logic ---
@@ -52,7 +59,7 @@ func _calculate_unblighted_token_score(player_id: int) -> int:
 	for token in game.get_node("Tokens").get_children():
 		if token.owner_id == player_id and not token.is_blighted:
 			var token_placement = token_manager.get_token_placement_at_position(token.global_position)
-			if token_placement and token_placement.place_id == -1:
+			if token_placement:
 				token_count += 1
 	return token_count
 
@@ -62,18 +69,73 @@ func _calculate_claimed_points_score(player_id: int) -> int:
 	if player_hud and player_hud.has_node("Points"):
 		var points_node = player_hud.get_node("Points")
 		if "current_point" in points_node:
+			print("current point : ", points_node.current_point)
 			return points_node.current_point * CLAIMED_POINT_SCORE
 	return 0
 
 # Calculate score from biome points (converted from mana)
 func _calculate_biome_points_score(player_id: int) -> int:
-	# This logic assumes that mana is converted to points at the end of the game
-	# or at specific scoring moments, and that each player gets points from the global mana pool
-	# based on some criteria (e.g., divided equally, or based on contribution - for now, we'll assume it's global)
+	var total_biome_score = 0
 	
-	# This part of the logic might need adjustment based on how you want to attribute the global mana pool to players.
-	# For now, this will return 0 until player-specific mana tracking is implemented.
-	return 0
+	var domination_manager = game.get_node_or_null("DominationManager")
+	if not domination_manager:
+		printerr("ScoreManager Error: DominationManager not found!")
+		return 0
+
+	var biome_data_map = {
+		point_counter.Biome.FOREST: {
+			"points": point_counter.forest_points,
+			"mana": point_counter.forest_magic_points
+		},
+		point_counter.Biome.WATER: {
+			"points": point_counter.water_points,
+			"mana": point_counter.water_magic_points
+		},
+		point_counter.Biome.MOUNTAIN: {
+			"points": point_counter.mountain_points,
+			"mana": point_counter.mountain_magic_points
+		},
+		point_counter.Biome.DESERT: {
+			"points": point_counter.desert_points,
+			"mana": point_counter.desert_magic_points
+		}
+	}
+	
+	for biome_type in biome_data_map:
+		var dominant_players = domination_manager._get_all_dominant_players_in_biome(biome_type)
+		
+		# --- NEW TIE-BREAKING LOGIC ---
+		match dominant_players.size():
+			1: # Case 1: A single player dominates.
+				if player_id in dominant_players:
+					var biome_data = biome_data_map[biome_type]
+					var points_score = biome_data["points"] * BIOME_POINT_SCORE
+					print("points score : ", points_score)
+					var mana_score = floor(biome_data["mana"] / 2.0)
+					print('mana score : ', mana_score)
+					total_biome_score += points_score + mana_score
+			
+			2: # Case 2: Exactly two players are tied.
+				if player_id in dominant_players:
+					var biome_data = biome_data_map[biome_type]
+					
+					# Distribute points: each player gets half, odd points are discarded.
+					var points_per_player = floor(biome_data["points"] / 2.0)
+					print('points per player : ', points_per_player)
+					var points_score = points_per_player * BIOME_POINT_SCORE
+					
+					# Distribute mana: each player gets half, odd mana is discarded.
+					var mana_per_player = floor(biome_data["mana"] / 2.0)
+					print('mana per player : ', mana_per_player)
+					var mana_score = floor(mana_per_player / 2.0)
+					
+					total_biome_score += points_score + mana_score
+
+			_: # Default Case: More than two players are tied, or no one dominates.
+				# No points are awarded in this case.
+				pass
+				
+	return total_biome_score
 
 # Calculate score from sigil pattern combinations
 func _calculate_sigil_combination_score(player_id: int) -> int:
