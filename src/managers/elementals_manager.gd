@@ -11,6 +11,9 @@ var sigil_c_disabled_biome: int = -1
 var point_conversion_disabled_biome: int = -1 # blue elemental id 6
 var increased_sigil_cost_biome: int = -1 # blue elemental id 7
 
+# Add a variable to track the biome affected by the half-points rule
+var half_points_biome: int = -1 # For Red Elemental 06 effect
+
 # Dictionary to hold the notification text for each elemental card
 const ELEMENTAL_NOTIFICATION_TEXT = {
 	"BLUE": {
@@ -156,7 +159,16 @@ func _elemental_red_05_effect(biome_index):
 
 # ElementalRed06 - Point in a biome will be cut in Half
 func _elemental_red_06_effect(biome_index):
-	print("Elemental Red 06 Effect: Point on biome %d will cut half " % biome_index)
+	print("Elemental Red 06 Effect: Points in biome %d will be halved." % biome_index)
+	# Set the state variable
+	half_points_biome = biome_index
+	# Sync this state with all clients
+	rpc("sync_half_points_biome", biome_index)
+
+@rpc("any_peer", "call_local")
+func sync_half_points_biome(biome_index: int):
+	half_points_biome = biome_index
+	print("SYNC: Half points effect is now active for biome: %d" % biome_index)
 
 # ElementalRed07 - Card reward if dominate a biome
 func _elemental_red_07_effect(biome_index: int):

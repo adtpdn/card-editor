@@ -6,6 +6,7 @@ extends Node
 @onready var token_manager = $"../TokenManager"
 @onready var point_counter = $"../PointCounter"
 @onready var game_state_manager = $"../GameStateManager"
+@onready var elementals_manager = $"../ElementalsManager"
 
 enum BiomeType {
 	FOREST,
@@ -102,6 +103,12 @@ func _calculate_biome_points_score(player_id: int) -> int:
 	}
 	
 	for biome_type in biome_data_map:
+		# Check if the half-points elemental effect is active for this biome
+		var current_biome_point_score = BIOME_POINT_SCORE # Default score is 2
+		if elementals_manager and elementals_manager.half_points_biome == biome_type:
+			current_biome_point_score = 1 # Apply the effect, making the score 1
+			print("Applying half points effect for biome %d. Score per point is now %d." % [biome_type, current_biome_point_score])
+		
 		var dominant_players = domination_manager._get_all_dominant_players_in_biome(biome_type)
 		
 		# --- NEW TIE-BREAKING LOGIC ---
@@ -109,7 +116,8 @@ func _calculate_biome_points_score(player_id: int) -> int:
 			1: # Case 1: A single player dominates.
 				if player_id in dominant_players:
 					var biome_data = biome_data_map[biome_type]
-					var points_score = biome_data["points"] * BIOME_POINT_SCORE
+					# --- MODIFICATION: Use the variable score multiplier ---
+					var points_score = biome_data["points"] * current_biome_point_score
 					print("points score : ", points_score)
 					var mana_score = floor(biome_data["mana"] / 2.0)
 					print('mana score : ', mana_score)
@@ -122,7 +130,8 @@ func _calculate_biome_points_score(player_id: int) -> int:
 					# Distribute points: each player gets half, odd points are discarded.
 					var points_per_player = floor(biome_data["points"] / 2.0)
 					print('points per player : ', points_per_player)
-					var points_score = points_per_player * BIOME_POINT_SCORE
+					# --- MODIFICATION: Use the variable score multiplier ---
+					var points_score = points_per_player * current_biome_point_score
 					
 					# Distribute mana: each player gets half, odd mana is discarded.
 					var mana_per_player = floor(biome_data["mana"] / 2.0)
