@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://ucko812cirey"]
+[gd_scene load_steps=4 format=3 uid="uid://ucko812cirey"]
 
 [ext_resource type="PackedScene" uid="uid://dxpbtxks8gf60" path="res://scenes/points_and_soil_star/soil_star.tscn" id="1_xh26h"]
 [ext_resource type="PackedScene" uid="uid://b7si3u1lndgw4" path="res://scenes/points_and_soil_star/points.tscn" id="2_dtf5k"]
+[ext_resource type="PackedScene" uid="uid://hv32edejyn3o" path="res://scenes/player_ui/score_display.tscn" id="3_dtf5k"]
 
 [node name="PlayerHUD" type="Control"]
 layout_mode = 3
@@ -17,3 +18,8 @@ layout_mode = 1
 
 [node name="Points" parent="." instance=ExtResource("2_dtf5k")]
 layout_mode = 1
+
+[node name="ScoreDisplay" parent="." instance=ExtResource("3_dtf5k")]
+layout_mode = 1
+offset_top = -88.0
+offset_bottom = -88.0

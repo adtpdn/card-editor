@@ -1,4 +1,4 @@
-[gd_scene load_steps=59 format=4 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=60 format=4 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://src/game.gd" id="1_e1j6l"]
 [ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://src/managers/turn_phase_manager.gd" id="2_pl11u"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://cjducewhkjvjf" path="res://src/managers/elementals_manager.gd" id="10_gxtfn"]
 [ext_resource type="Texture2D" uid="uid://b2pgilhnxrgc3" path="res://assets/meshes/corner_slice_4.png" id="10_v2yb1"]
 [ext_resource type="Material" uid="uid://lvi74dkr8iac" path="res://assets/meshes/corner_slice_1_mat.tres" id="11_js0lu"]
+[ext_resource type="Script" uid="uid://cqhlumayggt0k" path="res://src/managers/score_manager.gd" id="11_twgab"]
 [ext_resource type="Material" uid="uid://c6acp7vu62y16" path="res://assets/meshes/corner_slice_2_mat.tres" id="12_gxtfn"]
 [ext_resource type="Material" uid="uid://dlp8ve03x2jgc" path="res://assets/meshes/corner_slice_3_mat.tres" id="13_twgab"]
 [ext_resource type="Material" uid="uid://c7ugxmqk3hnld" path="res://assets/meshes/corner_slice_4_mat.tres" id="14_02fa5"]
@@ -244,6 +245,9 @@ script = ExtResource("9_wljb1")
 
 [node name="ElementalsManager" type="Node" parent="."]
 script = ExtResource("10_gxtfn")
+
+[node name="ScoreManager" type="Node" parent="."]
+script = ExtResource("11_twgab")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 20.69, 0.12)
