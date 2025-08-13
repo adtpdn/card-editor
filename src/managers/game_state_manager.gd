@@ -14,6 +14,8 @@ extends Node
 @onready var deck = $"../Deck"
 @onready var player_turn = $"../PlayerTurn"
 @onready var domination_manager = $"../DominationManager"
+@onready var score_ui = $"../ScoreUI"
+
 
 const player_hud_scene = preload("res://scenes/player_ui/player_hud.tscn")
 
@@ -326,58 +328,6 @@ func request_next_turn():
 	
 	print("=== Turn Change Request Complete ===\n")
 
-# This function is asynchronous because it uses `await`
-#func next_turn():
-	#if !multiplayer.is_server():
-		#return
-#
-	#var players = game.players
-	#print("\n=== Processing Next Turn ===")
-	#print("Current players: ", players)
-	#print("Current turn index: ", current_turn_index)
-#
-	#if players.size() > 0:
-		#var is_end_of_round = (current_turn_index == players.size() - 1)
-		#print("is end round : ", is_end_of_round)
-		#if is_end_of_round and current_round > 0:
-			#print("Last player's turn ended. A full round is complete.")
-			#print("--- Checking for biome domination ---")
-			#await domination_manager.check_domination_for_elemental_flips()
-			#await domination_manager.check_domination_for_soil_stars()
-			#await reorder_players_after_round()
-			#advance_to_next_round()
-				## NEW: Process the blighted token cycle at the start of the turn transition.
-			#if is_instance_valid(token_manager):
-				#token_manager.process_blighted_token_cycle()
-				#await get_tree().create_timer(0.5).timeout # Short delay for visual clarity
-			#
-		#
-		#if is_end_of_round and current_round == 0 :
-			## Connect action deck pressed signal
-			#var table = game.deck.table
-			#table.connect_decks()
-			#
-			#advance_to_next_round()
-#
-		#var current_player = players[current_turn_index]
-		#token_manager.save_player_token_count(current_player)
-		#
-		#var previous_player = players[current_turn_index]
-		#token_manager.reset_turn_token_counters(previous_player)
-		#
-		## Explicitly sync blighted token state
-		#var tokens = token_manager.get_player_tokens(previous_player)
-#
-		## Advance Turn
-		#current_turn_index = (current_turn_index + 1) % players.size()
-		#
-		#var next_player = game.players[current_turn_index]
-		#
-		#tokens = token_manager.get_player_tokens(next_player)
-		#get_parent().rpc("set_current_turn", next_player)
-#
-	#print("=== Next Turn Complete ===\n")
-
 func next_turn():
 	if !multiplayer.is_server():
 		return
@@ -391,6 +341,8 @@ func next_turn():
 		var is_end_of_round = (current_turn_index == players.size() - 1)
 		print("is end round : ", is_end_of_round)
 		if is_end_of_round and current_round > 0:
+			print("current round : ", current_round)
+			
 			print("Last player's turn ended. A full round is complete.")
 			print("--- Checking for biome domination ---")
 			await domination_manager.check_domination_for_elemental_flips()
@@ -432,6 +384,12 @@ func next_turn():
 		game.score_manager.update_and_sync_all_scores()
 	# ---------------------------------------------
 
+	# END OF THE ROUND 
+	if current_round == 9:
+		await get_tree().create_timer(4.0).timeout
+		print("END GAME")
+		score_ui.rpc("show_scores")
+	
 	print("=== Next Turn Complete ===\n")
 
 ## Gets the soil star count for a given player from their UI node.

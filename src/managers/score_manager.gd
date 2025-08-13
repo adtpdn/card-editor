@@ -7,6 +7,7 @@ extends Node
 @onready var point_counter = $"../PointCounter"
 @onready var game_state_manager = $"../GameStateManager"
 @onready var elementals_manager = $"../ElementalsManager"
+@onready var score_ui = get_node("/root/Game/ScoreUI")
 
 enum BiomeType {
 	FOREST,
@@ -178,10 +179,20 @@ func _calculate_sigil_combination_score(player_id: int) -> int:
 func update_and_sync_all_scores():
 	if not multiplayer.is_server():
 		return
-		
+	
 	for player_id in game.players:
-		var score = calculate_player_score(player_id)
-		sync_score_for_player.rpc(player_id, score)
+		var unblighted_score = _calculate_unblighted_token_score(player_id)
+		var claimed_score = _calculate_claimed_points_score(player_id)
+		var biome_score = _calculate_biome_points_score(player_id)
+		var sigil_score = _calculate_sigil_combination_score(player_id)
+		
+		var total_score = calculate_player_score(player_id)
+		
+		# RPC to update the total score display in the player HUD
+		sync_score_for_player.rpc(player_id, total_score)
+		
+		# RPC to update the detailed score breakdown in the end-game UI
+		sync_detailed_scores.rpc(player_id, unblighted_score, claimed_score, biome_score, sigil_score, total_score)
 
 @rpc("any_peer", "call_local")
 func sync_score_for_player(player_id: int, score: int):
@@ -189,3 +200,15 @@ func sync_score_for_player(player_id: int, score: int):
 	if player_hud and player_hud.has_node("ScoreDisplay"):
 		var score_display = player_hud.get_node("ScoreDisplay")
 		score_display.update_score(score)
+
+@rpc("any_peer", "call_local")
+func sync_detailed_scores(player_id: int, unblighted: int, claimed: int, biome: int, sigil: int, total_score: int):
+	if score_ui:
+		var scores = {
+			"unblighted": unblighted,
+			"claimed": claimed,
+			"biome": biome,
+			"sigil": sigil,
+			"total" : total_score
+		}
+		score_ui.update_player_scores(player_id, scores)

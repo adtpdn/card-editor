@@ -34,10 +34,10 @@ var mountain_points = 0
 var water_points = 0
 
 # Magic biome points
-var forest_magic_points = 5
-var desert_magic_points = 5
-var mountain_magic_points = 5
-var water_magic_points = 5
+var forest_magic_points = 3
+var desert_magic_points = 3
+var mountain_magic_points = 3
+var water_magic_points = 3
 
 const BLOCK_HEIGHT = 0.2
 const BLOCK_SPACING = 0.01

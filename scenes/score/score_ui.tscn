@@ -1,0 +1,234 @@
+[gd_scene load_steps=2 format=3 uid="uid://dgkrhoahnnmwb"]
+
+[ext_resource type="Script" uid="uid://cr617fxolo0ue" path="res://src/score/score_ui.gd" id="1_8f6iw"]
+
+[node name="ScoreUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_8f6iw")
+
+[node name="Background" type="PanelContainer" parent="."]
+modulate = Color(1, 1, 1, 0.0666667)
+layout_mode = 0
+offset_right = 1928.0
+offset_bottom = 1085.0
+
+[node name="PanelScore" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -486.0
+offset_top = -262.5
+offset_right = 486.0
+offset_bottom = 262.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="PanelScore"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -58.0
+offset_right = 58.0
+offset_bottom = 42.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 30
+text = "Scores"
+
+[node name="Information" type="VBoxContainer" parent="PanelScore"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 55.0
+offset_top = -114.5
+offset_right = 271.0
+offset_bottom = 220.5
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="AliveTokens" type="Label" parent="PanelScore/Information"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Alive Tokens"
+
+[node name="ClamiedPoints" type="Label" parent="PanelScore/Information"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Claimed Points"
+
+[node name="BiomePoints" type="Label" parent="PanelScore/Information"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Biome Points"
+
+[node name="PatternCompletion" type="Label" parent="PanelScore/Information"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Pattern 
+Completion"
+
+[node name="Totals" type="Label" parent="PanelScore/Information"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Total"
+
+[node name="Players" type="HBoxContainer" parent="PanelScore"]
+layout_mode = 0
+offset_left = 348.0
+offset_top = 76.5
+offset_right = 902.0
+offset_bottom = 118.5
+theme_override_constants/separation = 30
+
+[node name="Player1" type="Label" parent="PanelScore/Players"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Player 1"
+
+[node name="Player2" type="Label" parent="PanelScore/Players"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Player 2"
+
+[node name="Player3" type="Label" parent="PanelScore/Players"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Player 3"
+
+[node name="Player4" type="Label" parent="PanelScore/Players"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Player 4"
+
+[node name="PlayerScore" type="HBoxContainer" parent="PanelScore"]
+layout_mode = 0
+offset_left = 384.0
+offset_top = 147.0
+offset_right = 857.0
+offset_bottom = 477.0
+theme_override_constants/separation = 135
+
+[node name="Player1" type="VBoxContainer" parent="PanelScore/PlayerScore"]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="AliveTokensP1" type="Label" parent="PanelScore/PlayerScore/Player1"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="ClaimedPointsP1" type="Label" parent="PanelScore/PlayerScore/Player1"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="BiomePointsP1" type="Label" parent="PanelScore/PlayerScore/Player1"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="PatternCompletionP1" type="Label" parent="PanelScore/PlayerScore/Player1"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="TotalP1" type="Label" parent="PanelScore/PlayerScore/Player1"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="Player2" type="VBoxContainer" parent="PanelScore/PlayerScore"]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="AliveTokensP2" type="Label" parent="PanelScore/PlayerScore/Player2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="ClaimedPointsP2" type="Label" parent="PanelScore/PlayerScore/Player2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="BiomePointsP2" type="Label" parent="PanelScore/PlayerScore/Player2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="PatternCompletionP2" type="Label" parent="PanelScore/PlayerScore/Player2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="TotalP2" type="Label" parent="PanelScore/PlayerScore/Player2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="Player3" type="VBoxContainer" parent="PanelScore/PlayerScore"]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="AliveTokensP3" type="Label" parent="PanelScore/PlayerScore/Player3"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="ClaimedPointsP3" type="Label" parent="PanelScore/PlayerScore/Player3"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="BiomePointsP3" type="Label" parent="PanelScore/PlayerScore/Player3"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="PatternCompletionP3" type="Label" parent="PanelScore/PlayerScore/Player3"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="TotalP3" type="Label" parent="PanelScore/PlayerScore/Player3"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="Player4" type="VBoxContainer" parent="PanelScore/PlayerScore"]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="AliveTokensP4" type="Label" parent="PanelScore/PlayerScore/Player4"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="ClaimedPointsP4" type="Label" parent="PanelScore/PlayerScore/Player4"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="BiomePointsP4" type="Label" parent="PanelScore/PlayerScore/Player4"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="PatternCompletionP4" type="Label" parent="PanelScore/PlayerScore/Player4"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
+
+[node name="TotalP4" type="Label" parent="PanelScore/PlayerScore/Player4"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"
