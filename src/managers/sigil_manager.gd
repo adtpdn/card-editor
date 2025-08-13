@@ -106,12 +106,20 @@ func handle_sigil_input(position: Vector2):
 
 	elif is_sigil_mode:
 		# This is the "active" state, where we are targeting another token to apply a sigil effect.
-		if is_sigil_a:
+		var adjacent_biomes = []
+		var energy_token_biome = selected_energy_token.biome_type
+		if energy_token_biome == BiomeType.FOREST || energy_token_biome == BiomeType.MOUNTAIN:
+			adjacent_biomes = [BiomeType.WATER, BiomeType.DESERT, energy_token_biome]
+		else: # WATER or DESERT
+			adjacent_biomes = [BiomeType.FOREST, BiomeType.MOUNTAIN, energy_token_biome]
+		
+		if is_sigil_a and found_token.biome_type in adjacent_biomes:
 			perform_push_pull(selected_energy_token, found_token, found_token.biome_type == selected_energy_token.biome_type)
-		elif is_sigil_b:
+		elif is_sigil_b and found_token.biome_type in adjacent_biomes:
 			perform_push_pull(selected_energy_token, found_token, found_token.biome_type == selected_energy_token.biome_type)
-		elif is_sigil_c:
+		elif is_sigil_c and found_token.biome_type == energy_token_biome:
 			perform_blight_unblight(selected_energy_token, found_token)
+		found_token = null
 		return true # Input was handled
 
 	return false # No relevant action was taken
@@ -888,17 +896,24 @@ func show_pull_push_ui(energy_token, is_other_player: bool):
 	var tokens_list = tokens.get_children()
 	print("Total tokens: ", tokens_list.size())
 	
+	var energy_token_biome = energy_token.biome_type
+	var adjacent_biomes = []
+	if energy_token_biome == BiomeType.FOREST || energy_token_biome == BiomeType.MOUNTAIN:
+		adjacent_biomes = [BiomeType.WATER, BiomeType.DESERT, energy_token_biome]
+	else: # WATER or DESERT
+		adjacent_biomes = [BiomeType.FOREST, BiomeType.MOUNTAIN, energy_token_biome]
+	
 	var highlighted_count = 0
 	if is_other_player:
 		# For Sigil A (other player's tokens)
 		for token in tokens_list:
-			if token.owner_id != energy_token.owner_id and !token.is_energy:
+			if token.owner_id != energy_token.owner_id and !token.is_energy and token.biome_type in adjacent_biomes :
 				token.outerglow.show()
 				highlighted_count += 1
 	else:
 		# For Sigil B (own tokens)
 		for token in tokens_list:
-			if token.owner_id == energy_token.owner_id and !token.is_energy:
+			if token.owner_id == energy_token.owner_id and !token.is_energy and token.biome_type in adjacent_biomes:
 				token.outerglow.show()
 				highlighted_count += 1
 	
@@ -1072,8 +1087,12 @@ func perform_push_pull(energy_token, token, is_push: bool):
 		
 		if is_push:
 			# For "push away": Highlight placements in adjacent biomes to the energy token
-			if adjacent_biomes.has(placement_biome) and placement.place_id == -1:
+			if adjacent_biomes.has(placement_biome) and placement.place_id == -1 and not target_token.is_blighted:
 				print("push placement")
+				placement.show()
+				placement.set_highlight(true)
+				potential_placements.append(placement)
+			elif adjacent_biomes.has(placement_biome) and placement.place_id == 10 and target_token.is_blighted:
 				placement.show()
 				placement.set_highlight(true)
 				potential_placements.append(placement)
@@ -1081,7 +1100,11 @@ func perform_push_pull(energy_token, token, is_push: bool):
 				placement.hide()
 		else:
 			# For "pull closer": Highlight placements in the energy token's biome
-			if placement_biome == energy_token_biome and placement.place_id == -1:
+			if placement_biome == energy_token_biome and placement.place_id == -1 and not target_token.is_blighted:
+				placement.show()
+				placement.set_highlight(true)
+				potential_placements.append(placement)
+			elif placement_biome == energy_token_biome and placement.place_id == 10 and target_token.is_blighted:
 				placement.show()
 				placement.set_highlight(true)
 				potential_placements.append(placement)
@@ -1179,7 +1202,6 @@ func _on_push_pull_input(_placement_pos):
 			print("No token selected, showing direction UI")
 			show_push_pull_direction_ui(selected_energy_token)
 			return
-		
 		
 		print("Processing push/pull input")
 		print("Target token: ", _selected_token)
