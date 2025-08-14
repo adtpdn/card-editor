@@ -294,6 +294,34 @@ func handle_touch(position: Vector2) -> void:
 			#var placement = get_token_placement_at_position(result.position)
 			#if placement:
 				#_handle_placement_action(placement)
+		"SELECTING_MOVE_DESTINATION":
+			var clicked_node = result.collider
+			var area_node = null
+
+			# Traverse up the node tree to find the main biome/sigil area that was clicked
+			while(clicked_node != null):
+				if clicked_node.has_method("get_script") and clicked_node.get_script() and "biome_id" in clicked_node:
+					area_node = clicked_node
+					break
+				clicked_node = clicked_node.get_parent()
+
+			# If a valid biome area was clicked...
+			if area_node:
+				var target_biome_id = area_node.biome_id
+				var token_to_move = sigil_manager._selected_token
+				
+				# Find the best placement spot within that biome
+				var destination_placement = _find_closest_available_placement(token_to_move.global_position, target_biome_id)
+				
+				if destination_placement:
+					# If a spot was found, execute the move
+					_handle_move_action(destination_placement)
+				else:
+					# If no spot is available (e.g., the biome is full)
+					print("No available spots in the selected biome.")
+					notification.show_instruction_label("No available spots in that biome.")
+					get_tree().create_timer(2.0).timeout.connect(notification.hide_panel)
+		
 		"PLACING_TOKEN":
 			# ---  Check for biome area click ---
 			var clicked_node = result.collider
@@ -332,6 +360,44 @@ func handle_touch(position: Vector2) -> void:
 		"IDLE_OR_SIGIL":
 			_handle_idle_or_sigil_action(position, result.collider)
 
+func _handle_move_action(destination_placement: Node3D) -> void:
+	print("\n=== Handling Token Move Action ===")
+	
+	# Get the token that was selected for movement from the SigilManager
+	var token_to_move = sigil_manager._selected_token
+	if not is_instance_valid(token_to_move):
+		print("ERROR: Token to move is no longer valid.")
+		return
+		
+	var from_position = token_to_move.global_position
+	var to_position = destination_placement.global_position
+	
+	print("Requesting move from %s to %s" % [from_position, to_position])
+
+	# Request the server to perform the move
+	if multiplayer.is_server():
+		request_token_movement(from_position, to_position)
+	else:
+		rpc_id(1, "request_token_movement", from_position, to_position)
+
+	# --- Reset all states and UI after the move is requested ---
+	unhighlight_all_token_placements()
+	
+	# Hide Outerglow on all tokens
+	for token in tokens.get_children():
+		token.outerglow.hide()
+
+	# Clear the instruction label
+	notification.hide_panel()
+	
+	# Reset all relevant flags in SigilManager
+	sigil_manager.is_selecting_destination = false
+	sigil_manager.is_sigil_mode = false
+	sigil_manager._selected_token = null
+	if is_instance_valid(sigil_manager.selected_energy_token):
+		sigil_manager.selected_energy_token.highlight(false)
+		sigil_manager.selected_energy_token = null
+
 # -----------------------------------------------------------------------------
 # PRIVATE HELPER FUNCTIONS (Handle Touch)
 # -----------------------------------------------------------------------------
@@ -349,6 +415,8 @@ func _can_process_input() -> bool:
 
 # Determines the current input state of the game.
 func _get_current_input_mode() -> String:
+	if sigil_manager.is_selecting_destination:
+		return "SELECTING_MOVE_DESTINATION"
 	if is_token_selected:
 		return "PLACING_TOKEN"
 	if card_manager.is_take_off_mode or card_manager.is_unblight_mode or card_manager.is_refresh_energy_mode or card_manager.is_swap_energy_mode:
@@ -490,6 +558,13 @@ func _process_swap_energy_selection(token: Node3D) -> void:
 			print("You must select your own token first for a swap.")
 	# Second token selection
 	else:
+		# If the player clicks the same token again, treat it as a deselection.
+		if token == card_manager.first_swap_token:
+			print("Swap action cancelled.")
+			card_manager.first_swap_token.highlight(false)
+			card_manager.first_swap_token = null
+			unhighlight_outerglow() # This hides all target highlights.
+			return # End the function here.
 		var is_valid_target = token != card_manager.first_swap_token and token.biome_type == card_manager.first_swap_token.biome_type and token.owner_id != card_manager.first_swap_token.owner_id
 		if is_valid_target:
 			# Perform the swap
@@ -502,7 +577,6 @@ func _process_swap_energy_selection(token: Node3D) -> void:
 
 			# Reset state after swap is initiated
 			unhighlight_outerglow()
-			card_manager.first_swap_token.highlight(false)
 			card_manager.first_swap_token = null
 			card_manager.is_swap_energy_mode = false
 			turn_phase_manager.card_played = true
@@ -1591,6 +1665,20 @@ func sync_token_colors(token_data: Array):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Helper Functions
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Finds the closest valid (highlighted, unoccupied) placement to a given point within a specific biome.
+func _find_closest_available_placement(from_position: Vector3, target_biome: int) -> Node3D:
+	var closest_placement: Node3D = null
+	var min_distance_sq = INF
+
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		# A placement is valid if it's in the target biome AND currently highlighted by the sigil logic
+		if placement.accepted_biome == target_biome and placement.is_highlighted:
+			var dist_sq = from_position.distance_squared_to(placement.global_position)
+			if dist_sq < min_distance_sq:
+				min_distance_sq = dist_sq
+				closest_placement = placement
+				
+	return closest_placement
 
 func get_token_placement_at_position(pos: Vector3) -> Node:
 	for placement in get_parent().get_node("TokenPlacements").get_children():
@@ -1702,8 +1790,8 @@ func request_token_movement(from_position: Vector3, to_position: Vector3):
 		return
 
 	var player_id = multiplayer.get_remote_sender_id()
-	if !game_state_manager.is_valid_player_turn(player_id):
-		return
+	if player_id == 0: # If the sender is 0, it's a local call from the server.
+		player_id = multiplayer.get_unique_id() # Use the server's own ID.
 
 	# Find the token
 	var token = find_token_at_position(from_position)

@@ -44,6 +44,9 @@ var is_draw_card := false
 var sigil_placed = false
 var card_played = false
 
+# Track sigil usage per turn
+var sigil_used_this_turn := false
+
 # Phase names for display
 var phase_names = {
 	Phase.PLANT_BIOME: "Plant Token in Biome",
@@ -241,6 +244,11 @@ func reset_phases():
 	is_draw_card = false
 	sigil_placed = false
 	card_played = false
+	
+	sigil_used_this_turn = false
+	sigil_manager.is_sigil_a = false
+	sigil_manager.is_sigil_b = false
+	sigil_manager.is_sigil_c = false
 	
 	for phase_id in completed_phases:
 		completed_phases[phase_id] = false

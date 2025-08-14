@@ -264,7 +264,7 @@ fov = 50.0
 size = 14.966
 
 [node name="BiomeClickArea" type="Node3D" parent="."]
-transform = Transform3D(-9.39795e-07, 0, -21.5, 0, 21.5, 0, 21.5, 0, -9.39795e-07, 0, -0.31, 0)
+transform = Transform3D(-9.39795e-07, 0, -21.5, 0, 21.5, 0, 21.5, 0, -9.39795e-07, 0, -0.412632, 0)
 
 [node name="Forest" type="MeshInstance3D" parent="BiomeClickArea"]
 transform = Transform3D(0.869388, 0, 0, 0, 1, 0, -1.77636e-14, 0, 0.855963, -0.0920576, 0.00313854, 0.0915545)
@@ -306,12 +306,15 @@ biome_id = 3
 shape = SubResource("ConcavePolygonShape3D_02fa5")
 
 [node name="SigilClickArea" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.511963, 0)
 
 [node name="Forest" type="MeshInstance3D" parent="SigilClickArea"]
 transform = Transform3D(0.703395, 0, 0.710799, 0, 1, 0, -0.710799, 0, 0.703395, -6.02554, 0.168392, -6.11046)
 script = ExtResource("13_7025r")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="SigilClickArea/Forest"]
+collision_layer = 2
+collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="SigilClickArea/Forest/StaticBody3D"]
 shape = SubResource("ConcavePolygonShape3D_7025r")
@@ -322,6 +325,8 @@ script = ExtResource("13_7025r")
 biome_id = 1
 
 [node name="StaticBody3D" type="StaticBody3D" parent="SigilClickArea/Water"]
+collision_layer = 2
+collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="SigilClickArea/Water/StaticBody3D"]
 shape = SubResource("ConcavePolygonShape3D_7025r")
@@ -332,6 +337,8 @@ script = ExtResource("13_7025r")
 biome_id = 2
 
 [node name="StaticBody3D" type="StaticBody3D" parent="SigilClickArea/Mountain"]
+collision_layer = 2
+collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="SigilClickArea/Mountain/StaticBody3D"]
 shape = SubResource("ConcavePolygonShape3D_7025r")
@@ -342,6 +349,8 @@ script = ExtResource("13_7025r")
 biome_id = 3
 
 [node name="StaticBody3D" type="StaticBody3D" parent="SigilClickArea/Desert"]
+collision_layer = 2
+collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="SigilClickArea/Desert/StaticBody3D"]
 shape = SubResource("ConcavePolygonShape3D_7025r")
@@ -1323,6 +1332,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.93798, 0, 11.9693)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 5, 0)
+light_color = Color(0.868985, 0.868985, 0.868985, 1)
 sky_mode = 1
 
 [node name="ResetButton" type="Button" parent="."]

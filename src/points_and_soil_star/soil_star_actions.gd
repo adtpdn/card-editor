@@ -37,8 +37,8 @@ func _ready():
 		buy_card_button          : 2,
 		play_extra_token_button  : 3,
 		play_sigil_magic_button  : 3,
-		buy_elemental_button     : 1,
-		swap_elemental_button    : 1,
+		buy_elemental_button     : 4,
+		swap_elemental_button    : 5,
 	}
 	connect_action_buttons()
 
@@ -177,6 +177,7 @@ func _on_PlayElementalFaceDownButton_pressed():
 
 func _on_PlayElementalFaceUpButton_pressed():     
 	print("play_elemental_face_up_button pressed")
+	
 
 	# 1. Check cost
 	var cost = button_rules[play_elemental_face_up]

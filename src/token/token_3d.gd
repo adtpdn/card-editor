@@ -121,6 +121,8 @@ func remove_token():
 
 func _on_input_event(_camera, event, _position, _normal, _shape_idx):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if outerglow.visible:
+			outerglow.hide()
 		emit_signal("token_clicked", self)
 
 func highlight(enabled: bool):

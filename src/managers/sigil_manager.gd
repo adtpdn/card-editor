@@ -27,6 +27,9 @@ signal sigil_mode_changed(enabled)
 enum SigilPattern {SIGIL_A, SIGIL_B, SIGIL_C}
 enum BiomeType {FOREST, WATER, MOUNTAIN, DESERT}
 
+# Add this new variable near the top with your other state variables
+var is_selecting_destination = false 
+
 # Track sigil interaction state
 var selected_energy_token = null
 var is_sigil_mode = false
@@ -113,12 +116,16 @@ func handle_sigil_input(position: Vector2):
 		else: # WATER or DESERT
 			adjacent_biomes = [BiomeType.FOREST, BiomeType.MOUNTAIN, energy_token_biome]
 		
-		if is_sigil_a and found_token.biome_type in adjacent_biomes:
+		if is_sigil_a and found_token.biome_type in adjacent_biomes and found_token.owner_id != selected_energy_token.owner_id:
+			print("sigil a")
 			perform_push_pull(selected_energy_token, found_token, found_token.biome_type == selected_energy_token.biome_type)
-		elif is_sigil_b and found_token.biome_type in adjacent_biomes:
+			#is_sigil_a = false
+		elif is_sigil_b and found_token.biome_type in adjacent_biomes and found_token.owner_id == selected_energy_token.owner_id:
 			perform_push_pull(selected_energy_token, found_token, found_token.biome_type == selected_energy_token.biome_type)
+			#is_sigil_b = false
 		elif is_sigil_c and found_token.biome_type == energy_token_biome:
 			perform_blight_unblight(selected_energy_token, found_token)
+			#is_sigil_c = false
 		found_token = null
 		return true # Input was handled
 
@@ -146,6 +153,11 @@ func _connect_to_new_token(token):
 func _on_sigil_a_pressed():
 	print("")
 	print("sigil a pressed")
+	if turn_phase_manager.sigil_used_this_turn  and not soil_star_actions.is_activating_sigil_from_soil_star:
+		notification.show_instruction_label("You can only use Sigil A once per turn.")
+		get_tree().create_timer(2.5).timeout.connect(notification.hide_panel)
+		return
+	
 	is_sigil_a = true
 	if selected_energy_token.owner_id == multiplayer.get_unique_id():
 		is_sigil_mode = true
@@ -156,6 +168,8 @@ func _on_sigil_a_pressed():
 		if selected_energy_token.is_energy and !selected_energy_token.is_blighted and selected_energy_token.owner_id == multiplayer.get_unique_id():
 			# Check if this token can form a Sigil A pattern
 			if check_for_sigil_a_pattern(selected_energy_token):
+				if not soil_star_actions.is_activating_sigil_from_soil_star:
+					turn_phase_manager.sigil_used_this_turn  = true
 				# If valid, activate the sigil
 				activate_sigil_pattern(selected_energy_token, SigilPattern.SIGIL_A)
 				# Use RPC to sync the blighted state to all clients
@@ -164,6 +178,11 @@ func _on_sigil_a_pressed():
 func _on_sigil_b_pressed():
 	print("")
 	print("sigil b pressed")
+	if turn_phase_manager.sigil_used_this_turn  and not soil_star_actions.is_activating_sigil_from_soil_star:
+		notification.show_instruction_label("You can only use Sigil B once per turn.")
+		get_tree().create_timer(2.5).timeout.connect(notification.hide_panel)
+		return
+	
 	is_sigil_b = true
 	if selected_energy_token.owner_id == multiplayer.get_unique_id():
 		is_sigil_mode = true
@@ -173,6 +192,8 @@ func _on_sigil_b_pressed():
 		if selected_energy_token.is_energy and !selected_energy_token.is_blighted and selected_energy_token.owner_id == multiplayer.get_unique_id():
 			# Check if this token can form a Sigil B pattern
 			if check_for_sigil_b_pattern(selected_energy_token):
+				if not soil_star_actions.is_activating_sigil_from_soil_star:
+					turn_phase_manager.sigil_used_this_turn  = true
 				# If valid, activate the sigil
 				activate_sigil_pattern(selected_energy_token, SigilPattern.SIGIL_B)
 				# Use RPC to sync the blighted state to all clients
@@ -181,6 +202,12 @@ func _on_sigil_b_pressed():
 func _on_sigil_c_pressed():
 	print("")
 	print("sigil c pressed")
+	# Check if any sigil has been used this turn
+	if turn_phase_manager.sigil_used_this_turn and not soil_star_actions.is_activating_sigil_from_soil_star:
+		notification.show_instruction_label("You can only activate one sigil per turn.")
+		get_tree().create_timer(2.5).timeout.connect(notification.hide_panel)
+		return
+	
 	is_sigil_c = true
 	if selected_energy_token.owner_id == multiplayer.get_unique_id():
 		is_sigil_mode = true
@@ -190,6 +217,9 @@ func _on_sigil_c_pressed():
 		if selected_energy_token.is_energy and !selected_energy_token.is_blighted and selected_energy_token.owner_id == multiplayer.get_unique_id():
 			# Check if this token can form a Sigil C pattern
 			if check_for_sigil_c_pattern(selected_energy_token):
+				# Set the global flag after a successful activation
+				if not soil_star_actions.is_activating_sigil_from_soil_star:
+					turn_phase_manager.sigil_used_this_turn = true
 				# If valid, activate the sigil
 				activate_sigil_pattern(selected_energy_token, SigilPattern.SIGIL_C)
 				# Use RPC to sync the blighted state to all clients
@@ -1010,6 +1040,14 @@ func perform_blight_unblight(energy_token, token):
 		game.notification.show_instruction_label("Target must be in the same biome as the sigil.")
 		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
 		return # Stop the action if biomes do not match
+
+	# Restrict perform to make sure the token
+	if token.owner_id == energy_token.owner_id and token.is_blighted:
+		pass
+	elif token.owner_id != energy_token.owner_id and not token.is_blighted:
+		pass
+	else:
+		return
 	
 	_selected_token = token
 	token_manager.is_token_selected = true
@@ -1119,7 +1157,8 @@ func perform_push_pull(energy_token, token, is_push: bool):
 	
 	# Store token for use in the input handler
 	_selected_token = target_token
-	token_manager.is_token_selected = true
+	#token_manager.is_token_selected = true
+	is_selecting_destination = true
 	
 	print("Target token stored for movement. Please click on a highlighted location.")
 	print("==============================\n")
