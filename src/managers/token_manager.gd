@@ -52,6 +52,10 @@ var last_token_placement_time = 0.0
 # Token scene reference
 var token_scene = preload("res://scenes/token/token_3d.tscn")
 
+# --- Temporary token for visual feedback ---
+var _temp_token_instance: Node3D = null
+var _token_drag_plane = Plane(Vector3.UP, 0.1) # A plane slightly above the board for the temp token
+
 # Tracking player token counts
 var player_token_counts = {}
 
@@ -108,46 +112,22 @@ func _ready():
 			token_button.pressed.disconnect(_on_token_selected)
 		token_button.pressed.connect(_on_token_selected)
 
+# --- Make the temporary token follow the mouse ---
+func _process(_delta):
+	# If a temporary token exists, update its position to follow the mouse cursor in 3D space.
+	if _temp_token_instance and get_viewport().get_camera_3d():
+		var camera = get_viewport().get_camera_3d()
+		var mouse_pos = get_viewport().get_mouse_position()
+		var ray_origin = camera.project_ray_origin(mouse_pos)
+		var ray_normal = camera.project_ray_normal(mouse_pos)
+		var world_pos = _token_drag_plane.intersects_ray(ray_origin, ray_normal)
+		if world_pos:
+			_temp_token_instance.global_position = world_pos
+
+
 func _input(event):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		handle_touch(event.position)
-
-# --- FIX START ---
-# This new function now correctly contains the logic for handling a click on a placement location.
-func handle_placement_click(placement: Node3D):
-	if not is_token_selected:
-		# This is not a token placement action, so we do nothing.
-		return
-
-	if not placement or placement.is_occupied:
-		print("Invalid or occupied placement.")
-		return
-
-	var player_id = multiplayer.get_unique_id()
-	if not game_state_manager.is_valid_player_turn(player_id):
-		print("Not your turn!")
-		return
-
-	var player_tokens = get_player_tokens(player_id)
-	if player_tokens.size() <= 0:
-		print("No tokens left!")
-		return
-
-	# Use the first available token
-	var token_index = 0
-
-	# Request placement from the server
-	if multiplayer.is_server():
-		request_token_placement(token_index, placement.global_position, placement.accepted_biome)
-	else:
-		rpc_id(1, "request_token_placement", token_index, placement.global_position, placement.accepted_biome)
-
-	# Deactivate selection mode after a valid click
-	is_token_selected = false
-	unhighlight_all_token_placements()
-	update_token_ui()
-# --- FIX END ---
-
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Start of Core Token Planting Functions
@@ -165,8 +145,26 @@ func _on_token_selected() -> void:
 	# 3. Update the UI and placement highlights based on the new state.
 	if is_token_selected:
 		_activate_placement_highlights()
+		# Create the temporary token for visual feedback
+		if not is_instance_valid(_temp_token_instance):
+			_temp_token_instance = token_scene.instantiate()
+			# Add to a high-level node to ensure it's drawn correctly and doesn't interfere
+			game.add_child(_temp_token_instance)
+			print("instance token")
+			# Make it visual only - disable physics/input so it doesn't block clicks
+			_temp_token_instance.get_node("TokenMesh/StaticBody3D").set_process_input(false)
+			_temp_token_instance.get_node("TokenMesh/StaticBody3D").get_node("CollisionShape3D").disabled = true
+			
+			# Set its appearance to match the current player
+			var player_id = multiplayer.get_unique_id()
+			_temp_token_instance.set_token_data(0, player_id, false) # Biome doesn't matter, owner does
 	else:
+		print("unhiglight token")
 		unhighlight_all_token_placements()
+		# Destroy the temporary token if we cancel selection mode
+		if is_instance_valid(_temp_token_instance):
+			_temp_token_instance.queue_free()
+			_temp_token_instance = null
 
 	update_token_ui()
 
@@ -487,6 +485,7 @@ func request_token_placement(token_index: int, position: Vector3, biome_type: in
 
 	# 5. Broadcast the confirmed token placement to all clients.
 	rpc("sync_token_placement", player_id, token_data, position)
+
 
 @rpc("any_peer", "call_local")
 func sync_token_placement(player_id: int, token_data: Dictionary, position: Vector3) -> void:

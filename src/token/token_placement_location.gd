@@ -121,6 +121,14 @@ func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: 
 		else:
 			print("Client requesting placement")
 			game.token_manager.rpc_id(1, "request_token_placement", token_index, global_position, accepted_biome)
+		
+		# Clean up the temporary visual token
+		var _temp_token_instance = game.token_manager._temp_token_instance
+		if is_instance_valid(_temp_token_instance):
+			print("remove temp token")
+			_temp_token_instance.queue_free()
+			_temp_token_instance = null
+		
 		hide_placement()
 
 func set_highlight(enabled: bool):
@@ -138,9 +146,11 @@ func set_highlight(enabled: bool):
 	var material = StandardMaterial3D.new()
 	
 	if enabled:
-		material.albedo_color = Color(0.736, 0.693, 0.454, 0.2)
-	else:
 		material.albedo_color = PLACEHOLDER_COLOR
+		show()
+	else:
+		material.albedo_color = Color(0, 0, 0, 0)
+		hide()
 		
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	$MarkerMesh.material_override = material
