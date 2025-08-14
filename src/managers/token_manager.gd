@@ -56,6 +56,9 @@ var token_scene = preload("res://scenes/token/token_3d.tscn")
 var _temp_token_instance: Node3D = null
 var _token_drag_plane = Plane(Vector3.UP, 0.1) # A plane slightly above the board for the temp token
 
+# --- Biome Click Areas ---
+var _biome_click_areas = {} # Dictionary to store biome areas
+
 # Tracking player token counts
 var player_token_counts = {}
 
@@ -276,6 +279,8 @@ func handle_touch(position: Vector2) -> void:
 
 	# 2. Get the 3D object that was touched via raycasting.
 	var result: Dictionary = _raycast_from_screen(position)
+	print("result : ", result)
+	
 	if result.is_empty():
 		return
 
@@ -283,11 +288,43 @@ func handle_touch(position: Vector2) -> void:
 	var input_mode: String = _get_current_input_mode()
 
 	# 4. Delegate to the correct handler based on the input mode.
+	print("input mode : ", input_mode)
 	match input_mode:
+		#"PLACING_TOKEN":
+			#var placement = get_token_placement_at_position(result.position)
+			#if placement:
+				#_handle_placement_action(placement)
 		"PLACING_TOKEN":
-			var placement = get_token_placement_at_position(result.position)
-			if placement:
-				_handle_placement_action(placement)
+			# ---  Check for biome area click ---
+			var clicked_node = result.collider
+			var area_node = null
+
+			# Traverse up to find a clickable area (either Biome or Sigil)
+			while(clicked_node != null):
+				if clicked_node.has_method("get_script") and clicked_node.get_script() and "biome_id" in clicked_node:
+					area_node = clicked_node
+					break
+				clicked_node = clicked_node.get_parent()
+
+			if area_node:
+				var biome_type = area_node.biome_id
+				# Differentiate between biome and sigil areas based on script path
+				if area_node.get_script().resource_path.ends_with("biome_area.gd"):
+					_find_closest_placement_and_plant(result.position, biome_type, true) # true for biome
+				elif area_node.get_script().resource_path.ends_with("sigil_area.gd"):
+					_find_closest_placement_and_plant(result.position, biome_type, false) # false for sigil
+				
+				## Clean up the temporary visual token
+				if is_instance_valid(_temp_token_instance):
+					_temp_token_instance.queue_free()
+					_temp_token_instance = null
+			
+			else: 
+				# Fallback to clicking individual placements if no specific area was clicked
+				var placement = get_token_placement_at_position(result.position)
+				if placement:
+					_handle_placement_action(placement)
+
 		"TARGETING_FOR_EFFECT":
 			var token = _get_token_from_collider(result.collider)
 			if token:
@@ -317,6 +354,30 @@ func _get_current_input_mode() -> String:
 	if card_manager.is_take_off_mode or card_manager.is_unblight_mode or card_manager.is_refresh_energy_mode or card_manager.is_swap_energy_mode:
 		return "TARGETING_FOR_EFFECT"
 	return "IDLE_OR_SIGIL"
+
+# --- New function to find closest placement ---
+func _find_closest_placement_and_plant(click_position_3d: Vector3, biome_type: int, is_for_biome: bool):
+	var closest_placement = null
+	var min_distance = INF
+
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		# Check if the placement is valid for this action (highlighted and in the correct biome)
+		if placement.is_highlighted and placement.accepted_biome == biome_type:
+			# Check if it's the correct type of placement (biome vs sigil)
+			var is_biome_spot = placement.place_id == -1
+			
+			if is_for_biome == is_biome_spot:
+				var distance = click_position_3d.distance_to(placement.global_position)
+				if distance < min_distance:
+					min_distance = distance
+					closest_placement = placement
+	
+	# If we found a valid closest spot, handle the placement action
+	if closest_placement:
+		_handle_placement_action(closest_placement)
+	else:
+		var area_type = "biome" if is_for_biome else "sigil"
+		print("No available %s placement locations found in the clicked biome." % area_type)
 
 # Performs the raycast from the screen position into the 3D world.
 func _raycast_from_screen(position: Vector2) -> Dictionary:
@@ -1015,7 +1076,7 @@ func initialize():
 	#print("TokenManager initializing...")
 
 	setup_token_placements()
-	setup_biome_borders()
+	#setup_biome_borders()
 	setup_token_ui()
 
 	# Make sure host has tokens on startup
@@ -1098,54 +1159,97 @@ func setup_token_placements():
 		else:
 			placement.set_energy_placement(false)
 
-func setup_biome_borders():
-	var material = StandardMaterial3D.new()
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+#func setup_biome_borders():
+	#var material = StandardMaterial3D.new()
+	#material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+#
+	## Create octagonal border for each biome region
+	#for biome in biome_assignments.keys():
+		#var slice_indices = biome_assignments[biome]
+#
+		#for slice_idx in slice_indices:
+			#var start_angle = slice_idx * PI / 4
+			#var points = []
+#
+			## Create border mesh
+			#var surface_tool = SurfaceTool.new()
+			#surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+#
+			## Center point
+			#var center = Vector3.ZERO
+#
+			## Add vertices for arc
+			#var segments = 8
+			#var angle_step = PI / (4 * segments)
+#
+			## Create triangles
+			#for i in range(segments):
+				#var angle1 = start_angle + i * angle_step
+				#var angle2 = start_angle + (i + 1) * angle_step
+#
+				#var v1 = Vector3(radius * cos(angle1), 0, radius * sin(angle1))
+				#var v2 = Vector3(radius * cos(angle2), 0, radius * sin(angle2))
+#
+				## Add triangle (center, v1, v2)
+				#surface_tool.add_vertex(center)
+				#surface_tool.add_vertex(v1)
+				#surface_tool.add_vertex(v2)
+#
+			#var mesh_instance = MeshInstance3D.new()
+			#mesh_instance.mesh = surface_tool.commit()
+#
+			## Use a neutral color instead of biome color
+			#var color = Color(0.7, 0.7, 0.7)  # Light gray
+			#color.a = 0.2
+			#var region_material = material.duplicate()
+			#region_material.albedo_color = color
+			#mesh_instance.material_override = region_material
+#
+			## Add to the borders node
+			#borders_node.add_child(mesh_instance)
 
-	# Create octagonal border for each biome region
-	for biome in biome_assignments.keys():
-		var slice_indices = biome_assignments[biome]
-
-		for slice_idx in slice_indices:
-			var start_angle = slice_idx * PI / 4
-			var points = []
-
-			# Create border mesh
-			var surface_tool = SurfaceTool.new()
-			surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
-
-			# Center point
-			var center = Vector3.ZERO
-
-			# Add vertices for arc
-			var segments = 8
-			var angle_step = PI / (4 * segments)
-
-			# Create triangles
-			for i in range(segments):
-				var angle1 = start_angle + i * angle_step
-				var angle2 = start_angle + (i + 1) * angle_step
-
-				var v1 = Vector3(radius * cos(angle1), 0, radius * sin(angle1))
-				var v2 = Vector3(radius * cos(angle2), 0, radius * sin(angle2))
-
-				# Add triangle (center, v1, v2)
-				surface_tool.add_vertex(center)
-				surface_tool.add_vertex(v1)
-				surface_tool.add_vertex(v2)
-
-			var mesh_instance = MeshInstance3D.new()
-			mesh_instance.mesh = surface_tool.commit()
-
-			# Use a neutral color instead of biome color
-			var color = Color(0.7, 0.7, 0.7)  # Light gray
-			color.a = 0.2
-			var region_material = material.duplicate()
-			region_material.albedo_color = color
-			mesh_instance.material_override = region_material
-
-			# Add to the borders node
-			borders_node.add_child(mesh_instance)
+# --- Add clickable areas to biomes ---
+#func setup_biome_borders():
+	#var click_areas_node = Node3D.new()
+	#click_areas_node.name = "BiomeClickAreas"
+	#add_child(click_areas_node)
+#
+	#for biome_type in biome_assignments:
+		#var slice_indices = biome_assignments[biome_type]
+		#var biome_area = StaticBody3D.new()
+		#var biome_name = "BiomeArea_%s" % BiomeType.keys()[biome_type]
+		#biome_area.name = biome_name
+		#click_areas_node.add_child(biome_area)
+		#
+		## Store reference for easy lookup
+		#_biome_click_areas[biome_name] = biome_type
+#
+		#var collision_shape = CollisionShape3D.new()
+		#biome_area.add_child(collision_shape)
+#
+		#var shape = ConcavePolygonShape3D.new()
+		#var faces = PackedVector3Array()
+#
+		## Create a wedge shape for the two slices of the biome
+		#var start_angle = slice_indices[0] * PI / 4
+		#var end_angle = (slice_indices[1] + 1) * PI / 4
+		#var segments = 16 # More segments for a smoother shape
+#
+		#var angle_step = (end_angle - start_angle) / segments
+		#
+		## Bottom face
+		#for i in range(segments):
+			#var angle1 = start_angle + i * angle_step
+			#var angle2 = start_angle + (i + 1) * angle_step
+			#var v1 = Vector3(radius * cos(angle1), 0, radius * sin(angle1))
+			#var v2 = Vector3(radius * cos(angle2), 0, radius * sin(angle2))
+			#faces.append(Vector3.ZERO)
+			#faces.append(v2)
+			#faces.append(v1)
+#
+		#shape.set_faces(faces)
+		#collision_shape.shape = shape
+# --- MODIFICATION END ---
 
 func setup_token_ui():
 	var token_button = get_parent().get_node("RightUI/TokenButton")

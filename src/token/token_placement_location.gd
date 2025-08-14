@@ -65,71 +65,81 @@ func set_sigil_placement():
 		self.show()
 
 func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: Vector3, shape_idx: int):
+	# This function is now primarily for potential future interactions like tooltips.
+	# The main token placement click is handled by the TokenManager and the larger biome areas.
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var game = get_node("/root/Game")
-		print("")
-		print("placement location")
-		
-		if !game or is_occupied:
-			print("Game not found or location is occupied")
-			return
-		
-		#if game and game.has_node("TokenManager"):
-			# Call the handler function in TokenManager, passing this placement instance.
-			#game.get_node("TokenManager").handle_placement_click(self)
-			
-		
-		if game and game.has_node("SigilManager"):
-			game.get_node("SigilManager").handle_sigil_input(event.position)
-		
-		var player_id = multiplayer.get_unique_id()
-		if !game.game_state_manager.is_valid_player_turn(player_id):
-			print("Not your turn!")
-			return
-		
-		if game.sigil_manager.is_sigil_mode:
-			if !game.sigil_manager.is_sigil_c:
-				game.sigil_manager._on_push_pull_input(global_position)
-			else:
-				print("sigil c 2")
-				game.sigil_manager._on_blight_unblight_input()
-			return
-		
-		# Debug token selection state
-		print("Token selected: " + str(game.token_manager.is_token_selected))
-		
-		# Only process clicks if token selection mode is active
-		if !game.token_manager.is_token_selected:
-			print("Token selection mode not active")
-			return
-		
-		# Check if player has tokens left
-		var player_tokens = game.token_manager.get_player_tokens(player_id)
-		if player_tokens.size() <= 0:
-			print("No tokens left!")
-			return
-		
-		print("Attempting token placement")
-		
-		# Just use the first available token
-		var token_index = 0
-		
-		# IMPORTANT: This is the fix - pass the accepted_biome as the third parameter
-		if multiplayer.is_server():
-			print("Server direct placement")
-			game.token_manager.request_token_placement(token_index, global_position, accepted_biome)
-		else:
-			print("Client requesting placement")
-			game.token_manager.rpc_id(1, "request_token_placement", token_index, global_position, accepted_biome)
-		
-		# Clean up the temporary visual token
-		var _temp_token_instance = game.token_manager._temp_token_instance
-		if is_instance_valid(_temp_token_instance):
-			print("remove temp token")
-			_temp_token_instance.queue_free()
-			_temp_token_instance = null
-		
-		hide_placement()
+		print("area clicked")
+		if game and game.has_node("TokenManager"):
+			# We still pass the click to the token manager in case it needs to handle it,
+			# for example, if a card effect requires clicking a specific spot.
+			game.get_node("TokenManager").handle_touch(event.position)
+
+#func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: Vector3, shape_idx: int):
+	#if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		#var game = get_node("/root/Game")
+		#print("")
+		#print("placement location")
+		#
+		#if !game or is_occupied:
+			#print("Game not found or location is occupied")
+			#return
+		#
+		##if game and game.has_node("TokenManager"):
+			## Call the handler function in TokenManager, passing this placement instance.
+			##game.get_node("TokenManager").handle_placement_click(self)
+			#
+		#
+		#if game and game.has_node("SigilManager"):
+			#game.get_node("SigilManager").handle_sigil_input(event.position)
+		#
+		#var player_id = multiplayer.get_unique_id()
+		#if !game.game_state_manager.is_valid_player_turn(player_id):
+			#print("Not your turn!")
+			#return
+		#
+		#if game.sigil_manager.is_sigil_mode:
+			#if !game.sigil_manager.is_sigil_c:
+				#game.sigil_manager._on_push_pull_input(global_position)
+			#else:
+				#print("sigil c 2")
+				#game.sigil_manager._on_blight_unblight_input()
+			#return
+		#
+		## Debug token selection state
+		#print("Token selected: " + str(game.token_manager.is_token_selected))
+		#
+		## Only process clicks if token selection mode is active
+		#if !game.token_manager.is_token_selected:
+			#print("Token selection mode not active")
+			#return
+		#
+		## Check if player has tokens left
+		#var player_tokens = game.token_manager.get_player_tokens(player_id)
+		#if player_tokens.size() <= 0:
+			#print("No tokens left!")
+			#return
+		#
+		#print("Attempting token placement")
+		#
+		## Just use the first available token
+		#var token_index = 0
+		#
+		## IMPORTANT: This is the fix - pass the accepted_biome as the third parameter
+		#if multiplayer.is_server():
+			#print("Server direct placement")
+			#game.token_manager.request_token_placement(token_index, global_position, accepted_biome)
+		#else:
+			#print("Client requesting placement")
+			#game.token_manager.rpc_id(1, "request_token_placement", token_index, global_position, accepted_biome)
+		#
+		## Clean up the temporary visual token
+		#var _temp_token_instance = game.token_manager._temp_token_instance
+		#if is_instance_valid(_temp_token_instance):
+			#_temp_token_instance.queue_free()
+			#_temp_token_instance = null
+		#
+		#hide_placement()
 
 func set_highlight(enabled: bool):
 	if is_occupied:
@@ -146,7 +156,7 @@ func set_highlight(enabled: bool):
 	var material = StandardMaterial3D.new()
 	
 	if enabled:
-		material.albedo_color = PLACEHOLDER_COLOR
+		material.albedo_color = Color(0, 0, 0, 0)
 		show()
 	else:
 		material.albedo_color = Color(0, 0, 0, 0)
@@ -212,11 +222,13 @@ func place_token(player_id: int, token_data: Dictionary):
 func _on_mouse_entered():
 	if !is_occupied:
 		var material = marker_mesh.material_override.duplicate()
-		material.albedo_color = Color(0.376, 0.709, 0.548, 0.4)
+		#material.albedo_color = Color(0.376, 0.709, 0.548, 0.4)
+		material.albedo_color = Color(0, 0, 0, 0)
 		marker_mesh.material_override = material
 
 func _on_mouse_exited():
 	if !is_occupied:
 		var material = marker_mesh.material_override.duplicate()
-		material.albedo_color = Color(0.736, 0.693, 0.454, 0.2)
+		#material.albedo_color = Color(0.736, 0.693, 0.454, 0.2)
+		material.albedo_color = Color(0, 0, 0, 0)
 		marker_mesh.material_override = material

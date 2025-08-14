@@ -61,8 +61,8 @@ func initialize():
 		_connect_to_new_token(token)
 	
 	# Connect sigil buttons
-	connect_sigil_buttons()
-	disable_all_sigil_buttons()
+	#connect_sigil_buttons()
+	#disable_all_sigil_buttons()
 	#connect_pull_or_push_buttons()
 	print("SigilManager initialized.")
 
@@ -130,15 +130,15 @@ func _connect_to_new_token(token):
 	if !token.is_connected("token_clicked", _on_token_clicked):
 		token.connect("token_clicked", _on_token_clicked)
 
-func connect_sigil_buttons():
-	var sigil_a_button = game.sigil_a_button
-	var sigil_b_button = game.sigil_b_button
-	var sigil_c_button = game.sigil_c_button
-	
-	# Connect new signals
-	sigil_a_button.pressed.connect(_on_sigil_a_pressed)
-	sigil_b_button.pressed.connect(_on_sigil_b_pressed)
-	sigil_c_button.pressed.connect(_on_sigil_c_pressed)
+#func connect_sigil_buttons():
+	#var sigil_a_button = game.sigil_a_button
+	#var sigil_b_button = game.sigil_b_button
+	#var sigil_c_button = game.sigil_c_button
+	#
+	## Connect new signals
+	#sigil_a_button.pressed.connect(_on_sigil_a_pressed)
+	#sigil_b_button.pressed.connect(_on_sigil_b_pressed)
+	#sigil_c_button.pressed.connect(_on_sigil_c_pressed)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Sigil Button
@@ -254,18 +254,18 @@ func update_sigil_button_states(token):
 		popup.popup()
 
 
-func disable_all_sigil_buttons():
-	var sigil_a_button = game.sigil_a_button
-	var sigil_b_button = game.sigil_b_button
-	var sigil_c_button = game.sigil_c_button
-	
-	sigil_a_button.disabled = true
-	sigil_b_button.disabled = true
-	sigil_c_button.disabled = true
-	
-	sigil_a_button.modulate = Color(1, 1, 1, 0.5)
-	sigil_b_button.modulate = Color(1, 1, 1, 0.5)
-	sigil_c_button.modulate = Color(1, 1, 1, 0.5)
+#func disable_all_sigil_buttons():
+	#var sigil_a_button = game.sigil_a_button
+	#var sigil_b_button = game.sigil_b_button
+	#var sigil_c_button = game.sigil_c_button
+	#
+	#sigil_a_button.disabled = true
+	#sigil_b_button.disabled = true
+	#sigil_c_button.disabled = true
+	#
+	#sigil_a_button.modulate = Color(1, 1, 1, 0.5)
+	#sigil_b_button.modulate = Color(1, 1, 1, 0.5)
+	#sigil_c_button.modulate = Color(1, 1, 1, 0.5)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Sigil Pattern Detection
@@ -345,7 +345,7 @@ func _on_token_clicked(token):
 				is_sigil_mode = false
 				
 				# Disable all sigil buttons
-				disable_all_sigil_buttons()
+				#disable_all_sigil_buttons()
 
 # Main pattern check function
 func check_for_sigil_patterns(token):
@@ -1173,7 +1173,7 @@ func _on_blight_unblight_input():
 		var tokens = tokens.get_children()
 		for token in tokens:
 			token.outerglow.hide()
-		disable_all_sigil_buttons()
+		#disable_all_sigil_buttons()
 		print("Blight/Unblight action complete.")
 
 # NEW RPC to handle client requests for Sigil C blight
@@ -1297,7 +1297,7 @@ func _on_push_pull_input(_placement_pos):
 			selected_energy_token.highlight(false)
 			selected_energy_token = null
 		
-		disable_all_sigil_buttons()
+		#disable_all_sigil_buttons()
 		print("Token move operation completed")
 		print("==============================\n")
 

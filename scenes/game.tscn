@@ -1,4 +1,4 @@
-[gd_scene load_steps=61 format=4 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=65 format=4 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://src/game.gd" id="1_e1j6l"]
 [ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://src/managers/turn_phase_manager.gd" id="2_pl11u"]
@@ -14,6 +14,8 @@
 [ext_resource type="Material" uid="uid://lvi74dkr8iac" path="res://assets/meshes/corner_slice_1_mat.tres" id="11_js0lu"]
 [ext_resource type="Script" uid="uid://cqhlumayggt0k" path="res://src/managers/score_manager.gd" id="11_twgab"]
 [ext_resource type="Material" uid="uid://c6acp7vu62y16" path="res://assets/meshes/corner_slice_2_mat.tres" id="12_gxtfn"]
+[ext_resource type="Script" uid="uid://cql05e2pilxqb" path="res://src/biome_area.gd" id="12_nepv3"]
+[ext_resource type="Script" uid="uid://cxvbpxx7yxfv3" path="res://src/sigil_area.gd" id="13_7025r"]
 [ext_resource type="Material" uid="uid://dlp8ve03x2jgc" path="res://assets/meshes/corner_slice_3_mat.tres" id="13_twgab"]
 [ext_resource type="Material" uid="uid://c7ugxmqk3hnld" path="res://assets/meshes/corner_slice_4_mat.tres" id="14_02fa5"]
 [ext_resource type="Script" uid="uid://dj0ce7mbddmyx" path="res://src/cards_and_deck/card_collection_3d.gd" id="15_bhx41"]
@@ -37,6 +39,12 @@
 [ext_resource type="PlaneMesh" uid="uid://dxvj3gkbbknem" path="res://assets/meshes/card_3d_back_mesh.tres" id="29_8ool0"]
 [ext_resource type="Material" uid="uid://b2jdqh0ex1sps" path="res://assets/materials/cards_materials/elementals/ElementalRed01.tres" id="30_02fa5"]
 [ext_resource type="PackedScene" uid="uid://dgkrhoahnnmwb" path="res://scenes/score/score_ui.tscn" id="38_7025r"]
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_02fa5"]
+data = PackedVector3Array(0.1, 0, 0.1, -0.1, 0, 0.1, 0.1, 0, -0.1, -0.1, 0, 0.1, -0.1, 0, -0.1, 0.1, 0, -0.1)
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_7025r"]
+data = PackedVector3Array(1.25, 0, 1.25, -1.25, 0, 1.25, 1.25, 0, -1.25, -1.25, 0, 1.25, -1.25, 0, -1.25, 1.25, 0, -1.25)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0k8a4"]
 resource_name = "Corner.001"
@@ -254,6 +262,89 @@ script = ExtResource("11_twgab")
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 20.69, 0.12)
 fov = 50.0
 size = 14.966
+
+[node name="BiomeClickArea" type="Node3D" parent="."]
+transform = Transform3D(-9.39795e-07, 0, -21.5, 0, 21.5, 0, 21.5, 0, -9.39795e-07, 0, -0.31, 0)
+
+[node name="Forest" type="MeshInstance3D" parent="BiomeClickArea"]
+transform = Transform3D(0.869388, 0, 0, 0, 1, 0, -1.77636e-14, 0, 0.855963, -0.0920576, 0.00313854, 0.0915545)
+script = ExtResource("12_nepv3")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="BiomeClickArea/Forest"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BiomeClickArea/Forest/StaticBody3D"]
+shape = SubResource("ConcavePolygonShape3D_02fa5")
+
+[node name="Water" type="MeshInstance3D" parent="BiomeClickArea"]
+transform = Transform3D(0.869388, 0, 0, 0, 1, 0, -2.4869e-14, 0, 0.855963, 0.0933234, 0.00313854, 0.0915544)
+script = ExtResource("12_nepv3")
+biome_id = 1
+
+[node name="StaticBody3D" type="StaticBody3D" parent="BiomeClickArea/Water"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BiomeClickArea/Water/StaticBody3D"]
+shape = SubResource("ConcavePolygonShape3D_02fa5")
+
+[node name="Mountain" type="MeshInstance3D" parent="BiomeClickArea"]
+transform = Transform3D(0.869388, 0, 0, 0, 1, 0, -3.19744e-14, 0, 0.855963, 0.0943144, 0.00313854, -0.0914298)
+script = ExtResource("12_nepv3")
+biome_id = 2
+
+[node name="StaticBody3D" type="StaticBody3D" parent="BiomeClickArea/Mountain"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BiomeClickArea/Mountain/StaticBody3D"]
+shape = SubResource("ConcavePolygonShape3D_02fa5")
+
+[node name="Desert" type="MeshInstance3D" parent="BiomeClickArea"]
+transform = Transform3D(0.869388, 0, 0, 0, 1, 0, -3.19744e-14, 0, 0.855963, -0.0948755, 0.00313854, -0.0914298)
+script = ExtResource("12_nepv3")
+biome_id = 3
+
+[node name="StaticBody3D" type="StaticBody3D" parent="BiomeClickArea/Desert"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BiomeClickArea/Desert/StaticBody3D"]
+shape = SubResource("ConcavePolygonShape3D_02fa5")
+
+[node name="SigilClickArea" type="Node3D" parent="."]
+
+[node name="Forest" type="MeshInstance3D" parent="SigilClickArea"]
+transform = Transform3D(0.703395, 0, 0.710799, 0, 1, 0, -0.710799, 0, 0.703395, -6.02554, 0.168392, -6.11046)
+script = ExtResource("13_7025r")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="SigilClickArea/Forest"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SigilClickArea/Forest/StaticBody3D"]
+shape = SubResource("ConcavePolygonShape3D_7025r")
+
+[node name="Water" type="MeshInstance3D" parent="SigilClickArea"]
+transform = Transform3D(0.703395, 0, 0.710799, 0, 1, 0, -0.710799, 0, 0.703395, -6.02554, 0.168392, 6.03294)
+script = ExtResource("13_7025r")
+biome_id = 1
+
+[node name="StaticBody3D" type="StaticBody3D" parent="SigilClickArea/Water"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SigilClickArea/Water/StaticBody3D"]
+shape = SubResource("ConcavePolygonShape3D_7025r")
+
+[node name="Mountain" type="MeshInstance3D" parent="SigilClickArea"]
+transform = Transform3D(0.703395, 0, 0.710799, 0, 1, 0, -0.710799, 0, 0.703395, 6.08983, 0.168391, 6.00892)
+script = ExtResource("13_7025r")
+biome_id = 2
+
+[node name="StaticBody3D" type="StaticBody3D" parent="SigilClickArea/Mountain"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SigilClickArea/Mountain/StaticBody3D"]
+shape = SubResource("ConcavePolygonShape3D_7025r")
+
+[node name="Desert" type="MeshInstance3D" parent="SigilClickArea"]
+transform = Transform3D(0.703395, 0, 0.710799, 0, 1, 0, -0.710799, 0, 0.703395, 6.08983, 0.168391, -6.04648)
+script = ExtResource("13_7025r")
+biome_id = 3
+
+[node name="StaticBody3D" type="StaticBody3D" parent="SigilClickArea/Desert"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SigilClickArea/Desert/StaticBody3D"]
+shape = SubResource("ConcavePolygonShape3D_7025r")
 
 [node name="Biomes" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.16, 0)
@@ -1234,11 +1325,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.93798, 0, 11.9693)
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 5, 0)
 sky_mode = 1
 
-[node name="DirectionalLight3D2" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 5, 0)
-visible = false
-sky_mode = 1
-
 [node name="ResetButton" type="Button" parent="."]
 visible = false
 anchors_preset = 5
@@ -1411,25 +1497,6 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="PlayerTurn" parent="." instance=ExtResource("24_h3rex")]
-
-[node name="SigilContainer" type="VBoxContainer" parent="."]
-visible = false
-offset_left = 34.0
-offset_top = 42.0
-offset_right = 92.0
-offset_bottom = 143.0
-
-[node name="SigilAButton" type="Button" parent="SigilContainer"]
-layout_mode = 2
-text = "Sigil A "
-
-[node name="SigilBButton" type="Button" parent="SigilContainer"]
-layout_mode = 2
-text = "Sigil B"
-
-[node name="SigilCButton" type="Button" parent="SigilContainer"]
-layout_mode = 2
-text = "Sigil C"
 
 [node name="LeftUI" type="Control" parent="."]
 layout_mode = 3

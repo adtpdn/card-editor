@@ -21,9 +21,6 @@ extends Node
 @onready var soil_star_actions = $SoilStarActions
 @onready var player_uis = $PlayerUIs
 
-@onready var sigil_a_button = $SigilContainer/SigilAButton
-@onready var sigil_b_button = $SigilContainer/SigilBButton
-@onready var sigil_c_button = $SigilContainer/SigilCButton
 @onready var token_button = $RightUI/TokenButton
 @onready var end_turn_button = $RightUI/EndTurnButton
 @onready var end_phase_button = $RightUI/EndPhaseButton

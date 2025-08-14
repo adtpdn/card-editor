@@ -91,18 +91,6 @@ func _ready():
 		print("TurnPhaseManager: WARNING - token_placed signal not found in token_manager!")
 		print("TurnPhaseManager: Available signals in token_manager: ", token_manager.get_signal_list() if token_manager else "token_manager not found")
 	
-	# Connect to sigil buttons
-	var sigil_container = game.get_node("SigilContainer")
-	if sigil_container:
-		#print("TurnPhaseManager: Found sigil container")
-		for child in sigil_container.get_children():
-			if child is Button:
-				if child.pressed.is_connected(_on_sigil_button_pressed.bind(child.name)):
-					child.pressed.disconnect(_on_sigil_button_pressed.bind(child.name))
-				child.pressed.connect(_on_sigil_button_pressed.bind(child.name))
-	else:
-		print("TurnPhaseManager: Sigil container not found!")
-	
 	# Connect to end turn button
 	var end_turn_button = game.get_node("RightUI/EndTurnButton")
 	if end_turn_button:
@@ -223,7 +211,6 @@ func exit_current_phase():
 			token_manager.unhighlight_all_token_placements()
 			token_manager.update_token_ui()
 		Phase.PLAY_SIGIL:
-			enable_sigil_buttons(false)
 			if sigil_manager:
 				sigil_manager.is_sigil_mode = false
 				sigil_manager.is_sigil_c = false
@@ -260,7 +247,6 @@ func reset_phases():
 	
 	# Disable all interactive elements until explicitly enabled
 	
-	enable_sigil_buttons(false)
 	token_manager.can_plant_on_biome = false
 	token_manager.can_plant_on_sigil = false
 	
@@ -406,20 +392,6 @@ func advance_to_next_phase():
 	show_phase_notification()
 	
 	#print("TurnPhaseManager: Phase successfully advanced from ", previous_phase, " to ", current_phase)
-
-
-# Helper function to enable/disable sigil buttons
-func enable_sigil_buttons(enabled: bool):
-	#print("TurnPhaseManager: ", "Enabling" if enabled else "Disabling", " sigil buttons")
-	var sigil_container = game.get_node("SigilContainer")
-	if sigil_container:
-		for child in sigil_container.get_children():
-			if child is Button:
-				child.disabled = !enabled
-				child.modulate = Color(1, 1, 1, 1) if enabled else Color(0.5, 0.5, 0.5, 0.5)
-		#print("TurnPhaseManager: Sigil buttons ", "enabled" if enabled else "disabled")
-	else:
-		print("TurnPhaseManager: Sigil container not found!")
 
 func show_requirement_notification(message: String):
 	# Create a custom popup without buttons
