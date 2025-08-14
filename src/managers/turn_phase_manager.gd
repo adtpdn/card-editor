@@ -128,6 +128,7 @@ func create_phase_popup():
 	#print("TurnPhaseManager: Phase popup created")
 
 # Sets the current active phase
+@rpc("any_peer", "call_local", "reliable")
 func set_phase(phase_id: Phase):
 	#print("TurnPhaseManager: set_phase called with phase: ", phase_id)
 	if phase_id == current_phase:
@@ -352,6 +353,8 @@ func show_phase_two_progress():
 func advance_to_next_phase():
 	print("TurnPhaseManager: Advancing to next phase from: ", current_phase)
 	
+	
+		
 	#print("count plant : ", count_plant)
 	if game_state_manager.current_round == 0:
 		if count_plant == 2:
@@ -383,6 +386,11 @@ func advance_to_next_phase():
 		_:
 			#print("TurnPhaseManager: Invalid phase: ", current_phase)
 			return
+	
+	# Instead of changing the phase directly, the server tells everyone to change the phase.
+	if multiplayer.is_server():
+		# This will now execute set_phase() on the server and all clients.
+		rpc("set_phase", next_phase)
 	
 	# Exit current phase
 	exit_current_phase()

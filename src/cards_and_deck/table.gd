@@ -25,6 +25,8 @@ func _ready():
 
 	# All instances populate their decks with a default, unshuffled order.
 	reset_decks()
+	# Connect the deck click signals for everyone (host and clients).
+	connect_decks()
 
 func connect_decks():
 	var action_deck = get_node_or_null("../ActionDeck")
@@ -265,9 +267,14 @@ func instantiate_face_card(card_index: int, is_elemental: bool = false) -> FaceC
 # --- Card Drawing Logic ---
 func _on_action_deck_pressed():
 	print("action deck pressed")
-	#var game_state_manager = game.game_state_manager
-	#if game_state_manager.current_round == 0:
-		#return
+	# Check if the current round is 0.
+	var game_state_manager = game.game_state_manager
+	if game_state_manager.current_round == 0:
+		print("Cannot draw a card in Round 0.")
+		# Optionally, notify the player.
+		game.notification.show_instruction_label("You cannot draw action cards in Round 0.")
+		get_tree().create_timer(2.5).timeout.connect(game.notification.hide_panel)
+		return # Stop the function from proceeding.
 	
 	var turn_phase_manager = game.turn_phase_manager
 	if turn_phase_manager.sigil_placed:
@@ -379,6 +386,22 @@ func server_draw_card(player_id: int, is_elemental: bool):
 	var data = { "id": card_original_index, "card_id": card_resource.card_id }
 	
 	rpc("client_receive_card", player_id, data, is_elemental)
+	
+	# After sending the card to the client, the server updates its own authoritative state.
+	if not is_elemental and game.game_state_manager.current_round > 0:
+		var turn_phase_manager = game.turn_phase_manager
+
+		# Handle card draw during PLANT_BIOME phase
+		if turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_BIOME and not turn_phase_manager.is_draw_card:
+			print('SERVER: Player drew card in PLANT_BIOME phase.')
+			turn_phase_manager.is_draw_card = true
+			turn_phase_manager.check_phase_two_completion()
+
+		# Handle card draw during PLANT_SIGIL_AND_CARD phase
+		elif turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and not turn_phase_manager.sigil_placed:
+			print('SERVER: Player drew card in PLANT_SIGIL_AND_CARD phase.')
+			turn_phase_manager.sigil_placed = true
+			turn_phase_manager.check_phase_two_completion()
 
 @rpc("any_peer", "call_local")
 func client_receive_card(player_id: int, card_data: Dictionary, is_elemental: bool):
@@ -403,14 +426,14 @@ func add_card_to_hand(player_id: int, card_data: Dictionary, is_elemental: bool)
 		if is_elemental:
 			card.face_down = false
 		
-		if not is_elemental and game.game_state_manager.current_round > 0:
-			var turn_phase_manager = game.turn_phase_manager
-			# Player draw a card in Plant Biome Phase
-			if turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_BIOME and !turn_phase_manager.is_draw_card:
-				print('draw card in plant on biome')
-				turn_phase_manager.is_draw_card = true
-				turn_phase_manager.check_phase_two_completion()
-			# Player draw a card in Plant Sigil and Card Phase
-			elif turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and not turn_phase_manager.sigil_placed:
-				turn_phase_manager.sigil_placed = true
-				turn_phase_manager.check_phase_two_completion()
+		#if not is_elemental and game.game_state_manager.current_round > 0:
+		#var turn_phase_manager = game.turn_phase_manager
+		## Player draw a card in Plant Biome Phase
+		#if turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_BIOME and !turn_phase_manager.is_draw_card:
+			#print('draw card in plant on biome')
+			#turn_phase_manager.is_draw_card = true
+			#turn_phase_manager.check_phase_two_completion()
+		## Player draw a card in Plant Sigil and Card Phase
+		#elif turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and not turn_phase_manager.sigil_placed:
+			#turn_phase_manager.sigil_placed = true
+			#turn_phase_manager.check_phase_two_completion()
