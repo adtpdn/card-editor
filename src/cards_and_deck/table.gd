@@ -277,9 +277,13 @@ func _on_action_deck_pressed():
 		return # Stop the function from proceeding.
 	
 	var turn_phase_manager = game.turn_phase_manager
-	if turn_phase_manager.sigil_placed:
-		print("Cannot draw a card if sigil already placed")
+	# Check if the player is in the correct phase and has already placed a sigil token.
+	if turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and turn_phase_manager.sigil_placed:
+		game.notification.show_instruction_label("You have already placed a token and cannot draw a card this phase.")
+		get_tree().create_timer(3.0).timeout.connect(game.notification.hide_panel)
 		return
+	elif turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and not turn_phase_manager.sigil_placed:
+		turn_phase_manager.sigil_placed = true
 
 	# FIX: The local player checks their own hand.
 	if game.card_manager.is_action_hand_full(multiplayer.get_unique_id()):
@@ -375,6 +379,13 @@ func server_draw_card(player_id: int, is_elemental: bool):
 	if not is_elemental and game.card_manager.is_action_hand_full(player_id):
 		return
 
+	# Add authoritative server-side validation.
+	var turn_phase_manager = game.turn_phase_manager
+	if not is_elemental and turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and turn_phase_manager.sigil_placed:
+		print("SERVER REJECTED: Player %d tried to draw a card after placing a sigil token." % player_id)
+		# This return prevents the card draw from happening.
+		return
+	
 	var deck_array = elementals_ids_arr if is_elemental else available_cards
 	if deck_array.is_empty():
 		print("Deck is empty!")
@@ -389,7 +400,6 @@ func server_draw_card(player_id: int, is_elemental: bool):
 	
 	# After sending the card to the client, the server updates its own authoritative state.
 	if not is_elemental and game.game_state_manager.current_round > 0:
-		var turn_phase_manager = game.turn_phase_manager
 
 		# Handle card draw during PLANT_BIOME phase
 		if turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_BIOME and not turn_phase_manager.is_draw_card:

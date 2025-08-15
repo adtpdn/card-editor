@@ -616,7 +616,7 @@ func request_token_placement(token_index: int, position: Vector3, biome_type: in
 		point_counter.rpc_id(1, "request_add_magic_points", token_data.biome)
 
 		# Reset the flag immediately after use.
-		card_manager.is_plant_extra = false
+		#card_manager.is_plant_extra = false
 
 	# 5. Broadcast the confirmed token placement to all clients.
 	rpc("sync_token_placement", player_id, token_data, position)
@@ -713,8 +713,8 @@ func _update_state_after_placement(player_id: int, token: Node) -> void:
 		tokens_planted_this_turn[player_id] = 0
 	tokens_planted_this_turn[player_id] += 1
 
-	if card_manager.is_plant_extra:
-		card_manager.is_plant_extra = false
+	#if card_manager.is_plant_extra:
+		#card_manager.is_plant_extra = false
 
 	is_token_selected = false
 	unhighlight_all_token_placements()
