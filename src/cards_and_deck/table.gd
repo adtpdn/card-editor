@@ -289,8 +289,8 @@ func _on_action_deck_pressed():
 		game.notification.show_instruction_label("You have already placed a token and cannot draw a card this phase.")
 		get_tree().create_timer(3.0).timeout.connect(game.notification.hide_panel)
 		return
-	elif turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and not turn_phase_manager.sigil_placed:
-		turn_phase_manager.sigil_placed = true
+	#elif turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and not turn_phase_manager.sigil_placed:
+		#turn_phase_manager.sigil_placed = true
 
 	# FIX: The local player checks their own hand.
 	if game.card_manager.is_action_hand_full(multiplayer.get_unique_id()):
@@ -409,7 +409,6 @@ func server_draw_card(player_id: int, is_elemental: bool):
 	var data = { "id": card_original_index, "card_id": card_resource.card_id }
 	
 	rpc("client_receive_card", player_id, data, is_elemental)
-	
 	# After sending the card to the client, the server updates its own authoritative state.
 	if not is_elemental and game.game_state_manager.current_round > 0:
 
@@ -424,6 +423,7 @@ func server_draw_card(player_id: int, is_elemental: bool):
 			print('SERVER: Player drew card in PLANT_SIGIL_AND_CARD phase.')
 			turn_phase_manager.sigil_placed = true
 			turn_phase_manager.check_phase_two_completion()
+			game.token_manager.update_token_ui()
 
 @rpc("any_peer", "call_local")
 func client_receive_card(player_id: int, card_data: Dictionary, is_elemental: bool):
@@ -436,6 +436,21 @@ func client_receive_card(player_id: int, card_data: Dictionary, is_elemental: bo
 	# Only the player who requested the card actually adds it to their hand.
 	if player_id == multiplayer.get_unique_id():
 		add_card_to_hand(player_id, card_data, is_elemental)
+
+		# This mirrors the logic that runs on the server to ensure the
+		# client's local game state is also updated.
+		if not is_elemental and game.game_state_manager.current_round > 0:
+			var turn_phase_manager = game.turn_phase_manager
+			if turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_BIOME and not turn_phase_manager.is_draw_card:
+				print('CLIENT: Player drew card in PLANT_BIOME phase.')
+				turn_phase_manager.is_draw_card = true
+				turn_phase_manager.check_phase_two_completion()
+			elif turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and not turn_phase_manager.sigil_placed:
+				print('CLIENT: Player drew card in PLANT_SIGIL_AND_CARD phase.')
+				turn_phase_manager.sigil_placed = true
+				turn_phase_manager.check_phase_two_completion()
+				game.token_manager.update_token_ui()
+			
 
 func add_card_to_hand(player_id: int, card_data: Dictionary, is_elemental: bool):
 	var card = instantiate_face_card(card_data["id"], is_elemental)

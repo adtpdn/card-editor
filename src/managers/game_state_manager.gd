@@ -15,9 +15,12 @@ extends Node
 @onready var player_turn = $"../PlayerTurn"
 @onready var domination_manager = $"../DominationManager"
 @onready var score_ui = $"../ScoreUI"
+@onready var elementals_manager = $"../ElementalsManager"
 
 
 const player_hud_scene = preload("res://scenes/player_ui/player_hud.tscn")
+
+## PLANT ON BIOME AND PLANT SIGIL PHASE AND DRAW A CARD
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Game State Variables
@@ -354,6 +357,8 @@ func next_turn():
 				token_manager.process_blighted_token_cycle()
 				await get_tree().create_timer(0.5).timeout # Short delay for visual clarity
 			
+			# Re-activate all face-up elementals for the new round.
+			elementals_manager.activate_all_face_up_elementals()
 		
 		if is_end_of_round and current_round == 0 :
 			advance_to_next_round()

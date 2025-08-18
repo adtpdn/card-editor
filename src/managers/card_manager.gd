@@ -807,6 +807,11 @@ func sync_face_up_swap(player_id: int, hand_card_original_index: int, board_card
 		new_card_instance.owner_id = player_id
 		new_card_instance.face_down = false # Ensure it's placed face UP
 		slice_collection.append_card(new_card_instance)
+		if multiplayer.is_server():
+			var elementals_manager = get_node("/root/Game/ElementalsManager")
+			if elementals_manager:
+				print("Activating effect for newly swapped face-up elemental.")
+				elementals_manager.execute_elemental_effect(new_card_instance.card_id, new_card_instance.elemental_type, new_card_instance)
 	else:
 		print("Swap sync failed: could not instantiate new card with index ", hand_card_original_index)
 
@@ -903,6 +908,16 @@ func sync_planted_elemental_swap(card1_path: NodePath, card2_path: NodePath):
 	card1.dragging_rotation(original_rot2)
 	card2.animate_to_position(original_pos1)
 	card2.dragging_rotation(original_rot1)
+
+	# After the swap, the server re-activates both cards' effects for their new biomes.
+	if multiplayer.is_server():
+		var elementals_manager = get_node("/root/Game/ElementalsManager")
+		if elementals_manager:
+			print("Re-activating effects for swapped on-board elementals.")
+			if not card1.face_down:
+				elementals_manager.execute_elemental_effect(card1.card_id, card1.elemental_type, card1)
+			if not card2.face_down:
+				elementals_manager.execute_elemental_effect(card2.card_id, card2.elemental_type, card2)
 
 	# 7. Reset state on all clients
 	if game.soil_star_actions.is_swapping_planted_elementals:

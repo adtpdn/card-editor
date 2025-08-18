@@ -40,6 +40,31 @@ const ELEMENTAL_NOTIFICATION_TEXT = {
 	}
 }
 
+# This function is called at the start of a new round to re-apply the effects
+# of all currently face-up elemental cards.
+func activate_all_face_up_elementals():
+	if not multiplayer.is_server():
+		return
+
+	print("--- Re-activating all face-up elemental effects for the new round ---")
+	
+	var drag_controller = get_node_or_null("/root/Game/Deck/Table/DragController")
+	if not drag_controller:
+		printerr("ElementalsManager: Could not find DragController node.")
+		return
+
+	# Loop through all 8 elemental slices
+	for i in range(1, 9):
+		var slice_name = "elemental_slice_" + str(i)
+		var slice_node = drag_controller.get_node_or_null(slice_name)
+		
+		if slice_node and not slice_node.cards.is_empty():
+			var card = slice_node.cards[0]
+			# Check if the card is a valid elemental and is face-up
+			if is_instance_valid(card) and card is FaceCard3D and not card.face_down:
+				print("Re-activating effect for card '%s' in slice '%s'" % [card.card_name, slice_name])
+				# Call the existing execute function to re-apply its effect
+				execute_elemental_effect(card.card_id, card.elemental_type, card)
 
 func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, card_node: FaceCard3D):
 	# This function must only be executed on the server.

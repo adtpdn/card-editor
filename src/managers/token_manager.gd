@@ -506,10 +506,12 @@ func _handle_idle_or_sigil_action(position: Vector2, collider: Node) -> void:
 func _handle_card_effect_action(token: Node3D) -> void:
 	var effect_was_processed := true
 
+	var player_id = multiplayer.get_unique_id()
+
 	if card_manager.is_take_off_mode and token.is_energy:
 		_process_card_effect("take_off_energy", token)
 		card_manager.is_take_off_mode = false
-	elif card_manager.is_unblight_mode and not token.is_energy and token.is_blighted:
+	elif card_manager.is_unblight_mode and not token.is_energy and token.is_blighted and token.owner_id == player_id:
 		_process_card_effect("unblight_token", token)
 		card_manager.is_unblight_mode = false
 	elif card_manager.is_refresh_energy_mode and token.is_energy and token.is_blighted:
