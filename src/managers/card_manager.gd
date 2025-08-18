@@ -297,6 +297,14 @@ func request_token_planting_state_update(player_id: int, can_place_sigil: bool, 
 	token_manager.rpc("sync_token_planting_state", player_id, tokens_planted_this_turn[player_id],
 		can_place_sigil, can_place_biome, max_tokens)
 
+@rpc("any_peer", "call_local")
+func sync_plant_extra_state(new_state: bool):
+	is_plant_extra = new_state
+	print("SYNC: is_plant_extra state is now: %s" % is_plant_extra)
+
+	# Update the token button UI, as its disabled state depends on this flag.
+	if game.token_manager:
+		game.token_manager.update_token_ui()
 
 # Swap Energy
 @rpc("any_peer")

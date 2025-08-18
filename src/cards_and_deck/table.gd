@@ -267,6 +267,13 @@ func instantiate_face_card(card_index: int, is_elemental: bool = false) -> FaceC
 # --- Card Drawing Logic ---
 func _on_action_deck_pressed():
 	print("action deck pressed")
+	if game.game_state_manager.current_round > 0:
+		if not game.game_state_manager.is_valid_player_turn(multiplayer.get_unique_id()):
+			print("Cannot draw card, it's not your turn.")
+			game.notification.show_instruction_label("You can only draw a card during your turn.")
+			get_tree().create_timer(2.5).timeout.connect(game.notification.hide_panel)
+			return
+	
 	# Check if the current round is 0.
 	var game_state_manager = game.game_state_manager
 	if game_state_manager.current_round == 0:
@@ -373,6 +380,11 @@ func request_server_draw_card(player_id: int, is_elemental: bool):
 
 # This is now a regular server-only function.
 func server_draw_card(player_id: int, is_elemental: bool):
+	if game.game_state_manager.current_round > 0:
+		if not game.game_state_manager.is_valid_player_turn(player_id):
+			print("SERVER REJECTED: Player %d tried to draw a card out of turn." % player_id)
+			return
+	
 	# FIX: The server checks the hand of the player who made the request.
 	if is_elemental and game.card_manager.is_elemental_hand_full(player_id):
 		return

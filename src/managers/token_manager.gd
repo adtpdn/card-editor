@@ -153,7 +153,6 @@ func _on_token_selected() -> void:
 			_temp_token_instance = token_scene.instantiate()
 			# Add to a high-level node to ensure it's drawn correctly and doesn't interfere
 			game.add_child(_temp_token_instance)
-			print("instance token")
 			# Make it visual only - disable physics/input so it doesn't block clicks
 			_temp_token_instance.get_node("TokenMesh/StaticBody3D").set_process_input(false)
 			_temp_token_instance.get_node("TokenMesh/StaticBody3D").get_node("CollisionShape3D").disabled = true
@@ -290,10 +289,6 @@ func handle_touch(position: Vector2) -> void:
 	# 4. Delegate to the correct handler based on the input mode.
 	print("input mode : ", input_mode)
 	match input_mode:
-		#"PLACING_TOKEN":
-			#var placement = get_token_placement_at_position(result.position)
-			#if placement:
-				#_handle_placement_action(placement)
 		"SELECTING_MOVE_DESTINATION":
 			var clicked_node = result.collider
 			var area_node = null
@@ -612,11 +607,14 @@ func request_token_placement(token_index: int, position: Vector3, biome_type: in
 
 	# 4. If the plant extra card effect is active, award the magic points.
 	if card_manager.is_plant_extra:
+		print('request is plant extra')
 		# Call the RPC on point_counter to add 2 magic points to the biome.
 		point_counter.rpc_id(1, "request_add_magic_points", token_data.biome)
 
-		# Reset the flag immediately after use.
+		# Reset the flag on the server immediately.
 		#card_manager.is_plant_extra = false
+		# Call the new RPC to sync this change to all clients.
+		#card_manager.rpc("sync_plant_extra_state", false)
 
 	# 5. Broadcast the confirmed token placement to all clients.
 	rpc("sync_token_placement", player_id, token_data, position)
@@ -1645,16 +1643,16 @@ func sync_token_colors(token_data: Array):
 					match token_info.player_color_index:
 						0:
 							mesh.material_override = token_mat_player_1
-							print("Applied player 1 material to token")
+							#print("Applied player 1 material to token")
 						1:
 							mesh.material_override = token_mat_player_2
-							print("Applied player 2 material to token")
+							#print("Applied player 2 material to token")
 						2:
 							mesh.material_override = token_mat_player_3
-							print("Applied player 3 material to token")
+							#print("Applied player 3 material to token")
 						3:
 							mesh.material_override = token_mat_player_4
-							print("Applied player 4 material to token")
+							#print("Applied player 4 material to token")
 						_:
 							print("Invalid player color index: ", token_info.player_color_index)
 			else:
@@ -1719,7 +1717,15 @@ func update_token_ui():
 	var max_tokens_reached = tokens_planted_this_turn.get(player_id, 0) >= max_tokens_per_turn
 
 	token_button.visible = true
-	token_button.disabled = !is_my_turn or token_count <= 0 or max_tokens_reached
+
+	# Check if a sigil token has already been placed in the current phase.
+	var sigil_has_been_placed = false
+	if turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and turn_phase_manager.sigil_placed:
+		sigil_has_been_placed = true
+	
+	# The button is disabled if it's not your turn, you have no tokens, 
+	# you've reached your max tokens for the turn, OR you've already placed your sigil token.
+	token_button.disabled = !is_my_turn or token_count <= 0 or max_tokens_reached or sigil_has_been_placed
 
 	if card_manager.is_plant_extra:
 		token_button.disabled = false

@@ -525,7 +525,7 @@ func _on_end_turn_pressed():
 
 func _on_token_placed(player_id, biome, location):
 	print("TurnPhaseManager: Token placed signal received! Player ID: ", player_id, ", Biome: ", biome, ", Location: ", location)
-	
+
 	var local_id = multiplayer.get_unique_id()
 	if player_id != local_id:
 		print("TurnPhaseManager: Token placed by another player, ignoring")
@@ -554,6 +554,8 @@ func _on_token_placed(player_id, biome, location):
 		return
 	
 	# Check current phase and placement type
+	print('current phase : ', current_phase)
+	print('Phase : ', Phase.PLANT_SIGIL_AND_CARD)
 	match current_phase:
 		Phase.PLANT_BIOME:
 			# In this phase, we only care about biome placements (place_id == -1).
@@ -561,22 +563,24 @@ func _on_token_placed(player_id, biome, location):
 				print("TurnPhaseManager: Biome placement registered, advancing phase.")
 				completed_phases[Phase.PLANT_BIOME] = true
 				call_deferred("advance_to_next_phase")
+				if card_manager.is_plant_extra:
+					card_manager.rpc("sync_plant_extra_state", false)
 
 		Phase.PLANT_SIGIL_AND_CARD:
 			# In this phase, we only care about sigil placements (place_id != -1).
 			if placement.place_id != -1:
 				print("TurnPhaseManager: Sigil placement registered.")
 				# Check if the sigil part of the turn has already been fulfilled.
+				print('card manager is plant extra : ', card_manager.is_plant_extra)
 				
 				if card_manager.is_plant_extra:
-					card_manager.is_plant_extra = false
+					card_manager.rpc("sync_plant_extra_state", false)
 				elif not sigil_placed:
 					sigil_placed = true
-				token_button.disabled = true # Prevent placing more free tokens.
-				
-			card_manager.is_plant_extra = false
-			# Check if both turn requirements are now met.
-			check_phase_two_completion()
+					token_button.disabled = true # Prevent placing more free tokens.
+			else:
+				if card_manager.is_plant_extra:
+					card_manager.rpc("sync_plant_extra_state", false)
 
 func _on_card_placed(card, slot_index, location_name):
 	print("TurnPhaseManager: Card placed. Card: ", card.card_name if card else "null", ", Slot: ", slot_index, ", Location: ", location_name)

@@ -59,16 +59,16 @@ func apply_color_by_index(index: int):
 		match index:
 			0:
 				token_mesh.material_override = token_mat_player_1
-				print("Applied player 1 material by index")
+				#print("Applied player 1 material by index")
 			1:
 				token_mesh.material_override = token_mat_player_2
-				print("Applied player 2 material by index")
+				#print("Applied player 2 material by index")
 			2:
 				token_mesh.material_override = token_mat_player_3
-				print("Applied player 3 material by index")
+				#print("Applied player 3 material by index")
 			3:
 				token_mesh.material_override = token_mat_player_4
-				print("Applied player 4 material by index")
+				#print("Applied player 4 material by index")
 			_:
 				print("Invalid player color index: ", index)
 
@@ -86,7 +86,7 @@ func update_material():
 	if token_mesh and owner_id != -1 and game and game.initial_player_order.size() > 0:
 		# Find the player's index in the players array
 		var player_index = -1
-		print("initial player order: ", game.initial_player_order)
+		#print("initial player order: ", game.initial_player_order)
 		for i in range(game.initial_player_order.size()):
 			if game.initial_player_order[i] == owner_id:
 				player_index = i
@@ -95,12 +95,12 @@ func update_material():
 		# Apply material based on player index
 		if player_index >= 0:
 			player_color_index = player_index  # Save this for future use
-			print("player index : ", player_index)
+			#print("player index : ", player_index)
 			apply_color_by_index(player_index)
 		else:
 			print("Owner ID not found in players array: ", owner_id)
-	else:
-		print("Cannot update material - missing dependencies")
+	#else:
+		#print("Cannot update material - missing dependencies")
 
 # This is a NEW function that ONLY plays the animation.
 # It will be the target of your RPC call.

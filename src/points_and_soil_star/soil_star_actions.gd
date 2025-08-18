@@ -102,6 +102,26 @@ func _get_active_player_ui() -> Control:
 	printerr("No visible player UI found.")
 	return null
 
+# This function will be called whenever the soil star count changes.
+func _on_soil_star_changed(new_count: int):
+	# If the panel is currently open and the star count drops to 0, hide it.
+	if is_panel_status and new_count == 0:
+		_show_hide_actions_panel()
+	
+	# Also, re-evaluate which buttons should be enabled if the panel is open.
+	if is_panel_status:
+		apply_button_rules()
+
+# This helper ensures we are always connected to the active player's signal.
+func _connect_to_soil_star_signal():
+	var active_player_ui = _get_active_player_ui()
+	if active_player_ui:
+		var soil_star_node = active_player_ui.get_node_or_null("SoilStar")
+		# Connect the signal if it's not already connected.
+		if soil_star_node and not soil_star_node.is_connected("soil_star_changed", _on_soil_star_changed):
+			soil_star_node.soil_star_changed.connect(_on_soil_star_changed)
+
+
 # ----------------------------------------------------------------
 # Handlers
 func _on_PlayCardButton_pressed():                 
@@ -168,7 +188,7 @@ func _on_PlayElementalFaceDownButton_pressed():
 	# 3. Deduct cost, set the flag, and instruct the player
 	soil_star_node.decrease_soil_star(cost)
 	is_swapping_elemental = true
-	game.card_manager.hand_card_for_swap = null # Reset any previously selected card
+	#game.card_manager.hand_card_for_swap = null # Reset any previously selected card
 	game.notification.show_instruction_label("Select an elemental from your hand.")
 
 	# 4. Hide the actions panel to allow board interaction
@@ -177,7 +197,6 @@ func _on_PlayElementalFaceDownButton_pressed():
 
 func _on_PlayElementalFaceUpButton_pressed():     
 	print("play_elemental_face_up_button pressed")
-	
 
 	# 1. Check cost
 	var cost = button_rules[play_elemental_face_up]
