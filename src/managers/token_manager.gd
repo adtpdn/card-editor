@@ -249,13 +249,13 @@ func _highlight_placements_for_mode(mode: String) -> void:
 				continue # Skip this placement entirely
 		
 		# If a placement is meant to be hidden by an effect, ensure it stays hidden.
-		if hidden_placement_ids.has(current_biome) and placement.place_id in hidden_placement_ids[current_biome]:
-			placement.hide()
-			continue # Skip any further logic for this placement
+		#if hidden_placement_ids.has(current_biome) and placement.place_id in hidden_placement_ids[current_biome]:
+			#placement.hide()
+			#continue # Skip any further logic for this placement
 
-		if not placement.is_occupied:
+		if not placement.is_occupied :
 			var is_biome_placement = (placement.place_id == -1)
-			var is_sigil_placement = (placement.place_id >= 0 and placement.place_id <= 7)
+			var is_sigil_placement = (placement.place_id >= 0 and placement.place_id <= 7) and not placement.is_blocked_by_elemental
 
 			# Determine if this placement should be shown and highlighted
 			var should_highlight = (highlight_biome and is_biome_placement) or (highlight_sigil and is_sigil_placement)
@@ -265,6 +265,11 @@ func _highlight_placements_for_mode(mode: String) -> void:
 				placement.set_highlight(true)
 			else:
 				placement.hide() # Ensure others are hidden
+		
+		# Always show the placement if they block by the elementals
+		if placement.is_blocked_by_elemental:
+			print("is blocked elemental shown")
+			placement.show()
 
 	notification.show_instruction_label(instruction_text)
 # -----------------------------------------------------------------------------
@@ -1908,7 +1913,9 @@ func hide_placements_by_id(ids_to_hide: Array, biome_type: int):
 	for placement in placements_node.get_children():
 		# Only hide if the biome matches and the ID is in the list for that biome
 		if placement.accepted_biome == biome_type and placement.place_id in hidden_placement_ids[biome_type]:
-			placement.hide()
+			print("placement place id : ", placement.place_id)
+			placement.is_blocked_by_elemental = true
+			placement.set_highlight(false)
 
 
 @rpc("any_peer", "call_local")
