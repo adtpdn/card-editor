@@ -21,6 +21,7 @@ enum Phase {
 @onready var player_turn = $"../PlayerTurn"
 @onready var status_phase = $"../Status_Phase"
 @onready var notification = $"../Notification"
+@onready var soil_star_actions = $"../SoilStarActions"
 
 
 
@@ -174,7 +175,7 @@ func enter_current_phase():
 				end_phase_button.disabled = true
 				end_turn_button.disabled = true
 				return
-	
+	## NEED TO DO THE PLANT_SIGIL_AND CARD PHASE AFTER use extra token
 	# Round 1 - 8
 	match current_phase:
 		Phase.PLANT_BIOME:
@@ -559,16 +560,18 @@ func _on_token_placed(player_id, biome, location):
 	match current_phase:
 		Phase.PLANT_BIOME:
 			# In this phase, we only care about biome placements (place_id == -1).
-			if placement.place_id == -1:
+			print('soil_star_actions.is_playing_extra_token_from_soil_star : ', soil_star_actions.is_playing_extra_token_from_soil_star)
+			if placement.place_id == -1 and not soil_star_actions.is_playing_extra_token_from_soil_star:
 				print("TurnPhaseManager: Biome placement registered, advancing phase.")
 				completed_phases[Phase.PLANT_BIOME] = true
 				call_deferred("advance_to_next_phase")
 				if card_manager.is_plant_extra:
 					card_manager.rpc("sync_plant_extra_state", false)
+			
 
 		Phase.PLANT_SIGIL_AND_CARD:
 			# In this phase, we only care about sigil placements (place_id != -1).
-			if placement.place_id != -1:
+			if placement.place_id != -1 and not soil_star_actions.is_playing_extra_token_from_soil_star:
 				print("TurnPhaseManager: Sigil placement registered.")
 				# Check if the sigil part of the turn has already been fulfilled.
 				print('card manager is plant extra : ', card_manager.is_plant_extra)

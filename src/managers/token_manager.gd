@@ -88,7 +88,7 @@ signal token_placed(player_id: int, biome: BiomeType, location: Vector3)
 var tokens_planted_this_turn = {}  # Track tokens planted per player per turn
 var can_plant_on_sigil = true     # Track if player can still plant in sigil locations (place_id == -1)
 var can_plant_on_biome = true     # Track if player can still plant in biome locations (place_id != -1)
-var max_tokens_per_turn = 2       # Maximum tokens allowed per turn
+#var max_tokens_per_turn = 2       # Maximum tokens allowed per turn
 
 const token_mat_player_1 = preload("res://assets/materials/token_material/token_mat_player_1.tres")
 const token_mat_player_2 = preload("res://assets/materials/token_material/token_mat_player_2.tres")
@@ -624,13 +624,12 @@ func request_token_placement(token_index: int, position: Vector3, biome_type: in
 
 @rpc("any_peer", "call_local")
 func sync_token_placement(player_id: int, token_data: Dictionary, position: Vector3) -> void:
+	print("")
+	print("token button : ", game.token_button.disabled)
 	var placement = get_token_placement_at_position(position)
 	if not placement or placement.is_occupied:
 		printerr("Token placement sync failed: Invalid or occupied placement at %s" % position)
 		return
-
-	if soil_star_actions.is_playing_extra_token_from_soil_star:
-		soil_star_actions.is_playing_extra_token_from_soil_star = false
 
 	# 1. Create the token and set its visual properties.
 	var token = _create_token_instance(player_id, token_data, placement)
@@ -640,15 +639,24 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 		get_parent().player_last_biome_placements[player_id] = token.biome_type
 		print("Player %d last placed a token in biome %s" % [player_id, BiomeType.keys()[token.biome_type]])
 
+	print("token button 1 : ", game.token_button.disabled)
 	# 2. Update the local game state (counters, flags, UI).
 	_update_state_after_placement(player_id, token)
+	print("token button : ", game.token_button.disabled)
 
+	
 	# 3. If this is the server, perform additional synchronization tasks.
 	if multiplayer.is_server():
 		_server_sync_after_placement(token)
 
+	print("token button : ", game.token_button.disabled)
 	# 4. Emit signal for other systems to react to.
 	emit_signal("token_placed", player_id, token_data.biome, position)
+	
+	if soil_star_actions.is_playing_extra_token_from_soil_star:
+		soil_star_actions.is_playing_extra_token_from_soil_star = false
+		print("token button : ", game.token_button.disabled)
+		print('false soil star')
 
 # -----------------------------------------------------------------------------
 # PRIVATE HELPER FUNCTIONS request_token_placement and sync_token_placement
@@ -712,9 +720,6 @@ func _update_state_after_placement(player_id: int, token: Node) -> void:
 	if not tokens_planted_this_turn.has(player_id):
 		tokens_planted_this_turn[player_id] = 0
 	tokens_planted_this_turn[player_id] += 1
-
-	#if card_manager.is_plant_extra:
-		#card_manager.is_plant_extra = false
 
 	is_token_selected = false
 	unhighlight_all_token_placements()
@@ -1007,7 +1012,7 @@ func reset_turn_token_counters(player_id: int):
 		sigil_manager.is_sigil_c = false
 
 	# Reset max tokens per turn to default
-	max_tokens_per_turn = 2
+	#max_tokens_per_turn = 2
 
 	# Only sync the basic token planting state
 	if multiplayer.is_server():
@@ -1561,7 +1566,7 @@ func sync_token_planting_state(player_id: int, tokens_planted: int, can_place_si
 		tokens_planted_this_turn[player_id] = tokens_planted
 		can_plant_on_sigil = can_place_sigil
 		can_plant_on_biome = can_place_biome
-		max_tokens_per_turn = max_tokens
+		#max_tokens_per_turn = max_tokens
 
 		# Update UI immediately
 		update_token_ui()
@@ -1716,7 +1721,7 @@ func update_token_ui():
 	# Update the button text with the local player's token count
 	token_button.text = "Tokens: " + str(token_count)
 
-	var max_tokens_reached = tokens_planted_this_turn.get(player_id, 0) >= max_tokens_per_turn
+	#var max_tokens_reached = tokens_planted_this_turn.get(player_id, 0) >= max_tokens_per_turn
 
 	token_button.visible = true
 
@@ -1727,7 +1732,7 @@ func update_token_ui():
 	
 	# The button is disabled if it's not your turn, you have no tokens, 
 	# you've reached your max tokens for the turn, OR you've already placed your sigil token.
-	token_button.disabled = !is_my_turn or token_count <= 0 or max_tokens_reached or sigil_has_been_placed
+	token_button.disabled = !is_my_turn or token_count <= 0 or sigil_has_been_placed
 
 	if card_manager.is_plant_extra:
 		token_button.disabled = false
