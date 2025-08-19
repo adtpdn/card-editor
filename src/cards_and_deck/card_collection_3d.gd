@@ -143,12 +143,13 @@ func plant_elemental_card(card):
 
 func plant_card(card):
 	print("plant card")
+	
 	var game = get_node("/root/Game/")
 	var turn_phase_manager = game.turn_phase_manager
 	var game_state_manager = game.game_state_manager
 	var card_manager = game.card_manager
 	var soil_star_actions = game.soil_star_actions # Get soil star actions reference
-	
+
 	card_manager.active_card = card
 
 	# Check if this card play is from the soil star action
@@ -457,7 +458,62 @@ func can_insert_card(card, _from_collection) -> bool:
 	# This function is used by the DragController to validate drops.
 	match accepted_card_types:
 		PileType.ACTION:
-			return card.card_type == CardResource.CardType.ACTION
+			return checking_card_can_be_plant(card)
 		PileType.ELEMENTAL:
 			return card.card_type == CardResource.CardType.ELEMENTAL
+			
 	return false # Default to false if something goes wrong.
+
+func checking_card_can_be_plant(card):
+	# Checking if the card can be execute or not
+	var game = get_node("/root/Game/")
+	var tokens_node = game.tokens
+
+	var tokens = []
+	for _token in tokens_node.get_children():
+		tokens.append(_token)
+	
+	var player_id = multiplayer.get_unique_id()
+	var response = true
+	match card.card_id:
+		0: # Unblight
+			# Checking own token to unblight
+			for token in tokens:
+				if token.owner_id == player_id and token.is_blighted and not token.is_energy:
+					response = true
+					break
+				else:
+					response = false
+		1: # Take Off energy
+			# Checking token as energy
+			for token in tokens:
+				if token.is_energy:
+					response = true
+					break
+				else:
+					response = false
+
+		2: # Swap Energy
+			# Checking own token to swap
+			var token_to_swap = []
+			for token in tokens:
+				if token.owner_id != player_id and token.is_energy:
+					token_to_swap.append(token)
+			
+			for token in tokens:
+				if token.owner_id == player_id and token.is_energy and not token_to_swap.is_empty():
+					response = true
+					break
+				else:
+					response = false
+					
+		3: # Refresh Energy
+			# Checking own token blighted energy
+			for token in tokens:
+				if token.owner_id == player_id and token.is_blighted and token.is_energy:
+					response = true
+					break
+				else:
+					response = false
+	
+	return response 

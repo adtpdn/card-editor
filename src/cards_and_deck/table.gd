@@ -450,7 +450,7 @@ func client_receive_card(player_id: int, card_data: Dictionary, is_elemental: bo
 				turn_phase_manager.sigil_placed = true
 				turn_phase_manager.check_phase_two_completion()
 				game.token_manager.update_token_ui()
-			
+
 
 func add_card_to_hand(player_id: int, card_data: Dictionary, is_elemental: bool):
 	var card = instantiate_face_card(card_data["id"], is_elemental)

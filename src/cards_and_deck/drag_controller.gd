@@ -149,9 +149,11 @@ func _stop_drag(mouse_position: Vector2):
 	
 	print("hover collection : ", _hovered_collection)
 	print('dragging card : ', _dragging_card)
+	print('can insert : ', can_insert)
 	
 	if !can_insert:
-		if  _hovered_collection.accepted_card_types == CardType.ACTION and _dragging_card.card_type != CardType.ACTION:
+		# and _dragging_card.card_type != CardType.ACTION
+		if  _hovered_collection.accepted_card_types == CardType.ACTION:
 			_return_card_to_collection(mouse_position)
 			is_can_plant = false
 		elif _hovered_collection.accepted_card_types == CardType.ELEMENTAL and _dragging_card.card_type != CardType.ELEMENTAL:
