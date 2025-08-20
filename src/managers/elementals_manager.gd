@@ -52,7 +52,7 @@ func activate_all_face_up_elementals():
 	if not drag_controller:
 		printerr("ElementalsManager: Could not find DragController node.")
 		return
-
+	
 	# Loop through all 8 elemental slices
 	for i in range(1, 9):
 		var slice_name = "elemental_slice_" + str(i)

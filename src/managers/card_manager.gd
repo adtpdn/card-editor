@@ -909,6 +909,10 @@ func sync_planted_elemental_swap(card1_path: NodePath, card2_path: NodePath):
 	card2.animate_to_position(original_pos1)
 	card2.dragging_rotation(original_rot1)
 
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		placement.is_blocked_by_elemental = false
+		placement.set_highlight(false)
+	
 	# After the swap, the server re-activates both cards' effects for their new biomes.
 	if multiplayer.is_server():
 		var elementals_manager = get_node("/root/Game/ElementalsManager")
