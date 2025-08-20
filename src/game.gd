@@ -74,7 +74,7 @@ func start_game():
 		var table_node = $Deck/Table
 		
 		# Initialize the deck with a random seed
-		table_node.initialize_deck_with_seed(randi())
+		table_node.initialize_deck()
 		
 		if network_manager.multiplayer.get_peers().size() > 0:
 			for peer_id in network_manager.multiplayer.get_peers():

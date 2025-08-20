@@ -27,6 +27,7 @@ var is_swapping_planted_elementals: bool = false
 
 # ----------------------------------------------------------------
 var is_panel_status : bool = false   # true when the panel is open
+var is_action_buy_card : bool = false 
 
 func _ready():
 	# Initialize the dictionary here, after @onready vars are loaded.
@@ -280,12 +281,12 @@ func _on_BuyCardButton_pressed():
 		game.notification.show_instruction_label("Not enough Soil Stars!")
 		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
 		return
-	turn_phase_manager.sigil_placed = false
-	
+	#turn_phase_manager.sigil_placed = false
+	is_action_buy_card = true
 	# This now calls the same logic as clicking the deck
 	game.deck.table._on_action_deck_pressed()
-	
-	turn_phase_manager.sigil_placed = true
+
+	# turn_phase_manager.sigil_placed = true
 	# 3. All checks passed, perform the action
 	soil_star_node.decrease_soil_star(cost)
 

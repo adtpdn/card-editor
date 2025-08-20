@@ -386,7 +386,7 @@ func next_turn():
 	# ---------------------------------------------
 
 	# END OF THE ROUND 
-	if current_round == 9:
+	if current_round >= 9:
 		await get_tree().create_timer(4.0).timeout
 		print("END GAME")
 		score_ui.rpc("show_scores")

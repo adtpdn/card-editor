@@ -1021,7 +1021,7 @@ func reset_turn_token_counters(player_id: int):
 
 	# Only sync the basic token planting state
 	if multiplayer.is_server():
-		rpc("sync_token_planting_state", player_id, 0, true, false, 2)
+		rpc("sync_token_planting_state", player_id, 0, true, false)
 
 	# Update UI to reflect new state
 	update_token_ui()
@@ -1565,7 +1565,7 @@ func update_token_ui_remote():
 	update_token_ui()
 
 @rpc("any_peer", "call_local")
-func sync_token_planting_state(player_id: int, tokens_planted: int, can_place_sigil: bool, can_place_biome: bool, max_tokens: int):
+func sync_token_planting_state(player_id: int, tokens_planted: int, can_place_sigil: bool, can_place_biome: bool):
 	# Only update for the current player
 	if player_id == multiplayer.get_unique_id():
 		tokens_planted_this_turn[player_id] = tokens_planted
@@ -1578,8 +1578,7 @@ func sync_token_planting_state(player_id: int, tokens_planted: int, can_place_si
 
 		print("Synced token planting state: tokens_planted=", tokens_planted,
 			  ", can_plant_on_sigil=", can_place_sigil,
-			  ", can_plant_on_biome=", can_place_biome,
-			  ", max_tokens_per_turn=", max_tokens)
+			  ", can_plant_on_biome=", can_place_biome)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Network Synchronization

@@ -69,7 +69,7 @@ func shuffle_decks():
 
 # Initializes both decks with a seed, shuffles them, and syncs with clients.
 # THIS FUNCTION ONLY RUNS ON THE SERVER.
-func initialize_deck_with_seed(seed_value: int):
+func initialize_deck():
 	# Populate and shuffle both decks
 	reset_and_shuffle_decks()
 	
@@ -284,13 +284,12 @@ func _on_action_deck_pressed():
 		return # Stop the function from proceeding.
 	
 	var turn_phase_manager = game.turn_phase_manager
+	var soil_star_actions = game.soil_star_actions
 	# Check if the player is in the correct phase and has already placed a sigil token.
-	if turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and turn_phase_manager.sigil_placed:
+	if turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and turn_phase_manager.sigil_placed and not soil_star_actions.is_action_buy_card:
 		game.notification.show_instruction_label("You have already placed a token and cannot draw a card this phase.")
 		get_tree().create_timer(3.0).timeout.connect(game.notification.hide_panel)
 		return
-	#elif turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and not turn_phase_manager.sigil_placed:
-		#turn_phase_manager.sigil_placed = true
 
 	# FIX: The local player checks their own hand.
 	if game.card_manager.is_action_hand_full(multiplayer.get_unique_id()):
@@ -380,6 +379,7 @@ func request_server_draw_card(player_id: int, is_elemental: bool):
 
 # This is now a regular server-only function.
 func server_draw_card(player_id: int, is_elemental: bool):
+	var soil_star_actions = game.soil_star_actions
 	if game.game_state_manager.current_round > 0:
 		if not game.game_state_manager.is_valid_player_turn(player_id):
 			print("SERVER REJECTED: Player %d tried to draw a card out of turn." % player_id)
@@ -393,15 +393,16 @@ func server_draw_card(player_id: int, is_elemental: bool):
 
 	# Add authoritative server-side validation.
 	var turn_phase_manager = game.turn_phase_manager
-	if not is_elemental and turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and turn_phase_manager.sigil_placed:
+	if not soil_star_actions.is_action_buy_card and not is_elemental and turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and turn_phase_manager.sigil_placed:
 		print("SERVER REJECTED: Player %d tried to draw a card after placing a sigil token." % player_id)
 		# This return prevents the card draw from happening.
 		return
 	
 	var deck_array = elementals_ids_arr if is_elemental else available_cards
+
 	if deck_array.is_empty():
 		print("Deck is empty!")
-		return
+		initialize_deck()
 
 	var card_original_index = deck_array.pop_front()
 	var card_resource = elementals_cards.cards[card_original_index] if is_elemental else actions_cards.cards[card_original_index]
@@ -410,7 +411,7 @@ func server_draw_card(player_id: int, is_elemental: bool):
 	
 	rpc("client_receive_card", player_id, data, is_elemental)
 	# After sending the card to the client, the server updates its own authoritative state.
-	if not is_elemental and game.game_state_manager.current_round > 0:
+	if not is_elemental and game.game_state_manager.current_round > 0 and not soil_star_actions.is_action_buy_card:
 
 		# Handle card draw during PLANT_BIOME phase
 		if turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_BIOME and not turn_phase_manager.is_draw_card:
@@ -424,6 +425,8 @@ func server_draw_card(player_id: int, is_elemental: bool):
 			turn_phase_manager.sigil_placed = true
 			turn_phase_manager.check_phase_two_completion()
 			game.token_manager.update_token_ui()
+	
+	soil_star_actions.is_action_buy_card = false
 
 @rpc("any_peer", "call_local")
 func client_receive_card(player_id: int, card_data: Dictionary, is_elemental: bool):
@@ -439,7 +442,8 @@ func client_receive_card(player_id: int, card_data: Dictionary, is_elemental: bo
 
 		# This mirrors the logic that runs on the server to ensure the
 		# client's local game state is also updated.
-		if not is_elemental and game.game_state_manager.current_round > 0:
+		var soil_star_actions = game.soil_star_actions
+		if not is_elemental and game.game_state_manager.current_round > 0 and not soil_star_actions.is_action_buy_card:
 			var turn_phase_manager = game.turn_phase_manager
 			if turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_BIOME and not turn_phase_manager.is_draw_card:
 				print('CLIENT: Player drew card in PLANT_BIOME phase.')
@@ -450,7 +454,6 @@ func client_receive_card(player_id: int, card_data: Dictionary, is_elemental: bo
 				turn_phase_manager.sigil_placed = true
 				turn_phase_manager.check_phase_two_completion()
 				game.token_manager.update_token_ui()
-
 
 func add_card_to_hand(player_id: int, card_data: Dictionary, is_elemental: bool):
 	var card = instantiate_face_card(card_data["id"], is_elemental)

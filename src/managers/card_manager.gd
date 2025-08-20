@@ -247,7 +247,7 @@ func plant_extra_card_effect():
 	var player_id = multiplayer.get_unique_id()
 
 	# Temporarily increase max tokens per turn by 1
-	token_manager.max_tokens_per_turn += 1
+	#token_manager.max_tokens_per_turn += 1
 
 	# Set the plant extra flag
 	is_plant_extra = true
@@ -259,10 +259,10 @@ func plant_extra_card_effect():
 	# Sync changes to all clients if we're the server
 	if multiplayer.is_server():
 		token_manager.rpc("sync_token_planting_state", player_id, token_manager.tokens_planted_this_turn.get(player_id, 0),
-			true, true, token_manager.max_tokens_per_turn)
+			true, true)
 	else:
 		# Request server to sync our changes
-		rpc_id(1, "request_token_planting_state_update", player_id, true, true, token_manager.max_tokens_per_turn)
+		rpc_id(1, "request_token_planting_state_update", player_id, true, true)
 
 	# Update UI to show token button as active
 	token_manager.update_token_ui()
@@ -272,7 +272,7 @@ func plant_extra_card_effect():
 # -----------------------------------------------------------------------------
 # Extra Plant TOken
 @rpc("any_peer")
-func request_token_planting_state_update(player_id: int, can_place_sigil: bool, can_place_biome: bool, max_tokens: int):
+func request_token_planting_state_update(player_id: int, can_place_sigil: bool, can_place_biome: bool):
 	if !multiplayer.is_server():
 		return
 
@@ -291,11 +291,11 @@ func request_token_planting_state_update(player_id: int, can_place_sigil: bool, 
 	# Update flags
 	token_manager.can_plant_on_sigil = can_place_sigil
 	token_manager.can_plant_on_biome = can_place_biome
-	token_manager.max_tokens_per_turn = max_tokens
+	#token_manager.max_tokens_per_turn = max_tokens
 
 	# Sync to all clients
 	token_manager.rpc("sync_token_planting_state", player_id, tokens_planted_this_turn[player_id],
-		can_place_sigil, can_place_biome, max_tokens)
+		can_place_sigil, can_place_biome)
 
 @rpc("any_peer", "call_local")
 func sync_plant_extra_state(new_state: bool):
