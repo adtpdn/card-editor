@@ -544,3 +544,5 @@ func advance_to_next_round():
 func sync_current_round(new_round: int):
 	current_round = new_round
 	print("[%d] Received updated round: %d" % [multiplayer.get_unique_id(), current_round])
+	if current_round == 1:
+		turn_phase_manager.count_plant = 0

@@ -1737,7 +1737,8 @@ func update_token_ui():
 	
 	# The button is disabled if it's not your turn, you have no tokens, 
 	# you've reached your max tokens for the turn, OR you've already placed your sigil token.
-	token_button.disabled = !is_my_turn or token_count <= 0 or sigil_has_been_placed
+	var max_token_round_0 = turn_phase_manager.count_plant
+	token_button.disabled = !is_my_turn or token_count <= 0 or sigil_has_been_placed or max_token_round_0 >= 2
 
 	if card_manager.is_plant_extra:
 		token_button.disabled = false

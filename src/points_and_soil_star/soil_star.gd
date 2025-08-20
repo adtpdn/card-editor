@@ -72,6 +72,7 @@ func _on_soil_star_texture_pressed():
 	if current_soil_star == 0:
 		return
 	soil_star_actions._show_hide_actions_panel()
+	soil_star_actions._check_elements_button()
 
 @rpc("any_peer")
 func request_purchase_elemental_card(player_id: int):

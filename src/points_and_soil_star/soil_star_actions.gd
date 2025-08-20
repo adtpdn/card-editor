@@ -33,7 +33,7 @@ func _ready():
 	button_rules = {
 		play_card_button         : 1,
 		play_elemental_face_down : 1,
-		play_elemental_face_up   : 1,
+		play_elemental_face_up   : 2,
 		buy_card_button          : 2,
 		play_extra_token_button  : 3,
 		play_sigil_magic_button  : 3,
@@ -120,6 +120,30 @@ func _connect_to_soil_star_signal():
 		# Connect the signal if it's not already connected.
 		if soil_star_node and not soil_star_node.is_connected("soil_star_changed", _on_soil_star_changed):
 			soil_star_node.soil_star_changed.connect(_on_soil_star_changed)
+
+func _check_elements_button():
+	var hand = game.deck.hand
+	
+	if hand.cards.is_empty():
+		play_elemental_face_down.disabled = true
+		play_elemental_face_up.disabled = true
+		return
+	
+	# Checking if there's elemental card in hand 
+	for card in hand.get_children():
+		if card is FaceCard3D:
+			if card.card_type != CardResource.CardType.ELEMENTAL:
+				play_elemental_face_down.disabled = true
+				play_elemental_face_up.disabled = true
+			else:
+				play_elemental_face_down.disabled = false
+				play_elemental_face_up.disabled = false
+				break
+	
+	var active_player_ui = _get_active_player_ui()
+	var soil_star_node = active_player_ui.get_node_or_null("SoilStar")
+	# Checking cost of face up and face down elemental
+	apply_button_rules()
 
 
 # ----------------------------------------------------------------
@@ -227,7 +251,7 @@ func _on_PlayElementalFaceUpButton_pressed():
 	# 3. Deduct cost, set the flag, and instruct the player
 	soil_star_node.decrease_soil_star(cost)
 	is_swapping_elemental_face_up = true
-	game.card_manager.hand_card_for_swap = null # Reset any previously selected card
+	#game.card_manager.hand_card_for_swap = null # Reset any previously selected card
 	game.notification.show_instruction_label("Select an elemental from your hand.")
 
 	# 4. Hide the actions panel to allow board interaction
