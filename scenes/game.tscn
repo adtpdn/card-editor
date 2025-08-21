@@ -465,37 +465,37 @@ accepted_biome = 1
 place_id = 7
 
 [node name="TokenPlacementLocation_M_15" parent="TokenPlacements" instance=ExtResource("17_m4url")]
-transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 4.87676, 0, 5.93244)
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 4.87676, 0.1, 5.93244)
 accepted_biome = 2
 place_id = 1
 
 [node name="TokenPlacementLocation_M_16" parent="TokenPlacements" instance=ExtResource("17_m4url")]
-transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 5.47046, 0, 6.53537)
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 5.47046, 0.1, 6.53537)
 accepted_biome = 2
 place_id = 2
 
 [node name="TokenPlacementLocation_M_17" parent="TokenPlacements" instance=ExtResource("17_m4url")]
-transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 6.08353, 0, 7.16002)
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 6.08353, 0.1, 7.16002)
 accepted_biome = 2
 place_id = 3
 
 [node name="TokenPlacementLocation_M_18" parent="TokenPlacements" instance=ExtResource("17_m4url")]
-transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 5.89817, 0, 4.87434)
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 5.89817, 0.1, 4.87434)
 accepted_biome = 2
 place_id = 4
 
 [node name="TokenPlacementLocation_M_19" parent="TokenPlacements" instance=ExtResource("17_m4url")]
-transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 6.52093, 0, 5.49274)
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 6.52093, 0.1, 5.49274)
 accepted_biome = 2
 place_id = 5
 
 [node name="TokenPlacementLocation_M_20" parent="TokenPlacements" instance=ExtResource("17_m4url")]
-transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 7.13999, 0, 6.09859)
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 7.13999, 0.1, 6.09859)
 accepted_biome = 2
 place_id = 6
 
 [node name="TokenPlacementLocation_M_21" parent="TokenPlacements" instance=ExtResource("17_m4url")]
-transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 6.00997, 0, 6.00715)
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 6.00997, 0.1, 6.00715)
 accepted_biome = 2
 place_id = 7
 
