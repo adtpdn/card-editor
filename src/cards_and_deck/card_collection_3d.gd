@@ -515,5 +515,14 @@ func checking_card_can_be_plant(card):
 					break
 				else:
 					response = false
+		4: # Plant Extra 
+			var token_manager = game.token_manager
+			var tokens_player = token_manager.get_player_tokens(player_id) # Array
+			if tokens_player.size() == 0:
+				response = false
+			else:
+				response = true
+		
+			
 	
 	return response 

@@ -221,10 +221,26 @@ func exit_current_phase():
 				sigil_manager.is_sigil_c = false
 
 func highlight_marker_mesh():
-	#print("highlight marker mesh")
+	# Get the ID of the player whose turn it currently is.
+	var current_player_id = game_state_manager.get_current_player_id()
+	if current_player_id == -1: return # Exit if there is no active player
+
 	for token in tokens.get_children():
-		if sigil_manager.check_for_sigil_a_pattern(token) or sigil_manager.check_for_sigil_b_pattern(token) or sigil_manager.check_for_sigil_c_pattern(token):
+		var is_my_activatable_token = false
+		# Check that the token belongs to the current player, is an energy token, and is not blighted.
+		if token.owner_id == current_player_id and token.is_energy and not token.is_blighted:
+			# Also verify that there is enough mana in the token's biome to activate a sigil.
+			if sigil_manager.check_mana_available(token.biome_type):
+				# Finally, check if the token can form any of the valid sigil patterns.
+				if sigil_manager.check_for_sigil_a_pattern(token) or sigil_manager.check_for_sigil_b_pattern(token) or sigil_manager.check_for_sigil_c_pattern(token):
+					is_my_activatable_token = true
+		
+		# Only show the marker mesh if all conditions are met for the current player's token.
+		if is_my_activatable_token:
 			token.marker_mesh.show()
+		else:
+			# Ensure all other tokens are not highlighted.
+			token.marker_mesh.hide()
 
 func unhighlight_marker_mesh():
 	#print("unhighlight marker mesh")

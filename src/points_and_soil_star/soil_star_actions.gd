@@ -81,6 +81,39 @@ func apply_button_rules():
 	var stars := _get_current_soil_star()
 	for btn in button_rules.keys():
 		btn.disabled = stars < button_rules[btn]
+	
+	plant_extra_button_rule()
+	elementals_face_swap_button()
+
+func elementals_face_swap_button():
+	var hand = game.deck.hand
+
+	if hand.cards.is_empty():
+		play_elemental_face_down.disabled = true
+		play_elemental_face_up.disabled = true
+		return
+
+	# Checking if there's elemental card in hand 
+	var stars := _get_current_soil_star()
+	for card in hand.get_children():
+		if card is FaceCard3D:
+			if card.card_type == CardResource.CardType.ELEMENTAL and stars < 2:
+				play_elemental_face_down.disabled = false
+				break
+			elif card.card_type == CardResource.CardType.ELEMENTAL and stars < 3:
+				play_elemental_face_down.disabled = false
+				play_elemental_face_up.disabled = false
+				break
+			else:
+				play_elemental_face_down.disabled = true
+				play_elemental_face_up.disabled = true
+
+func plant_extra_button_rule():
+	var token_manager = game.token_manager
+	var player_id = multiplayer.get_unique_id()
+	var tokens_player = token_manager.get_player_tokens(player_id) # Array
+	if tokens_player.size() == 0:
+		play_extra_token_button.disabled = true
 
 func _get_current_soil_star() -> int:
 	var player_ui := _get_active_player_ui()
@@ -123,27 +156,6 @@ func _connect_to_soil_star_signal():
 			soil_star_node.soil_star_changed.connect(_on_soil_star_changed)
 
 func _check_elements_button():
-	var hand = game.deck.hand
-	
-	if hand.cards.is_empty():
-		play_elemental_face_down.disabled = true
-		play_elemental_face_up.disabled = true
-		return
-	
-	# Checking if there's elemental card in hand 
-	for card in hand.get_children():
-		if card is FaceCard3D:
-			if card.card_type != CardResource.CardType.ELEMENTAL:
-				play_elemental_face_down.disabled = true
-				play_elemental_face_up.disabled = true
-			else:
-				play_elemental_face_down.disabled = false
-				play_elemental_face_up.disabled = false
-				break
-	
-	var active_player_ui = _get_active_player_ui()
-	var soil_star_node = active_player_ui.get_node_or_null("SoilStar")
-	# Checking cost of face up and face down elemental
 	apply_button_rules()
 
 
@@ -296,6 +308,12 @@ func _on_BuyCardButton_pressed():
 func _on_PlayExtraTokenButton_pressed():          
 	print("play_extra_token_button pressed")
 
+	var token_manager = game.token_manager
+	var player_id = multiplayer.get_unique_id()
+	var tokens_player = token_manager.get_player_tokens(player_id) # Array
+	if tokens_player.size() == 0:
+		return
+
 	# 1. Check cost
 	var cost = button_rules[play_extra_token_button]
 	var active_player_ui = _get_active_player_ui()
@@ -310,7 +328,6 @@ func _on_PlayExtraTokenButton_pressed():
 		return
 
 	# 2. Check if player has tokens
-	var player_id = multiplayer.get_unique_id()
 	if game.token_manager.get_player_tokens(player_id).is_empty():
 		game.notification.show_instruction_label("You have no tokens left to play!")
 		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)

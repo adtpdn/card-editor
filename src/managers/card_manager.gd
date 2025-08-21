@@ -679,7 +679,7 @@ func perform_face_down_swap(board_card: FaceCard3D):
 
 	# Client sends request to server, server executes directly
 	if multiplayer.is_server():
-		sync_face_down_swap(player_id, hand_card_original_index, board_card_path)
+		rpc("sync_face_down_swap", player_id, hand_card_original_index, board_card_path)
 	else:
 		rpc_id(1, "request_face_down_swap", player_id, hand_card_original_index, board_card_path)
 
@@ -762,7 +762,7 @@ func perform_face_up_swap(board_card: FaceCard3D):
 		return
 
 	if multiplayer.is_server():
-		sync_face_up_swap(player_id, hand_card_original_index, board_card_path)
+		rpc("sync_face_up_swap", player_id, hand_card_original_index, board_card_path)
 	else:
 		rpc_id(1, "request_face_up_swap", player_id, hand_card_original_index, board_card_path)
 

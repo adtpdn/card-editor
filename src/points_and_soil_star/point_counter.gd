@@ -129,8 +129,7 @@ func request_add_player_points(player_id: int, amount: int):
 		return
 
 	add_player_points(player_id, amount)
-	
-	#sync_player_points.rpc(player_id, amount)
+
 
 ## Syncs the updated player score to all players and updates the UI Label.
 @rpc("any_peer", "call_local")
