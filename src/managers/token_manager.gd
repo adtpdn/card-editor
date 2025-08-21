@@ -277,57 +277,23 @@ func _highlight_placements_for_mode(mode: String) -> void:
 # -----------------------------------------------------------------------------
 
 func handle_touch(position: Vector2) -> void:
-	# 1. Perform initial validation checks. Exit early if input is not allowed.
-	if not _can_process_input():
-		return
-
-	# 2. Get the 3D object that was touched via raycasting.
+	# 1. Perform initial validation checks and raycast.
+	if not _can_process_input(): return
 	var result: Dictionary = _raycast_from_screen(position)
-	print("result : ", result)
-	
-	if result.is_empty():
-		return
+	if result.is_empty(): return
 
-	# 3. Determine the current input mode (placing, targeting, etc.).
+	# 2. Check the primary game state: are we in sigil mode?
+	if sigil_manager.is_sigil_mode:
+		_handle_sigil_token_selection(result)
+		return # All sigil-related input is handled by the new function.
+
+	# 3. If not in sigil mode, fall back to other input modes.
 	var input_mode: String = _get_current_input_mode()
-
-	# 4. Delegate to the correct handler based on the input mode.
-	print("input mode : ", input_mode)
 	match input_mode:
-		"SELECTING_MOVE_DESTINATION":
-			var clicked_node = result.collider
-			var area_node = null
-
-			# Traverse up the node tree to find the main biome/sigil area that was clicked
-			while(clicked_node != null):
-				if clicked_node.has_method("get_script") and clicked_node.get_script() and "biome_id" in clicked_node:
-					area_node = clicked_node
-					break
-				clicked_node = clicked_node.get_parent()
-
-			# If a valid biome area was clicked...
-			if area_node:
-				var target_biome_id = area_node.biome_id
-				var token_to_move = sigil_manager._selected_token
-				
-				# Find the best placement spot within that biome
-				var destination_placement = _find_closest_available_placement(token_to_move.global_position, target_biome_id)
-				
-				if destination_placement:
-					# If a spot was found, execute the move
-					_handle_move_action(destination_placement)
-				else:
-					# If no spot is available (e.g., the biome is full)
-					print("No available spots in the selected biome.")
-					notification.show_instruction_label("No available spots in that biome.")
-					get_tree().create_timer(2.0).timeout.connect(notification.hide_panel)
-		
 		"PLACING_TOKEN":
-			# ---  Check for biome area click ---
+			# --- Primary Logic: Check for a click on a large biome/sigil area ---
 			var clicked_node = result.collider
 			var area_node = null
-
-			# Traverse up to find a clickable area (either Biome or Sigil)
 			while(clicked_node != null):
 				if clicked_node.has_method("get_script") and clicked_node.get_script() and "biome_id" in clicked_node:
 					area_node = clicked_node
@@ -336,29 +302,30 @@ func handle_touch(position: Vector2) -> void:
 
 			if area_node:
 				var biome_type = area_node.biome_id
-				# Differentiate between biome and sigil areas based on script path
 				if area_node.get_script().resource_path.ends_with("biome_area.gd"):
-					_find_closest_placement_and_plant(result.position, biome_type, true) # true for biome
+					_find_closest_placement_and_plant(result.position, biome_type, true)
 				elif area_node.get_script().resource_path.ends_with("sigil_area.gd"):
-					_find_closest_placement_and_plant(result.position, biome_type, false) # false for sigil
+					_find_closest_placement_and_plant(result.position, biome_type, false)
 				
-				## Clean up the temporary visual token
+				# Clean up the temporary visual token after a successful placement
 				if is_instance_valid(_temp_token_instance):
 					_temp_token_instance.queue_free()
 					_temp_token_instance = null
-			
-			else: 
-				# Fallback to clicking individual placements if no specific area was clicked
-				var placement = get_token_placement_at_position(result.position)
-				if placement:
-					_handle_placement_action(placement)
+				return # Exit after handling the area click.
+
+			# --- Fallback Logic: Check for a click on an individual placement location ---
+			var placement = get_token_placement_at_position(result.position)
+			if placement:
+				_handle_placement_action(placement)
 
 		"TARGETING_FOR_EFFECT":
 			var token = _get_token_from_collider(result.collider)
 			if token:
 				_handle_card_effect_action(token)
+		
 		"IDLE_OR_SIGIL":
-			_handle_idle_or_sigil_action(position, result.collider)
+			# This is the entry point to start a sigil action.
+			sigil_manager.handle_sigil_input(position)
 
 func _handle_move_action(destination_placement: Node3D) -> void:
 	print("\n=== Handling Token Move Action ===")
@@ -425,27 +392,40 @@ func _get_current_input_mode() -> String:
 
 # --- New function to find closest placement ---
 func _find_closest_placement_and_plant(click_position_3d: Vector3, biome_type: int, is_for_biome: bool):
-	var closest_placement = null
-	var min_distance = INF
-
-	for placement in get_parent().get_node("TokenPlacements").get_children():
-		# Check if the placement is valid for this action (highlighted and in the correct biome)
-		if placement.is_highlighted and placement.accepted_biome == biome_type:
-			# Check if it's the correct type of placement (biome vs sigil)
-			var is_biome_spot = placement.place_id == -1
-			
-			if is_for_biome == is_biome_spot:
-				var distance = click_position_3d.distance_to(placement.global_position)
-				if distance < min_distance:
-					min_distance = distance
-					closest_placement = placement
+	var spot_type_string = "biome" if is_for_biome else "sigil"
+	var closest_placement = _find_closest_valid_placement(click_position_3d, biome_type, spot_type_string)
 	
-	# If we found a valid closest spot, handle the placement action
 	if closest_placement:
 		_handle_placement_action(closest_placement)
 	else:
 		var area_type = "biome" if is_for_biome else "sigil"
 		print("No available %s placement locations found in the clicked biome." % area_type)
+
+# A generic function to find the closest valid placement without taking any action.
+# `spot_type` can be "biome" (-1), "sigil" (!= -1), or "any".
+func _find_closest_valid_placement(click_pos_3d: Vector3, biome_type: int, spot_type: String = "any") -> Node:
+	var closest_placement = null
+	var min_distance = INF
+
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if placement.is_highlighted and placement.accepted_biome == biome_type:
+			var is_biome_spot = (placement.place_id == -1)
+			var type_matches = false
+			match spot_type:
+				"any":
+					type_matches = true
+				"biome":
+					if is_biome_spot: type_matches = true
+				"sigil":
+					if not is_biome_spot: type_matches = true
+			
+			if type_matches:
+				var distance = click_pos_3d.distance_to(placement.global_position)
+				if distance < min_distance:
+					min_distance = distance
+					closest_placement = placement
+	
+	return closest_placement
 
 # Performs the raycast from the screen position into the 3D world.
 func _raycast_from_screen(position: Vector2) -> Dictionary:
@@ -491,21 +471,79 @@ func _handle_placement_action(placement: Node3D) -> void:
 
 # This function is called when no other mode is active. It delegates to the
 # SigilManager to see if a click should initiate a sigil action.
-func _handle_idle_or_sigil_action(position: Vector2, collider: Node) -> void:
-	# If sigil mode is already active, we are selecting a TARGET.
-	if sigil_manager.is_sigil_mode:
-		var player_id = multiplayer.get_unique_id()
-		if game.sigil_manager.selected_energy_token and game.sigil_manager.selected_energy_token.owner_id == player_id:
-			var target_token = _get_token_from_collider(collider)
-			if target_token and not target_token.is_energy:
-				sigil_manager._selected_token = target_token
-				sigil_manager.handle_sigil_input(position)
-				sigil_manager.signal_other_player_token.emit()
+func _handle_sigil_token_selection(result: Dictionary) -> void:
+	var player_id = multiplayer.get_unique_id()
+	# Exit if the active sigil doesn't belong to the local player.
+	if not (game.sigil_manager.selected_energy_token and game.sigil_manager.selected_energy_token.owner_id == player_id):
+		return
+
+	var clicked_token = _get_token_from_collider(result.collider)
+
+	# Case 1: A valid TARGET TOKEN was clicked (it must be glowing).
+	if clicked_token and clicked_token.outerglow.visible:
+		if sigil_manager.is_sigil_c:
+			# Sigil C is a direct, one-click action.
+			sigil_manager.perform_blight_unblight(sigil_manager.selected_energy_token, clicked_token)
+		elif sigil_manager.is_sigil_a or sigil_manager.is_sigil_b:
+			# Sigil A/B: Handle dynamic selection of the token to move.
+			if is_instance_valid(sigil_manager._selected_token) and sigil_manager._selected_token != clicked_token:
+				# Deselect the previously chosen token.
+				sigil_manager._selected_token.highlight(false)
+				# ADDED: Re-enable its outerglow to show it's still a valid option.
+				sigil_manager._selected_token.outerglow.show()
+
+			# Set the new token as the selected one.
+			sigil_manager._selected_token = clicked_token
+			# ADDED: Hide its outerglow so the main highlight effect is clear.
+			sigil_manager._selected_token.outerglow.hide()
+			# Apply the main highlight effect.
+			sigil_manager._selected_token.highlight(true)
+
+			# Update the destination highlights for the newly selected token.
+			var is_push = (clicked_token.biome_type == sigil_manager.selected_energy_token.biome_type)
+			sigil_manager.perform_push_pull(sigil_manager.selected_energy_token, clicked_token, is_push)
+			game.notification.show_instruction_label("Token selected. Click a destination or select another token.")
+		return # We've successfully handled the token click.
+
+	# Case 2: A valid DESTINATION PLACEMENT was clicked for a pre-selected token.
+	var final_destination = null
+
+	# First, check for a direct click on a highlighted placement marker.
+	var direct_placement = get_token_placement_at_position(result.position)
+	if direct_placement and direct_placement.is_highlighted:
+		final_destination = direct_placement
 	else:
-		# If not in sigil mode, a click might START the sigil process.
-		# Let the sigil manager handle this initial detection.
-		if sigil_manager.handle_sigil_input(position):
-			return # Input was handled by SigilManager.
+		# If no direct placement was hit, check if a larger biome area was clicked.
+		var clicked_node = result.collider
+		var area_node = null
+		while(clicked_node != null):
+			if clicked_node.has_method("get_script") and clicked_node.get_script() and "biome_id" in clicked_node:
+				area_node = clicked_node
+				break
+			clicked_node = clicked_node.get_parent()
+		
+		if area_node and is_instance_valid(sigil_manager._selected_token):
+			# Use our generic finder function. "any" works here since the highlighting
+			# already filters for valid biome/blight spots.
+			final_destination = _find_closest_valid_placement(result.position, area_node.biome_id, "any")
+
+	# If we found a destination, execute the MOVE action.
+	if final_destination and is_instance_valid(sigil_manager._selected_token):
+		_handle_move_action(final_destination)
+
+func _find_closest_highlighted_placement(click_position_3d: Vector3, target_biome: int) -> Node:
+	var closest_placement = null
+	var min_distance = INF
+
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		# The placement must be in the correct biome AND be currently highlighted as a valid destination.
+		if placement.is_highlighted and placement.accepted_biome == target_biome:
+			var distance = click_position_3d.distance_to(placement.global_position)
+			if distance < min_distance:
+				min_distance = distance
+				closest_placement = placement
+	
+	return closest_placement
 
 # This function is called when a card effect mode is active.
 func _handle_card_effect_action(token: Node3D) -> void:
