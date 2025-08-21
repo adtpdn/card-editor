@@ -1,4 +1,4 @@
-# token_placement_location.gd
+# card-editor/src/token/token_placement_location.gd
 extends Node3D
 
 enum BiomeType {FOREST, WATER, MOUNTAIN, DESERT}
@@ -12,7 +12,6 @@ var current_token = null
 var is_blocked_by_elemental := false
 
 # Replace biome colors with a neutral placeholder color
-#const PLACEHOLDER_COLOR = Color(0.7, 0.7, 0.7, 0.2)  # Light gray with transparency
 const PLACEHOLDER_COLOR = Color(0.736, 0.693, 0.454, 0.2)
 
 const BIOME_NAMES = {
@@ -79,22 +78,19 @@ func _on_area_input(camera: Node, event: InputEvent, position: Vector3, normal: 
 func set_highlight(enabled: bool):
 	if is_occupied:
 		is_highlighted = false
-		var material = StandardMaterial3D.new()
-		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		material.albedo_color = Color(0, 0, 0, 0)
-		material.flags_transparent = true
-		material.flags_no_depth_test = true
-		$MarkerMesh.material_override = material
+		hide()
 		return
-	
+
 	is_highlighted = enabled
-	var material = StandardMaterial3D.new()
 	
 	if enabled:
-		material.albedo_color = Color(0, 0, 0, 0)
+		var material = StandardMaterial3D.new()
+		# A semi-transparent yellow color to indicate a valid placement location.
+		material.albedo_color = Color(1.0, 1.0, 0.0, 0.4) 
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		$MarkerMesh.material_override = material
 		show()
 	else:
-		material.albedo_color = Color(0, 0, 0, 0)
 		hide()
 	
 	if is_blocked_by_elemental:
@@ -162,15 +158,13 @@ func place_token(player_id: int, token_data: Dictionary):
 	game.update_token_ui(game.token_manager.get_player_tokens(player_id))
 
 func _on_mouse_entered():
-	if !is_occupied and not is_blocked_by_elemental:
+	if !is_occupied and is_highlighted and not is_blocked_by_elemental:
 		var material = marker_mesh.material_override.duplicate()
-		#material.albedo_color = Color(0.376, 0.709, 0.548, 0.4)
-		material.albedo_color = Color(0, 0, 0, 0)
+		material.albedo_color = Color(1.0, 1.0, 0.0, 0.6) # Brighter highlight on hover
 		marker_mesh.material_override = material
 
 func _on_mouse_exited():
-	if !is_occupied and not is_blocked_by_elemental:
+	if !is_occupied and is_highlighted and not is_blocked_by_elemental:
 		var material = marker_mesh.material_override.duplicate()
-		#material.albedo_color = Color(0.736, 0.693, 0.454, 0.2)
-		material.albedo_color = Color(0, 0, 0, 0)
+		material.albedo_color = Color(1.0, 1.0, 0.0, 0.4) # Return to normal highlight color
 		marker_mesh.material_override = material
