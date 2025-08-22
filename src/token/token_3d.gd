@@ -9,6 +9,7 @@ var biome_type: BiomeType
 @onready var game = get_node("/root/Game")
 @onready var outerglow = $Outerglow
 @onready var marker_mesh = $MarkerMesh
+@onready var placement_indicator = $PlacementIndicator
 
 
 var player_color_index: int = -1

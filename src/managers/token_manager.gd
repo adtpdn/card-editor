@@ -636,14 +636,14 @@ func highlight_new_token(token_position: Vector3):
 	var token = find_token_at_position(token_position)
 	if is_instance_valid(token):
 		# Show the glow effect immediately.
-		token.outerglow.show()
+		token.placement_indicator.show()
 		
 		# Create a timer to hide the glow after 2 seconds.
 		get_tree().create_timer(2.0).timeout.connect(func():
 			# When the timer finishes, find the token that CURRENTLY exists at the position.
 			var current_token_at_pos = find_token_at_position(token_position)
 			if is_instance_valid(current_token_at_pos):
-				current_token_at_pos.outerglow.hide()
+				current_token_at_pos.placement_indicator.hide()
 		)
 
 @rpc("any_peer")
