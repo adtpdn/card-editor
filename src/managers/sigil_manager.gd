@@ -20,6 +20,7 @@ signal sigil_mode_changed(enabled)
 @onready var tokens = $"../Tokens"
 @onready var notification = $"../Notification"
 @onready var soil_star_actions = $"../SoilStarActions"
+@onready var slices_board = get_node("/root/Game/SlicesBoard")
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Sigil Pattern Constants
@@ -974,6 +975,7 @@ func show_pull_push_ui(energy_token, is_other_player: bool):
 			if token.owner_id == energy_token.owner_id and !token.is_energy and token.biome_type in adjacent_biomes:
 				token.outerglow.show()
 				highlighted_count += 1
+
 	
 	print("Highlighted ", highlighted_count, " tokens for selection")
 	print("===========================\n")

@@ -16,7 +16,7 @@ extends Node
 @onready var tokens = $"../Tokens"
 @onready var notification = $"../Notification"
 @onready var soil_star_actions = $"../SoilStarActions"
-
+@onready var slices_board = get_node("/root/Game/SlicesBoard")
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Enums and Constants
@@ -491,6 +491,7 @@ func _handle_sigil_token_selection(result: Dictionary) -> void:
 				sigil_manager._selected_token.highlight(false)
 				# ADDED: Re-enable its outerglow to show it's still a valid option.
 				sigil_manager._selected_token.outerglow.show()
+				
 
 			# Set the new token as the selected one.
 			sigil_manager._selected_token = clicked_token
@@ -498,6 +499,8 @@ func _handle_sigil_token_selection(result: Dictionary) -> void:
 			sigil_manager._selected_token.outerglow.hide()
 			# Apply the main highlight effect.
 			sigil_manager._selected_token.highlight(true)
+			
+			slices_board.highlight_biomes_after_move(sigil_manager.selected_energy_token, sigil_manager._selected_token )
 
 			# Update the destination highlights for the newly selected token.
 			var is_push = (clicked_token.biome_type == sigil_manager.selected_energy_token.biome_type)
@@ -530,6 +533,7 @@ func _handle_sigil_token_selection(result: Dictionary) -> void:
 	# If we found a destination, execute the MOVE action.
 	if final_destination and is_instance_valid(sigil_manager._selected_token):
 		_handle_move_action(final_destination)
+		slices_board.clear_biome_highlights()
 
 func _find_closest_highlighted_placement(click_position_3d: Vector3, target_biome: int) -> Node:
 	var closest_placement = null
@@ -624,6 +628,24 @@ func _process_swap_energy_selection(token: Node3D) -> void:
 # END PRIVATE HELPER FUNCTIONS (Handle Touch)
 # -----------------------------------------------------------------------------
 
+@rpc("any_peer", "call_local")
+func highlight_new_token(token_position: Vector3):
+	# Wait for the next frame to ensure any board-wiping RPCs have completed.
+	#await get_tree().process_frame
+
+	var token = find_token_at_position(token_position)
+	if is_instance_valid(token):
+		# Show the glow effect immediately.
+		token.outerglow.show()
+		
+		# Create a timer to hide the glow after 2 seconds.
+		get_tree().create_timer(2.0).timeout.connect(func():
+			# When the timer finishes, find the token that CURRENTLY exists at the position.
+			var current_token_at_pos = find_token_at_position(token_position)
+			if is_instance_valid(current_token_at_pos):
+				current_token_at_pos.outerglow.hide()
+		)
+
 @rpc("any_peer")
 func request_token_placement(token_index: int, position: Vector3, biome_type: int, is_blighted: bool = false) -> void:
 	if not multiplayer.is_server():
@@ -650,6 +672,11 @@ func request_token_placement(token_index: int, position: Vector3, biome_type: in
 	remove_token(player_id, token_index)
 	notification.hide_panel()
 
+	# Get the updated (now smaller) token array for the player.
+	var updated_tokens = get_player_tokens(player_id)
+	# Send the updated array back to the client who placed the token.
+	rpc_id(player_id, "sync_player_tokens", updated_tokens, player_id)
+
 	# 4. If the plant extra card effect is active, award the magic points.
 	if card_manager.is_plant_extra:
 		print('request is plant extra')
@@ -663,6 +690,14 @@ func request_token_placement(token_index: int, position: Vector3, biome_type: in
 
 	# 5. Broadcast the confirmed token placement to all clients.
 	rpc("sync_token_placement", player_id, token_data, position)
+	
+	# ADDED: Manually find the just-placed token and run the server-side sync.
+	#var token = find_token_at_position(position)
+	#if is_instance_valid(token):
+		#_server_sync_after_placement(token)
+
+	# Trigger the highlight effect AFTER all syncing is complete.
+	rpc("highlight_new_token", position)
 
 
 @rpc("any_peer", "call_local")
@@ -689,8 +724,8 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 
 	
 	# 3. If this is the server, perform additional synchronization tasks.
-	if multiplayer.is_server():
-		_server_sync_after_placement(token)
+	#if multiplayer.is_server():
+		#_server_sync_after_placement(token)
 
 	print("token button : ", game.token_button.disabled)
 	# 4. Emit signal for other systems to react to.
@@ -700,6 +735,7 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 		soil_star_actions.is_playing_extra_token_from_soil_star = false
 		print("token button : ", game.token_button.disabled)
 		print('false soil star')
+
 
 # -----------------------------------------------------------------------------
 # PRIVATE HELPER FUNCTIONS request_token_placement and sync_token_placement

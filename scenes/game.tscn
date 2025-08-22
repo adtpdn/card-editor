@@ -1,4 +1,4 @@
-[gd_scene load_steps=65 format=4 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=66 format=4 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://src/game.gd" id="1_e1j6l"]
 [ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://src/managers/turn_phase_manager.gd" id="2_pl11u"]
@@ -18,6 +18,7 @@
 [ext_resource type="Script" uid="uid://cxvbpxx7yxfv3" path="res://src/sigil_area.gd" id="13_7025r"]
 [ext_resource type="Material" uid="uid://dlp8ve03x2jgc" path="res://assets/meshes/corner_slice_3_mat.tres" id="13_twgab"]
 [ext_resource type="Material" uid="uid://c7ugxmqk3hnld" path="res://assets/meshes/corner_slice_4_mat.tres" id="14_02fa5"]
+[ext_resource type="PackedScene" uid="uid://baid1c65srsyc" path="res://scenes/slices_board.tscn" id="14_m4url"]
 [ext_resource type="Script" uid="uid://dj0ce7mbddmyx" path="res://src/cards_and_deck/card_collection_3d.gd" id="15_bhx41"]
 [ext_resource type="PackedScene" uid="uid://cj4b00y883ujc" path="res://assets/meshes/game_board.glb" id="16_7025r"]
 [ext_resource type="PackedScene" uid="uid://cqkw6uj4kgxav" path="res://scenes/token/token_placement_location_magic.tscn" id="17_m4url"]
@@ -260,6 +261,7 @@ script = ExtResource("11_twgab")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 20.69, 0.12)
+current = true
 fov = 50.0
 size = 14.966
 
@@ -354,6 +356,9 @@ collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="SigilClickArea/Desert/StaticBody3D"]
 shape = SubResource("ConcavePolygonShape3D_7025r")
+
+[node name="SlicesBoard" parent="." instance=ExtResource("14_m4url")]
+transform = Transform3D(21, 0, 0, 0, 21, 0, 0, 0, 21, 0, 0.5, 0)
 
 [node name="Biomes" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.16, 0)
@@ -1440,6 +1445,8 @@ text = "Join Game"
 layout_mode = 2
 size_flags_vertical = 3
 clear_button_enabled = true
+caret_blink = true
+caret_blink_interval = 0.5
 
 [node name="NetworkInfo" type="VBoxContainer" parent="RightUI"]
 visible = false
