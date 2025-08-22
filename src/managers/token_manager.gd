@@ -702,6 +702,8 @@ func _create_token_instance(player_id: int, token_data: Dictionary, placement: N
 	token.token_placement = placement
 	placement.set_occupied(true)
 	placement.current_token = token
+	
+	token.play_placement_animation()
 
 	return token
 

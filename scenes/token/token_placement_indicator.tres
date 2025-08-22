@@ -6,11 +6,11 @@
 render_priority = 0
 shader = ExtResource("1_r2tb8")
 shader_parameter/aoe_color = Color(0, 0.133333, 1, 0.784314)
-shader_parameter/fill_value = 1.0
-shader_parameter/solid_radius = 0.2
+shader_parameter/fill_value = 0.9
+shader_parameter/solid_radius = 0.43
 shader_parameter/solid_width = 0.01
-shader_parameter/dashed_radius = 0.0
-shader_parameter/dashed_border_width = 0.1
+shader_parameter/dashed_radius = 0.45
+shader_parameter/dashed_border_width = 0.001
 shader_parameter/dash_length = 0.06
 shader_parameter/dash_gap = 0.05
 shader_parameter/speed = 0.4

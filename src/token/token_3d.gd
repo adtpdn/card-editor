@@ -9,7 +9,7 @@ var biome_type: BiomeType
 @onready var game = get_node("/root/Game")
 @onready var outerglow = $Outerglow
 @onready var marker_mesh = $MarkerMesh
-
+@onready var placement_indicator: MeshInstance3D = $PlacementIndicator
 
 var player_color_index: int = -1
 var owner_id: int = -1
@@ -59,18 +59,15 @@ func apply_color_by_index(index: int):
 		match index:
 			0:
 				token_mesh.material_override = token_mat_player_1
-				#print("Applied player 1 material by index")
 			1:
 				token_mesh.material_override = token_mat_player_2
-				#print("Applied player 2 material by index")
 			2:
 				token_mesh.material_override = token_mat_player_3
-				#print("Applied player 3 material by index")
 			3:
 				token_mesh.material_override = token_mat_player_4
-				#print("Applied player 4 material by index")
 			_:
 				print("Invalid player color index: ", index)
+
 
 func update_material():
 	# Make sure we have the token mesh
@@ -109,6 +106,18 @@ func play_blight_animation(blighted: bool):
 		animation_player.play("blight")
 	else:
 		animation_player.play("unblight")
+
+func play_placement_animation():
+	# Ensure the indicator is visible before starting the animation.
+	placement_indicator.show()
+	# Connect a one-time signal to hide the indicator when the animation finishes.
+	animation_player.animation_finished.connect(_on_placement_animation_finished, CONNECT_ONE_SHOT)
+	animation_player.play("placement")
+
+func _on_placement_animation_finished(anim_name: StringName):
+	# Double-check it's the correct animation before hiding the indicator.
+	if anim_name == "placement":
+		placement_indicator.hide()
 
 func remove_token():
 	# Mark the placement as unoccupied
