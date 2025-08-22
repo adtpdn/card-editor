@@ -618,7 +618,11 @@ func _process_swap_energy_selection(token: Node3D) -> void:
 			else:
 				card_manager.rpc_id(1, "request_swap_energy_tokens", card_manager.first_swap_token.global_position, token.global_position)
 				point_counter.rpc_id(1, "request_add_magic_points", token.biome_type)
-
+			
+			# Higlight token that have been swap
+			rpc("highlight_new_token", card_manager.first_swap_token.global_position)
+			rpc("highlight_new_token", token.global_position)
+			
 			# Reset state after swap is initiated
 			unhighlight_outerglow()
 			card_manager.first_swap_token = null
@@ -630,9 +634,7 @@ func _process_swap_energy_selection(token: Node3D) -> void:
 
 @rpc("any_peer", "call_local")
 func highlight_new_token(token_position: Vector3):
-	# Wait for the next frame to ensure any board-wiping RPCs have completed.
-	#await get_tree().process_frame
-
+	print("higlight new token")
 	var token = find_token_at_position(token_position)
 	if is_instance_valid(token):
 		# Show the glow effect immediately.

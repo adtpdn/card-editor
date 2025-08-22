@@ -375,6 +375,7 @@ func swap_energy_tokens(first_token_position: Vector3, second_token_position: Ve
 	# Always unhighlight after swap
 	token_manager.unhighlight_all_token_placements()
 
+
 @rpc("any_peer", "call_local")
 func sync_energy_token_swap(first_token_position: Vector3, second_token_position: Vector3,
 						   first_token_owner: int, second_token_owner: int,
@@ -409,7 +410,7 @@ func sync_energy_token_swap(first_token_position: Vector3, second_token_position
 	is_swap_energy_mode = false
 	if first_swap_token:
 		first_swap_token.highlight(false)
-		first_swap_token = null
+		#first_swap_token = null
 
 	if first_token.is_blighted:
 		first_token.rotation_degrees.z = 180
@@ -466,6 +467,8 @@ func refresh_energy(token_position: Vector3):
 
 		# IMPORTANT: Sync to all clients using RPC with POSITION
 		token_manager.rpc("sync_token_blight", token.global_position, token.is_blighted)
+
+		token_manager.rpc("highlight_new_token", token.global_position)
 
 		# Always unhighlight token placements after any token action
 		token_manager.unhighlight_all_token_placements()
