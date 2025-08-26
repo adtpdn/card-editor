@@ -875,6 +875,9 @@ func sync_planted_elemental_swap(card1_path: NodePath, card2_path: NodePath):
 	var original_pos2 = card2.position
 	var original_rot2 = card2.rotation
 
+	# Remove is_blocked_by_elemental from the current 
+	_remove_status_sigil_placement(card1, card2)
+
 	if not parent1 or not parent2:
 		print("Swap sync failed: could not get parents.")
 		return
@@ -904,7 +907,11 @@ func sync_planted_elemental_swap(card1_path: NodePath, card2_path: NodePath):
 	# 5. Update card_parent property
 	card1.card_parent = parent2.name
 	card2.card_parent = parent1.name
-	
+	var card1_biome = card1.card_on_biome
+	var card2_biome = card2.card_on_biome
+	card1.card_on_biome = card2_biome
+	card2.card_on_biome = card1_biome
+
 	# 6. Animate to new positions
 	# We don't need the full layout update, just animate the two swapped cards
 	card1.animate_to_position(original_pos2)
@@ -912,10 +919,6 @@ func sync_planted_elemental_swap(card1_path: NodePath, card2_path: NodePath):
 	card2.animate_to_position(original_pos1)
 	card2.dragging_rotation(original_rot1)
 
-	for placement in get_parent().get_node("TokenPlacements").get_children():
-		placement.is_blocked_by_elemental = false
-		placement.set_highlight(false)
-	
 	# After the swap, the server re-activates both cards' effects for their new biomes.
 	if multiplayer.is_server():
 		var elementals_manager = get_node("/root/Game/ElementalsManager")
@@ -925,6 +928,7 @@ func sync_planted_elemental_swap(card1_path: NodePath, card2_path: NodePath):
 				elementals_manager.execute_elemental_effect(card1.card_id, card1.elemental_type, card1)
 			if not card2.face_down:
 				elementals_manager.execute_elemental_effect(card2.card_id, card2.elemental_type, card2)
+
 
 	# 7. Reset state on all clients
 	if game.soil_star_actions.is_swapping_planted_elementals:
@@ -938,6 +942,55 @@ func sync_planted_elemental_swap(card1_path: NodePath, card2_path: NodePath):
 			if slice_node and not slice_node.cards.is_empty():
 				var card = slice_node.cards[0]
 				card.remove_hovered()
+	
+	#if multiplayer.is_server():
+		#var elementals_manager = get_node("/root/Game/ElementalsManager")
+		#if elementals_manager:
+			#elementals_manager.execute_elemental_blue_sigil_placement()
+
+@rpc("any_peer", "call_local")
+func _remove_status_sigil_placement(card1, card2):
+	print('')
+	print("remove status sigil placement")
+	var range_blue_elemental = [3,4,5]
+	
+	# Checking if card1 is the blue elemental that block sigil placement
+	if card1.card_id in range_blue_elemental and card1.elemental_type == CardResource.ElementalType.BLUE:
+		var placement_to_hide_arr = hide_placement_ids(card1.card_id) # Array
+		print('card1')
+		print("placement to hide : ", placement_to_hide_arr)
+		print("card on biome : ", card1.card_on_biome)
+		for placement in get_parent().get_node("TokenPlacements").get_children():
+			if card1.card_on_biome == placement.accepted_biome and placement.place_id in placement_to_hide_arr:
+				
+				print("placement id: ", placement.place_id)
+				print("placement on biome : ",placement.accepted_biome)
+				placement.is_blocked_by_elemental = false
+				placement.set_highlight(false)
+	
+	# Checking if card1 is the blue elemental that block sigil placement
+	if card2.card_id in range_blue_elemental and card2.elemental_type == CardResource.ElementalType.BLUE:
+		var placement_to_hide_arr = hide_placement_ids(card2.card_id) # Array
+		print('card2')
+		print("placement to hide : ", placement_to_hide_arr)
+		print("card on biome : ", card1.card_on_biome)
+		for placement in get_parent().get_node("TokenPlacements").get_children():
+			if card2.card_on_biome == placement.accepted_biome and placement.place_id in placement_to_hide_arr:
+				
+				print("placement id : ", placement.place_id)
+				print("placement on biome : ",placement.accepted_biome)
+				placement.is_blocked_by_elemental = false
+				placement.set_highlight(false)
+
+func hide_placement_ids(card_id) -> Array:
+	var ids = []
+	
+	match card_id:
+		3: ids = [3, 5]
+		4: ids = [1, 4]
+		5: ids = [4, 5]
+	
+	return ids
 
 # -------------------------------------------------------------------------
 # END: Planted Elemental Swap Logic

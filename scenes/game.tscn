@@ -1498,6 +1498,15 @@ grow_vertical = 2
 disabled = true
 text = "End Turn"
 
+[node name="TokenTexture" type="TextureRect" parent="RightUI"]
+layout_mode = 0
+offset_left = 96.0
+offset_top = -2.0
+offset_right = 176.0
+offset_bottom = 78.0
+expand_mode = 3
+stretch_mode = 5
+
 [node name="TokenButton" type="Button" parent="RightUI"]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2

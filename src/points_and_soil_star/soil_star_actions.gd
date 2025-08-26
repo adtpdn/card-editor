@@ -64,7 +64,7 @@ func _show_hide_actions_panel():
 	_show_hide_right_ui_panel()
 
 func _show_hide_right_ui_panel():
-	for n in [game.token_button, game.end_phase_button, game.end_turn_button]:
+	for n in [game.token_button, game.end_phase_button, game.end_turn_button, game.token_texture]:
 		if n:
 			n.visible = !is_panel_status
 

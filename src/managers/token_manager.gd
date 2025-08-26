@@ -1822,7 +1822,34 @@ func update_token_ui():
 		token_button.modulate = Color(1.2, 1.2, 0.8, 1)
 	else:
 		token_button.modulate = Color(1, 1, 1, 1)
+	
+	var token_texture_node = get_parent().get_node_or_null("RightUI/TokenTexture") 
 
+	# This assumes you have a TextureRect or TextureButton node named "TokenTexture"
+	# located at the path "../RightUI/TokenTexture" relative to the TokenManager node.
+	if token_texture_node:
+		# The get_player_color_index function returns the player's permanent 0-based index.
+		var player_index = game.get_player_color_index(player_id)
+		# Construct the path to the texture file (e.g., token_player_1.png for index 0)
+		var texture_path = "res://assets/ui/token/token_player_%d.png" % (player_index)
+		
+		# Load the texture and apply it
+		var new_texture = load(texture_path)
+		if new_texture:
+			# The property to set depends on the node type (TextureRect vs TextureButton)
+			if "texture" in token_texture_node:
+				token_texture_node.texture = new_texture
+			elif "texture_normal" in token_texture_node:
+				token_texture_node.texture_normal = new_texture
+
+@rpc("any_peer", "call_local")
+func reset_hidden_placements():
+	hidden_placement_ids.clear()
+	# Also ensure all placements are visually unblocked
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if placement.is_blocked_by_elemental:
+			placement.is_blocked_by_elemental = false
+			placement.set_highlight(false) # Resets the highlight state
 
 func save_player_token_count(player_id: int):
 	var tokens = get_player_tokens(player_id)

@@ -39,15 +39,10 @@ func highlight_biomes_after_move(energy_token, selected_token):
 
 	# Apply the shader if the slice is the same biome OR an adjacent one.
 	if energy_token_biome == selected_token_biome:
-		print("1")
 		for biome_id in adjacent_biomes:
-			print('1.1')
-			print("biome id : ", biome_id)
 			var biome_slice = all_slices[biome_id]
 			biome_slice.material_override = slice_board_shader
 	elif energy_token_biome != selected_token_biome:
-		print('2')
-		print("biome id : ", energy_token_biome)
 		var biome_slice = all_slices[energy_token_biome]
 		biome_slice.material_override = slice_board_shader
 
