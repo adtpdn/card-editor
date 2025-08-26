@@ -324,12 +324,16 @@ func _on_card_hover(card: Card3D):
 		
 		if highlight_on_hover:
 			card.set_hovered()
+			if card.card_type == CardResource.CardType.ELEMENTAL and not card.face_down:
+				card.set_notification_elemental_hover(card)
 
 
 func _on_card_exit(card: Card3D):
+	var game = get_node("/root/Game")
 	if not hover_disabled and _hovered_card == card:
 		card.remove_hovered()
 		_hovered_card = null
+		game.notification.hide_panel()
 
 
 func _on_card_pressed(card: Card3D):
