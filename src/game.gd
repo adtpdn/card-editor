@@ -92,7 +92,9 @@ func get_player_color_index(player_id: int) -> int:
 	if initial_player_order.is_empty():
 		# Fallback to current order if initial isn't set yet (should be rare)
 		print("WARNING: initial_player_order is empty in game.gd. Falling back to game.players for color index.")
-		return players.find(player_id)
+		# Add a safety check to the fallback path to prevent returning -1.
+		var index = players.find(player_id)
+		return index if index != -1 else 0
 	
 	var index = initial_player_order.find(player_id)
 	return index if index != -1 else 0 # Return 0 as a safe default

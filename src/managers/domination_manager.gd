@@ -91,7 +91,7 @@ func check_domination_for_elemental_flips():
 	if not multiplayer.is_server():
 		return
 	print("--- Checking Biome with most tokens for Elemental Flips ---")
-#_get_all_dominant_players_in_biome
+
 	# Step 1: Get the counts of revealed elementals for every biome.
 	var revealed_counts = _get_revealed_elemental_counts()
 	print("Revealed elementals per biome: ", revealed_counts)

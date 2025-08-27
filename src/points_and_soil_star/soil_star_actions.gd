@@ -84,6 +84,7 @@ func apply_button_rules():
 	
 	plant_extra_button_rule()
 	elementals_face_swap_button()
+	check_buy_elemental_button()
 
 func elementals_face_swap_button():
 	var hand = game.deck.hand
@@ -97,16 +98,24 @@ func elementals_face_swap_button():
 	var stars := _get_current_soil_star()
 	for card in hand.get_children():
 		if card is FaceCard3D:
-			if card.card_type == CardResource.CardType.ELEMENTAL and stars < 2:
+			if card.card_type == CardResource.CardType.ELEMENTAL and stars >= 1 and stars < 2:
 				play_elemental_face_down.disabled = false
 				break
-			elif card.card_type == CardResource.CardType.ELEMENTAL and stars < 3:
+			elif card.card_type == CardResource.CardType.ELEMENTAL and stars >= 2:
 				play_elemental_face_down.disabled = false
 				play_elemental_face_up.disabled = false
 				break
 			else:
 				play_elemental_face_down.disabled = true
 				play_elemental_face_up.disabled = true
+
+func check_buy_elemental_button():
+	var hand = game.deck.hand
+	# Checking if there's elemental card in hand 
+	for card in hand.get_children():
+		if card is FaceCard3D and card.card_type == CardResource.CardType.ELEMENTAL:
+			buy_elemental_button.disabled = true
+			return true
 
 func plant_extra_button_rule():
 	var token_manager = game.token_manager
@@ -381,6 +390,11 @@ func _on_PlaySigilMagicButton_pressed():
 func _on_BuyElementalButton_pressed():
 	print("Buy Elemental Button pressed")
 	var cost = button_rules[buy_elemental_button]
+
+	# Checking if there's elemental card in hand 
+	var elemental_on_hand = check_buy_elemental_button()
+	if elemental_on_hand:
+		return
 
 	var local_player_id = multiplayer.get_unique_id()
 	# 1. Client-side validation: Check hand size first.
