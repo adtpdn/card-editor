@@ -247,7 +247,7 @@ func plant_extra_card_effect():
 	var player_id = multiplayer.get_unique_id()
 
 	# Temporarily increase max tokens per turn by 1
-	token_manager.max_tokens_per_turn += 1
+	#token_manager.max_tokens_per_turn += 1
 
 	# Set the plant extra flag
 	is_plant_extra = true
@@ -259,10 +259,10 @@ func plant_extra_card_effect():
 	# Sync changes to all clients if we're the server
 	if multiplayer.is_server():
 		token_manager.rpc("sync_token_planting_state", player_id, token_manager.tokens_planted_this_turn.get(player_id, 0),
-			true, true, token_manager.max_tokens_per_turn)
+			true, true)
 	else:
 		# Request server to sync our changes
-		rpc_id(1, "request_token_planting_state_update", player_id, true, true, token_manager.max_tokens_per_turn)
+		rpc_id(1, "request_token_planting_state_update", player_id, true, true)
 
 	# Update UI to show token button as active
 	token_manager.update_token_ui()
@@ -272,7 +272,7 @@ func plant_extra_card_effect():
 # -----------------------------------------------------------------------------
 # Extra Plant TOken
 @rpc("any_peer")
-func request_token_planting_state_update(player_id: int, can_place_sigil: bool, can_place_biome: bool, max_tokens: int):
+func request_token_planting_state_update(player_id: int, can_place_sigil: bool, can_place_biome: bool):
 	if !multiplayer.is_server():
 		return
 
@@ -291,11 +291,11 @@ func request_token_planting_state_update(player_id: int, can_place_sigil: bool, 
 	# Update flags
 	token_manager.can_plant_on_sigil = can_place_sigil
 	token_manager.can_plant_on_biome = can_place_biome
-	token_manager.max_tokens_per_turn = max_tokens
+	#token_manager.max_tokens_per_turn = max_tokens
 
 	# Sync to all clients
 	token_manager.rpc("sync_token_planting_state", player_id, tokens_planted_this_turn[player_id],
-		can_place_sigil, can_place_biome, max_tokens)
+		can_place_sigil, can_place_biome)
 
 @rpc("any_peer", "call_local")
 func sync_plant_extra_state(new_state: bool):
@@ -375,6 +375,7 @@ func swap_energy_tokens(first_token_position: Vector3, second_token_position: Ve
 	# Always unhighlight after swap
 	token_manager.unhighlight_all_token_placements()
 
+
 @rpc("any_peer", "call_local")
 func sync_energy_token_swap(first_token_position: Vector3, second_token_position: Vector3,
 						   first_token_owner: int, second_token_owner: int,
@@ -409,7 +410,7 @@ func sync_energy_token_swap(first_token_position: Vector3, second_token_position
 	is_swap_energy_mode = false
 	if first_swap_token:
 		first_swap_token.highlight(false)
-		first_swap_token = null
+		#first_swap_token = null
 
 	if first_token.is_blighted:
 		first_token.rotation_degrees.z = 180
@@ -466,6 +467,8 @@ func refresh_energy(token_position: Vector3):
 
 		# IMPORTANT: Sync to all clients using RPC with POSITION
 		token_manager.rpc("sync_token_blight", token.global_position, token.is_blighted)
+
+		token_manager.rpc("highlight_new_token", token.global_position)
 
 		# Always unhighlight token placements after any token action
 		token_manager.unhighlight_all_token_placements()
@@ -679,7 +682,7 @@ func perform_face_down_swap(board_card: FaceCard3D):
 
 	# Client sends request to server, server executes directly
 	if multiplayer.is_server():
-		sync_face_down_swap(player_id, hand_card_original_index, board_card_path)
+		rpc("sync_face_down_swap", player_id, hand_card_original_index, board_card_path)
 	else:
 		rpc_id(1, "request_face_down_swap", player_id, hand_card_original_index, board_card_path)
 
@@ -762,7 +765,7 @@ func perform_face_up_swap(board_card: FaceCard3D):
 		return
 
 	if multiplayer.is_server():
-		sync_face_up_swap(player_id, hand_card_original_index, board_card_path)
+		rpc("sync_face_up_swap", player_id, hand_card_original_index, board_card_path)
 	else:
 		rpc_id(1, "request_face_up_swap", player_id, hand_card_original_index, board_card_path)
 
@@ -807,6 +810,11 @@ func sync_face_up_swap(player_id: int, hand_card_original_index: int, board_card
 		new_card_instance.owner_id = player_id
 		new_card_instance.face_down = false # Ensure it's placed face UP
 		slice_collection.append_card(new_card_instance)
+		if multiplayer.is_server():
+			var elementals_manager = get_node("/root/Game/ElementalsManager")
+			if elementals_manager:
+				print("Activating effect for newly swapped face-up elemental.")
+				elementals_manager.execute_elemental_effect(new_card_instance.card_id, new_card_instance.elemental_type, new_card_instance)
 	else:
 		print("Swap sync failed: could not instantiate new card with index ", hand_card_original_index)
 
@@ -867,6 +875,9 @@ func sync_planted_elemental_swap(card1_path: NodePath, card2_path: NodePath):
 	var original_pos2 = card2.position
 	var original_rot2 = card2.rotation
 
+	# Remove is_blocked_by_elemental from the current 
+	_remove_status_sigil_placement(card1, card2)
+
 	if not parent1 or not parent2:
 		print("Swap sync failed: could not get parents.")
 		return
@@ -896,13 +907,28 @@ func sync_planted_elemental_swap(card1_path: NodePath, card2_path: NodePath):
 	# 5. Update card_parent property
 	card1.card_parent = parent2.name
 	card2.card_parent = parent1.name
-	
+	var card1_biome = card1.card_on_biome
+	var card2_biome = card2.card_on_biome
+	card1.card_on_biome = card2_biome
+	card2.card_on_biome = card1_biome
+
 	# 6. Animate to new positions
 	# We don't need the full layout update, just animate the two swapped cards
 	card1.animate_to_position(original_pos2)
 	card1.dragging_rotation(original_rot2)
 	card2.animate_to_position(original_pos1)
 	card2.dragging_rotation(original_rot1)
+
+	# After the swap, the server re-activates both cards' effects for their new biomes.
+	if multiplayer.is_server():
+		var elementals_manager = get_node("/root/Game/ElementalsManager")
+		if elementals_manager:
+			print("Re-activating effects for swapped on-board elementals.")
+			if not card1.face_down:
+				elementals_manager.execute_elemental_effect(card1.card_id, card1.elemental_type, card1)
+			if not card2.face_down:
+				elementals_manager.execute_elemental_effect(card2.card_id, card2.elemental_type, card2)
+
 
 	# 7. Reset state on all clients
 	if game.soil_star_actions.is_swapping_planted_elementals:
@@ -916,6 +942,55 @@ func sync_planted_elemental_swap(card1_path: NodePath, card2_path: NodePath):
 			if slice_node and not slice_node.cards.is_empty():
 				var card = slice_node.cards[0]
 				card.remove_hovered()
+	
+	#if multiplayer.is_server():
+		#var elementals_manager = get_node("/root/Game/ElementalsManager")
+		#if elementals_manager:
+			#elementals_manager.execute_elemental_blue_sigil_placement()
+
+@rpc("any_peer", "call_local")
+func _remove_status_sigil_placement(card1, card2):
+	print('')
+	print("remove status sigil placement")
+	var range_blue_elemental = [3,4,5]
+	
+	# Checking if card1 is the blue elemental that block sigil placement
+	if card1.card_id in range_blue_elemental and card1.elemental_type == CardResource.ElementalType.BLUE:
+		var placement_to_hide_arr = hide_placement_ids(card1.card_id) # Array
+		print('card1')
+		print("placement to hide : ", placement_to_hide_arr)
+		print("card on biome : ", card1.card_on_biome)
+		for placement in get_parent().get_node("TokenPlacements").get_children():
+			if card1.card_on_biome == placement.accepted_biome and placement.place_id in placement_to_hide_arr:
+				
+				print("placement id: ", placement.place_id)
+				print("placement on biome : ",placement.accepted_biome)
+				placement.is_blocked_by_elemental = false
+				placement.set_highlight(false)
+	
+	# Checking if card1 is the blue elemental that block sigil placement
+	if card2.card_id in range_blue_elemental and card2.elemental_type == CardResource.ElementalType.BLUE:
+		var placement_to_hide_arr = hide_placement_ids(card2.card_id) # Array
+		print('card2')
+		print("placement to hide : ", placement_to_hide_arr)
+		print("card on biome : ", card1.card_on_biome)
+		for placement in get_parent().get_node("TokenPlacements").get_children():
+			if card2.card_on_biome == placement.accepted_biome and placement.place_id in placement_to_hide_arr:
+				
+				print("placement id : ", placement.place_id)
+				print("placement on biome : ",placement.accepted_biome)
+				placement.is_blocked_by_elemental = false
+				placement.set_highlight(false)
+
+func hide_placement_ids(card_id) -> Array:
+	var ids = []
+	
+	match card_id:
+		3: ids = [3, 5]
+		4: ids = [1, 4]
+		5: ids = [4, 5]
+	
+	return ids
 
 # -------------------------------------------------------------------------
 # END: Planted Elemental Swap Logic

@@ -278,6 +278,11 @@ func _on_peer_connected(new_peer_id):
 		# 2. Initialize the new player's tokens ON THE SERVER
 		token_manager.initialize_player_tokens(new_peer_id)
 		
+		# Get the newly created token array from the token manager.
+		var new_player_tokens = token_manager.get_player_tokens(new_peer_id)
+		# Send this array specifically to the new client so they have their starting tokens.
+		token_manager.rpc_id(new_peer_id, "sync_player_tokens", new_player_tokens, new_peer_id)
+		
 		# 3. Call the single authoritative function to sync the UI for ALL players
 		game_state_manager.rpc("sync_player_list_and_uis", game.players)
 		

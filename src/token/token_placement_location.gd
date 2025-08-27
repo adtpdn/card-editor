@@ -9,6 +9,7 @@ enum BiomeType {FOREST, WATER, MOUNTAIN, DESERT}
 var is_highlighted: bool = false
 var is_occupied = false
 var current_token = null
+var is_blocked_by_elemental := false
 
 # Replace biome colors with a neutral placeholder color
 const PLACEHOLDER_COLOR = Color(0.736, 0.693, 0.454, 0.2)
@@ -91,7 +92,16 @@ func set_highlight(enabled: bool):
 		show()
 	else:
 		hide()
-
+	
+	if is_blocked_by_elemental:
+		material.albedo_color = Color(1, 0, 0, 1)
+		show()
+	elif not is_blocked_by_elemental:
+		material.albedo_color = Color(0, 0, 0, 0)
+		hide()
+	
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	$MarkerMesh.material_override = material
 
 func set_occupied(occupied: bool):
 	is_occupied = occupied
@@ -148,13 +158,13 @@ func place_token(player_id: int, token_data: Dictionary):
 	game.update_token_ui(game.token_manager.get_player_tokens(player_id))
 
 func _on_mouse_entered():
-	if !is_occupied and is_highlighted:
+	if !is_occupied and not is_blocked_by_elemental:
 		var material = marker_mesh.material_override.duplicate()
 		material.albedo_color = Color(1.0, 1.0, 0.0, 0.6) # Brighter highlight on hover
 		marker_mesh.material_override = material
 
 func _on_mouse_exited():
-	if !is_occupied and is_highlighted:
+	if !is_occupied and not is_blocked_by_elemental:
 		var material = marker_mesh.material_override.duplicate()
 		material.albedo_color = Color(1.0, 1.0, 0.0, 0.4) # Return to normal highlight color
 		marker_mesh.material_override = material

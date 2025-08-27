@@ -91,7 +91,7 @@ func check_domination_for_elemental_flips():
 	if not multiplayer.is_server():
 		return
 	print("--- Checking Biome with most tokens for Elemental Flips ---")
-
+#_get_all_dominant_players_in_biome
 	# Step 1: Get the counts of revealed elementals for every biome.
 	var revealed_counts = _get_revealed_elemental_counts()
 	print("Revealed elementals per biome: ", revealed_counts)
@@ -159,18 +159,12 @@ func check_domination_for_soil_stars():
 		var biome_name = Biome.keys()[biome_value]
 		var winners = []
 
+		winners = _get_all_dominant_players_in_biome(biome_value)
 		if biome_value == least_tokens_win_biome:
 			print("Using 'least tokens win' rule for biome: %s" % biome_name)
 			winners = _get_least_dominant_players_in_biome(biome_value)
-		else:
-			winners = _get_all_dominant_players_in_biome(biome_value)
 		
-		if winners.is_empty():
-			if biome_value == blighted_domination_biome:
-				print("No blighted tokens in %s biome to determine domination." % biome_name)
-			else:
-				print("No non-blighted tokens in %s biome to determine domination." % biome_name)
-			continue
+		print("winners : ", winners)
 
 		# MODIFIED --- Check if this biome awards a card instead of a star
 		if biome_value == card_reward_biome:
@@ -291,15 +285,6 @@ func _get_biome_token_counts() -> Dictionary:
 	
 	print("Total tokens per biome: ", biome_token_counts)
 	return biome_token_counts
-
-# Counts non-blighted, non-energy tokens to find the player with the most.
-# Returns a single winner ID, or -1 for a tie/no winner. (Used for Soil Stars)
-func _get_dominant_player_in_biome(biome_type: Biome) -> int:
-	var winners = _get_all_dominant_players_in_biome(biome_type)
-	if winners.size() == 1:
-		return winners[0]
-	else:
-		return -1
 
 # --- NEW FUNCTION for ElementalRed08 ---
 # Finds the player(s) with the FEWEST tokens in a biome.

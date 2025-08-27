@@ -16,7 +16,7 @@ extends Node
 @onready var tokens = $"../Tokens"
 @onready var notification = $"../Notification"
 @onready var soil_star_actions = $"../SoilStarActions"
-
+@onready var slices_board = get_node("/root/Game/SlicesBoard")
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Enums and Constants
@@ -88,7 +88,7 @@ signal token_placed(player_id: int, biome: BiomeType, location: Vector3)
 var tokens_planted_this_turn = {}  # Track tokens planted per player per turn
 var can_plant_on_sigil = true     # Track if player can still plant in sigil locations (place_id == -1)
 var can_plant_on_biome = true     # Track if player can still plant in biome locations (place_id != -1)
-var max_tokens_per_turn = 2       # Maximum tokens allowed per turn
+#var max_tokens_per_turn = 2       # Maximum tokens allowed per turn
 
 const token_mat_player_1 = preload("res://assets/materials/token_material/token_mat_player_1.tres")
 const token_mat_player_2 = preload("res://assets/materials/token_material/token_mat_player_2.tres")
@@ -249,13 +249,13 @@ func _highlight_placements_for_mode(mode: String) -> void:
 				continue # Skip this placement entirely
 		
 		# If a placement is meant to be hidden by an effect, ensure it stays hidden.
-		if hidden_placement_ids.has(current_biome) and placement.place_id in hidden_placement_ids[current_biome]:
-			placement.hide()
-			continue # Skip any further logic for this placement
+		#if hidden_placement_ids.has(current_biome) and placement.place_id in hidden_placement_ids[current_biome]:
+			#placement.hide()
+			#continue # Skip any further logic for this placement
 
-		if not placement.is_occupied:
+		if not placement.is_occupied :
 			var is_biome_placement = (placement.place_id == -1)
-			var is_sigil_placement = (placement.place_id >= 0 and placement.place_id <= 7)
+			var is_sigil_placement = (placement.place_id >= 0 and placement.place_id <= 7) and not placement.is_blocked_by_elemental
 
 			# Determine if this placement should be shown and highlighted
 			var should_highlight = (highlight_biome and is_biome_placement) or (highlight_sigil and is_sigil_placement)
@@ -265,6 +265,11 @@ func _highlight_placements_for_mode(mode: String) -> void:
 				placement.set_highlight(true)
 			else:
 				placement.hide() # Ensure others are hidden
+		
+		# Always show the placement if they block by the elementals
+		if placement.is_blocked_by_elemental:
+			print("is blocked elemental shown")
+			placement.show()
 
 	notification.show_instruction_label(instruction_text)
 # -----------------------------------------------------------------------------
@@ -272,57 +277,23 @@ func _highlight_placements_for_mode(mode: String) -> void:
 # -----------------------------------------------------------------------------
 
 func handle_touch(position: Vector2) -> void:
-	# 1. Perform initial validation checks. Exit early if input is not allowed.
-	if not _can_process_input():
-		return
-
-	# 2. Get the 3D object that was touched via raycasting.
+	# 1. Perform initial validation checks and raycast.
+	if not _can_process_input(): return
 	var result: Dictionary = _raycast_from_screen(position)
-	print("result : ", result)
-	
-	if result.is_empty():
-		return
+	if result.is_empty(): return
 
-	# 3. Determine the current input mode (placing, targeting, etc.).
+	# 2. Check the primary game state: are we in sigil mode?
+	if sigil_manager.is_sigil_mode:
+		_handle_sigil_token_selection(result)
+		return # All sigil-related input is handled by the new function.
+
+	# 3. If not in sigil mode, fall back to other input modes.
 	var input_mode: String = _get_current_input_mode()
-
-	# 4. Delegate to the correct handler based on the input mode.
-	print("input mode : ", input_mode)
 	match input_mode:
-		"SELECTING_MOVE_DESTINATION":
-			var clicked_node = result.collider
-			var area_node = null
-
-			# Traverse up the node tree to find the main biome/sigil area that was clicked
-			while(clicked_node != null):
-				if clicked_node.has_method("get_script") and clicked_node.get_script() and "biome_id" in clicked_node:
-					area_node = clicked_node
-					break
-				clicked_node = clicked_node.get_parent()
-
-			# If a valid biome area was clicked...
-			if area_node:
-				var target_biome_id = area_node.biome_id
-				var token_to_move = sigil_manager._selected_token
-				
-				# Find the best placement spot within that biome
-				var destination_placement = _find_closest_available_placement(token_to_move.global_position, target_biome_id)
-				
-				if destination_placement:
-					# If a spot was found, execute the move
-					_handle_move_action(destination_placement)
-				else:
-					# If no spot is available (e.g., the biome is full)
-					print("No available spots in the selected biome.")
-					notification.show_instruction_label("No available spots in that biome.")
-					get_tree().create_timer(2.0).timeout.connect(notification.hide_panel)
-		
 		"PLACING_TOKEN":
-			# ---  Check for biome area click ---
+			# --- Primary Logic: Check for a click on a large biome/sigil area ---
 			var clicked_node = result.collider
 			var area_node = null
-
-			# Traverse up to find a clickable area (either Biome or Sigil)
 			while(clicked_node != null):
 				if clicked_node.has_method("get_script") and clicked_node.get_script() and "biome_id" in clicked_node:
 					area_node = clicked_node
@@ -331,29 +302,30 @@ func handle_touch(position: Vector2) -> void:
 
 			if area_node:
 				var biome_type = area_node.biome_id
-				# Differentiate between biome and sigil areas based on script path
 				if area_node.get_script().resource_path.ends_with("biome_area.gd"):
-					_find_closest_placement_and_plant(result.position, biome_type, true) # true for biome
+					_find_closest_placement_and_plant(result.position, biome_type, true)
 				elif area_node.get_script().resource_path.ends_with("sigil_area.gd"):
-					_find_closest_placement_and_plant(result.position, biome_type, false) # false for sigil
+					_find_closest_placement_and_plant(result.position, biome_type, false)
 				
-				## Clean up the temporary visual token
+				# Clean up the temporary visual token after a successful placement
 				if is_instance_valid(_temp_token_instance):
 					_temp_token_instance.queue_free()
 					_temp_token_instance = null
-			
-			else: 
-				# Fallback to clicking individual placements if no specific area was clicked
-				var placement = get_token_placement_at_position(result.position)
-				if placement:
-					_handle_placement_action(placement)
+				return # Exit after handling the area click.
+
+			# --- Fallback Logic: Check for a click on an individual placement location ---
+			var placement = get_token_placement_at_position(result.position)
+			if placement:
+				_handle_placement_action(placement)
 
 		"TARGETING_FOR_EFFECT":
 			var token = _get_token_from_collider(result.collider)
 			if token:
 				_handle_card_effect_action(token)
+		
 		"IDLE_OR_SIGIL":
-			_handle_idle_or_sigil_action(position, result.collider)
+			# This is the entry point to start a sigil action.
+			sigil_manager.handle_sigil_input(position)
 
 func _handle_move_action(destination_placement: Node3D) -> void:
 	print("\n=== Handling Token Move Action ===")
@@ -420,27 +392,40 @@ func _get_current_input_mode() -> String:
 
 # --- New function to find closest placement ---
 func _find_closest_placement_and_plant(click_position_3d: Vector3, biome_type: int, is_for_biome: bool):
-	var closest_placement = null
-	var min_distance = INF
-
-	for placement in get_parent().get_node("TokenPlacements").get_children():
-		# Check if the placement is valid for this action (highlighted and in the correct biome)
-		if placement.is_highlighted and placement.accepted_biome == biome_type:
-			# Check if it's the correct type of placement (biome vs sigil)
-			var is_biome_spot = placement.place_id == -1
-			
-			if is_for_biome == is_biome_spot:
-				var distance = click_position_3d.distance_to(placement.global_position)
-				if distance < min_distance:
-					min_distance = distance
-					closest_placement = placement
+	var spot_type_string = "biome" if is_for_biome else "sigil"
+	var closest_placement = _find_closest_valid_placement(click_position_3d, biome_type, spot_type_string)
 	
-	# If we found a valid closest spot, handle the placement action
 	if closest_placement:
 		_handle_placement_action(closest_placement)
 	else:
 		var area_type = "biome" if is_for_biome else "sigil"
 		print("No available %s placement locations found in the clicked biome." % area_type)
+
+# A generic function to find the closest valid placement without taking any action.
+# `spot_type` can be "biome" (-1), "sigil" (!= -1), or "any".
+func _find_closest_valid_placement(click_pos_3d: Vector3, biome_type: int, spot_type: String = "any") -> Node:
+	var closest_placement = null
+	var min_distance = INF
+
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if placement.is_highlighted and placement.accepted_biome == biome_type:
+			var is_biome_spot = (placement.place_id == -1)
+			var type_matches = false
+			match spot_type:
+				"any":
+					type_matches = true
+				"biome":
+					if is_biome_spot: type_matches = true
+				"sigil":
+					if not is_biome_spot: type_matches = true
+			
+			if type_matches:
+				var distance = click_pos_3d.distance_to(placement.global_position)
+				if distance < min_distance:
+					min_distance = distance
+					closest_placement = placement
+	
+	return closest_placement
 
 # Performs the raycast from the screen position into the 3D world.
 func _raycast_from_screen(position: Vector2) -> Dictionary:
@@ -486,30 +471,94 @@ func _handle_placement_action(placement: Node3D) -> void:
 
 # This function is called when no other mode is active. It delegates to the
 # SigilManager to see if a click should initiate a sigil action.
-func _handle_idle_or_sigil_action(position: Vector2, collider: Node) -> void:
-	# If sigil mode is already active, we are selecting a TARGET.
-	if sigil_manager.is_sigil_mode:
-		var player_id = multiplayer.get_unique_id()
-		if game.sigil_manager.selected_energy_token and game.sigil_manager.selected_energy_token.owner_id == player_id:
-			var target_token = _get_token_from_collider(collider)
-			if target_token and not target_token.is_energy:
-				sigil_manager._selected_token = target_token
-				sigil_manager.handle_sigil_input(position)
-				sigil_manager.signal_other_player_token.emit()
+func _handle_sigil_token_selection(result: Dictionary) -> void:
+	var player_id = multiplayer.get_unique_id()
+	# Exit if the active sigil doesn't belong to the local player.
+	if not (game.sigil_manager.selected_energy_token and game.sigil_manager.selected_energy_token.owner_id == player_id):
+		return
+
+	var clicked_token = _get_token_from_collider(result.collider)
+
+	# Case 1: A valid TARGET TOKEN was clicked (it must be glowing).
+	if clicked_token and clicked_token.outerglow.visible:
+		if sigil_manager.is_sigil_c:
+			# Sigil C is a direct, one-click action.
+			sigil_manager.perform_blight_unblight(sigil_manager.selected_energy_token, clicked_token)
+		elif sigil_manager.is_sigil_a or sigil_manager.is_sigil_b:
+			# Sigil A/B: Handle dynamic selection of the token to move.
+			if is_instance_valid(sigil_manager._selected_token) and sigil_manager._selected_token != clicked_token:
+				# Deselect the previously chosen token.
+				sigil_manager._selected_token.highlight(false)
+				# ADDED: Re-enable its outerglow to show it's still a valid option.
+				sigil_manager._selected_token.outerglow.show()
+				
+
+			# Set the new token as the selected one.
+			sigil_manager._selected_token = clicked_token
+			# ADDED: Hide its outerglow so the main highlight effect is clear.
+			sigil_manager._selected_token.outerglow.hide()
+			# Apply the main highlight effect.
+			sigil_manager._selected_token.highlight(true)
+			
+			slices_board.highlight_biomes_after_move(sigil_manager.selected_energy_token, sigil_manager._selected_token )
+
+			# Update the destination highlights for the newly selected token.
+			var is_push = (clicked_token.biome_type == sigil_manager.selected_energy_token.biome_type)
+			sigil_manager.perform_push_pull(sigil_manager.selected_energy_token, clicked_token, is_push)
+			game.notification.show_instruction_label("Token selected. Click a destination or select another token.")
+		return # We've successfully handled the token click.
+
+	# Case 2: A valid DESTINATION PLACEMENT was clicked for a pre-selected token.
+	var final_destination = null
+
+	# First, check for a direct click on a highlighted placement marker.
+	var direct_placement = get_token_placement_at_position(result.position)
+	if direct_placement and direct_placement.is_highlighted:
+		final_destination = direct_placement
 	else:
-		# If not in sigil mode, a click might START the sigil process.
-		# Let the sigil manager handle this initial detection.
-		if sigil_manager.handle_sigil_input(position):
-			return # Input was handled by SigilManager.
+		# If no direct placement was hit, check if a larger biome area was clicked.
+		var clicked_node = result.collider
+		var area_node = null
+		while(clicked_node != null):
+			if clicked_node.has_method("get_script") and clicked_node.get_script() and "biome_id" in clicked_node:
+				area_node = clicked_node
+				break
+			clicked_node = clicked_node.get_parent()
+		
+		if area_node and is_instance_valid(sigil_manager._selected_token):
+			# Use our generic finder function. "any" works here since the highlighting
+			# already filters for valid biome/blight spots.
+			final_destination = _find_closest_valid_placement(result.position, area_node.biome_id, "any")
+
+	# If we found a destination, execute the MOVE action.
+	if final_destination and is_instance_valid(sigil_manager._selected_token):
+		_handle_move_action(final_destination)
+		slices_board.clear_biome_highlights()
+
+func _find_closest_highlighted_placement(click_position_3d: Vector3, target_biome: int) -> Node:
+	var closest_placement = null
+	var min_distance = INF
+
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		# The placement must be in the correct biome AND be currently highlighted as a valid destination.
+		if placement.is_highlighted and placement.accepted_biome == target_biome:
+			var distance = click_position_3d.distance_to(placement.global_position)
+			if distance < min_distance:
+				min_distance = distance
+				closest_placement = placement
+	
+	return closest_placement
 
 # This function is called when a card effect mode is active.
 func _handle_card_effect_action(token: Node3D) -> void:
 	var effect_was_processed := true
 
+	var player_id = multiplayer.get_unique_id()
+
 	if card_manager.is_take_off_mode and token.is_energy:
 		_process_card_effect("take_off_energy", token)
 		card_manager.is_take_off_mode = false
-	elif card_manager.is_unblight_mode and not token.is_energy and token.is_blighted:
+	elif card_manager.is_unblight_mode and not token.is_energy and token.is_blighted and token.owner_id == player_id:
 		_process_card_effect("unblight_token", token)
 		card_manager.is_unblight_mode = false
 	elif card_manager.is_refresh_energy_mode and token.is_energy and token.is_blighted:
@@ -569,7 +618,11 @@ func _process_swap_energy_selection(token: Node3D) -> void:
 			else:
 				card_manager.rpc_id(1, "request_swap_energy_tokens", card_manager.first_swap_token.global_position, token.global_position)
 				point_counter.rpc_id(1, "request_add_magic_points", token.biome_type)
-
+			
+			# Higlight token that have been swap
+			rpc("highlight_new_token", card_manager.first_swap_token.global_position)
+			rpc("highlight_new_token", token.global_position)
+			
 			# Reset state after swap is initiated
 			unhighlight_outerglow()
 			card_manager.first_swap_token = null
@@ -578,6 +631,22 @@ func _process_swap_energy_selection(token: Node3D) -> void:
 # -----------------------------------------------------------------------------
 # END PRIVATE HELPER FUNCTIONS (Handle Touch)
 # -----------------------------------------------------------------------------
+
+@rpc("any_peer", "call_local")
+func highlight_new_token(token_position: Vector3):
+	print("higlight new token")
+	var token = find_token_at_position(token_position)
+	if is_instance_valid(token):
+		# Show the glow effect immediately.
+		token.placement_indicator.show()
+		
+		# Create a timer to hide the glow after 2 seconds.
+		get_tree().create_timer(2.0).timeout.connect(func():
+			# When the timer finishes, find the token that CURRENTLY exists at the position.
+			var current_token_at_pos = find_token_at_position(token_position)
+			if is_instance_valid(current_token_at_pos):
+				current_token_at_pos.placement_indicator.hide()
+		)
 
 @rpc("any_peer")
 func request_token_placement(token_index: int, position: Vector3, biome_type: int, is_blighted: bool = false) -> void:
@@ -605,6 +674,11 @@ func request_token_placement(token_index: int, position: Vector3, biome_type: in
 	remove_token(player_id, token_index)
 	notification.hide_panel()
 
+	# Get the updated (now smaller) token array for the player.
+	var updated_tokens = get_player_tokens(player_id)
+	# Send the updated array back to the client who placed the token.
+	rpc_id(player_id, "sync_player_tokens", updated_tokens, player_id)
+
 	# 4. If the plant extra card effect is active, award the magic points.
 	if card_manager.is_plant_extra:
 		print('request is plant extra')
@@ -618,17 +692,24 @@ func request_token_placement(token_index: int, position: Vector3, biome_type: in
 
 	# 5. Broadcast the confirmed token placement to all clients.
 	rpc("sync_token_placement", player_id, token_data, position)
+	
+	# ADDED: Manually find the just-placed token and run the server-side sync.
+	#var token = find_token_at_position(position)
+	#if is_instance_valid(token):
+		#_server_sync_after_placement(token)
+
+	# Trigger the highlight effect AFTER all syncing is complete.
+	rpc("highlight_new_token", position)
 
 
 @rpc("any_peer", "call_local")
 func sync_token_placement(player_id: int, token_data: Dictionary, position: Vector3) -> void:
+	print("")
+	print("token button : ", game.token_button.disabled)
 	var placement = get_token_placement_at_position(position)
 	if not placement or placement.is_occupied:
 		printerr("Token placement sync failed: Invalid or occupied placement at %s" % position)
 		return
-
-	if soil_star_actions.is_playing_extra_token_from_soil_star:
-		soil_star_actions.is_playing_extra_token_from_soil_star = false
 
 	# 1. Create the token and set its visual properties.
 	var token = _create_token_instance(player_id, token_data, placement)
@@ -638,15 +719,25 @@ func sync_token_placement(player_id: int, token_data: Dictionary, position: Vect
 		get_parent().player_last_biome_placements[player_id] = token.biome_type
 		print("Player %d last placed a token in biome %s" % [player_id, BiomeType.keys()[token.biome_type]])
 
+	print("token button 1 : ", game.token_button.disabled)
 	# 2. Update the local game state (counters, flags, UI).
 	_update_state_after_placement(player_id, token)
+	print("token button : ", game.token_button.disabled)
 
+	
 	# 3. If this is the server, perform additional synchronization tasks.
-	if multiplayer.is_server():
-		_server_sync_after_placement(token)
+	#if multiplayer.is_server():
+		#_server_sync_after_placement(token)
 
+	print("token button : ", game.token_button.disabled)
 	# 4. Emit signal for other systems to react to.
 	emit_signal("token_placed", player_id, token_data.biome, position)
+	
+	if soil_star_actions.is_playing_extra_token_from_soil_star:
+		soil_star_actions.is_playing_extra_token_from_soil_star = false
+		print("token button : ", game.token_button.disabled)
+		print('false soil star')
+
 
 # -----------------------------------------------------------------------------
 # PRIVATE HELPER FUNCTIONS request_token_placement and sync_token_placement
@@ -712,9 +803,6 @@ func _update_state_after_placement(player_id: int, token: Node) -> void:
 	if not tokens_planted_this_turn.has(player_id):
 		tokens_planted_this_turn[player_id] = 0
 	tokens_planted_this_turn[player_id] += 1
-
-	#if card_manager.is_plant_extra:
-		#card_manager.is_plant_extra = false
 
 	is_token_selected = false
 	unhighlight_all_token_placements()
@@ -1007,11 +1095,11 @@ func reset_turn_token_counters(player_id: int):
 		sigil_manager.is_sigil_c = false
 
 	# Reset max tokens per turn to default
-	max_tokens_per_turn = 2
+	#max_tokens_per_turn = 2
 
 	# Only sync the basic token planting state
 	if multiplayer.is_server():
-		rpc("sync_token_planting_state", player_id, 0, true, false, 2)
+		rpc("sync_token_planting_state", player_id, 0, true, false)
 
 	# Update UI to reflect new state
 	update_token_ui()
@@ -1555,21 +1643,20 @@ func update_token_ui_remote():
 	update_token_ui()
 
 @rpc("any_peer", "call_local")
-func sync_token_planting_state(player_id: int, tokens_planted: int, can_place_sigil: bool, can_place_biome: bool, max_tokens: int):
+func sync_token_planting_state(player_id: int, tokens_planted: int, can_place_sigil: bool, can_place_biome: bool):
 	# Only update for the current player
 	if player_id == multiplayer.get_unique_id():
 		tokens_planted_this_turn[player_id] = tokens_planted
 		can_plant_on_sigil = can_place_sigil
 		can_plant_on_biome = can_place_biome
-		max_tokens_per_turn = max_tokens
+		#max_tokens_per_turn = max_tokens
 
 		# Update UI immediately
 		update_token_ui()
 
 		print("Synced token planting state: tokens_planted=", tokens_planted,
 			  ", can_plant_on_sigil=", can_place_sigil,
-			  ", can_plant_on_biome=", can_place_biome,
-			  ", max_tokens_per_turn=", max_tokens)
+			  ", can_plant_on_biome=", can_place_biome)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Network Synchronization
@@ -1716,7 +1803,7 @@ func update_token_ui():
 	# Update the button text with the local player's token count
 	token_button.text = "Tokens: " + str(token_count)
 
-	var max_tokens_reached = tokens_planted_this_turn.get(player_id, 0) >= max_tokens_per_turn
+	#var max_tokens_reached = tokens_planted_this_turn.get(player_id, 0) >= max_tokens_per_turn
 
 	token_button.visible = true
 
@@ -1727,7 +1814,8 @@ func update_token_ui():
 	
 	# The button is disabled if it's not your turn, you have no tokens, 
 	# you've reached your max tokens for the turn, OR you've already placed your sigil token.
-	token_button.disabled = !is_my_turn or token_count <= 0 or max_tokens_reached or sigil_has_been_placed
+	var max_token_round_0 = turn_phase_manager.count_plant
+	token_button.disabled = !is_my_turn or token_count <= 0 or sigil_has_been_placed or max_token_round_0 >= 2
 
 	if card_manager.is_plant_extra:
 		token_button.disabled = false
@@ -1736,7 +1824,34 @@ func update_token_ui():
 		token_button.modulate = Color(1.2, 1.2, 0.8, 1)
 	else:
 		token_button.modulate = Color(1, 1, 1, 1)
+	
+	var token_texture_node = get_parent().get_node_or_null("RightUI/TokenTexture") 
 
+	# This assumes you have a TextureRect or TextureButton node named "TokenTexture"
+	# located at the path "../RightUI/TokenTexture" relative to the TokenManager node.
+	if token_texture_node:
+		# The get_player_color_index function returns the player's permanent 0-based index.
+		var player_index = game.get_player_color_index(player_id)
+		# Construct the path to the texture file (e.g., token_player_1.png for index 0)
+		var texture_path = "res://assets/ui/token/token_player_%d.png" % (player_index)
+		
+		# Load the texture and apply it
+		var new_texture = load(texture_path)
+		if new_texture:
+			# The property to set depends on the node type (TextureRect vs TextureButton)
+			if "texture" in token_texture_node:
+				token_texture_node.texture = new_texture
+			elif "texture_normal" in token_texture_node:
+				token_texture_node.texture_normal = new_texture
+
+@rpc("any_peer", "call_local")
+func reset_hidden_placements():
+	hidden_placement_ids.clear()
+	# Also ensure all placements are visually unblocked
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if placement.is_blocked_by_elemental:
+			placement.is_blocked_by_elemental = false
+			placement.set_highlight(false) # Resets the highlight state
 
 func save_player_token_count(player_id: int):
 	var tokens = get_player_tokens(player_id)
@@ -1903,7 +2018,9 @@ func hide_placements_by_id(ids_to_hide: Array, biome_type: int):
 	for placement in placements_node.get_children():
 		# Only hide if the biome matches and the ID is in the list for that biome
 		if placement.accepted_biome == biome_type and placement.place_id in hidden_placement_ids[biome_type]:
-			placement.hide()
+			print("placement place id : ", placement.place_id)
+			placement.is_blocked_by_elemental = true
+			placement.set_highlight(false)
 
 
 @rpc("any_peer", "call_local")

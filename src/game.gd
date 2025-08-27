@@ -21,6 +21,7 @@ extends Node
 @onready var soil_star_actions = $SoilStarActions
 @onready var player_uis = $PlayerUIs
 
+@onready var token_texture = $RightUI/TokenTexture
 @onready var token_button = $RightUI/TokenButton
 @onready var end_turn_button = $RightUI/EndTurnButton
 @onready var end_phase_button = $RightUI/EndPhaseButton
@@ -74,7 +75,7 @@ func start_game():
 		var table_node = $Deck/Table
 		
 		# Initialize the deck with a random seed
-		table_node.initialize_deck_with_seed(randi())
+		table_node.initialize_deck()
 		
 		if network_manager.multiplayer.get_peers().size() > 0:
 			for peer_id in network_manager.multiplayer.get_peers():
@@ -86,7 +87,6 @@ func start_game():
 # ---  	Color Management 	  ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-## NEW HELPER FUNCTION
 ## Returns the permanent color index for a player based on their initial join order.
 func get_player_color_index(player_id: int) -> int:
 	if initial_player_order.is_empty():

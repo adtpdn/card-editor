@@ -1,0 +1,17 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://c8qwuqei6xy6r"]
+
+[ext_resource type="Shader" uid="uid://begigej15n8jj" path="res://scenes/token/circle_effect.gdshader" id="1_r2tb8"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_r2tb8")
+shader_parameter/aoe_color = Color(0, 0.133333, 1, 0.784314)
+shader_parameter/fill_value = 1.0
+shader_parameter/solid_radius = 0.49
+shader_parameter/solid_width = 0.01
+shader_parameter/dashed_radius = 0.48
+shader_parameter/dashed_border_width = 0.02
+shader_parameter/dash_length = 0.06
+shader_parameter/dash_gap = 0.05
+shader_parameter/speed = 0.4
+shader_parameter/dashed_border_color = Color(0, 0.133333, 1, 0.705882)

@@ -21,6 +21,7 @@ enum Phase {
 @onready var player_turn = $"../PlayerTurn"
 @onready var status_phase = $"../Status_Phase"
 @onready var notification = $"../Notification"
+@onready var soil_star_actions = $"../SoilStarActions"
 
 
 
@@ -174,7 +175,7 @@ func enter_current_phase():
 				end_phase_button.disabled = true
 				end_turn_button.disabled = true
 				return
-	
+	## NEED TO DO THE PLANT_SIGIL_AND CARD PHASE AFTER use extra token
 	# Round 1 - 8
 	match current_phase:
 		Phase.PLANT_BIOME:
@@ -220,10 +221,26 @@ func exit_current_phase():
 				sigil_manager.is_sigil_c = false
 
 func highlight_marker_mesh():
-	#print("highlight marker mesh")
+	# Get the ID of the player whose turn it currently is.
+	var current_player_id = game_state_manager.get_current_player_id()
+	if current_player_id == -1: return # Exit if there is no active player
+
 	for token in tokens.get_children():
-		if sigil_manager.check_for_sigil_a_pattern(token) or sigil_manager.check_for_sigil_b_pattern(token) or sigil_manager.check_for_sigil_c_pattern(token):
+		var is_my_activatable_token = false
+		# Check that the token belongs to the current player, is an energy token, and is not blighted.
+		if token.owner_id == current_player_id and token.is_energy and not token.is_blighted:
+			# Also verify that there is enough mana in the token's biome to activate a sigil.
+			if sigil_manager.check_mana_available(token.biome_type):
+				# Finally, check if the token can form any of the valid sigil patterns.
+				if sigil_manager.check_for_sigil_a_pattern(token) or sigil_manager.check_for_sigil_b_pattern(token) or sigil_manager.check_for_sigil_c_pattern(token):
+					is_my_activatable_token = true
+		
+		# Only show the marker mesh if all conditions are met for the current player's token.
+		if is_my_activatable_token:
 			token.marker_mesh.show()
+		else:
+			# Ensure all other tokens are not highlighted.
+			token.marker_mesh.hide()
 
 func unhighlight_marker_mesh():
 	#print("unhighlight marker mesh")
@@ -559,16 +576,18 @@ func _on_token_placed(player_id, biome, location):
 	match current_phase:
 		Phase.PLANT_BIOME:
 			# In this phase, we only care about biome placements (place_id == -1).
-			if placement.place_id == -1:
+			print('soil_star_actions.is_playing_extra_token_from_soil_star : ', soil_star_actions.is_playing_extra_token_from_soil_star)
+			if placement.place_id == -1 and not soil_star_actions.is_playing_extra_token_from_soil_star:
 				print("TurnPhaseManager: Biome placement registered, advancing phase.")
 				completed_phases[Phase.PLANT_BIOME] = true
 				call_deferred("advance_to_next_phase")
 				if card_manager.is_plant_extra:
 					card_manager.rpc("sync_plant_extra_state", false)
+			
 
 		Phase.PLANT_SIGIL_AND_CARD:
 			# In this phase, we only care about sigil placements (place_id != -1).
-			if placement.place_id != -1:
+			if placement.place_id != -1 and not soil_star_actions.is_playing_extra_token_from_soil_star:
 				print("TurnPhaseManager: Sigil placement registered.")
 				# Check if the sigil part of the turn has already been fulfilled.
 				print('card manager is plant extra : ', card_manager.is_plant_extra)

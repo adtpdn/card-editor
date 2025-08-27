@@ -11,6 +11,7 @@ var biome_type: BiomeType
 @onready var marker_mesh = $MarkerMesh
 @onready var placement_indicator: MeshInstance3D = $PlacementIndicator
 
+
 var player_color_index: int = -1
 var owner_id: int = -1
 var token_type: int = 0

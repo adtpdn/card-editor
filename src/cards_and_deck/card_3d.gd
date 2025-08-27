@@ -35,6 +35,33 @@ var hover_tween: Tween
 
 enum PileType { NONE, ACTION, ELEMENTAL }
 
+
+# Dictionary to hold the notification text for each elemental card
+const ELEMENTAL_NOTIFICATION_TEXT = {
+	"BLUE": {
+		0: "Cannot use Sigil A pattern.",
+		1: "Cannot use Sigil B pattern.",
+		2: "Cannot use Sigil C pattern.",
+		3: "Cannot place token energy on blighted Sigil column.",
+		4: "Cannot place token energy on blighted Sigil column.",
+		5: "Cannot place token energy on blighted Sigil column.",
+		6: "Mana cannot be converted to points but remains in Mana slot.",
+		7: "Consumes 2 Mana to activate Sigil Magic pattern.",
+		8: "Mana amount depends on blighted tokens in Biome."
+	},
+	"RED": {
+		0: "Requires at least 1 blight token in a Biome, determined by dominance; if tied, from last player in reverse order.",
+		1: "Requires at least 2 blight tokens in a Biome, determined by dominance; if tied, from last player in reverse order.",
+		2: "Maximum 4 tokens in a Biome; excess tokens blighted from dominant player, or if tied, from last player in reverse order.",
+		3: "Maximum 5 tokens in a Biome; excess tokens blighted from dominant player, or if tied, from last player in reverse order.",
+		4: "Blighted tokens dominate the Biome.",
+		5: "1 point counts as ½ point.",
+		6: "Dominant player in a Biome gains a card instead of a soil star.",
+		7: "Cannot plant tokens in a Biome.",
+		8: "Fewer tokens in a Biome dominate it."
+	}
+}
+
 func disable_collision():
 	$StaticBody3D/CollisionShape3D.disabled = true
 	
@@ -52,6 +79,13 @@ func set_hovered():
 	hover_tween.set_ease(Tween.EASE_IN)
 	_tween_card_scale(hover_scale_factor)
 	_tween_mesh_position(hover_pos_move, move_tween_duration)
+
+func set_notification_elemental_hover(card):
+	var game = get_node("/root/Game")
+	var card_type_str = "RED" if card.elemental_type == CardResource.ElementalType.RED else "BLUE"
+	if ELEMENTAL_NOTIFICATION_TEXT.has(card_type_str) and ELEMENTAL_NOTIFICATION_TEXT[card_type_str].has(card.card_id):
+		var notification_text = ELEMENTAL_NOTIFICATION_TEXT[card_type_str][card.card_id]
+		game.notification.show_instruction_label(notification_text)
 
 
 func remove_hovered():

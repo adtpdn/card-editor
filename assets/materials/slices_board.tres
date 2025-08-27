@@ -1,0 +1,11 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://cgipha7hyahu3"]
+
+[ext_resource type="Shader" uid="uid://csjivf04l3ybc" path="res://assets/materials/shaders/slices_board.gdshader" id="1_s1y6q"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_s1y6q")
+shader_parameter/tint_color = Color(0.470588, 1, 0.913725, 0.282353)
+shader_parameter/frequency = 1.0
+shader_parameter/max_opacity = 1.0
+shader_parameter/min_opacity = 0.0

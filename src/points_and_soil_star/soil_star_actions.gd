@@ -27,13 +27,14 @@ var is_swapping_planted_elementals: bool = false
 
 # ----------------------------------------------------------------
 var is_panel_status : bool = false   # true when the panel is open
+var is_action_buy_card : bool = false 
 
 func _ready():
 	# Initialize the dictionary here, after @onready vars are loaded.
 	button_rules = {
 		play_card_button         : 1,
 		play_elemental_face_down : 1,
-		play_elemental_face_up   : 1,
+		play_elemental_face_up   : 2,
 		buy_card_button          : 2,
 		play_extra_token_button  : 3,
 		play_sigil_magic_button  : 3,
@@ -63,7 +64,7 @@ func _show_hide_actions_panel():
 	_show_hide_right_ui_panel()
 
 func _show_hide_right_ui_panel():
-	for n in [game.token_button, game.end_phase_button, game.end_turn_button]:
+	for n in [game.token_button, game.end_phase_button, game.end_turn_button, game.token_texture]:
 		if n:
 			n.visible = !is_panel_status
 
@@ -80,6 +81,39 @@ func apply_button_rules():
 	var stars := _get_current_soil_star()
 	for btn in button_rules.keys():
 		btn.disabled = stars < button_rules[btn]
+	
+	plant_extra_button_rule()
+	elementals_face_swap_button()
+
+func elementals_face_swap_button():
+	var hand = game.deck.hand
+
+	if hand.cards.is_empty():
+		play_elemental_face_down.disabled = true
+		play_elemental_face_up.disabled = true
+		return
+
+	# Checking if there's elemental card in hand 
+	var stars := _get_current_soil_star()
+	for card in hand.get_children():
+		if card is FaceCard3D:
+			if card.card_type == CardResource.CardType.ELEMENTAL and stars < 2:
+				play_elemental_face_down.disabled = false
+				break
+			elif card.card_type == CardResource.CardType.ELEMENTAL and stars < 3:
+				play_elemental_face_down.disabled = false
+				play_elemental_face_up.disabled = false
+				break
+			else:
+				play_elemental_face_down.disabled = true
+				play_elemental_face_up.disabled = true
+
+func plant_extra_button_rule():
+	var token_manager = game.token_manager
+	var player_id = multiplayer.get_unique_id()
+	var tokens_player = token_manager.get_player_tokens(player_id) # Array
+	if tokens_player.size() == 0:
+		play_extra_token_button.disabled = true
 
 func _get_current_soil_star() -> int:
 	var player_ui := _get_active_player_ui()
@@ -120,6 +154,9 @@ func _connect_to_soil_star_signal():
 		# Connect the signal if it's not already connected.
 		if soil_star_node and not soil_star_node.is_connected("soil_star_changed", _on_soil_star_changed):
 			soil_star_node.soil_star_changed.connect(_on_soil_star_changed)
+
+func _check_elements_button():
+	apply_button_rules()
 
 
 # ----------------------------------------------------------------
@@ -227,7 +264,7 @@ func _on_PlayElementalFaceUpButton_pressed():
 	# 3. Deduct cost, set the flag, and instruct the player
 	soil_star_node.decrease_soil_star(cost)
 	is_swapping_elemental_face_up = true
-	game.card_manager.hand_card_for_swap = null # Reset any previously selected card
+	#game.card_manager.hand_card_for_swap = null # Reset any previously selected card
 	game.notification.show_instruction_label("Select an elemental from your hand.")
 
 	# 4. Hide the actions panel to allow board interaction
@@ -256,12 +293,12 @@ func _on_BuyCardButton_pressed():
 		game.notification.show_instruction_label("Not enough Soil Stars!")
 		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
 		return
-	turn_phase_manager.sigil_placed = false
-	
+	#turn_phase_manager.sigil_placed = false
+	is_action_buy_card = true
 	# This now calls the same logic as clicking the deck
 	game.deck.table._on_action_deck_pressed()
-	
-	turn_phase_manager.sigil_placed = true
+
+	# turn_phase_manager.sigil_placed = true
 	# 3. All checks passed, perform the action
 	soil_star_node.decrease_soil_star(cost)
 
@@ -270,6 +307,12 @@ func _on_BuyCardButton_pressed():
 
 func _on_PlayExtraTokenButton_pressed():          
 	print("play_extra_token_button pressed")
+
+	var token_manager = game.token_manager
+	var player_id = multiplayer.get_unique_id()
+	var tokens_player = token_manager.get_player_tokens(player_id) # Array
+	if tokens_player.size() == 0:
+		return
 
 	# 1. Check cost
 	var cost = button_rules[play_extra_token_button]
@@ -285,7 +328,6 @@ func _on_PlayExtraTokenButton_pressed():
 		return
 
 	# 2. Check if player has tokens
-	var player_id = multiplayer.get_unique_id()
 	if game.token_manager.get_player_tokens(player_id).is_empty():
 		game.notification.show_instruction_label("You have no tokens left to play!")
 		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)

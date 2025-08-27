@@ -40,6 +40,35 @@ const ELEMENTAL_NOTIFICATION_TEXT = {
 	}
 }
 
+# This function is called at the start of a new round to re-apply the effects
+# of all currently face-up elemental cards.
+func activate_all_face_up_elementals():
+	if not multiplayer.is_server():
+		return
+
+	print("--- Re-activating all face-up elemental effects for the new round ---")
+	
+	# Reset all previously hidden placements before re-evaluating effects.
+	if is_instance_valid(token_manager):
+		token_manager.rpc("reset_hidden_placements")
+	
+	var drag_controller = get_node_or_null("/root/Game/Deck/Table/DragController")
+	if not drag_controller:
+		printerr("ElementalsManager: Could not find DragController node.")
+		return
+	
+	# Loop through all 8 elemental slices
+	for i in range(1, 9):
+		var slice_name = "elemental_slice_" + str(i)
+		var slice_node = drag_controller.get_node_or_null(slice_name)
+		
+		if slice_node and not slice_node.cards.is_empty():
+			var card = slice_node.cards[0]
+			# Check if the card is a valid elemental and is face-up
+			if is_instance_valid(card) and card is FaceCard3D and not card.face_down:
+				print("Re-activating effect for card '%s' in slice '%s'" % [card.card_name, slice_name])
+				# Call the existing execute function to re-apply its effect
+				execute_elemental_effect(card.card_id, card.elemental_type, card)
 
 func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, card_node: FaceCard3D):
 	# This function must only be executed on the server.
@@ -79,6 +108,32 @@ func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, c
 		
 		# Sync all blue elemental states after any blue elemental is played
 		sync_disabled_states.rpc(sigil_a_disabled_biome, sigil_b_disabled_biome, sigil_c_disabled_biome, point_conversion_disabled_biome, increased_sigil_cost_biome)
+
+# FOCUS ON BLUE ELEMENTAL WITH IDS [ 3,4,5 ] Sigil placement banned
+func execute_elemental_blue_sigil_placement():
+	if not multiplayer.is_server():
+		return
+
+	print("--- Re-activating blue elemental face-up elemental effects for the new round ---")
+	
+	var drag_controller = get_node_or_null("/root/Game/Deck/Table/DragController")
+	if not drag_controller:
+		printerr("ElementalsManager: Could not find DragController node.")
+		return
+	
+	var blue_elemental_ids = [3,4,5]
+	# Loop through all 8 elemental slices
+	for i in range(1, 9):
+		var slice_name = "elemental_slice_" + str(i)
+		var slice_node = drag_controller.get_node_or_null(slice_name)
+		
+		if slice_node and not slice_node.cards.is_empty():
+			var card = slice_node.cards[0]
+			# Check if the card is a valid elemental and is face-up
+			if is_instance_valid(card) and card is FaceCard3D and not card.face_down and card.card_id in blue_elemental_ids:
+				print("Re-activating effect for card '%s' in slice '%s'" % [card.card_name, slice_name])
+				# Call the existing execute function to re-apply its effect
+				execute_elemental_effect(card.card_id, card.elemental_type, card)
 
 # --- Elemental Red Effect Implementations ---
 
@@ -210,16 +265,19 @@ func _elemental_blue_03_effect(biome_index: int):
 # ElementalBlue04 (ID 3) - Cannot place token energy on specified blighted Sigil columns.
 func _elemental_blue_04_effect(biome_index: int):
 	print("Elemental Blue 04: Remove Energy on specified Sigil columns.")
+	print('biome index : ', biome_index)
 	_disable_sigil_columns([3, 5], biome_index)
 
 # ElementalBlue05 (ID 4) - Cannot place token energy on specified blighted Sigil columns.
 func _elemental_blue_05_effect(biome_index: int):
 	print("Elemental Blue 05: Remove Energy on specified Sigil columns.")
+	print('biome index : ', biome_index)
 	_disable_sigil_columns([1, 4], biome_index)
 
 # ElementalBlue06 (ID 5) - Cannot place token energy on specified blighted Sigil columns.
 func _elemental_blue_06_effect(biome_index: int):
 	print("Elemental Blue 06: Remove Energy on specified Sigil columns.")
+	print('biome index : ', biome_index)
 	_disable_sigil_columns([4, 5], biome_index)
 
 # ElementalBlue07 (ID 6) - Mana cannot be converted to points.

@@ -20,6 +20,7 @@ signal sigil_mode_changed(enabled)
 @onready var tokens = $"../Tokens"
 @onready var notification = $"../Notification"
 @onready var soil_star_actions = $"../SoilStarActions"
+@onready var slices_board = get_node("/root/Game/SlicesBoard")
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Sigil Pattern Constants
@@ -90,7 +91,7 @@ func handle_sigil_input(position: Vector2):
 	# Safely get the main node that was clicked. The structure is usually CollisionShape3D -> StaticBody3D -> Main Node.
 	var clicked_node = result.collider.get_parent().get_parent()
 
-	# CRITICAL FIX: Verify that the clicked object is actually a Token3D.
+	# FIX: Verify that the clicked object is actually a Token3D.
 	# If it's a Card, the floor, or anything else, we ignore it in this function.
 	if not is_instance_valid(clicked_node) or not clicked_node is Token3D:
 		# This prevents the crash by stopping execution if we click a card or other object.
@@ -98,7 +99,6 @@ func handle_sigil_input(position: Vector2):
 
 	# If we've reached this point, we know 'clicked_node' is a valid Token3D.
 	var found_token = clicked_node
-	# --- REFACTOR END ---
 
 	# Now we can safely use the original logic because we know 'found_token' is the correct type.
 	if !is_sigil_mode and !card_manager.is_take_off_mode and !card_manager.is_unblight_mode and !card_manager.is_refresh_energy_mode and !card_manager.is_swap_energy_mode and !card_manager.is_plant_extra:
@@ -107,27 +107,26 @@ func handle_sigil_input(position: Vector2):
 			_on_token_clicked(found_token)
 			return true  # Input was handled
 
-	elif is_sigil_mode:
-		# This is the "active" state, where we are targeting another token to apply a sigil effect.
-		var adjacent_biomes = []
-		var energy_token_biome = selected_energy_token.biome_type
-		if energy_token_biome == BiomeType.FOREST || energy_token_biome == BiomeType.MOUNTAIN:
-			adjacent_biomes = [BiomeType.WATER, BiomeType.DESERT, energy_token_biome]
-		else: # WATER or DESERT
-			adjacent_biomes = [BiomeType.FOREST, BiomeType.MOUNTAIN, energy_token_biome]
-		
-		if is_sigil_a and found_token.biome_type in adjacent_biomes and found_token.owner_id != selected_energy_token.owner_id:
-			print("sigil a")
-			perform_push_pull(selected_energy_token, found_token, found_token.biome_type == selected_energy_token.biome_type)
-			#is_sigil_a = false
-		elif is_sigil_b and found_token.biome_type in adjacent_biomes and found_token.owner_id == selected_energy_token.owner_id:
-			perform_push_pull(selected_energy_token, found_token, found_token.biome_type == selected_energy_token.biome_type)
-			#is_sigil_b = false
-		elif is_sigil_c and found_token.biome_type == energy_token_biome:
-			perform_blight_unblight(selected_energy_token, found_token)
-			#is_sigil_c = false
-		found_token = null
-		return true # Input was handled
+	#elif is_sigil_mode:
+		## This is the "active" state, where we are targeting another token to apply a sigil effect.
+		#var adjacent_biomes = []
+		#var energy_token_biome = selected_energy_token.biome_type
+		#if energy_token_biome == BiomeType.FOREST || energy_token_biome == BiomeType.MOUNTAIN:
+			#adjacent_biomes = [BiomeType.WATER, BiomeType.DESERT, energy_token_biome]
+		#else: # WATER or DESERT
+			#adjacent_biomes = [BiomeType.FOREST, BiomeType.MOUNTAIN, energy_token_biome]
+		#
+		#if is_sigil_a and found_token.biome_type in adjacent_biomes and found_token.owner_id != selected_energy_token.owner_id:
+			#perform_push_pull(selected_energy_token, found_token, found_token.biome_type == selected_energy_token.biome_type)
+			#
+		#elif is_sigil_b and found_token.biome_type in adjacent_biomes and found_token.owner_id == selected_energy_token.owner_id:
+			#perform_push_pull(selected_energy_token, found_token, found_token.biome_type == selected_energy_token.biome_type)
+			#
+		#elif is_sigil_c and found_token.biome_type == energy_token_biome:
+			#perform_blight_unblight(selected_energy_token, found_token)
+			#
+		#found_token = null
+		#return true # Input was handled
 
 	return false # No relevant action was taken
 
@@ -262,7 +261,7 @@ func update_sigil_button_states(token):
 		if added_items == 0:
 			var dialog = AcceptDialog.new()
 			dialog.title = "No Sigil Patterns Available"
-			dialog.dialog_text = "No valid sigil patterns can be formed or not enough mana."
+			dialog.dialog_text = "No valid sigil or target token can be formed, not enough mana."
 			game.add_child(dialog)
 			dialog.popup_centered()
 			return
@@ -282,20 +281,6 @@ func update_sigil_button_states(token):
 		var mouse_pos = get_viewport().get_mouse_position()
 		popup.position = mouse_pos
 		popup.popup()
-
-
-#func disable_all_sigil_buttons():
-	#var sigil_a_button = game.sigil_a_button
-	#var sigil_b_button = game.sigil_b_button
-	#var sigil_c_button = game.sigil_c_button
-	#
-	#sigil_a_button.disabled = true
-	#sigil_b_button.disabled = true
-	#sigil_c_button.disabled = true
-	#
-	#sigil_a_button.modulate = Color(1, 1, 1, 0.5)
-	#sigil_b_button.modulate = Color(1, 1, 1, 0.5)
-	#sigil_c_button.modulate = Color(1, 1, 1, 0.5)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Sigil Pattern Detection
@@ -459,22 +444,34 @@ func check_for_sigil_a_pattern(token) -> bool:
 	var elementals_manager = get_node("/root/Game/ElementalsManager")
 	if elementals_manager and token.biome_type == elementals_manager.sigil_a_disabled_biome:
 		print("Sigil A is disabled for this biome by a blue elemental effect.")
-		# --- MODIFICATION START ---
 		notification.show_instruction_label("Cannot use Sigil A pattern.")
-		# --- MODIFICATION END ---
 		get_tree().create_timer(2.0).timeout.connect(notification.hide_panel)
 		return false # Exit the function early if the effect is active.
-	
-	# Verify it's an energy token
-	if !token.is_energy:
-		print("Not an energy token")
-		return false
-	
+
 	# But the selected token itself shouldn't be blighted
-	if token.is_blighted:
+	if token.is_blighted or !token.is_energy:
 		print("Selected token is blighted")
 		return false
-		
+	
+	# Checking if there's target for move token
+	var tokens_for_sigil_a = []
+	var energy_token_biome = token.biome_type
+	var adjacent_biomes = []
+	if energy_token_biome == BiomeType.FOREST || energy_token_biome == BiomeType.MOUNTAIN:
+		adjacent_biomes = [BiomeType.WATER, BiomeType.DESERT, energy_token_biome]
+	else: # WATER or DESERT
+		adjacent_biomes = [BiomeType.FOREST, BiomeType.MOUNTAIN, energy_token_biome]
+	
+	for _token in get_parent().get_node("Tokens").get_children():
+		if not _token.is_energy:
+			if _token.biome_type == energy_token_biome and _token.owner_id != token.owner_id:
+				tokens_for_sigil_a.append(_token)
+			elif _token.biome_type in adjacent_biomes and _token.owner_id != token.owner_id:
+				tokens_for_sigil_a.append(_token)
+	
+	if tokens_for_sigil_a.is_empty():
+		return false
+	
 	var biome_type = token.biome_type
 	print("Checking for Sigil A pattern in biome ", biome_type)
 	
@@ -572,6 +569,25 @@ func check_for_sigil_b_pattern(token) -> bool:
 	# But the selected token itself shouldn't be blighted
 	if token.is_blighted:
 		print("Selected token is blighted")
+		return false
+	
+	# Checking if there's target for move token
+	var tokens_for_sigil_a = []
+	var energy_token_biome = token.biome_type
+	var adjacent_biomes = []
+	if energy_token_biome == BiomeType.FOREST || energy_token_biome == BiomeType.MOUNTAIN:
+		adjacent_biomes = [BiomeType.WATER, BiomeType.DESERT, energy_token_biome]
+	else: # WATER or DESERT
+		adjacent_biomes = [BiomeType.FOREST, BiomeType.MOUNTAIN, energy_token_biome]
+	
+	for _token in get_parent().get_node("Tokens").get_children():
+		if not _token.is_energy:
+			if _token.biome_type == energy_token_biome and _token.owner_id == token.owner_id:
+				tokens_for_sigil_a.append(_token)
+			elif _token.biome_type in adjacent_biomes and _token.owner_id == token.owner_id:
+				tokens_for_sigil_a.append(_token)
+	
+	if tokens_for_sigil_a.is_empty():
 		return false
 		
 	var biome_type = token.biome_type
@@ -671,7 +687,20 @@ func check_for_sigil_c_pattern(token) -> bool:
 	if token.is_blighted:
 		print("Selected token is blighted")
 		return false
-		
+	
+	# Checking token for activate the sigil c
+	var tokens_for_sigil_c = []
+	for _token in get_parent().get_node("Tokens").get_children():
+		if not _token.is_energy:
+			if _token.biome_type == token.biome_type and _token.owner_id == token.owner_id and _token.is_blighted:
+				tokens_for_sigil_c.append(_token)
+			elif _token.biome_type == token.biome_type and _token.owner_id != token.owner_id and not _token.is_blighted:
+				tokens_for_sigil_c.append(_token)
+	
+	print("tokens_for sigil c : ", tokens_for_sigil_c)
+	if tokens_for_sigil_c.is_empty():
+		return false
+	
 	var biome_type = token.biome_type
 	print("Checking for Sigil C pattern in biome ", biome_type)
 	
@@ -946,6 +975,7 @@ func show_pull_push_ui(energy_token, is_other_player: bool):
 			if token.owner_id == energy_token.owner_id and !token.is_energy and token.biome_type in adjacent_biomes:
 				token.outerglow.show()
 				highlighted_count += 1
+
 	
 	print("Highlighted ", highlighted_count, " tokens for selection")
 	print("===========================\n")
@@ -1397,10 +1427,9 @@ func highlight_activatable_sigil_tokens(player_id: int):
 				   check_for_sigil_c_pattern(token):
 					is_my_activatable_token = true
 		
-		## This is gonna show other player marker_mesh 
-		# Condition 2: Is it any other player's non-blighted energy token?
-		var is_other_valid_token = token.owner_id != player_id and token.is_energy and not token.is_blighted
-
-		# Highlight if either condition is met
-		if is_my_activatable_token or is_other_valid_token:
+		# Highlight the token ONLY if it meets the condition for the active player.
+		if is_my_activatable_token:
 			token.marker_mesh.show()
+		else:
+			# Explicitly hide the marker for all other tokens to ensure a clean state.
+			token.marker_mesh.hide()
