@@ -13,7 +13,9 @@ signal server_created
 @onready var ui_manager = $"../UIManager"
 @onready var point_counter = $"../PointCounter"
 @onready var deck = $"../Deck"
-
+@onready var username = get_parent().get_node("RightUI/Menu/Username")
+@onready var host_button = get_parent().get_node("RightUI/Menu/HostButton")
+@onready var join_button = get_parent().get_node("RightUI/Menu/JoinButton")
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Multiplayer Dependencies
@@ -92,6 +94,11 @@ func _ready():
 	# Set up network discovery if on mobile
 	if is_mobile:
 		setup_network_discovery()
+	
+	# Connect the text_changed signal to a new function
+	username.text_changed.connect(_on_username_text_changed)
+	# Call it once to set the initial disabled state of the buttons
+	_on_username_text_changed(username.text)
 
 func initialize():
 	# Initial setup for broadcasts and timers
@@ -107,6 +114,11 @@ func initialize():
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 func _on_host_pressed():
+	
+	if username.text.strip_edges().is_empty():
+		print("Username cannot be empty.")
+		return
+	
 	is_host = true
 	var connect_status = get_parent().get_node("RightUI/Menu/ConnectStatus")
 	
@@ -138,6 +150,9 @@ func _on_host_pressed():
 		multiplayer.multiplayer_peer = multiplayer_peer
 		var host_id = multiplayer.get_unique_id()
 		
+		# ADD this line to store the host's name
+		game.player_names[host_id] = username.text
+		
 		game.deck.table.setup_decks_for_new_game()
 		
 		# Initialize host data
@@ -165,6 +180,10 @@ func _on_host_pressed():
 			connect_status.text = "Failed to create server: " + str(error)
 
 func _on_join_pressed():
+	if username.text.strip_edges().is_empty():
+		print("Username cannot be empty.")
+		return
+	
 	is_host = false
 	connect_retries = 0
 	
@@ -218,6 +237,8 @@ func attempt_connection(target_ip: String):
 			var local_id = multiplayer.get_unique_id()
 			if local_id > 0:
 				print("Client requesting initial game state and cards")
+				# ADD this RPC call to register the player's name with the server
+				rpc_id(1, "server_register_player_name", local_id, username.text)
 				game.rpc_id(1, "request_game_state_sync", local_id)
 		)
 		
@@ -291,6 +312,7 @@ func _on_peer_connected(new_peer_id):
 		#game.rpc_id(new_peer_id, "initialize_client_starting_hand")
 		table.rpc_id(1, "request_server_draw_card", new_peer_id, false)
 		table.server_draw_card(new_peer_id,false)
+		pass
 
 
 func _on_peer_disconnected(peer_id):
@@ -308,6 +330,22 @@ func _on_peer_disconnected(peer_id):
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---    Network Discovery     ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+# this new function to validate username input in real-time
+func _on_username_text_changed(new_text: String):
+	var is_empty = new_text.strip_edges().is_empty()
+	host_button.disabled = is_empty
+	join_button.disabled = is_empty
+
+# this new RPC function for the server to handle new player names
+@rpc("any_peer")
+func server_register_player_name(player_id: int, player_name: String):
+	if not multiplayer.is_server(): return
+
+	print("Registering player %d with name: %s" % [player_id, player_name])
+	game.player_names[player_id] = player_name
+
+	# Broadcast the updated list of names to ALL players
+	game.rpc("sync_player_names", game.player_names)
 
 func setup_network_discovery():
 	if is_host:

@@ -50,12 +50,7 @@ func get_player_name_from_id(player_id):
 		return "You"
 	
 	# For other players, use their position in the player array if available
-	var player_index = game.players.find(player_id)
-	if player_index != -1:
-		#return "Player " + str(player_index + 1) # 
-		return "Player " + str(player_id)
-	else:
-		return "Player " + str(player_id)
+	return game.player_names.get(player_id, "Player " + str(player_id))
 
 func _check_for_turn_changes():
 	if !game_state_manager:

@@ -152,7 +152,7 @@ func update_player_list():
 		
 		for player_id in players:
 			var is_local = player_id == multiplayer.get_unique_id()
-			var player_name = "Player " + str(player_id) + (" (You)" if is_local else "")
+			var player_name = game.player_names.get(player_id, "Player " + str(player_id)) + (" (You)" if is_local else "")
 			
 			var color_rect = ColorRect.new()
 			color_rect.size = Vector2(20, 20)

@@ -12,7 +12,9 @@ extends Node
 @onready var sigil_manager = $SigilManager
 @onready var turn_phase_manager = $TurnPhaseManager
 @onready var score_manager = $ScoreManager
+
 #@onready var score_update_timer = $ScoreUpdateTimer
+@onready var username = $RightUI/Menu/Username
 @onready var point_counter = $PointCounter
 @onready var deck = $Deck
 @onready var token_placements = $TokenPlacements
@@ -20,6 +22,7 @@ extends Node
 @onready var notification = $Notification
 @onready var soil_star_actions = $SoilStarActions
 @onready var player_uis = $PlayerUIs
+@onready var player_turn = $PlayerTurn
 
 @onready var token_texture = $RightUI/TokenTexture
 @onready var token_button = $RightUI/TokenButton
@@ -35,6 +38,7 @@ var initial_player_order: Array = [] # NEW: This stores the PERMANENT JOIN ORDER
 var player_hands = {}
 var player_slots = [false, false, false, false] # Track occupied slots
 var max_players = 4 # Maximum players allowed
+var player_names = {}
 
 # Format: { player_id: BiomeType }
 var player_last_biome_placements = {}
@@ -112,6 +116,17 @@ func sync_player_list(updated_players: Array):
 	# After syncing the data, update the UI accordingly
 	if ui_manager:
 		ui_manager.update_player_list()
+
+@rpc("any_peer", "call_local", "reliable")
+func sync_player_names(names_from_server: Dictionary):
+	self.player_names = names_from_server
+	print("[%d] Player names synced: %s" % [multiplayer.get_unique_id(), str(self.player_names)])
+
+	# After syncing the data, update the UI accordingly
+	if ui_manager:
+		ui_manager.update_player_list()
+	if player_turn:
+		player_turn.update_turn_display()
 
 ## NEW RPC
 ## RPC to ensure all clients have the same permanent color order list.
