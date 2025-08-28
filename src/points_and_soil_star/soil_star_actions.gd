@@ -124,6 +124,22 @@ func plant_extra_button_rule():
 	if tokens_player.size() == 0:
 		play_extra_token_button.disabled = true
 
+# This function is called whenever the soil star count changes.
+func _on_soil_star_changed(new_count: int):
+	# If the panel is currently open and the star count changes,
+	# [cite_start]re-evaluate which buttons should be enabled. [cite: 539]
+	if is_panel_status:
+		apply_button_rules()
+
+# This helper ensures we are always connected to the active player's signal.
+func _connect_to_soil_star_signal():
+	var active_player_ui = _get_active_player_ui()
+	if active_player_ui:
+		var soil_star_node = active_player_ui.get_node_or_null("SoilStar")
+		# [cite_start]Connect the signal if it's not already connected. [cite: 541]
+		if soil_star_node and not soil_star_node.is_connected("soil_star_changed", Callable(self, "_on_soil_star_changed")):
+			soil_star_node.soil_star_changed.connect(Callable(self, "_on_soil_star_changed"))
+
 func _get_current_soil_star() -> int:
 	var player_ui := _get_active_player_ui()
 	if not player_ui:
@@ -144,25 +160,6 @@ func _get_active_player_ui() -> Control:
 			return child
 	printerr("No visible player UI found.")
 	return null
-
-# This function will be called whenever the soil star count changes.
-func _on_soil_star_changed(new_count: int):
-	# If the panel is currently open and the star count drops to 0, hide it.
-	if is_panel_status and new_count == 0:
-		_show_hide_actions_panel()
-	
-	# Also, re-evaluate which buttons should be enabled if the panel is open.
-	if is_panel_status:
-		apply_button_rules()
-
-# This helper ensures we are always connected to the active player's signal.
-func _connect_to_soil_star_signal():
-	var active_player_ui = _get_active_player_ui()
-	if active_player_ui:
-		var soil_star_node = active_player_ui.get_node_or_null("SoilStar")
-		# Connect the signal if it's not already connected.
-		if soil_star_node and not soil_star_node.is_connected("soil_star_changed", _on_soil_star_changed):
-			soil_star_node.soil_star_changed.connect(_on_soil_star_changed)
 
 func _check_elements_button():
 	apply_button_rules()

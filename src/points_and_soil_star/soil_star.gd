@@ -1,5 +1,6 @@
 extends Control
 
+signal soil_star_changed(new_count)
 
 @onready var game = get_node("/root/Game")
 @onready var soil_star_label = $HBoxContainer/SoilStarLabel
@@ -31,22 +32,54 @@ func _ready():
 			#rpc_id(1, "request_purchase_elemental_card", multiplayer.get_unique_id())
 
 
-func increase_soil_star(_count: int) -> void:
-	if current_soil_star + _count >= 5:
-		current_soil_star = 5
-		soil_star_label.text = str(current_soil_star)
-		return
-	
-	current_soil_star += _count
-	soil_star_label.text = str(current_soil_star)
-	soil_star_texture.material = setup_shader_material()
-	sync_soil_stars()
+# This function is now ONLY called by the server to increase stars for a player.
+# The domination_manager (server-only) will call this.
+func increase_soil_star(count: int) -> void:
+	if not multiplayer.is_server(): return
 
-func decrease_soil_star(_count: int) -> void:
-	current_soil_star -= _count
-	current_soil_star = max(0, current_soil_star)
+	var new_count = current_soil_star + count
+	# Clamp the value between 0 and 5
+	new_count = clampi(new_count, 0, 5)
+	
+	# The server calls the sync RPC on all clients (including itself)
+	# to inform them of the new authoritative value.
+	rpc("sync_star_count", new_count)
+
+# This is the public function that should be called when a player wants to spend stars.
+func decrease_soil_star(count: int) -> void:
+	# This function now handles the client/server logic.
+	if multiplayer.is_server():
+		# If we are the server, we process the change directly.
+		var new_count = current_soil_star - count
+		new_count = clampi(new_count, 0, 5)
+		rpc("sync_star_count", new_count)
+	else:
+		# If we are a client, we send a request to the server to do it for us.
+		var player_id = multiplayer.get_unique_id()
+		rpc_id(1, "request_server_decrease_stars", player_id, count)
+
+# SERVER-ONLY: This RPC is called by clients to request a star deduction.
+@rpc("any_peer")
+func request_server_decrease_stars(player_id: int, count: int):
+	if not multiplayer.is_server(): return
+	
+	# The server finds the correct SoilStar node for the player who made the request.
+	var player_ui_path = "/root/Game/PlayerUIs/Player_%d_UI" % player_id
+	var player_ui = get_node_or_null(player_ui_path)
+	if player_ui:
+		var soil_star_node = player_ui.get_node_or_null("SoilStar")
+		if soil_star_node:
+			# The server calls the node's internal logic to decrease and sync the value.
+			soil_star_node.decrease_soil_star(count)
+
+# This RPC is called by the server on ALL clients to set the final, correct star count.
+@rpc("any_peer", "call_local")
+func sync_star_count(new_count: int):
+	current_soil_star = new_count
 	soil_star_label.text = str(current_soil_star)
-	sync_soil_stars()
+	
+	# Emit the signal so the SoilStarActions panel can update its button states.
+	soil_star_changed.emit(new_count)
 
 func checking_available_soils_star(_used_soil_star: int) -> bool:
 	return current_soil_star >= _used_soil_star
@@ -72,7 +105,6 @@ func _on_soil_star_texture_pressed():
 	if current_soil_star == 0:
 		return
 	soil_star_actions._show_hide_actions_panel()
-	soil_star_actions.apply_button_rules()
 
 @rpc("any_peer")
 func request_purchase_elemental_card(player_id: int):

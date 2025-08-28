@@ -349,6 +349,11 @@ func next_turn():
 			print("Last player's turn ended. A full round is complete.")
 			print("--- Checking for biome domination ---")
 			await domination_manager.check_domination_for_elemental_flips()
+			# END OF THE ROUND 
+			if current_round >= 9:
+				await get_tree().create_timer(4.0).timeout
+				print("END GAME")
+				score_ui.rpc("show_scores")
 			await domination_manager.check_domination_for_soil_stars()
 			await reorder_players_after_round()
 			advance_to_next_round()
@@ -384,12 +389,6 @@ func next_turn():
 	if game.score_manager:
 		game.score_manager.update_and_sync_all_scores()
 	# ---------------------------------------------
-
-	# END OF THE ROUND 
-	if current_round >= 9:
-		await get_tree().create_timer(4.0).timeout
-		print("END GAME")
-		score_ui.rpc("show_scores")
 	
 	print("=== Next Turn Complete ===\n")
 
@@ -411,6 +410,9 @@ func _get_player_star_count(player_id: int) -> int:
 		return 0
 
 ## Calculates and sets the new player turn order after a round is complete.
+# card-editor/src/managers/game_state_manager.gd
+
+## Calculates and sets the new player turn order after a round is complete.
 func reorder_players_after_round():
 	if not multiplayer.is_server():
 		return
@@ -421,7 +423,7 @@ func reorder_players_after_round():
 		print("No players to reorder.")
 		return
 
-	# Step 1: Get star counts for all players and find the maximum
+	# Step 1: Get star counts for all players and find the maximum number of stars.
 	var player_stats = {}
 	var max_stars = -1
 	for player_id in old_player_order:
@@ -433,45 +435,61 @@ func reorder_players_after_round():
 	print("Player star counts: ", player_stats)
 	print("Maximum stars: ", max_stars)
 
-	# Step 2: Find all players who have the maximum star count
+	# Step 2: Find all players who are tied for the maximum star count.
 	var winners = []
-	if max_stars > 0: # Only reorder if at least one player has more than 0 stars
+	# Only reorder if at least one player has more than 0 stars.
+	if max_stars > 0: 
 		for player_id in player_stats:
 			if player_stats[player_id] == max_stars:
 				winners.append(player_id)
 	
 	print("Players with max stars (winners): ", winners)
 
-	# Step 3: Determine the new first player using the tie-breaker rule
+	# If the player who went first is in the winners list, we remove them
+	# so they cannot become the first player again in the next round.
+	if old_player_order.size() > 0:
+		var first_player_last_round = old_player_order[0]
+		if winners.has(first_player_last_round):
+			print("Excluding Player %d (first player of last round) from winning." % first_player_last_round)
+			winners.erase(first_player_last_round)
+			print("Remaining potential winners: ", winners)
+
+	# Step 3: Determine the new first player using your specified rules.
 	var new_first_player = -1
+	
+	# Case 1: No one earned stars. The last player from this round goes first next round.
 	if winners.is_empty():
-		# No one earned stars, so the last player goes first in the next round (rotation)
 		new_first_player = old_player_order.back()
+	
+	# Case 2: There is one clear winner with the most stars.
 	elif winners.size() == 1:
-		# Only one winner
 		new_first_player = winners[0]
+	
+	# Case 3 (TIE-BREAKER): Multiple players are tied for the most stars.
 	else:
-		# Tie-breaker: find the winner who was latest in the old turn order
+		# This finds the tied player who appeared EARLIEST in the turn order.
 		for i in range(old_player_order.size() - 1, -1, -1):
 			var player_id = old_player_order[i]
 			if winners.has(player_id):
 				new_first_player = player_id
 				break
 	
+	# This is a fallback, but it should not be reached if there are players.
 	if new_first_player == -1:
-		# This case should ideally not be reached if there are players, but as a fallback:
 		print("Could not determine a new first player. Keeping original order.")
 		return
 
 	print("New first player will be: ", new_first_player)
 
-	# Step 4: Construct the new player order by rotating the old list
+	# Step 4: Construct the new player order by rotating the old list,
+	# starting with the new first player.
 	var new_player_order = []
 	new_player_order.append(new_first_player)
 
 	var start_index = old_player_order.find(new_first_player)
 	
-	# Iterate through the old list, starting from the player AFTER the winner
+	# Iterate through the old list, starting from the player AFTER the winner,
+	# and append them to maintain the relative turn order.
 	for i in range(1, old_player_order.size()):
 		var current_index = (start_index + i) % old_player_order.size()
 		new_player_order.append(old_player_order[current_index])
@@ -479,7 +497,7 @@ func reorder_players_after_round():
 	print("Old player order: ", old_player_order)
 	print("New player order: ", new_player_order)
 
-	# Step 5: Update the game state with the new order and sync with clients
+	# Step 5: Update the game state with the new order and sync with all clients.
 	game.players = new_player_order
 	rpc("sync_new_player_order", new_player_order)
 
