@@ -71,7 +71,9 @@ func _calculate_claimed_points_score(player_id: int) -> int:
 	if player_hud and player_hud.has_node("Points"):
 		var points_node = player_hud.get_node("Points")
 		if "current_point" in points_node:
+			print("")
 			print("current point : ", points_node.current_point)
+			print("claim total : ", points_node.current_point * CLAIMED_POINT_SCORE)
 			return points_node.current_point * CLAIMED_POINT_SCORE
 	return 0
 

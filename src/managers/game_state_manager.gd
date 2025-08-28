@@ -349,15 +349,17 @@ func next_turn():
 			print("Last player's turn ended. A full round is complete.")
 			print("--- Checking for biome domination ---")
 			await domination_manager.check_domination_for_elemental_flips()
+			
 			# END OF THE ROUND 
-			if current_round >= 9:
+			if current_round >= 8:
 				await get_tree().create_timer(4.0).timeout
 				print("END GAME")
 				score_ui.rpc("show_scores")
+				return
 			await domination_manager.check_domination_for_soil_stars()
 			await reorder_players_after_round()
 			advance_to_next_round()
-				# NEW: Process the blighted token cycle at the start of the turn transition.
+			# Process the blighted token cycle at the start of the turn transition.
 			if is_instance_valid(token_manager):
 				token_manager.process_blighted_token_cycle()
 				await get_tree().create_timer(0.5).timeout # Short delay for visual clarity

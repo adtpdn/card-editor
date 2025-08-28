@@ -179,7 +179,7 @@ func update_player_score_label(player_id: int, new_total: int):
 	
 	# Finally, update the label's text if it was found.
 	if points_label:
-		points_control.increase_point(new_total)
+		points_control.current_point = new_total
 		points_label.text = str(new_total)
 	else:
 		print("UI update failed: No Label child found in %s." % points_control.name)

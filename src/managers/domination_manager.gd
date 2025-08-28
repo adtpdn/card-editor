@@ -26,6 +26,8 @@ var blighted_domination_biome: int = -1
 var card_reward_biome: int = -1
 # Variable to track the biome with the "least tokens win" rule
 var least_tokens_win_biome: int = -1
+# Variable to store the Biome enum index of the last elemental flip.
+var last_flipped_biome: int = -1
 
 # Function to set the affected biome
 func set_blighted_domination_biome(biome_index: int):
@@ -52,6 +54,18 @@ func set_least_tokens_win_biome(biome_index: int):
 @rpc("any_peer", "call_local")
 func sync_least_tokens_win_biome(biome_index: int):
 	least_tokens_win_biome = biome_index
+
+# This function is called by the server to set and sync the last flipped biome.
+func _set_last_flipped_biome(biome_index: int):
+	if not multiplayer.is_server(): return
+	rpc("sync_last_flipped_biome", biome_index)
+
+@rpc("any_peer", "call_local")
+func sync_last_flipped_biome(biome_index: int):
+	last_flipped_biome = biome_index
+	# Optional: print for debugging
+	if biome_index != -1:
+		print("SYNC: Last flipped biome is now: %s" % Biome.keys()[biome_index])
 
 # --- MODIFICATION START ---
 # Dictionary to hold the notification text for each elemental card
@@ -136,6 +150,32 @@ func check_domination_for_elemental_flips():
 	else:
 		print("Tie for most tokens between eligible biomes: ", winning_biomes)
 		winning_biome = _resolve_domination_tie(winning_biomes)
+
+	# --- Final Tie-Breaker Logic ---
+	if winning_biome == -1:
+		print("Tie could not be resolved by player placement. Using final tie-breaker rules.")
+		
+		# Rule 1: Prioritize the biome that is next in sequence from the last flip.
+		if last_flipped_biome != -1:
+			var next_in_sequence = (last_flipped_biome + 1) % 4 # Clockwise rotation
+			if winning_biomes.has(next_in_sequence):
+				winning_biome = next_in_sequence
+				print("Final Tie-Breaker: Selected biome %s as it is next in sequence." % Biome.keys()[winning_biome])
+		
+		# Rule 2 (Fallback): If the sequential biome wasn't tied, pick the tied biome with the fewest revealed cards.
+		if winning_biome == -1:
+			print("Sequential biome not in tie. Falling back to fewest revealed elementals rule.")
+			var min_revealed = 3
+			var final_winner = -1
+			for biome in winning_biomes:
+				var count = revealed_counts.get(biome, 0)
+				if count < min_revealed:
+					min_revealed = count
+					final_winner = biome
+			
+			winning_biome = final_winner
+			if winning_biome != -1:
+				print("Fallback Tie-Breaker: Selected biome %s, with fewest revealed elementals (%d)." % [Biome.keys()[winning_biome], min_revealed])
 
 	if winning_biome != -1:
 		_flip_elemental_for_biome(winning_biome)
@@ -367,8 +407,10 @@ func _flip_elemental_for_biome(biome_type: Biome):
 	var slice_to_check_second = drag_controller.get_node_or_null(slice_names[0])
 
 	if _try_flip_card_in_slice(slice_to_check_first):
+		_set_last_flipped_biome(biome_type) # MODIFIED: Record this flip
 		return
 	if _try_flip_card_in_slice(slice_to_check_second):
+		_set_last_flipped_biome(biome_type) # MODIFIED: Record this flip
 		return
 
 # Helper that checks a slice and triggers the RPC if a face-down card is found.
