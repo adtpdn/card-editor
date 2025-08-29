@@ -350,22 +350,20 @@ func next_turn():
 			print("--- Checking for biome domination ---")
 			await domination_manager.check_domination_for_elemental_flips()
 			
-			# END OF THE ROUND 
-			if current_round >= 8:
-				await get_tree().create_timer(4.0).timeout
-				print("END GAME")
-				score_ui.rpc("show_scores")
-				return
-			await domination_manager.check_domination_for_soil_stars()
-			await reorder_players_after_round()
-			advance_to_next_round()
-			# Process the blighted token cycle at the start of the turn transition.
-			if is_instance_valid(token_manager):
-				token_manager.process_blighted_token_cycle()
-				await get_tree().create_timer(0.5).timeout # Short delay for visual clarity
-			
-			# Re-activate all face-up elementals for the new round.
-			elementals_manager.activate_all_face_up_elementals()
+			if current_round < 8:
+				await domination_manager.check_domination_for_soil_stars()
+				await reorder_players_after_round()
+
+			advance_to_next_round() # Increase the current round
+
+			if current_round < 9:
+				# Process the blighted token cycle at the start of the turn transition.
+				if is_instance_valid(token_manager):
+					token_manager.process_blighted_token_cycle()
+					await get_tree().create_timer(0.5).timeout # Short delay for visual clarity
+				
+					# Re-activate all face-up elementals for the new round.
+				elementals_manager.activate_all_face_up_elementals()
 		
 		if is_end_of_round and current_round == 0 :
 			advance_to_next_round()
@@ -391,6 +389,13 @@ func next_turn():
 	if game.score_manager:
 		game.score_manager.update_and_sync_all_scores()
 	# ---------------------------------------------
+	
+	# END OF THE ROUND 
+	if current_round >= 9:
+		await get_tree().create_timer(4.0).timeout
+		print("END GAME")
+		score_ui.rpc("show_scores")
+		return
 	
 	print("=== Next Turn Complete ===\n")
 

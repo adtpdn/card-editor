@@ -7,6 +7,7 @@ extends Node
 @onready var point_counter = $"../PointCounter"
 @onready var game_state_manager = $"../GameStateManager"
 @onready var elementals_manager = $"../ElementalsManager"
+@onready var domination_manager = $"../DominationManager"
 @onready var score_ui = get_node("/root/Game/ScoreUI")
 
 enum BiomeType {
@@ -53,16 +54,30 @@ func calculate_player_score(player_id: int) -> int:
 
 # --- Score Calculation Logic ---
 
-# NEW LOGIC: Calculate score based on the total number of unblighted tokens on biome placements.
+# Calculate score based on token presence, applying special elemental rules.
 func _calculate_unblighted_token_score(player_id: int) -> int:
-	# This rule now applies to all rounds, including round 0.
-	# The score is the total count of unblighted tokens on biome placements (place_id = -1).
 	var token_count = 0
+	# Get the biome where the scoring rule is reversed by an elemental effect.
+	var blighted_domination_biome = domination_manager.blighted_domination_biome
+	print("blighted domination : ", blighted_domination_biome)
+
+	# Iterate through all tokens on the board.
 	for token in game.get_node("Tokens").get_children():
-		if token.owner_id == player_id and not token.is_blighted:
-			var token_placement = token_manager.get_token_placement_at_position(token.global_position)
-			if token_placement:
-				token_count += 1
+		# Process only tokens belonging to the specified player.
+		if token.owner_id == player_id:
+			
+			# Check if the elemental effect is active for this token's biome.
+			if blighted_domination_biome != -1 and token.biome_type == blighted_domination_biome:
+				# If the effect is active, count ONLY blighted tokens in this biome.
+				if token.is_blighted:
+					print("token blight is counted")
+					token_count += 1
+			else:
+				# Otherwise, for all other biomes, follow the normal rule:
+				# count ONLY unblighted (alive) tokens.
+				if not token.is_blighted:
+					token_count += 1
+					
 	return token_count
 
 # Calculate score from claimed points in PlayerHUD

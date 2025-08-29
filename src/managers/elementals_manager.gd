@@ -176,7 +176,7 @@ func _elemental_red_03_effect(biome_type):
 		var all_tokens_in_biome = _get_all_tokens_in_biome(biome_type, false)
 		
 		if all_tokens_in_biome.size() > 4:
-			var dominant_players = domination_manager._get_all_dominant_players_in_biome(biome_type)
+			var dominant_players = domination_manager._get_all_dominant_alive_token_in_biome(biome_type)
 			var target_player
 			
 			if dominant_players.size() > 1:
@@ -195,7 +195,7 @@ func _elemental_red_04_effect(biome_type):
 		var all_tokens_in_biome = _get_all_tokens_in_biome(biome_type, false)
 		
 		if all_tokens_in_biome.size() > 5:
-			var dominant_players = domination_manager._get_all_dominant_players_in_biome(biome_type)
+			var dominant_players = domination_manager._get_all_dominant_alive_token_in_biome(biome_type)
 			var target_player
 			
 			if dominant_players.size() > 1:

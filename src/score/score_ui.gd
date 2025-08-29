@@ -1,5 +1,11 @@
 extends Control
 
+# Player Name Labels (New)
+@onready var player_name_p_1 = $PanelScore/Players/Player1
+@onready var player_name_p_2 = $PanelScore/Players/Player2
+@onready var player_name_p_3 = $PanelScore/Players/Player3
+@onready var player_name_p_4 = $PanelScore/Players/Player4
+
 # Player 1
 @onready var alive_tokens_p_1 = $PanelScore/PlayerScore/Player1/AliveTokensP1
 @onready var claimed_points_p_1 = $PanelScore/PlayerScore/Player1/ClaimedPointsP1
@@ -28,6 +34,15 @@ extends Control
 @onready var pattern_completion_p_4 = $PanelScore/PlayerScore/Player4/PatternCompletionP4
 @onready var total_p_4 = $PanelScore/PlayerScore/Player4/TotalP4
 
+
+# Helper to get player name labels
+func _get_player_name_labels() -> Array[Label]:
+	return [
+		player_name_p_1,
+		player_name_p_2,
+		player_name_p_3,
+		player_name_p_4
+	]
 
 func _get_player_labels(player_index: int) -> Dictionary:
 	match player_index:
@@ -66,6 +81,29 @@ func _get_player_labels(player_index: int) -> Dictionary:
 		_:
 			return {}
 
+# Updates the player name labels
+func update_player_names():
+	var game = get_node_or_null("/root/Game")
+	if not game:
+		printerr("ScoreUI: Could not find Game node.")
+		return
+
+	var name_labels = _get_player_name_labels()
+	var initial_order = game.initial_player_order
+	var names = game.player_names
+
+	for i in range(name_labels.size()):
+		var label = name_labels[i]
+		if not is_instance_valid(label): continue
+
+		if i < initial_order.size():
+			var player_id = initial_order[i]
+			# Fetch the name from the game's dictionary, with a default fallback.
+			var player_name = names.get(player_id, "Player %d" % (i + 1))
+			label.text = player_name
+		else:
+			# If no player exists for this slot, revert to default.
+			label.text = "Player %d" % (i + 1)
 
 func update_player_scores(player_id: int, scores: Dictionary):
 	var game = get_node("/root/Game")
@@ -89,4 +127,5 @@ func update_player_scores(player_id: int, scores: Dictionary):
 
 @rpc("any_peer", "call_local")
 func show_scores():
+	update_player_names()
 	self.show()

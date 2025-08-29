@@ -361,6 +361,31 @@ func _get_least_dominant_players_in_biome(biome_type: Biome) -> Array:
 	
 	return winners
 
+# A more general helper that returns an array of ALL players who are tied for domination.
+# (Used for Elemental Red Max 4 and 5)
+func _get_all_dominant_alive_token_in_biome(biome_type: Biome) -> Array:
+	var player_token_counts = {}
+	for player_id in game.players:
+		player_token_counts[player_id] = 0
+
+	for token in game.tokens.get_children():
+		if token.biome_type == biome_type and not token.is_energy and not token.is_blighted:
+			if player_token_counts.has(token.owner_id):
+				player_token_counts[token.owner_id] += 1
+
+	var winners = []
+	var max_count = 0
+	for count in player_token_counts.values():
+		if count > max_count:
+			max_count = count
+	
+	if max_count > 0:
+		for player_id in player_token_counts:
+			if player_token_counts[player_id] == max_count:
+				winners.append(player_id)
+	
+	return winners
+
 # A more general helper that returns an array of ALL players who are tied for domination. (Used for Soil Stars)
 func _get_all_dominant_players_in_biome(biome_type: Biome) -> Array:
 	var player_token_counts = {}
