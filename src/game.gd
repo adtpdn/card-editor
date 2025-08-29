@@ -29,6 +29,10 @@ extends Node
 @onready var end_turn_button = $RightUI/EndTurnButton
 @onready var end_phase_button = $RightUI/EndPhaseButton
 
+const CURSOR_TRAIL = preload("res://scenes/cursor_trail.tscn")
+@export var trail_scene: PackedScene
+@export var trail_offset: Vector2 = Vector2(25, 30)
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Core Game State
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -39,6 +43,7 @@ var player_hands = {}
 var player_slots = [false, false, false, false] # Track occupied slots
 var max_players = 4 # Maximum players allowed
 var player_names = {}
+var player_hand_sizes = {}
 
 # Format: { player_id: BiomeType }
 var player_last_biome_placements = {}
@@ -57,7 +62,7 @@ signal turn_changed
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 func _ready():
 	#print("Game initializing...")
-	
+
 	token_manager.initialize()
 	network_manager.initialize()
 	game_state_manager.initialize()
@@ -86,6 +91,19 @@ func start_game():
 				network_manager.rpc_id(peer_id, "receive_deck_seed", table_node.deck_seed)
 				network_manager.rpc_id(peer_id, "receive_deck_state", table_node.available_cards, table_node.elemental_cards)
 	rpc("sync_game_state", players, game_started)
+
+# This function is called automatically whenever any input happens.
+func _unhandled_input(event: InputEvent) -> void:
+	# We only care about when the mouse moves.
+	if event is InputEventMouseMotion:
+		# Create a new instance of your trail segment scene.
+		var trail_instance = CURSOR_TRAIL.instantiate()
+		# Add the new trail piece to the scene tree.
+		# This makes it visible.
+		add_child(trail_instance)
+		
+		# Position the new trail piece exactly where the mouse is, plus the offset.
+		trail_instance.global_position = get_viewport().get_mouse_position() + trail_offset
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---  	Color Management 	  ---
@@ -124,7 +142,7 @@ func sync_player_names(names_from_server: Dictionary):
 
 	# After syncing the data, update the UI accordingly
 	if ui_manager:
-		ui_manager.update_player_list()
+		ui_manager.update_player_hud()
 	if player_turn:
 		player_turn.update_turn_display()
 

@@ -54,7 +54,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0, 0.2),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [Vector2(0, 0), Vector2(197, 0)]
+"values": [Vector2(-192, -230), Vector2(0, -230)]
 }
 
 [sub_resource type="Animation" id="Animation_y4igk"]
@@ -63,26 +63,26 @@ length = 0.2
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("VBoxContainer:position")
+tracks/0/path = NodePath("VBoxContainer:layout_mode")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.2),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector2(197, 0), Vector2(0, 0)]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("VBoxContainer:layout_mode")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
 "values": [1]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("VBoxContainer:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0, -230), Vector2(-192, -230)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_34idh"]
@@ -99,9 +99,6 @@ anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -193.0
-offset_top = -220.0
-offset_bottom = 239.0
 grow_horizontal = 0
 grow_vertical = 2
 mouse_filter = 2
@@ -114,53 +111,61 @@ anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = 4.0
-offset_top = -229.5
-offset_right = 196.0
-offset_bottom = 230.5
+offset_left = 1925.0
+offset_top = 299.0
+offset_right = 2117.0
+offset_bottom = 759.0
 grow_horizontal = 0
 grow_vertical = 2
 
 [node name="PlayCardButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
+mouse_filter = 1
 text = "Play a Card 
 (1 soil star)"
 
 [node name="PlayElementalFaceDownButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
+mouse_filter = 1
 text = "Play Elemental on Hand 
 Face Down (1 soil star)"
 
 [node name="PlayElementalFaceUpButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
+mouse_filter = 1
 text = "Play Elemental on Hand 
 Face Up (2 soil star)"
 
 [node name="BuyCardButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
+mouse_filter = 1
 text = "Buy a Card
 (2 soil star)"
 
 [node name="PlayExtraTokenButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
+mouse_filter = 1
 text = "Play Extra Token
 (3 soil star)
 "
 
 [node name="PlaySigilMagicButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
+mouse_filter = 1
 text = "Play Sigil
 (3 soil star)
 "
 
 [node name="BuyElementalButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
+mouse_filter = 1
 text = "Buy an Elemental
 (4 soil star)
 "
 
 [node name="SwapElementalButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
+mouse_filter = 1
 text = "Swap an Elemental
 (5 soil star)
 "

@@ -20,34 +20,13 @@ var fps_label: Label
 var debug_panel: PanelContainer
 var ui_update_timer: Timer
 
+# Add this constant at the top of the script for easy access
+const TURN_INDICATOR_ICON = preload("res://assets/ui/hud/player_hud_indicator_selector.png")
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Initialization
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-#func _ready():
-	#setup_debug_ui()
-	#setup_menu_buttons()
-	#setup_player_list()
-	#
-	## Connect to camera zoom buttons if they exist
-	#var zoom_in_button = get_parent().get_node("ZoomControls/ZoomInButton")
-	#var zoom_out_button = get_parent().get_node("ZoomControls/ZoomOutButton")
-	#
-	#if zoom_in_button:
-		#if zoom_in_button.pressed.is_connected(_on_zoom_in_pressed):
-			#zoom_in_button.pressed.disconnect(_on_zoom_in_pressed)
-		#zoom_in_button.pressed.connect(_on_zoom_in_pressed)
-	#
-	#if zoom_out_button:
-		#if zoom_out_button.pressed.is_connected(_on_zoom_out_pressed):
-			#zoom_out_button.pressed.disconnect(_on_zoom_out_pressed)
-		#zoom_out_button.pressed.connect(_on_zoom_out_pressed)
-	#
-	## Set up timer for UI updates
-	#ui_update_timer = Timer.new()
-	#add_child(ui_update_timer)
-	#ui_update_timer.wait_time = 0.5  # Update every half second
-	#ui_update_timer.timeout.connect(_on_ui_update_timer)
-	#ui_update_timer.start()
+
 
 func initialize():
 	# Initial UI setup
@@ -58,6 +37,63 @@ func initialize():
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---     General UI Setup     ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+# This new function replaces the old update_player_list.
+# It controls visibility, names, turn indicators, and card counts.
+func update_player_hud():
+	var player_list_node = get_parent().get_node_or_null("PlayerList")
+	if not player_list_node: return
+
+	# Get the latest game state data
+	var initial_order = game.initial_player_order
+	var active_player_id = game_state_manager.get_current_player_id()
+	var player_names = game.player_names
+	var hand_sizes = game.player_hand_sizes
+	print("hand sizes : ", hand_sizes)
+
+	# Loop through all 4 possible player slots in the UI
+	for i in range(4):
+		var player_node = player_list_node.get_node_or_null("Player" + str(i + 1))
+		if not player_node: continue
+
+		# --- VISIBILITY & NAMING ---
+		if i < initial_order.size():
+			# A player exists for this slot
+			player_node.visible = true
+			var player_id = initial_order[i]
+			
+			var name_label = player_node.get_node_or_null("Player" + str(i + 1) + "Label")
+			if name_label:
+				name_label.text = player_names.get(player_id, "Player " + str(player_id))
+
+			# --- TURN INDICATOR ---
+			var player_id_for_slot = initial_order[i]
+			# Dynamically create the correct indicator name (e.g., "Player1Indicator", "Player2Indicator")
+			var indicator_name = "Player" + str(i + 1) + "Indicator"
+			var indicator = player_node.get_node_or_null(indicator_name)
+			if indicator:
+				indicator.visible = (player_id_for_slot == active_player_id)
+
+			# --- CARD COUNT INDICATORS ---
+			# Get the dictionary of counts for this player, with a safe default
+			var counts = hand_sizes.get(player_id_for_slot, {"action": 0, "elemental": 0})
+			var action_count = counts.get("action", 0)
+			var elemental_count = counts.get("elemental", 0)
+
+			# Update Action card indicators (1 to 3)
+			for card_idx in range(1, 4): # Loops for 1, 2, 3
+				var card_indicator_name = "Player" + str(i + 1) + "Card" + str(card_idx)
+				var card_indicator = player_node.get_node_or_null(card_indicator_name)
+				if card_indicator:
+					card_indicator.visible = (card_idx <= action_count)
+
+			# Update Elemental card indicator (4)
+			var elemental_indicator_name = "Player" + str(i + 1) + "Card4"
+			var elemental_indicator = player_node.get_node_or_null(elemental_indicator_name)
+			if elemental_indicator:
+				elemental_indicator.visible = (elemental_count > 0)
+		else:
+			# No player for this slot, hide it
+			player_node.visible = false
 
 func update_turn_indicator():
 	# Get the current turn player ID
@@ -128,13 +164,13 @@ func setup_menu_buttons():
 		toggle_debug_button.pressed.connect(_on_toggle_debug_pressed)
 
 func setup_player_list():
-	var player_list = get_parent().get_node("LeftUI/PlayerList")
+	var player_list = get_parent().get_node("PlayerList")
 	if player_list:
 		player_list.clear()
 		player_list.item_selected.connect(_on_player_selected)
 
 func setup_start_game_button():
-	var start_game_button = get_parent().get_node("LeftUI/StartGameButton")
+	var start_game_button = get_parent().get_node("StartGameButton")
 	if start_game_button:
 		# Show button only for server/host
 		start_game_button.visible = multiplayer.is_server()
@@ -143,27 +179,9 @@ func setup_start_game_button():
 # ---    UI Update Methods     ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
+# in case other parts of your code still use it.
 func update_player_list():
-	var player_list = get_parent().get_node("LeftUI/PlayerList")
-	if player_list:
-		player_list.clear()
-		var players = game.players
-		var player_colors = game_state_manager.player_colors
-		
-		for player_id in players:
-			var is_local = player_id == multiplayer.get_unique_id()
-			var player_name = game.player_names.get(player_id, "Player " + str(player_id)) + (" (You)" if is_local else "")
-			
-			var color_rect = ColorRect.new()
-			color_rect.size = Vector2(20, 20)
-			color_rect.custom_minimum_size = Vector2(20, 20)
-			
-			if player_colors.has(player_id):
-				color_rect.color = player_colors[player_id]
-			else:
-				color_rect.color = Color(0.5, 0.5, 0.5)  # Default gray
-			
-			player_list.add_item(player_name, color_rect.duplicate())
+	update_player_hud()
 
 func update_network_info():
 	var network_display = get_parent().get_node("RightUI/NetworkInfo/NetworkSideDisplay")
@@ -196,7 +214,7 @@ func _on_toggle_debug_pressed():
 
 func _on_player_selected(index: int):
 	if multiplayer.is_server():
-		var start_game_button = get_parent().get_node("LeftUI/StartGameButton")
+		var start_game_button = get_parent().get_node("StartGameButton")
 		if start_game_button:
 			start_game_button.disabled = false
 

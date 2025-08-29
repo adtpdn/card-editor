@@ -1,0 +1,138 @@
+[gd_scene load_steps=4 format=3 uid="uid://cwpv5b4blqf50"]
+
+[ext_resource type="Texture2D" uid="uid://c37n75rkxdelo" path="res://assets/ui/hud/player_hud_indicator_selector.png" id="1_jwcey"]
+[ext_resource type="Texture2D" uid="uid://du2i65ac72ihj" path="res://assets/ui/hud/player_hud_cards_icon.png" id="2_p56nk"]
+[ext_resource type="Texture2D" uid="uid://do5mixjy23mdp" path="res://assets/ui/hud/player_hud_elementals_icon.png" id="3_fun8j"]
+
+[node name="PlayerList" type="VBoxContainer"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+grow_vertical = 0
+
+[node name="Player1" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Player1Indicator" type="TextureRect" parent="Player1"]
+layout_mode = 2
+texture = ExtResource("1_jwcey")
+
+[node name="Player1Label" type="Label" parent="Player1"]
+layout_mode = 2
+text = "Player 1"
+
+[node name="Player1Card1" type="TextureRect" parent="Player1"]
+visible = false
+layout_mode = 2
+texture = ExtResource("2_p56nk")
+
+[node name="Player1Card2" type="TextureRect" parent="Player1"]
+visible = false
+layout_mode = 2
+texture = ExtResource("2_p56nk")
+
+[node name="Player1Card3" type="TextureRect" parent="Player1"]
+visible = false
+layout_mode = 2
+texture = ExtResource("2_p56nk")
+
+[node name="Player1Card4" type="TextureRect" parent="Player1"]
+visible = false
+layout_mode = 2
+texture = ExtResource("3_fun8j")
+
+[node name="Player2" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Player2Indicator" type="TextureRect" parent="Player2"]
+visible = false
+layout_mode = 2
+texture = ExtResource("1_jwcey")
+
+[node name="Player2Label" type="Label" parent="Player2"]
+layout_mode = 2
+text = "Player 2"
+
+[node name="Player2Card1" type="TextureRect" parent="Player2"]
+visible = false
+layout_mode = 2
+texture = ExtResource("2_p56nk")
+
+[node name="Player2Card2" type="TextureRect" parent="Player2"]
+visible = false
+layout_mode = 2
+texture = ExtResource("2_p56nk")
+
+[node name="Player2Card3" type="TextureRect" parent="Player2"]
+visible = false
+layout_mode = 2
+texture = ExtResource("2_p56nk")
+
+[node name="Player2Card4" type="TextureRect" parent="Player2"]
+visible = false
+layout_mode = 2
+texture = ExtResource("3_fun8j")
+
+[node name="Player3" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Player3Indicator" type="TextureRect" parent="Player3"]
+visible = false
+layout_mode = 2
+texture = ExtResource("1_jwcey")
+
+[node name="Player3Label" type="Label" parent="Player3"]
+layout_mode = 2
+text = "Player 3"
+
+[node name="Player3Card1" type="TextureRect" parent="Player3"]
+visible = false
+layout_mode = 2
+texture = ExtResource("2_p56nk")
+
+[node name="Player3Card2" type="TextureRect" parent="Player3"]
+visible = false
+layout_mode = 2
+texture = ExtResource("2_p56nk")
+
+[node name="Player3Card3" type="TextureRect" parent="Player3"]
+visible = false
+layout_mode = 2
+texture = ExtResource("2_p56nk")
+
+[node name="Player3Card4" type="TextureRect" parent="Player3"]
+visible = false
+layout_mode = 2
+texture = ExtResource("3_fun8j")
+
+[node name="Player4" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Player4Indicator" type="TextureRect" parent="Player4"]
+visible = false
+layout_mode = 2
+texture = ExtResource("1_jwcey")
+
+[node name="Player4Label" type="Label" parent="Player4"]
+layout_mode = 2
+text = "Player 4"
+
+[node name="Player4Card1" type="TextureRect" parent="Player4"]
+visible = false
+layout_mode = 2
+texture = ExtResource("2_p56nk")
+
+[node name="Player4Card2" type="TextureRect" parent="Player4"]
+visible = false
+layout_mode = 2
+texture = ExtResource("2_p56nk")
+
+[node name="Player4Card3" type="TextureRect" parent="Player4"]
+visible = false
+layout_mode = 2
+texture = ExtResource("2_p56nk")
+
+[node name="Player4Card4" type="TextureRect" parent="Player4"]
+visible = false
+layout_mode = 2
+texture = ExtResource("3_fun8j")

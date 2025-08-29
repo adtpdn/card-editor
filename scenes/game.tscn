@@ -1,4 +1,4 @@
-[gd_scene load_steps=66 format=4 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=68 format=4 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://src/game.gd" id="1_e1j6l"]
 [ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://src/managers/turn_phase_manager.gd" id="2_pl11u"]
@@ -40,6 +40,8 @@
 [ext_resource type="PlaneMesh" uid="uid://dxvj3gkbbknem" path="res://assets/meshes/card_3d_back_mesh.tres" id="29_8ool0"]
 [ext_resource type="Material" uid="uid://b2jdqh0ex1sps" path="res://assets/materials/cards_materials/elementals/ElementalRed01.tres" id="30_02fa5"]
 [ext_resource type="PackedScene" uid="uid://dgkrhoahnnmwb" path="res://scenes/score/score_ui.tscn" id="38_7025r"]
+[ext_resource type="PackedScene" uid="uid://cwpv5b4blqf50" path="res://scenes/player_ui/player_list.tscn" id="39_8ool0"]
+[ext_resource type="PackedScene" uid="uid://dvdw5n8wridiw" path="res://scenes/cursor_trail.tscn" id="42_pr1ej"]
 
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_02fa5"]
 data = PackedVector3Array(0.1, 0, 0.1, -0.1, 0, 0.1, 0.1, 0, -0.1, -0.1, 0, 0.1, -0.1, 0, -0.1, 0.1, 0, -0.1)
@@ -1340,18 +1342,6 @@ transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 5, 
 light_color = Color(0.868985, 0.868985, 0.868985, 1)
 sky_mode = 1
 
-[node name="ResetButton" type="Button" parent="."]
-visible = false
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -45.0
-offset_top = 38.0
-offset_right = 45.0
-offset_bottom = 69.0
-grow_horizontal = 2
-text = "Reset"
-
 [node name="Notification" parent="." instance=ExtResource("22_oaba0")]
 visible = false
 
@@ -1363,7 +1353,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
-mouse_filter = 2
+mouse_filter = 1
 script = ExtResource("23_458eo")
 
 [node name="Panel" type="Panel" parent="Status_Phase"]
@@ -1375,6 +1365,7 @@ offset_top = -281.0
 offset_right = 267.0
 offset_bottom = -185.0
 grow_vertical = 2
+mouse_filter = 1
 
 [node name="Label" type="Label" parent="Status_Phase/Panel"]
 layout_mode = 1
@@ -1385,6 +1376,7 @@ offset_left = -130.0
 offset_right = 133.0
 offset_bottom = 98.0
 grow_horizontal = 2
+mouse_filter = 1
 theme_override_font_sizes/font_size = 14
 text = "Instruction"
 horizontal_alignment = 1
@@ -1404,6 +1396,7 @@ offset_right = -46.0
 offset_bottom = 318.0
 grow_horizontal = 0
 grow_vertical = 2
+mouse_filter = 1
 theme = SubResource("Theme_qhcbd")
 
 [node name="Menu" type="VBoxContainer" parent="RightUI"]
@@ -1426,6 +1419,7 @@ alignment = 1
 
 [node name="ConnectStatus" type="Label" parent="RightUI/Menu"]
 layout_mode = 2
+mouse_filter = 1
 text = "ConnectStatus"
 horizontal_alignment = 1
 
@@ -1528,28 +1522,11 @@ offset_bottom = 40.0
 
 [node name="PlayerTurn" parent="." instance=ExtResource("24_h3rex")]
 
-[node name="LeftUI" type="Control" parent="."]
-layout_mode = 3
-anchors_preset = 9
-anchor_bottom = 1.0
-offset_top = 460.0
-offset_right = 243.0
-grow_vertical = 2
-size_flags_horizontal = 4
-
-[node name="PlayerList" type="ItemList" parent="LeftUI"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.107
-anchor_top = 0.539
-anchor_right = 0.959
-anchor_bottom = 0.749
-offset_left = -5.001
-offset_top = -65.332
-offset_right = -5.03702
-offset_bottom = 26.188
-grow_horizontal = 2
-grow_vertical = 2
+[node name="PlayerList" parent="." instance=ExtResource("39_8ool0")]
+offset_left = 25.0
+offset_top = -193.0
+offset_right = 299.0
+offset_bottom = -29.0
 
 [node name="PlayerUIs" type="Control" parent="."]
 layout_mode = 3
@@ -1564,6 +1541,10 @@ mouse_filter = 2
 
 [node name="ScoreUI" parent="." instance=ExtResource("38_7025r")]
 visible = false
+mouse_filter = 1
+
+[node name="CursorTrail" parent="." instance=ExtResource("42_pr1ej")]
+z_index = 1
 
 [connection signal="mouse_entered" from="Deck/Table/DragController/elemental_slice_1/DropZone" to="Deck/Table/DragController/elemental_slice_1" method="_on_drop_zone_mouse_entered"]
 [connection signal="mouse_exited" from="Deck/Table/DragController/elemental_slice_1/DropZone" to="Deck/Table/DragController/elemental_slice_1" method="_on_drop_zone_mouse_exited"]
@@ -1591,4 +1572,3 @@ visible = false
 [connection signal="input_event" from="Deck/ElementalDeck/StaticBody3D" to="Deck/ElementalDeck" method="_on_static_body_3d_input_event"]
 [connection signal="mouse_entered" from="Deck/ElementalDeck/StaticBody3D" to="Deck/ElementalDeck" method="_on_static_body_3d_mouse_entered"]
 [connection signal="mouse_exited" from="Deck/ElementalDeck/StaticBody3D" to="Deck/ElementalDeck" method="_on_static_body_3d_mouse_exited"]
-[connection signal="pressed" from="ResetButton" to="." method="_on_reset_button_pressed"]

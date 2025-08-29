@@ -220,6 +220,8 @@ func shift_card() -> Card3D:
 # and/or calling queue_free on it
 func remove_card(index: int) -> Card3D:
 	var removed_card = cards[index]
+	var owner_id = removed_card.owner_id
+	var card_type = removed_card.card_type
 	cards.remove_at(index)
 	card_indicies.erase(removed_card)
 	
@@ -233,6 +235,17 @@ func remove_card(index: int) -> Card3D:
 	removed_card.card_3d_mouse_up.disconnect(_on_card_clicked.bind(removed_card))
 	removed_card.card_3d_mouse_over.disconnect(_on_card_hover.bind(removed_card))
 	removed_card.card_3d_mouse_exit.disconnect(_on_card_exit.bind(removed_card))
+
+	# NEW: If this is the server, trigger a hand size sync
+	if name == "Hand":
+		var game = get_node("/root/Game")
+		if game and game.card_manager and owner_id != -1:
+			if multiplayer.is_server():
+				# Server calls its own function directly
+				game.card_manager.server_modify_hand_count_by_type(owner_id, card_type, -1)
+			else:
+				# Client sends an explicit RPC to the server (ID 1)
+				game.card_manager.rpc_id(1, "server_modify_hand_count_by_type", owner_id, card_type, -1)
 
 	return removed_card
 

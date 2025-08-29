@@ -164,7 +164,7 @@ func sync_player_list_and_uis(authoritative_player_list: Array):
 	
 	# 4. (Optional but Recommended) Update other UI elements after changes
 	if ui_manager:
-		ui_manager.update_player_list()
+		ui_manager.update_player_hud() # MODIFIED CALL
 
 func _add_player_ui(player_id: int, player_uis_node: Node):
 	if player_uis_node.has_node("Player_%d_UI" % player_id):
@@ -293,6 +293,9 @@ func set_current_turn(player_id: int):
 	current_turn_index = player_index
 	
 	token_manager.update_token_ui()
+	
+	if ui_manager:
+		ui_manager.update_player_hud()
 	
 	var player_hand = deck.hand
 	if player_hand:

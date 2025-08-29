@@ -353,6 +353,16 @@ func draw_local_elemental_card(soil_star_cost: int = 0):
 
 	add_card_to_hand(player_id, data, true)
 
+	# REVISED: Use an explicit rpc_id call from the client
+	var game = get_node("/root/Game")
+	if game.card_manager:
+		if multiplayer.is_server():
+			# Server calls its own function directly
+			game.card_manager.server_modify_hand_count_by_type(player_id, CardResource.CardType.ELEMENTAL, 1)
+		else:
+			# Client sends an explicit RPC to the server (ID 1)
+			game.card_manager.rpc_id(1, "server_modify_hand_count_by_type", player_id, CardResource.CardType.ELEMENTAL, 1)
+
 	if multiplayer.is_server():
 		rpc("notify_elemental_drawn", player_id, card_original_index, red_elemental_indices)
 	else:
@@ -410,6 +420,12 @@ func server_draw_card(player_id: int, is_elemental: bool):
 	var data = { "id": card_original_index, "card_id": card_resource.card_id }
 	
 	rpc("client_receive_card", player_id, data, is_elemental)
+	
+	# Tell the card manager to update and sync hand sizes after drawing
+	if game.card_manager:
+		var card_type = CardResource.CardType.ELEMENTAL if is_elemental else CardResource.CardType.ACTION
+		game.card_manager.server_modify_hand_count_by_type(player_id, card_type, 1) # Increment by 1
+	
 	# After sending the card to the client, the server updates its own authoritative state.
 	if not is_elemental and game.game_state_manager.current_round > 0 and not soil_star_actions.is_action_buy_card:
 

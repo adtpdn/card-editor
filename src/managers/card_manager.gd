@@ -24,6 +24,7 @@ var max_action_cards = 3      # Maximum action cards a player can hold
 var max_elemental_cards = 1   # Maximum elemental cards a player can hold
 var initial_hand_size = 2     # Starting cards for each player
 var network_synced = true
+var player_hand_card_counts = {} 
 var first_selected_card_for_swap: FaceCard3D = null
 
 # Add variables for card effects
@@ -97,6 +98,56 @@ func is_elemental_hand_full(player_id: int):
 		if card.owner_id == player_id and card.card_type == CardResource.CardType.ELEMENTAL:
 			elemental_card_count += 1
 	return elemental_card_count >= max_elemental_cards
+
+# Server-side function to update and sync everyone's hand size
+func update_and_sync_hand_sizes():
+	if not multiplayer.is_server(): return
+
+	player_hand_card_counts.clear()
+	var hand_node = get_node("/root/Game/Deck/Table/DragController/Hand")
+	if not hand_node: return
+
+	# First, count all cards in the hand collection
+	var temp_counts = {}
+	for card in hand_node.cards:
+		if card is FaceCard3D:
+			var owner = card.owner_id
+			if not temp_counts.has(owner):
+				temp_counts[owner] = 0
+			temp_counts[owner] += 1
+
+	# Ensure all players have an entry, even if it's 0
+	for player_id in game.players:
+		player_hand_card_counts[player_id] = temp_counts.get(player_id, 0)
+
+	# Broadcast the authoritative dictionary to all clients
+	rpc("sync_hand_sizes", player_hand_card_counts)
+
+# Server-side function to directly modify a player's hand count and sync
+@rpc("any_peer")
+func server_modify_hand_count_by_type(player_id: int, card_type: CardResource.CardType, delta: int):
+	if not multiplayer.is_server(): return
+
+	# NEW: Add a print statement for debugging
+	print("SERVER: Received request to modify hand count for player %d, type %s, delta %d" % [player_id, "Action" if card_type == CardResource.CardType.ACTION else "Elemental", delta])
+
+	if not player_hand_card_counts.has(player_id):
+		player_hand_card_counts[player_id] = {"action": 0, "elemental": 0}
+
+	if card_type == CardResource.CardType.ACTION:
+		player_hand_card_counts[player_id].action += delta
+	elif card_type == CardResource.CardType.ELEMENTAL:
+		player_hand_card_counts[player_id].elemental += delta
+
+	rpc("sync_hand_sizes", player_hand_card_counts)
+
+# RPC for clients to receive the updated hand size data
+@rpc("any_peer", "call_local")
+func sync_hand_sizes(counts_from_server: Dictionary):
+	game.player_hand_sizes = counts_from_server
+	# Trigger a UI update now that we have the latest data
+	if game.ui_manager:
+		game.ui_manager.update_player_hud()
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # --- Card Drawing & Discarding ---
