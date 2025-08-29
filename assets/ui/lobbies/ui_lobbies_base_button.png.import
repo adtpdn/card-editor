@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bnonyajtv8knb"
-path="res://.godot/imported/player_hud_list.png-d40e2bf0b2f27d156142450841832dd3.ctex"
+uid="uid://cp7x5ckggnvlk"
+path="res://.godot/imported/ui_lobbies_base_button.png-79bb96cf56da0ed679b58f45247eb596.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ui/hud/player_hud_list.png"
-dest_files=["res://.godot/imported/player_hud_list.png-d40e2bf0b2f27d156142450841832dd3.ctex"]
+source_file="res://assets/ui/lobbies/ui_lobbies_base_button.png"
+dest_files=["res://.godot/imported/ui_lobbies_base_button.png-79bb96cf56da0ed679b58f45247eb596.ctex"]
 
 [params]
 

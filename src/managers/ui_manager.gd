@@ -67,11 +67,14 @@ func update_player_hud():
 
 			# --- TURN INDICATOR ---
 			var player_id_for_slot = initial_order[i]
-			# Dynamically create the correct indicator name (e.g., "Player1Indicator", "Player2Indicator")
 			var indicator_name = "Player" + str(i + 1) + "Indicator"
 			var indicator = player_node.get_node_or_null(indicator_name)
 			if indicator:
-				indicator.visible = (player_id_for_slot == active_player_id)
+				# If it's the active player's turn, show the icon. Otherwise, clear it.
+				if player_id_for_slot == active_player_id:
+					indicator.texture = TURN_INDICATOR_ICON
+				else:
+					indicator.texture = null
 
 			# --- CARD COUNT INDICATORS ---
 			# Get the dictionary of counts for this player, with a safe default

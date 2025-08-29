@@ -1,4 +1,4 @@
-[gd_scene load_steps=68 format=4 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=71 format=4 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://src/game.gd" id="1_e1j6l"]
 [ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://src/managers/turn_phase_manager.gd" id="2_pl11u"]
@@ -40,7 +40,10 @@
 [ext_resource type="PlaneMesh" uid="uid://dxvj3gkbbknem" path="res://assets/meshes/card_3d_back_mesh.tres" id="29_8ool0"]
 [ext_resource type="Material" uid="uid://b2jdqh0ex1sps" path="res://assets/materials/cards_materials/elementals/ElementalRed01.tres" id="30_02fa5"]
 [ext_resource type="PackedScene" uid="uid://dgkrhoahnnmwb" path="res://scenes/score/score_ui.tscn" id="38_7025r"]
-[ext_resource type="PackedScene" uid="uid://cwpv5b4blqf50" path="res://scenes/player_ui/player_list.tscn" id="39_8ool0"]
+[ext_resource type="Theme" uid="uid://3tbbpd1peyop" path="res://assets/ui/themes/hud_themes.tres" id="38_oaba0"]
+[ext_resource type="PackedScene" uid="uid://cq86nn4m1hdqq" path="res://scenes/player_ui/player_list.tscn" id="39_8ool0"]
+[ext_resource type="Texture2D" uid="uid://d4dhhb28iqxc0" path="res://assets/ui/hud/player_hud_back_turn.png" id="41_0sl42"]
+[ext_resource type="Texture2D" uid="uid://bnonyajtv8knb" path="res://assets/ui/hud/player_hud_list.png" id="41_oaba0"]
 [ext_resource type="PackedScene" uid="uid://dvdw5n8wridiw" path="res://scenes/cursor_trail.tscn" id="42_pr1ej"]
 
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_02fa5"]
@@ -1342,6 +1345,43 @@ transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 5, 
 light_color = Color(0.868985, 0.868985, 0.868985, 1)
 sky_mode = 1
 
+[node name="HudDecoration" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TextureRect" type="TextureRect" parent="HudDecoration"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -264.0
+offset_right = 305.0
+offset_bottom = -20.0
+grow_vertical = 0
+texture = ExtResource("41_oaba0")
+
+[node name="TextureRect2" type="TextureRect" parent="HudDecoration"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -424.0
+offset_top = -472.0
+offset_right = -13.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+texture = ExtResource("41_0sl42")
+expand_mode = 1
+
 [node name="Notification" parent="." instance=ExtResource("22_oaba0")]
 visible = false
 
@@ -1385,17 +1425,15 @@ autowrap_mode = 2
 
 [node name="RightUI" type="Control" parent="."]
 layout_mode = 3
-anchors_preset = 6
+anchors_preset = 3
 anchor_left = 1.0
-anchor_top = 0.5
+anchor_top = 1.0
 anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -274.0
-offset_top = -331.0
-offset_right = -46.0
-offset_bottom = 318.0
+anchor_bottom = 1.0
+offset_left = -228.0
+offset_top = -900.0
 grow_horizontal = 0
-grow_vertical = 2
+grow_vertical = 0
 mouse_filter = 1
 theme = SubResource("Theme_qhcbd")
 
@@ -1466,52 +1504,56 @@ vertical_alignment = 1
 
 [node name="EndPhaseButton" type="Button" parent="RightUI"]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -31.0
-offset_top = 142.5
-offset_right = 57.0
-offset_bottom = 173.5
-grow_horizontal = 2
-grow_vertical = 2
-disabled = true
-text = "End Phase"
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -216.0
+offset_top = -144.0
+offset_right = -16.0
+offset_bottom = -79.0
+grow_horizontal = 0
+grow_vertical = 0
+theme = ExtResource("38_oaba0")
+theme_override_font_sizes/font_size = 32
+text = "END PHASE"
 
 [node name="EndTurnButton" type="Button" parent="RightUI"]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -26.0
-offset_top = 185.5
-offset_right = 52.0
-offset_bottom = 216.5
-grow_horizontal = 2
-grow_vertical = 2
-disabled = true
-text = "End Turn"
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -216.0
+offset_top = -80.0
+offset_right = -16.0
+offset_bottom = -15.0
+grow_horizontal = 0
+grow_vertical = 0
+theme = ExtResource("38_oaba0")
+theme_override_font_sizes/font_size = 32
+text = "END TURN"
 
 [node name="TokenTexture" type="TextureRect" parent="RightUI"]
 layout_mode = 0
-offset_left = 96.0
-offset_top = -2.0
-offset_right = 176.0
-offset_bottom = 78.0
+offset_left = 29.0
+offset_top = 148.0
+offset_right = 109.0
+offset_bottom = 228.0
 expand_mode = 3
 stretch_mode = 5
 
 [node name="TokenButton" type="Button" parent="RightUI"]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
-offset_left = 79.0
-offset_top = 91.0
-offset_right = 192.0
-offset_bottom = 133.0
+offset_left = 12.0
+offset_top = 241.0
+offset_right = 125.0
+offset_bottom = 283.0
+grow_horizontal = 0
+grow_vertical = 2
 theme_override_font_sizes/font_size = 10
 text = "00"
 
@@ -1523,10 +1565,10 @@ offset_bottom = 40.0
 [node name="PlayerTurn" parent="." instance=ExtResource("24_h3rex")]
 
 [node name="PlayerList" parent="." instance=ExtResource("39_8ool0")]
-offset_left = 25.0
-offset_top = -193.0
-offset_right = 299.0
-offset_bottom = -29.0
+offset_left = 40.0
+offset_top = -224.0
+offset_right = 314.0
+offset_bottom = -60.0
 
 [node name="PlayerUIs" type="Control" parent="."]
 layout_mode = 3

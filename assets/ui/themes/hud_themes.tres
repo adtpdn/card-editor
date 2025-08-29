@@ -1,0 +1,49 @@
+[gd_resource type="Theme" load_steps=7 format=3 uid="uid://3tbbpd1peyop"]
+
+[ext_resource type="FontFile" uid="uid://cgiye5f68mpvd" path="res://assets/fonts/Oswald-Regular.ttf" id="1_6mota"]
+[ext_resource type="Texture2D" uid="uid://bi3oa2d6kltwn" path="res://assets/ui/hud/player_hud_turn_button_base.png" id="1_p77nj"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_p77nj"]
+texture = ExtResource("1_p77nj")
+texture_margin_left = 10.0
+texture_margin_top = 2.0
+texture_margin_right = 10.0
+texture_margin_bottom = 14.0
+expand_margin_left = 4.0
+expand_margin_right = 4.0
+modulate_color = Color(0.43, 0.43, 0.43, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_o2xjc"]
+texture = ExtResource("1_p77nj")
+texture_margin_top = 2.0
+texture_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_jeqyi"]
+texture = ExtResource("1_p77nj")
+texture_margin_top = 2.0
+texture_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_tx5p3"]
+texture = ExtResource("1_p77nj")
+texture_margin_top = 2.0
+texture_margin_bottom = 14.0
+
+[resource]
+default_font = ExtResource("1_6mota")
+default_font_size = 24
+Button/colors/font_color = Color(0.929412, 0.737255, 0.486275, 1)
+Button/colors/font_disabled_color = Color(0, 0, 0, 0.501961)
+Button/fonts/font = ExtResource("1_6mota")
+Button/styles/disabled = SubResource("StyleBoxTexture_p77nj")
+Button/styles/hover = SubResource("StyleBoxTexture_o2xjc")
+Button/styles/normal = SubResource("StyleBoxTexture_jeqyi")
+Button/styles/pressed = SubResource("StyleBoxTexture_tx5p3")
+Label/colors/font_color = Color(0.929412, 0.737255, 0.486275, 1)
+Label/colors/font_outline_color = Color(0, 0, 0, 1)
+Label/colors/font_shadow_color = Color(0, 0, 0, 0)
+Label/constants/line_spacing = 3
+Label/constants/outline_size = 0
+Label/constants/shadow_offset_x = 1
+Label/constants/shadow_offset_y = 1
+Label/constants/shadow_outline_size = 1
+Label/font_sizes/font_size = 24
