@@ -193,6 +193,7 @@ func _on_PlayCardButton_pressed():
 	# Instruct the player on what to do next.
 	game.notification.show_instruction_label("Select a card from your hand, then drag it to a biome.")
 
+	apply_button_rules()
 
 func _on_PlayElementalFaceDownButton_pressed():   
 	print("play_elemental_face_down_button pressed")
@@ -229,6 +230,7 @@ func _on_PlayElementalFaceDownButton_pressed():
 	#game.card_manager.hand_card_for_swap = null # Reset any previously selected card
 	game.notification.show_instruction_label("Select an elemental from your hand.")
 
+	apply_button_rules()
 
 func _on_PlayElementalFaceUpButton_pressed():     
 	print("play_elemental_face_up_button pressed")
@@ -265,6 +267,8 @@ func _on_PlayElementalFaceUpButton_pressed():
 	#game.card_manager.hand_card_for_swap = null # Reset any previously selected card
 	game.notification.show_instruction_label("Select an elemental from your hand.")
 
+	apply_button_rules()
+
 func _on_BuyCardButton_pressed():                   
 	print("buy_card_button pressed")
 	var turn_phase_manager = game.turn_phase_manager
@@ -297,6 +301,7 @@ func _on_BuyCardButton_pressed():
 	# 3. All checks passed, perform the action
 	soil_star_node.decrease_soil_star(cost)
 
+	apply_button_rules()
 
 func _on_PlayExtraTokenButton_pressed():          
 	print("play_extra_token_button pressed")
@@ -334,6 +339,8 @@ func _on_PlayExtraTokenButton_pressed():
 	game.token_manager._on_token_selected()
 	game.notification.show_instruction_label("Place your extra token on any valid location.")
 
+	apply_button_rules()
+
 func _on_PlaySigilMagicButton_pressed():          
 	print("play_sigil_magic_button pressed")
 
@@ -365,6 +372,8 @@ func _on_PlaySigilMagicButton_pressed():
 	game.sigil_manager.highlight_activatable_sigil_tokens(player_id)
 	game.notification.show_instruction_label("Select one of your highlighted energy tokens to activate a sigil.")
 
+	apply_button_rules()
+
 func _on_BuyElementalButton_pressed():
 	print("Buy Elemental Button pressed")
 	var cost = button_rules[buy_elemental_button]
@@ -391,6 +400,8 @@ func _on_BuyElementalButton_pressed():
 	var table = get_node("/root/Game/Deck/Table")
 	if is_instance_valid(table):
 		table.draw_local_elemental_card(cost)
+
+	apply_button_rules()
 
 func _on_SwapElementalButton_pressed():
 	print("swap_elemental_button pressed")
@@ -439,3 +450,5 @@ func _on_SwapElementalButton_pressed():
 			var card = slice_node.cards[0]
 			if card is FaceCard3D:
 				card.set_hovered() # Use hover effect for highlighting
+
+	apply_button_rules()
