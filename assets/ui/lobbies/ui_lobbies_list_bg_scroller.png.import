@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< Updated upstream
 uid="uid://c27okdlfcusnn"
+=======
+uid="uid://baj28wbwxq6ee"
+>>>>>>> Stashed changes
 path="res://.godot/imported/ui_lobbies_list_bg_scroller.png-a7fac04f2fbadd818c398e10e0e1bcfe.ctex"
 metadata={
 "vram_texture": false

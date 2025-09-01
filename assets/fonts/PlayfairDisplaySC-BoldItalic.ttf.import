@@ -2,7 +2,11 @@
 
 importer="font_data_dynamic"
 type="FontFile"
+<<<<<<< Updated upstream
 uid="uid://dc35qy8t1tu0s"
+=======
+uid="uid://bamq2eipe766"
+>>>>>>> Stashed changes
 path="res://.godot/imported/PlayfairDisplaySC-BoldItalic.ttf-37200946810f15106fde4c73caa72113.fontdata"
 
 [deps]

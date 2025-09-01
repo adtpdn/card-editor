@@ -2,7 +2,11 @@
 
 importer="font_data_dynamic"
 type="FontFile"
+<<<<<<< Updated upstream
 uid="uid://bmi67ox1whsj3"
+=======
+uid="uid://bwvlw6j2d3iyj"
+>>>>>>> Stashed changes
 path="res://.godot/imported/Oswald-Light.ttf-758e2ccae8553fe1658bb9454169571f.fontdata"
 
 [deps]
