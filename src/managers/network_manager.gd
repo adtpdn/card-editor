@@ -172,6 +172,8 @@ func _on_host_pressed():
 		await get_tree().create_timer(0.1).timeout # Short delay for stability
 		card_manager.initialize_starting_hand()
 		
+		game.soil_star_actions.show()
+		
 		# Start broadcasting server info
 		setup_network_discovery()
 		server_created.emit()
@@ -230,7 +232,7 @@ func attempt_connection(target_ip: String):
 	print("error : ", error)
 	if error == OK:
 		multiplayer.multiplayer_peer = multiplayer_peer
-		
+		game.soil_star_actions.show()
 		get_tree().create_timer(1.0).timeout.connect(func():
 			if multiplayer.is_server():
 				return
@@ -312,7 +314,8 @@ func _on_peer_connected(new_peer_id):
 		#game.rpc_id(new_peer_id, "initialize_client_starting_hand")
 		table.rpc_id(1, "request_server_draw_card", new_peer_id, false)
 		table.server_draw_card(new_peer_id,false)
-		pass
+		
+
 
 
 func _on_peer_disconnected(peer_id):

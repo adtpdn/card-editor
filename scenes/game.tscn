@@ -1580,6 +1580,7 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="SoilStarActions" parent="." instance=ExtResource("25_pl11u")]
+scale = Vector2(0.8, 0.8)
 
 [node name="ScoreUI" parent="." instance=ExtResource("38_7025r")]
 visible = false

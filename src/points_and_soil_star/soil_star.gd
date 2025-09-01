@@ -11,9 +11,6 @@ signal soil_star_changed(new_count)
 # Shader
 const soil_star_shader = preload("res://assets/materials/shaders/soil_star.gdshader")
 
-func _ready():
-	soil_star_texture.connect("pressed", _on_soil_star_texture_pressed)
-
 #func _ready():
 	## Create the purchase button if not already in the scene
 	#if not purchase_button:
@@ -98,13 +95,6 @@ func setup_shader_material() -> ShaderMaterial:
 	shader_material.shader = soil_star_shader
 	
 	return shader_material
-
-# Buttons
-func _on_soil_star_texture_pressed():
-	var soil_star_actions = game.soil_star_actions
-	if current_soil_star == 0:
-		return
-	soil_star_actions._show_hide_actions_panel()
 
 @rpc("any_peer")
 func request_purchase_elemental_card(player_id: int):

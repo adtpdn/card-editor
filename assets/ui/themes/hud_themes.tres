@@ -1,6 +1,6 @@
 [gd_resource type="Theme" load_steps=7 format=3 uid="uid://3tbbpd1peyop"]
 
-[ext_resource type="FontFile" uid="uid://cgiye5f68mpvd" path="res://assets/fonts/Oswald-Regular.ttf" id="1_6mota"]
+[ext_resource type="FontFile" uid="uid://ca868f534a3i4" path="res://assets/fonts/Oswald-Regular.ttf" id="1_6mota"]
 [ext_resource type="Texture2D" uid="uid://bi3oa2d6kltwn" path="res://assets/ui/hud/player_hud_turn_button_base.png" id="1_p77nj"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_p77nj"]

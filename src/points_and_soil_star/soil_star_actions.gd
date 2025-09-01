@@ -4,14 +4,16 @@ extends Control
 @onready var animation_player = $AnimationPlayer
 
 # --- Buttons ----------------------------------------------------
-@onready var play_card_button := $VBoxContainer/PlayCardButton
-@onready var play_elemental_face_down := $VBoxContainer/PlayElementalFaceDownButton
-@onready var play_elemental_face_up := $VBoxContainer/PlayElementalFaceUpButton
-@onready var buy_card_button := $VBoxContainer/BuyCardButton
-@onready var play_extra_token_button := $VBoxContainer/PlayExtraTokenButton
-@onready var play_sigil_magic_button := $VBoxContainer/PlaySigilMagicButton
-@onready var buy_elemental_button := $VBoxContainer/BuyElementalButton
-@onready var swap_elemental_button := $VBoxContainer/SwapElementalButton
+@onready var play_card_button = $CardButtons/PlayCardButton
+@onready var buy_card_button = $CardButtons/BuyCardButton
+@onready var play_extra_token_button = $CardButtons/PlayExtraTokenButton
+@onready var play_sigil_magic_button = $CardButtons/PlaySigilMagicButton
+@onready var play_elemental_face_down_button = $ElementalButtons/PlayElementalFaceDownButton
+@onready var play_elemental_face_up_button = $ElementalButtons/PlayElementalFaceUpButton
+@onready var buy_elemental_button = $ElementalButtons/BuyElementalButton
+@onready var swap_elemental_button = $ElementalButtons/SwapElementalButton
+@onready var switch_button = $SwitchButton
+
 
 # ----------------------------------------------------------------
 # Mapping:  button  ->  minimum soil stars required to enable it
@@ -28,13 +30,14 @@ var is_swapping_planted_elementals: bool = false
 # ----------------------------------------------------------------
 var is_panel_status : bool = false   # true when the panel is open
 var is_action_buy_card : bool = false 
+var is_switch_button : bool = false
 
 func _ready():
 	# Initialize the dictionary here, after @onready vars are loaded.
 	button_rules = {
 		play_card_button         : 1,
-		play_elemental_face_down : 1,
-		play_elemental_face_up   : 2,
+		play_elemental_face_down_button : 1,
+		play_elemental_face_up_button   : 2,
 		buy_card_button          : 2,
 		play_extra_token_button  : 3,
 		play_sigil_magic_button  : 3,
@@ -42,6 +45,8 @@ func _ready():
 		swap_elemental_button    : 5,
 	}
 	connect_action_buttons()
+	switch_button.pressed.connect(switch_button_pressed)
+	hide()
 
 # ----------------------------------------------------------------
 # Connect all button-pressed signals to the simple print handlers
@@ -90,8 +95,8 @@ func elementals_face_swap_button():
 	var hand = game.deck.hand
 
 	if hand.cards.is_empty():
-		play_elemental_face_down.disabled = true
-		play_elemental_face_up.disabled = true
+		play_elemental_face_down_button.disabled = true
+		play_elemental_face_up_button.disabled = true
 		return
 
 	# Checking if there's elemental card in hand 
@@ -99,15 +104,15 @@ func elementals_face_swap_button():
 	for card in hand.get_children():
 		if card is FaceCard3D:
 			if card.card_type == CardResource.CardType.ELEMENTAL and stars >= 1 and stars < 2:
-				play_elemental_face_down.disabled = false
+				play_elemental_face_down_button.disabled = false
 				break
 			elif card.card_type == CardResource.CardType.ELEMENTAL and stars >= 2:
-				play_elemental_face_down.disabled = false
-				play_elemental_face_up.disabled = false
+				play_elemental_face_down_button.disabled = false
+				play_elemental_face_up_button.disabled = false
 				break
 			else:
-				play_elemental_face_down.disabled = true
-				play_elemental_face_up.disabled = true
+				play_elemental_face_down_button.disabled = true
+				play_elemental_face_up_button.disabled = true
 
 func check_buy_elemental_button():
 	var hand = game.deck.hand
@@ -158,12 +163,22 @@ func _get_active_player_ui() -> Control:
 	for child in container.get_children():
 		if child.visible:
 			return child
-	printerr("No visible player UI found.")
+	#printerr("No visible player UI found.")
 	return null
 
 func _check_elements_button():
 	apply_button_rules()
 
+func switch_button_pressed():
+	
+	print("switch button : ", is_switch_button)
+	if is_switch_button:
+		animation_player.play("show_card_actions")
+	else:
+		animation_player.play("show_elemental_actions")
+	
+	apply_button_rules()
+	is_switch_button = !is_switch_button
 
 # ----------------------------------------------------------------
 # Handlers
@@ -203,7 +218,7 @@ func _on_PlayElementalFaceDownButton_pressed():
 	print("play_elemental_face_down_button pressed")
 
 	# 1. Check cost
-	var cost = button_rules[play_elemental_face_down]
+	var cost = button_rules[play_elemental_face_down_button]
 	var active_player_ui = _get_active_player_ui()
 	if not active_player_ui: return
 
@@ -242,7 +257,7 @@ func _on_PlayElementalFaceUpButton_pressed():
 	print("play_elemental_face_up_button pressed")
 
 	# 1. Check cost
-	var cost = button_rules[play_elemental_face_up]
+	var cost = button_rules[play_elemental_face_up_button]
 	var active_player_ui = _get_active_player_ui()
 	if not active_player_ui: return
 

@@ -1,25 +1,27 @@
-[gd_scene load_steps=6 format=3 uid="uid://dxe1h1c8t2n61"]
+[gd_scene load_steps=8 format=3 uid="uid://dxe1h1c8t2n61"]
 
 [ext_resource type="Script" uid="uid://caj22v5gobskg" path="res://src/points_and_soil_star/soil_star_actions.gd" id="1_y4igk"]
+[ext_resource type="Texture2D" uid="uid://bv3ryvmiq0abb" path="res://assets/ui/hud/player_hud_arrow_top.png" id="2_0r44c"]
+[ext_resource type="Texture2D" uid="uid://is5cbp50bprx" path="res://assets/ui/hud/player_hud_extra_button_base.png" id="2_4fpxp"]
 
 [sub_resource type="Animation" id="Animation_4fpxp"]
 length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("VBoxContainer:position")
+tracks/0/path = NodePath("CardButtons:position")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(1925, 299)]
+"values": [Vector2(-292, -123)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("VBoxContainer:layout_mode")
+tracks/1/path = NodePath("CardButtons:z_index")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
@@ -28,68 +30,176 @@ tracks/1/keys = {
 "update": 1,
 "values": [1]
 }
-
-[sub_resource type="Animation" id="Animation_0r44c"]
-resource_name = "hide_actions"
-length = 0.2
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("VBoxContainer:layout_mode")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("CardButtons:modulate")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [1]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("VBoxContainer:position")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0, 0.2),
-"transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [Vector2(-192, -230), Vector2(0, -230)]
+"values": [Color(0.678431, 0.678431, 0.678431, 0.223529)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("ElementalButtons:modulate")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("ElementalButtons:position")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(-259, -139)]
 }
 
 [sub_resource type="Animation" id="Animation_y4igk"]
-resource_name = "show_actions"
+resource_name = "show_elemental_actions"
 length = 0.2
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("VBoxContainer:layout_mode")
+tracks/0/path = NodePath("CardButtons:position")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [1]
+"times": PackedFloat32Array(0, 0.0001, 0.2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-292, -123), Vector2(-292, -123), Vector2(-260, -136)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("VBoxContainer:position")
+tracks/1/path = NodePath("CardButtons:z_index")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
+"times": PackedFloat32Array(0.2),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("CardButtons:modulate")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.2),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0.678431, 0.678431, 0.678431, 0.223529)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("ElementalButtons:modulate")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0.2),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("ElementalButtons:position")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
 "times": PackedFloat32Array(0, 0.2),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [Vector2(0, -230), Vector2(-192, -230)]
+"values": [Vector2(-259, -139), Vector2(-288, -127)]
+}
+
+[sub_resource type="Animation" id="Animation_0r44c"]
+resource_name = "show_card_actions"
+length = 0.2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("CardButtons:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(-260, -136), Vector2(-292, -123)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("CardButtons:z_index")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.2),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("CardButtons:modulate")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.2),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("ElementalButtons:modulate")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0.2),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0.678431, 0.678431, 0.678431, 0.223529)]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("ElementalButtons:position")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(-288, -127), Vector2(-259, -139)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_34idh"]
 _data = {
 &"RESET": SubResource("Animation_4fpxp"),
-&"hide_actions": SubResource("Animation_0r44c"),
-&"show_actions": SubResource("Animation_y4igk")
+&"show_card_actions": SubResource("Animation_0r44c"),
+&"show_elemental_actions": SubResource("Animation_y4igk")
 }
 
 [node name="SoilStarActions" type="Control"]
@@ -99,77 +209,134 @@ anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
+offset_left = -7.0
+offset_top = 189.0
+offset_right = -7.0
+offset_bottom = 189.0
 grow_horizontal = 0
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_y4igk")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="SwitchButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = -184.0
+offset_top = -188.0
+offset_right = -122.0
+offset_bottom = -124.0
+scale = Vector2(0.7, 0.7)
+icon = ExtResource("2_0r44c")
+flat = true
+icon_alignment = 1
+
+[node name="CardButtons" type="VBoxContainer" parent="."]
+modulate = Color(0.678431, 0.678431, 0.678431, 0.223529)
+z_index = 1
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_top = -230.0
-offset_right = 192.0
-offset_bottom = 230.0
+offset_left = -292.0
+offset_top = -123.0
+offset_right = -74.0
+offset_bottom = 125.0
 grow_horizontal = 0
 grow_vertical = 2
+theme_override_constants/separation = 0
 
-[node name="PlayCardButton" type="Button" parent="VBoxContainer"]
+[node name="PlayCardButton" type="Button" parent="CardButtons"]
 layout_mode = 2
 mouse_filter = 1
-text = "Play a Card 
-(1 soil star)"
+disabled = true
+text = "Play a Card (1)
+"
+icon = ExtResource("2_4fpxp")
+flat = true
+icon_alignment = 1
 
-[node name="PlayElementalFaceDownButton" type="Button" parent="VBoxContainer"]
+[node name="BuyCardButton" type="Button" parent="CardButtons"]
+layout_mode = 2
+mouse_filter = 1
+disabled = true
+text = "Buy a Card (2)
+"
+icon = ExtResource("2_4fpxp")
+flat = true
+clip_text = true
+icon_alignment = 1
+
+[node name="PlayExtraTokenButton" type="Button" parent="CardButtons"]
+layout_mode = 2
+mouse_filter = 1
+disabled = true
+text = "Play Extra Token (3)"
+icon = ExtResource("2_4fpxp")
+flat = true
+clip_text = true
+icon_alignment = 1
+
+[node name="PlaySigilMagicButton" type="Button" parent="CardButtons"]
+layout_mode = 2
+mouse_filter = 1
+disabled = true
+text = "Play Sigil (3)
+"
+icon = ExtResource("2_4fpxp")
+flat = true
+clip_text = true
+icon_alignment = 1
+
+[node name="ElementalButtons" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_left = -259.0
+offset_top = -139.0
+offset_right = -45.0
+offset_bottom = 121.0
+
+[node name="PlayElementalFaceDownButton" type="Button" parent="ElementalButtons"]
 layout_mode = 2
 mouse_filter = 1
 text = "Play Elemental on Hand 
-Face Down (1 soil star)"
+Face Down (1)"
+icon = ExtResource("2_4fpxp")
+flat = true
+clip_text = true
+icon_alignment = 1
 
-[node name="PlayElementalFaceUpButton" type="Button" parent="VBoxContainer"]
+[node name="PlayElementalFaceUpButton" type="Button" parent="ElementalButtons"]
 layout_mode = 2
 mouse_filter = 1
 text = "Play Elemental on Hand 
-Face Up (2 soil star)"
+Face Up (2)"
+icon = ExtResource("2_4fpxp")
+flat = true
+clip_text = true
+icon_alignment = 1
 
-[node name="BuyCardButton" type="Button" parent="VBoxContainer"]
+[node name="BuyElementalButton" type="Button" parent="ElementalButtons"]
 layout_mode = 2
 mouse_filter = 1
-text = "Buy a Card
-(2 soil star)"
-
-[node name="PlayExtraTokenButton" type="Button" parent="VBoxContainer"]
-layout_mode = 2
-mouse_filter = 1
-text = "Play Extra Token
-(3 soil star)
+text = "Buy an Elemental (4)
 "
+icon = ExtResource("2_4fpxp")
+flat = true
+clip_text = true
+icon_alignment = 1
 
-[node name="PlaySigilMagicButton" type="Button" parent="VBoxContainer"]
+[node name="SwapElementalButton" type="Button" parent="ElementalButtons"]
 layout_mode = 2
 mouse_filter = 1
-text = "Play Sigil
-(3 soil star)
+text = "Swap an Elemental (5)
 "
-
-[node name="BuyElementalButton" type="Button" parent="VBoxContainer"]
-layout_mode = 2
-mouse_filter = 1
-text = "Buy an Elemental
-(4 soil star)
-"
-
-[node name="SwapElementalButton" type="Button" parent="VBoxContainer"]
-layout_mode = 2
-mouse_filter = 1
-text = "Swap an Elemental
-(5 soil star)
-"
+icon = ExtResource("2_4fpxp")
+flat = true
+clip_text = true
+icon_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {
 &"": SubResource("AnimationLibrary_34idh")
 }
+autoplay = "show_card_actions"
