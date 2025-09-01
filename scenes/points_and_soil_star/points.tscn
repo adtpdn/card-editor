@@ -1,27 +1,21 @@
-[gd_scene load_steps=3 format=3 uid="uid://b7si3u1lndgw4"]
+[gd_scene load_steps=4 format=3 uid="uid://b7si3u1lndgw4"]
 
+[ext_resource type="Theme" uid="uid://3tbbpd1peyop" path="res://assets/ui/themes/hud_themes.tres" id="1_cfpco"]
 [ext_resource type="Script" uid="uid://c3in8axrpo7ok" path="res://src/points_and_soil_star/points.gd" id="1_g74jl"]
 [ext_resource type="Texture2D" uid="uid://chxlfkga6ciaq" path="res://assets/ui/points.png" id="2_cfpco"]
 
 [node name="Points" type="Control"]
 layout_mode = 3
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -40.0
-offset_top = -40.0
-grow_horizontal = 0
-grow_vertical = 0
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme = ExtResource("1_cfpco")
 script = ExtResource("1_g74jl")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
-layout_mode = 0
-offset_left = -229.0
-offset_top = -59.0
-offset_right = -129.0
-offset_bottom = 1.0
+layout_mode = 1
+offset_right = 100.0
+offset_bottom = 60.0
 
 [node name="PointsLabel" type="Label" parent="HBoxContainer"]
 layout_mode = 2
@@ -33,6 +27,7 @@ custom_minimum_size = Vector2(15, 0)
 layout_mode = 2
 
 [node name="PointsTexture" type="TextureRect" parent="HBoxContainer"]
+visible = false
 layout_mode = 2
 texture = ExtResource("2_cfpco")
 expand_mode = 2

@@ -1,7 +1,6 @@
 extends Control
 
-@onready var panel = $Panel
-@onready var player_turn_label = $Panel/PlayerTurnLabel
+@onready var player_turn_label = $PlayerTurnLabel
 @onready var game = $".."
 @onready var game_state_manager = $"../GameStateManager"
 
@@ -70,7 +69,7 @@ func update_turn_display():
 	var current_player_id = game_state_manager.get_current_player_id()
 	if current_player_id == -1:
 		player_turn_label.text = "Waiting for game..."
-		panel.modulate = Color(0.5, 0.5, 0.5, 1.0)  # Gray when waiting
+		player_turn_label.modulate = Color(0.5, 0.5, 0.5, 1.0)  # Gray when waiting
 		return
 	
 	print("Updating turn display for player: " + str(current_player_id))
@@ -81,7 +80,7 @@ func update_turn_display():
 	# Update label text
 	if is_my_turn:
 		player_turn_label.text = "YOUR TURN"
-		panel.modulate = Color(0, 1, 0, 1.0)  # Green for your turn
+		player_turn_label.modulate = Color(0, 1, 0, 1.0)  # Green for your turn
 	else:
 		# Get name based on ID
 		var player_name = get_player_name_from_id(current_player_id)
@@ -90,10 +89,10 @@ func update_turn_display():
 		
 		# Update label color based on player color if available
 		if game.player_colors.has(current_player_id):
-			panel.modulate = game.player_colors[current_player_id]
+			player_turn_label.modulate = game.player_colors[current_player_id]
 		else:
 			# Default color for other players
-			panel.modulate = Color(1, 0.7, 0, 1.0)  # Orange for other players
+			player_turn_label.modulate = Color(1, 0.7, 0, 1.0)  # Orange for other players
 	
 	print("Turn label updated to: " + player_turn_label.text)
 

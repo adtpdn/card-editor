@@ -1,5 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://dxpbtxks8gf60"]
+[gd_scene load_steps=4 format=3 uid="uid://dxpbtxks8gf60"]
 
+[ext_resource type="Theme" uid="uid://3tbbpd1peyop" path="res://assets/ui/themes/hud_themes.tres" id="1_lonpu"]
 [ext_resource type="Script" uid="uid://cnal45cmhu1to" path="res://src/points_and_soil_star/soil_star.gd" id="1_y7qr1"]
 [ext_resource type="Texture2D" uid="uid://dshxu8xgwqow1" path="res://assets/ui/soilstar.png" id="2_lonpu"]
 
@@ -14,6 +15,7 @@ offset_left = -40.0
 offset_top = -40.0
 grow_horizontal = 0
 grow_vertical = 0
+theme = ExtResource("1_lonpu")
 script = ExtResource("1_y7qr1")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
@@ -23,18 +25,18 @@ offset_top = -61.0
 offset_right = -4.0
 offset_bottom = -1.0
 
-[node name="SoilStarLabel" type="Label" parent="HBoxContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "0"
-
-[node name="MarginContainer" type="MarginContainer" parent="HBoxContainer"]
-custom_minimum_size = Vector2(15, 0)
-layout_mode = 2
-
 [node name="SoilStarTexture" type="TextureButton" parent="HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 texture_normal = ExtResource("2_lonpu")
 ignore_texture_size = true
 stretch_mode = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="HBoxContainer"]
+custom_minimum_size = Vector2(15, 0)
+layout_mode = 2
+
+[node name="SoilStarLabel" type="Label" parent="HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0"

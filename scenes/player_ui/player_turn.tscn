@@ -1,20 +1,17 @@
-[gd_scene load_steps=2 format=3 uid="uid://dneiapwmkd0eu"]
+[gd_scene load_steps=3 format=3 uid="uid://dneiapwmkd0eu"]
 
 [ext_resource type="Script" uid="uid://bwgodmm1t7d4q" path="res://src/player_turn.gd" id="1_7lque"]
+[ext_resource type="Theme" uid="uid://3tbbpd1peyop" path="res://assets/ui/themes/hud_themes.tres" id="1_lxn4o"]
 
 [node name="PlayerTurn" type="Control"]
 layout_mode = 3
 anchors_preset = 0
-offset_right = 107.0
-offset_bottom = 24.0
+offset_right = 118.0
+offset_bottom = 39.0
+theme = ExtResource("1_lxn4o")
 script = ExtResource("1_7lque")
 
-[node name="Panel" type="Panel" parent="."]
-layout_mode = 0
-offset_right = 108.0
-offset_bottom = 25.0
-
-[node name="PlayerTurnLabel" type="Label" parent="Panel"]
+[node name="PlayerTurnLabel" type="Label" parent="."]
 layout_mode = 0
 offset_right = 108.0
 offset_bottom = 23.0

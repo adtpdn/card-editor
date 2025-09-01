@@ -1,24 +1,25 @@
-[gd_scene load_steps=2 format=3 uid="uid://hv32edejyn3o"]
+[gd_scene load_steps=3 format=3 uid="uid://hv32edejyn3o"]
 
+[ext_resource type="Theme" uid="uid://3tbbpd1peyop" path="res://assets/ui/themes/hud_themes.tres" id="1_mqho8"]
 [ext_resource type="Script" uid="uid://bglh840rildp6" path="res://src/points_and_soil_star/score_display.gd" id="1_sxhhf"]
 
 [node name="ScoreDisplay" type="Control"]
 layout_mode = 3
-anchors_preset = 3
+anchors_preset = 1
 anchor_left = 1.0
-anchor_top = 1.0
 anchor_right = 1.0
-anchor_bottom = 1.0
+offset_left = -193.0
+offset_top = 21.0
+offset_right = -193.0
+offset_bottom = 21.0
 grow_horizontal = 0
-grow_vertical = 0
+theme = ExtResource("1_mqho8")
 script = ExtResource("1_sxhhf")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
-layout_mode = 0
-offset_left = -112.0
-offset_top = -56.0
-offset_right = -34.0
-offset_bottom = -16.0
+layout_mode = 1
+offset_right = 78.0
+offset_bottom = 40.0
 
 [node name="ScoreLabel" type="Label" parent="HBoxContainer"]
 layout_mode = 2

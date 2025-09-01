@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://bchy4wmtwdsy"]
+[gd_scene load_steps=4 format=3 uid="uid://bchy4wmtwdsy"]
 
+[ext_resource type="Theme" uid="uid://3tbbpd1peyop" path="res://assets/ui/themes/hud_themes.tres" id="1_gtdy0"]
 [ext_resource type="Script" uid="uid://copi64l3fv7vm" path="res://src/pop_up.gd" id="1_qfklp"]
+[ext_resource type="Texture2D" uid="uid://bi3oa2d6kltwn" path="res://assets/ui/hud/player_hud_turn_button_base.png" id="3_cy0db"]
 
 [node name="PopUp" type="Control"]
 layout_mode = 3
@@ -11,27 +13,34 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
 mouse_filter = 2
+theme = ExtResource("1_gtdy0")
 script = ExtResource("1_qfklp")
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -132.0
-offset_right = 132.0
-offset_bottom = 96.0
+offset_left = -133.0
+offset_top = 13.0
+offset_right = 131.0
+offset_bottom = 109.0
 grow_horizontal = 2
+texture = ExtResource("3_cy0db")
 
 [node name="Label" type="Label" parent="Panel"]
 layout_mode = 1
-anchors_preset = 5
+anchors_preset = 8
 anchor_left = 0.5
+anchor_top = 0.5
 anchor_right = 0.5
-offset_left = -130.0
-offset_right = 133.0
-offset_bottom = 98.0
+anchor_bottom = 0.5
+offset_left = -126.0
+offset_top = -49.0
+offset_right = 126.0
+offset_bottom = 37.0
 grow_horizontal = 2
+grow_vertical = 2
 theme_override_font_sizes/font_size = 14
 text = "Instruction Label"
 horizontal_alignment = 1
