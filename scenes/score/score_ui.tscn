@@ -1,6 +1,10 @@
-[gd_scene load_steps=2 format=3 uid="uid://dgkrhoahnnmwb"]
+[gd_scene load_steps=6 format=3 uid="uid://dgkrhoahnnmwb"]
 
 [ext_resource type="Script" uid="uid://cr617fxolo0ue" path="res://src/score/score_ui.gd" id="1_8f6iw"]
+[ext_resource type="Theme" uid="uid://3tbbpd1peyop" path="res://assets/ui/themes/hud_themes.tres" id="2_yg0v7"]
+[ext_resource type="Texture2D" uid="uid://dby07010c4uti" path="res://assets/ui/scoreboard/score_blurred_bg.png" id="3_13iwi"]
+[ext_resource type="Texture2D" uid="uid://dypmhogv6pyl3" path="res://assets/ui/scoreboard/score_background.png" id="4_6d0k0"]
+[ext_resource type="Texture2D" uid="uid://5hye0n2thpe3" path="res://assets/ui/scoreboard/score_title.png" id="5_13iwi"]
 
 [node name="ScoreUI" type="Control"]
 layout_mode = 3
@@ -12,48 +16,77 @@ grow_vertical = 2
 script = ExtResource("1_8f6iw")
 
 [node name="Background" type="PanelContainer" parent="."]
+visible = false
 modulate = Color(1, 1, 1, 0.0666667)
 layout_mode = 0
 offset_right = 1928.0
 offset_bottom = 1085.0
+theme = ExtResource("2_yg0v7")
 
-[node name="PanelScore" type="Panel" parent="."]
+[node name="BlurredBG" type="TextureRect" parent="."]
+modulate = Color(0, 0, 0, 0.431373)
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("3_13iwi")
+
+[node name="PanelScore" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -486.0
-offset_top = -262.5
-offset_right = 486.0
-offset_bottom = 262.5
+offset_left = -750.0
+offset_top = -322.0
+offset_right = 750.0
+offset_bottom = 338.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("2_yg0v7")
 
-[node name="Title" type="Label" parent="PanelScore"]
+[node name="ScoreBG" type="TextureRect" parent="PanelScore"]
 layout_mode = 1
-anchors_preset = 5
+anchors_preset = 8
 anchor_left = 0.5
+anchor_top = 0.5
 anchor_right = 0.5
-offset_left = -58.0
-offset_right = 58.0
-offset_bottom = 42.0
+anchor_bottom = 0.5
+offset_left = -750.0
+offset_top = -337.0
+offset_right = 754.0
+offset_bottom = 325.0
 grow_horizontal = 2
-theme_override_font_sizes/font_size = 30
-text = "Scores"
+grow_vertical = 2
+texture = ExtResource("4_6d0k0")
+
+[node name="TextureRect" type="TextureRect" parent="PanelScore"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -594.0
+offset_top = -450.0
+offset_right = 598.0
+offset_bottom = -365.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_13iwi")
 
 [node name="Information" type="VBoxContainer" parent="PanelScore"]
 layout_mode = 1
 anchors_preset = 4
 anchor_top = 0.5
 anchor_bottom = 0.5
-offset_left = 55.0
-offset_top = -114.5
-offset_right = 271.0
-offset_bottom = 220.5
+offset_left = 80.0
+offset_top = -178.0
+offset_right = 296.0
+offset_bottom = 263.0
 grow_vertical = 2
-theme_override_constants/separation = 20
+theme = ExtResource("2_yg0v7")
+theme_override_constants/separation = 42
 
 [node name="AliveTokens" type="Label" parent="PanelScore/Information"]
 layout_mode = 2
@@ -82,52 +115,60 @@ theme_override_font_sizes/font_size = 30
 text = "Total"
 
 [node name="Players" type="HBoxContainer" parent="PanelScore"]
-layout_mode = 0
-offset_left = 348.0
-offset_top = 76.5
-offset_right = 902.0
-offset_bottom = 118.5
-theme_override_constants/separation = 30
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -303.953
+offset_top = -284.0
+offset_right = 640.047
+offset_bottom = -227.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_yg0v7")
+theme_override_constants/separation = 160
 
 [node name="Player1" type="Label" parent="PanelScore/Players"]
 custom_minimum_size = Vector2(116, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 38
 text = "Player 1"
 horizontal_alignment = 1
 
 [node name="Player2" type="Label" parent="PanelScore/Players"]
 custom_minimum_size = Vector2(116, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 38
 text = "Player 2"
 horizontal_alignment = 1
 
 [node name="Player3" type="Label" parent="PanelScore/Players"]
 custom_minimum_size = Vector2(116, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 38
 text = "Player 3"
 horizontal_alignment = 1
 
 [node name="Player4" type="Label" parent="PanelScore/Players"]
 custom_minimum_size = Vector2(116, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 38
 text = "Player 4"
 horizontal_alignment = 1
 
 [node name="PlayerScore" type="HBoxContainer" parent="PanelScore"]
 layout_mode = 0
-offset_left = 384.0
-offset_top = 147.0
-offset_right = 857.0
-offset_bottom = 477.0
-theme_override_constants/separation = 135
+offset_left = 488.0
+offset_top = 157.0
+offset_right = 1392.0
+offset_bottom = 598.0
+theme_override_constants/separation = 260
 
 [node name="Player1" type="VBoxContainer" parent="PanelScore/PlayerScore"]
 layout_mode = 2
-theme_override_constants/separation = 30
+theme_override_constants/separation = 54
 
 [node name="AliveTokensP1" type="Label" parent="PanelScore/PlayerScore/Player1"]
 layout_mode = 2
@@ -156,7 +197,7 @@ text = "0"
 
 [node name="Player2" type="VBoxContainer" parent="PanelScore/PlayerScore"]
 layout_mode = 2
-theme_override_constants/separation = 30
+theme_override_constants/separation = 54
 
 [node name="AliveTokensP2" type="Label" parent="PanelScore/PlayerScore/Player2"]
 layout_mode = 2
@@ -185,7 +226,7 @@ text = "0"
 
 [node name="Player3" type="VBoxContainer" parent="PanelScore/PlayerScore"]
 layout_mode = 2
-theme_override_constants/separation = 30
+theme_override_constants/separation = 54
 
 [node name="AliveTokensP3" type="Label" parent="PanelScore/PlayerScore/Player3"]
 layout_mode = 2
@@ -214,7 +255,7 @@ text = "0"
 
 [node name="Player4" type="VBoxContainer" parent="PanelScore/PlayerScore"]
 layout_mode = 2
-theme_override_constants/separation = 30
+theme_override_constants/separation = 54
 
 [node name="AliveTokensP4" type="Label" parent="PanelScore/PlayerScore/Player4"]
 layout_mode = 2
