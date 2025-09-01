@@ -66,6 +66,66 @@ tracks/4/keys = {
 "update": 0,
 "values": [Vector2(-259, -139)]
 }
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("ElementalButtons:mouse_filter")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("ElementalButtons/PlayElementalFaceDownButton:mouse_filter")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
+tracks/7/type = "value"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath("ElementalButtons/PlayElementalFaceUpButton:mouse_filter")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
+tracks/8/type = "value"
+tracks/8/imported = false
+tracks/8/enabled = true
+tracks/8/path = NodePath("ElementalButtons/BuyElementalButton:mouse_filter")
+tracks/8/interp = 1
+tracks/8/loop_wrap = true
+tracks/8/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
+tracks/9/type = "value"
+tracks/9/imported = false
+tracks/9/enabled = true
+tracks/9/path = NodePath("ElementalButtons/SwapElementalButton:mouse_filter")
+tracks/9/interp = 1
+tracks/9/loop_wrap = true
+tracks/9/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
 
 [sub_resource type="Animation" id="Animation_y4igk"]
 resource_name = "show_elemental_actions"
@@ -129,6 +189,66 @@ tracks/4/keys = {
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [Vector2(-259, -139), Vector2(-288, -127)]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("ElementalButtons:mouse_filter")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("ElementalButtons/PlayElementalFaceDownButton:mouse_filter")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+tracks/7/type = "value"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath("ElementalButtons/PlayElementalFaceUpButton:mouse_filter")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+tracks/8/type = "value"
+tracks/8/imported = false
+tracks/8/enabled = true
+tracks/8/path = NodePath("ElementalButtons/BuyElementalButton:mouse_filter")
+tracks/8/interp = 1
+tracks/8/loop_wrap = true
+tracks/8/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+tracks/9/type = "value"
+tracks/9/imported = false
+tracks/9/enabled = true
+tracks/9/path = NodePath("ElementalButtons/SwapElementalButton:mouse_filter")
+tracks/9/interp = 1
+tracks/9/loop_wrap = true
+tracks/9/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
 }
 
 [sub_resource type="Animation" id="Animation_0r44c"]
@@ -194,6 +314,66 @@ tracks/4/keys = {
 "update": 0,
 "values": [Vector2(-288, -127), Vector2(-259, -139)]
 }
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("ElementalButtons:mouse_filter")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("ElementalButtons/PlayElementalFaceDownButton:mouse_filter")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
+tracks/7/type = "value"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath("ElementalButtons/PlayElementalFaceUpButton:mouse_filter")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
+tracks/8/type = "value"
+tracks/8/imported = false
+tracks/8/enabled = true
+tracks/8/path = NodePath("ElementalButtons/BuyElementalButton:mouse_filter")
+tracks/8/interp = 1
+tracks/8/loop_wrap = true
+tracks/8/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
+tracks/9/type = "value"
+tracks/9/imported = false
+tracks/9/enabled = true
+tracks/9/path = NodePath("ElementalButtons/SwapElementalButton:mouse_filter")
+tracks/9/interp = 1
+tracks/9/loop_wrap = true
+tracks/9/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_34idh"]
 _data = {
@@ -247,6 +427,7 @@ grow_vertical = 2
 theme_override_constants/separation = 0
 
 [node name="PlayCardButton" type="Button" parent="CardButtons"]
+z_index = 1
 layout_mode = 2
 mouse_filter = 1
 disabled = true
@@ -257,6 +438,7 @@ flat = true
 icon_alignment = 1
 
 [node name="BuyCardButton" type="Button" parent="CardButtons"]
+z_index = 1
 layout_mode = 2
 mouse_filter = 1
 disabled = true
@@ -268,6 +450,7 @@ clip_text = true
 icon_alignment = 1
 
 [node name="PlayExtraTokenButton" type="Button" parent="CardButtons"]
+z_index = 1
 layout_mode = 2
 mouse_filter = 1
 disabled = true
@@ -278,6 +461,7 @@ clip_text = true
 icon_alignment = 1
 
 [node name="PlaySigilMagicButton" type="Button" parent="CardButtons"]
+z_index = 1
 layout_mode = 2
 mouse_filter = 1
 disabled = true
@@ -294,10 +478,11 @@ offset_left = -259.0
 offset_top = -139.0
 offset_right = -45.0
 offset_bottom = 121.0
+mouse_filter = 2
 
 [node name="PlayElementalFaceDownButton" type="Button" parent="ElementalButtons"]
 layout_mode = 2
-mouse_filter = 1
+mouse_filter = 2
 text = "Play Elemental on Hand 
 Face Down (1)"
 icon = ExtResource("2_4fpxp")
@@ -307,7 +492,7 @@ icon_alignment = 1
 
 [node name="PlayElementalFaceUpButton" type="Button" parent="ElementalButtons"]
 layout_mode = 2
-mouse_filter = 1
+mouse_filter = 2
 text = "Play Elemental on Hand 
 Face Up (2)"
 icon = ExtResource("2_4fpxp")
@@ -317,7 +502,7 @@ icon_alignment = 1
 
 [node name="BuyElementalButton" type="Button" parent="ElementalButtons"]
 layout_mode = 2
-mouse_filter = 1
+mouse_filter = 2
 text = "Buy an Elemental (4)
 "
 icon = ExtResource("2_4fpxp")
@@ -327,7 +512,7 @@ icon_alignment = 1
 
 [node name="SwapElementalButton" type="Button" parent="ElementalButtons"]
 layout_mode = 2
-mouse_filter = 1
+mouse_filter = 2
 text = "Swap an Elemental (5)
 "
 icon = ExtResource("2_4fpxp")
