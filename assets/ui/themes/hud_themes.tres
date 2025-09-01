@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=7 format=3 uid="uid://3tbbpd1peyop"]
+[gd_resource type="Theme" load_steps=8 format=3 uid="uid://3tbbpd1peyop"]
 
 [ext_resource type="FontFile" uid="uid://ca868f534a3i4" path="res://assets/fonts/Oswald-Regular.ttf" id="1_6mota"]
 [ext_resource type="Texture2D" uid="uid://bi3oa2d6kltwn" path="res://assets/ui/hud/player_hud_turn_button_base.png" id="1_p77nj"]
@@ -12,6 +12,8 @@ texture_margin_bottom = 14.0
 expand_margin_left = 4.0
 expand_margin_right = 4.0
 modulate_color = Color(0.43, 0.43, 0.43, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_p77nj"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_o2xjc"]
 texture = ExtResource("1_p77nj")
@@ -33,8 +35,10 @@ default_font = ExtResource("1_6mota")
 default_font_size = 24
 Button/colors/font_color = Color(0.929412, 0.737255, 0.486275, 1)
 Button/colors/font_disabled_color = Color(0, 0, 0, 0.501961)
+Button/constants/outline_size = 0
 Button/fonts/font = ExtResource("1_6mota")
 Button/styles/disabled = SubResource("StyleBoxTexture_p77nj")
+Button/styles/focus = SubResource("StyleBoxEmpty_p77nj")
 Button/styles/hover = SubResource("StyleBoxTexture_o2xjc")
 Button/styles/normal = SubResource("StyleBoxTexture_jeqyi")
 Button/styles/pressed = SubResource("StyleBoxTexture_tx5p3")

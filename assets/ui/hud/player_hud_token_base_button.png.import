@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://de6h46hq47ytd"
-path="res://.godot/imported/player_hud_gui_points.png-c4ae49f57a85cd092f2c8b974acc2f1b.ctex"
+uid="uid://go6btywxr5mh"
+path="res://.godot/imported/player_hud_token_base_button.png-5e928dbc3252e13c005e75cfac1876d8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ui/hud/player_hud_gui_points.png"
-dest_files=["res://.godot/imported/player_hud_gui_points.png-c4ae49f57a85cd092f2c8b974acc2f1b.ctex"]
+source_file="res://assets/ui/hud/player_hud_token_base_button.png"
+dest_files=["res://.godot/imported/player_hud_token_base_button.png-5e928dbc3252e13c005e75cfac1876d8.ctex"]
 
 [params]
 

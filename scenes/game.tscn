@@ -1,4 +1,4 @@
-[gd_scene load_steps=71 format=4 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=72 format=4 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://src/game.gd" id="1_e1j6l"]
 [ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://src/managers/turn_phase_manager.gd" id="2_pl11u"]
@@ -39,6 +39,7 @@
 [ext_resource type="Script" uid="uid://bqibbhjbko4ra" path="res://src/cards_and_deck/card_3d.gd" id="28_m4url"]
 [ext_resource type="PlaneMesh" uid="uid://dxvj3gkbbknem" path="res://assets/meshes/card_3d_back_mesh.tres" id="29_8ool0"]
 [ext_resource type="Material" uid="uid://b2jdqh0ex1sps" path="res://assets/materials/cards_materials/elementals/ElementalRed01.tres" id="30_02fa5"]
+[ext_resource type="Texture2D" uid="uid://de6h46hq47ytd" path="res://assets/ui/hud/player_hud_gui_points.png" id="38_458eo"]
 [ext_resource type="PackedScene" uid="uid://dgkrhoahnnmwb" path="res://scenes/score/score_ui.tscn" id="38_7025r"]
 [ext_resource type="Theme" uid="uid://3tbbpd1peyop" path="res://assets/ui/themes/hud_themes.tres" id="38_oaba0"]
 [ext_resource type="PackedScene" uid="uid://cq86nn4m1hdqq" path="res://scenes/player_ui/player_list.tscn" id="39_8ool0"]
@@ -1382,6 +1383,19 @@ grow_vertical = 0
 texture = ExtResource("41_0sl42")
 expand_mode = 1
 
+[node name="player_hud_gui_points" type="TextureRect" parent="HudDecoration"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -376.0
+offset_top = 8.0
+offset_right = 70.0
+offset_bottom = 228.0
+grow_horizontal = 0
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("38_458eo")
+
 [node name="Notification" parent="." instance=ExtResource("22_oaba0")]
 visible = false
 
@@ -1425,15 +1439,13 @@ autowrap_mode = 2
 
 [node name="RightUI" type="Control" parent="."]
 layout_mode = 3
-anchors_preset = 3
+anchors_preset = 11
 anchor_left = 1.0
-anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -228.0
-offset_top = -900.0
 grow_horizontal = 0
-grow_vertical = 0
+grow_vertical = 2
+size_flags_vertical = 3
 mouse_filter = 1
 theme = SubResource("Theme_qhcbd")
 
@@ -1446,10 +1458,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -84.0
-offset_top = -152.5
-offset_right = 86.0
-offset_bottom = 132.5
+offset_left = -232.0
+offset_top = -156.0
+offset_right = -62.0
+offset_bottom = 129.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 10
@@ -1490,10 +1502,10 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -200.0
-offset_top = 188.0
-offset_right = -29.0
-offset_bottom = 211.0
+offset_left = -224.0
+offset_top = 240.0
+offset_right = -53.0
+offset_bottom = 263.0
 grow_horizontal = 0
 
 [node name="NetworkSideDisplay" type="Label" parent="RightUI/NetworkInfo"]
@@ -1536,26 +1548,33 @@ theme = ExtResource("38_oaba0")
 theme_override_font_sizes/font_size = 32
 text = "END TURN"
 
+[node name="TokenButton" type="Button" parent="RightUI"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -200.0
+offset_top = 120.0
+offset_right = -50.0
+offset_bottom = 185.0
+grow_horizontal = 0
+theme = ExtResource("38_oaba0")
+theme_override_font_sizes/font_size = 32
+text = "00"
+
 [node name="TokenTexture" type="TextureRect" parent="RightUI"]
-layout_mode = 0
-offset_left = 29.0
-offset_top = 148.0
-offset_right = 109.0
-offset_bottom = 228.0
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -264.0
+offset_top = 120.0
+offset_right = -184.0
+offset_bottom = 200.0
+grow_horizontal = 0
+scale = Vector2(0.68, 0.68)
 expand_mode = 3
 stretch_mode = 5
-
-[node name="TokenButton" type="Button" parent="RightUI"]
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-offset_left = 12.0
-offset_top = 241.0
-offset_right = 125.0
-offset_bottom = 283.0
-grow_horizontal = 0
-grow_vertical = 2
-theme_override_font_sizes/font_size = 10
-text = "00"
 
 [node name="PlayerTokenIndicators" type="HBoxContainer" parent="RightUI"]
 layout_mode = 0
