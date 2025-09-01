@@ -129,6 +129,14 @@ func _calculate_biome_points_score(player_id: int) -> int:
 		
 		var dominant_players = domination_manager._get_all_dominant_players_in_biome(biome_type)
 		
+		if biome_type == domination_manager.least_tokens_win_biome and biome_type == domination_manager.blighted_domination_biome:
+			dominant_players = domination_manager._get_least_and_blighted_dominant_players_in_biome(biome_type)
+		elif biome_type == domination_manager.least_tokens_win_biome:
+			dominant_players = domination_manager._get_least_dominant_players_in_biome(biome_type)
+		
+		print("")
+		print("calculate biome points : ", biome_type)
+		print("dominate players : ", dominant_players)
 		# --- NEW TIE-BREAKING LOGIC ---
 		match dominant_players.size():
 			1: # Case 1: A single player dominates.
@@ -137,7 +145,7 @@ func _calculate_biome_points_score(player_id: int) -> int:
 					# --- MODIFICATION: Use the variable score multiplier ---
 					var points_score = biome_data["points"] * current_biome_point_score
 					print("points score : ", points_score)
-					var mana_score = floor(biome_data["mana"] / 2.0)
+					var mana_score = floor(biome_data["mana"])
 					print('mana score : ', mana_score)
 					total_biome_score += points_score + mana_score
 			
@@ -154,7 +162,7 @@ func _calculate_biome_points_score(player_id: int) -> int:
 					# Distribute mana: each player gets half, odd mana is discarded.
 					var mana_per_player = floor(biome_data["mana"] / 2.0)
 					print('mana per player : ', mana_per_player)
-					var mana_score = floor(mana_per_player / 2.0)
+					var mana_score = floor(mana_per_player)
 					
 					total_biome_score += points_score + mana_score
 
