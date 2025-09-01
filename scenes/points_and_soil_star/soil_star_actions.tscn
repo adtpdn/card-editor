@@ -1,8 +1,9 @@
-[gd_scene load_steps=8 format=3 uid="uid://dxe1h1c8t2n61"]
+[gd_scene load_steps=9 format=3 uid="uid://dxe1h1c8t2n61"]
 
 [ext_resource type="Script" uid="uid://caj22v5gobskg" path="res://src/points_and_soil_star/soil_star_actions.gd" id="1_y4igk"]
 [ext_resource type="Texture2D" uid="uid://bv3ryvmiq0abb" path="res://assets/ui/hud/player_hud_arrow_top.png" id="2_0r44c"]
 [ext_resource type="Texture2D" uid="uid://is5cbp50bprx" path="res://assets/ui/hud/player_hud_extra_button_base.png" id="2_4fpxp"]
+[ext_resource type="Theme" uid="uid://3tbbpd1peyop" path="res://assets/ui/themes/hud_themes.tres" id="2_34idh"]
 
 [sub_resource type="Animation" id="Animation_4fpxp"]
 length = 0.001
@@ -405,6 +406,7 @@ offset_top = -188.0
 offset_right = -122.0
 offset_bottom = -124.0
 scale = Vector2(0.7, 0.7)
+theme = ExtResource("2_34idh")
 icon = ExtResource("2_0r44c")
 flat = true
 icon_alignment = 1
@@ -421,7 +423,7 @@ anchor_bottom = 0.5
 offset_left = -292.0
 offset_top = -123.0
 offset_right = -74.0
-offset_bottom = 125.0
+offset_bottom = 157.0
 grow_horizontal = 0
 grow_vertical = 2
 theme_override_constants/separation = 0
@@ -430,7 +432,6 @@ theme_override_constants/separation = 0
 z_index = 1
 layout_mode = 2
 mouse_filter = 1
-disabled = true
 text = "Play a Card (1)
 "
 icon = ExtResource("2_4fpxp")
@@ -441,7 +442,6 @@ icon_alignment = 1
 z_index = 1
 layout_mode = 2
 mouse_filter = 1
-disabled = true
 text = "Buy a Card (2)
 "
 icon = ExtResource("2_4fpxp")
@@ -453,7 +453,6 @@ icon_alignment = 1
 z_index = 1
 layout_mode = 2
 mouse_filter = 1
-disabled = true
 text = "Play Extra Token (3)"
 icon = ExtResource("2_4fpxp")
 flat = true
@@ -464,7 +463,6 @@ icon_alignment = 1
 z_index = 1
 layout_mode = 2
 mouse_filter = 1
-disabled = true
 text = "Play Sigil (3)
 "
 icon = ExtResource("2_4fpxp")
@@ -477,7 +475,7 @@ layout_mode = 0
 offset_left = -259.0
 offset_top = -139.0
 offset_right = -45.0
-offset_bottom = 121.0
+offset_bottom = 189.0
 mouse_filter = 2
 
 [node name="PlayElementalFaceDownButton" type="Button" parent="ElementalButtons"]

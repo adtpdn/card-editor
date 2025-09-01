@@ -172,6 +172,7 @@ func _on_host_pressed():
 		await get_tree().create_timer(0.1).timeout # Short delay for stability
 		card_manager.initialize_starting_hand()
 		
+		game.soil_star_actions.apply_button_rules()
 		game.soil_star_actions.show()
 		
 		# Start broadcasting server info
@@ -232,6 +233,7 @@ func attempt_connection(target_ip: String):
 	print("error : ", error)
 	if error == OK:
 		multiplayer.multiplayer_peer = multiplayer_peer
+		game.soil_star_actions.apply_button_rules()
 		game.soil_star_actions.show()
 		get_tree().create_timer(1.0).timeout.connect(func():
 			if multiplayer.is_server():

@@ -1,4 +1,4 @@
-[gd_scene load_steps=74 format=4 uid="uid://dpmxlw8f4fyvd"]
+[gd_scene load_steps=73 format=4 uid="uid://dpmxlw8f4fyvd"]
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://src/game.gd" id="1_e1j6l"]
 [ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://src/managers/turn_phase_manager.gd" id="2_pl11u"]
@@ -47,7 +47,6 @@
 [ext_resource type="Texture2D" uid="uid://bnonyajtv8knb" path="res://assets/ui/hud/player_hud_list.png" id="41_oaba0"]
 [ext_resource type="Texture2D" uid="uid://00ogivbbxm1g" path="res://assets/ui/hud/player_hud_announcer.png" id="42_fedci"]
 [ext_resource type="PackedScene" uid="uid://dvdw5n8wridiw" path="res://scenes/cursor_trail.tscn" id="42_pr1ej"]
-[ext_resource type="PackedScene" uid="uid://hv32edejyn3o" path="res://scenes/player_ui/score_display.tscn" id="47_h3rex"]
 
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_02fa5"]
 data = PackedVector3Array(0.1, 0, 0.1, -0.1, 0, 0.1, 0.1, 0, -0.1, -0.1, 0, 0.1, -0.1, 0, -0.1, 0.1, 0, -0.1)
@@ -1613,12 +1612,6 @@ mouse_filter = 1
 
 [node name="CursorTrail" parent="." instance=ExtResource("42_pr1ej")]
 z_index = 1
-
-[node name="ScoreDisplay" parent="." instance=ExtResource("47_h3rex")]
-offset_left = -331.0
-offset_top = 12.0
-offset_right = -331.0
-offset_bottom = 12.0
 
 [connection signal="mouse_entered" from="Deck/Table/DragController/elemental_slice_1/DropZone" to="Deck/Table/DragController/elemental_slice_1" method="_on_drop_zone_mouse_entered"]
 [connection signal="mouse_exited" from="Deck/Table/DragController/elemental_slice_1/DropZone" to="Deck/Table/DragController/elemental_slice_1" method="_on_drop_zone_mouse_exited"]

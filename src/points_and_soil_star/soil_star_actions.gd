@@ -45,6 +45,7 @@ func _ready():
 		swap_elemental_button    : 5,
 	}
 	connect_action_buttons()
+	
 	switch_button.pressed.connect(switch_button_pressed)
 	hide()
 
@@ -57,21 +58,6 @@ func connect_action_buttons():
 			btn.pressed.connect(Callable(self, signal_name))
 		else:
 			printerr("Handler function not found for button: ", btn.name)
-
-
-# ----------------------------------------------------------------
-# Toggle the panel's visibility
-func _show_hide_actions_panel():
-	apply_button_rules()
-	is_panel_status = !is_panel_status
-
-	animation_player.play("show_actions" if is_panel_status else "hide_actions")
-	_show_hide_right_ui_panel()
-
-func _show_hide_right_ui_panel():
-	for n in [game.token_button, game.end_phase_button, game.end_turn_button, game.token_texture]:
-		if n:
-			n.visible = !is_panel_status
 
 # ----------------------------------------------------------------
 # Apply the star rules once per panel open
@@ -166,12 +152,8 @@ func _get_active_player_ui() -> Control:
 	#printerr("No visible player UI found.")
 	return null
 
-func _check_elements_button():
-	apply_button_rules()
-
 func switch_button_pressed():
 	
-	print("switch button : ", is_switch_button)
 	if is_switch_button:
 		animation_player.play("show_card_actions")
 	else:
@@ -210,9 +192,7 @@ func _on_PlayCardButton_pressed():
 	
 	# Instruct the player on what to do next.
 	game.notification.show_instruction_label("Select a card from your hand, then drag it to a biome.")
-	
-	# Hide the actions panel to allow interaction with the game board.
-	_show_hide_actions_panel()
+
 
 func _on_PlayElementalFaceDownButton_pressed():   
 	print("play_elemental_face_down_button pressed")
@@ -248,9 +228,6 @@ func _on_PlayElementalFaceDownButton_pressed():
 	is_swapping_elemental = true
 	#game.card_manager.hand_card_for_swap = null # Reset any previously selected card
 	game.notification.show_instruction_label("Select an elemental from your hand.")
-
-	# 4. Hide the actions panel to allow board interaction
-	_show_hide_actions_panel()
 
 
 func _on_PlayElementalFaceUpButton_pressed():     
@@ -288,9 +265,6 @@ func _on_PlayElementalFaceUpButton_pressed():
 	#game.card_manager.hand_card_for_swap = null # Reset any previously selected card
 	game.notification.show_instruction_label("Select an elemental from your hand.")
 
-	# 4. Hide the actions panel to allow board interaction
-	_show_hide_actions_panel()
-
 func _on_BuyCardButton_pressed():                   
 	print("buy_card_button pressed")
 	var turn_phase_manager = game.turn_phase_manager
@@ -323,8 +297,6 @@ func _on_BuyCardButton_pressed():
 	# 3. All checks passed, perform the action
 	soil_star_node.decrease_soil_star(cost)
 
-	# 4. Close the panel
-	_show_hide_actions_panel()
 
 func _on_PlayExtraTokenButton_pressed():          
 	print("play_extra_token_button pressed")
@@ -362,9 +334,6 @@ func _on_PlayExtraTokenButton_pressed():
 	game.token_manager._on_token_selected()
 	game.notification.show_instruction_label("Place your extra token on any valid location.")
 
-	# 5. Close the panel
-	_show_hide_actions_panel()
-
 func _on_PlaySigilMagicButton_pressed():          
 	print("play_sigil_magic_button pressed")
 
@@ -395,9 +364,6 @@ func _on_PlaySigilMagicButton_pressed():
 	# 4. Highlight valid tokens and instruct the player
 	game.sigil_manager.highlight_activatable_sigil_tokens(player_id)
 	game.notification.show_instruction_label("Select one of your highlighted energy tokens to activate a sigil.")
-	
-	# 5. Close the panel
-	_show_hide_actions_panel()
 
 func _on_BuyElementalButton_pressed():
 	print("Buy Elemental Button pressed")
@@ -425,9 +391,6 @@ func _on_BuyElementalButton_pressed():
 	var table = get_node("/root/Game/Deck/Table")
 	if is_instance_valid(table):
 		table.draw_local_elemental_card(cost)
-	
-	# 4. Close the actions panel.
-	_show_hide_actions_panel()
 
 func _on_SwapElementalButton_pressed():
 	print("swap_elemental_button pressed")
@@ -476,6 +439,3 @@ func _on_SwapElementalButton_pressed():
 			var card = slice_node.cards[0]
 			if card is FaceCard3D:
 				card.set_hovered() # Use hover effect for highlighting
-
-	# 5. Hide the actions panel to allow board interaction
-	_show_hide_actions_panel()
