@@ -672,20 +672,7 @@ func unblight_token(token_position):
 			break
 
 	if token:
-		print("process token blight")
-		print('token name : ', token)
-		print("Blighting token at position: " + str(token.global_position))
-		# Toggle blight status
-		token.is_blighted = !token.is_blighted
-
-		# Play animation on the server
-		if token.is_blighted:
-			token.animation_player.play("blight")
-		else:
-			token.animation_player.play("unblight")
-
-		# IMPORTANT: Sync to all clients using RPC with POSITION
-		token_manager.rpc("sync_token_blight", token.global_position, token.is_blighted)
+		token_manager.unblight_token_and_move(token)
 
 		# Always unhighlight token placements after any token action
 		token_manager.unhighlight_all_token_placements()

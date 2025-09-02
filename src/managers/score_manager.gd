@@ -130,8 +130,10 @@ func _calculate_biome_points_score(player_id: int) -> int:
 		var dominant_players = domination_manager._get_all_dominant_players_in_biome(biome_type)
 		
 		if biome_type == domination_manager.least_tokens_win_biome and biome_type == domination_manager.blighted_domination_biome:
+			print('least and blighted elementals')
 			dominant_players = domination_manager._get_least_and_blighted_dominant_players_in_biome(biome_type)
 		elif biome_type == domination_manager.least_tokens_win_biome:
+			print("least elemental")
 			dominant_players = domination_manager._get_least_dominant_players_in_biome(biome_type)
 		
 		print("")

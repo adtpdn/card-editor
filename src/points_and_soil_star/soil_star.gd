@@ -5,29 +5,12 @@ signal soil_star_changed(new_count)
 @onready var game = get_node("/root/Game")
 @onready var soil_star_label = $HBoxContainer/SoilStarLabel
 @onready var soil_star_texture = $HBoxContainer/SoilStarTexture
+@onready var soil_star_actions = get_node("/root/Game/SoilStarActions")
 
 @export var current_soil_star : int = 0 
 
 # Shader
 const soil_star_shader = preload("res://assets/materials/shaders/soil_star.gdshader")
-
-#func _ready():
-	## Create the purchase button if not already in the scene
-	#if not purchase_button:
-		#purchase_button = Button.new()
-		#purchase_button.text = "Buy Elemental Card"
-		#$HBoxContainer.add_child(purchase_button)
-		#purchase_button.pressed.connect(_on_purchase_button_pressed)
-
-#func _on_purchase_button_pressed():
-	#var game = get_node("/root/Game")
-	#var table = game.get_node("Deck/Table")
-	#if table and game.game_state_manager.is_valid_player_turn(multiplayer.get_unique_id()):
-		#if multiplayer.is_server():
-			#table.purchase_elemental_card()
-		#else:
-			#rpc_id(1, "request_purchase_elemental_card", multiplayer.get_unique_id())
-
 
 # This function is now ONLY called by the server to increase stars for a player.
 # The domination_manager (server-only) will call this.
@@ -75,6 +58,7 @@ func sync_star_count(new_count: int):
 	current_soil_star = new_count
 	soil_star_label.text = str(current_soil_star)
 	
+	soil_star_actions.apply_button_rules()
 	# Emit the signal so the SoilStarActions panel can update its button states.
 	soil_star_changed.emit(new_count)
 

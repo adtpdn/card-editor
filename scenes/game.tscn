@@ -318,7 +318,7 @@ shape = SubResource("ConcavePolygonShape3D_02fa5")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.511963, 0)
 
 [node name="Forest" type="MeshInstance3D" parent="SigilClickArea"]
-transform = Transform3D(0.703395, 0, 0.710799, 0, 1, 0, -0.710799, 0, 0.703395, -6.02554, 0.168392, -6.11046)
+transform = Transform3D(0.66721, 0, 0.956273, 0, 1, 0, -0.674233, 0, 0.946312, -5.73142, 0.241318, -5.7295)
 script = ExtResource("13_7025r")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="SigilClickArea/Forest"]
@@ -338,6 +338,7 @@ collision_layer = 2
 collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="SigilClickArea/Water/StaticBody3D"]
+transform = Transform3D(1.36049, 0, 0, 0, 1.28401, 0, -5.96046e-08, 0, 0.917642, 0.396158, -0.015077, 0.00948524)
 shape = SubResource("ConcavePolygonShape3D_7025r")
 
 [node name="Mountain" type="MeshInstance3D" parent="SigilClickArea"]
@@ -350,6 +351,7 @@ collision_layer = 2
 collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="SigilClickArea/Mountain/StaticBody3D"]
+transform = Transform3D(0.910058, 0, 0, 0, 1, 0, -1.19209e-07, 0, 1.36514, -0.138302, 0, -0.404706)
 shape = SubResource("ConcavePolygonShape3D_7025r")
 
 [node name="Desert" type="MeshInstance3D" parent="SigilClickArea"]
@@ -362,6 +364,7 @@ collision_layer = 2
 collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="SigilClickArea/Desert/StaticBody3D"]
+transform = Transform3D(1.40321, 0, 8.9407e-08, 0, 1, 0, -5.96046e-08, 0, 0.942593, -0.397324, 0, -0.0574703)
 shape = SubResource("ConcavePolygonShape3D_7025r")
 
 [node name="SlicesBoard" parent="." instance=ExtResource("14_m4url")]

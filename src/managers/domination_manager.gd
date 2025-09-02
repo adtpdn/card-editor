@@ -200,7 +200,9 @@ func check_domination_for_soil_stars():
 		var winners = []
 
 		winners = _get_all_dominant_players_in_biome(biome_value)
-		if biome_value == least_tokens_win_biome:
+		if biome_value == least_tokens_win_biome and biome_value == blighted_domination_biome:
+			winners = _get_least_and_blighted_dominant_players_in_biome(biome_value)
+		elif biome_value == least_tokens_win_biome:
 			print("Using 'least tokens win' rule for biome: %s" % biome_name)
 			winners = _get_least_dominant_players_in_biome(biome_value)
 		
@@ -366,6 +368,7 @@ func _get_least_and_blighted_dominant_players_in_biome(biome_type: Biome) -> Arr
 	for player_id in game.players:
 		player_token_counts[player_id] = 0
 
+	
 	# First, get a list of all players who have at least one token in the biome
 	var players_in_biome = []
 	for token in game.tokens.get_children():
@@ -379,13 +382,14 @@ func _get_least_and_blighted_dominant_players_in_biome(biome_type: Biome) -> Arr
 	if players_in_biome.is_empty():
 		return []
 
+	print("player in biome : ",players_in_biome)
 	var winners = []
 	# Start with a high number to find the minimum
 	var min_count = INF 
 	for player_id in players_in_biome:
 		if player_token_counts[player_id] < min_count:
 			min_count = player_token_counts[player_id]
-	
+	print('min count : ', min_count)
 	# Find all players who are tied for the minimum count
 	if min_count != INF:
 		for player_id in players_in_biome:

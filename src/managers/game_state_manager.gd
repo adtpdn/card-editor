@@ -16,6 +16,7 @@ extends Node
 @onready var domination_manager = $"../DominationManager"
 @onready var score_ui = $"../ScoreUI"
 @onready var elementals_manager = $"../ElementalsManager"
+@onready var soil_star_actions = $"../SoilStarActions"
 
 
 const player_hud_scene = preload("res://scenes/player_ui/player_hud.tscn")
@@ -293,6 +294,7 @@ func set_current_turn(player_id: int):
 	current_turn_index = player_index
 	
 	token_manager.update_token_ui()
+	soil_star_actions.apply_button_rules()
 	
 	if ui_manager:
 		ui_manager.update_player_hud()

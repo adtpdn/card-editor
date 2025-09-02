@@ -5,9 +5,9 @@ const CURSOR_TRAIL = preload("res://scenes/cursor_trail.tscn")
 func _ready():
 	var new_cursor = load("res://assets/ui/cursor/cursor_32px.png")
 	# Define the hotspot (the click point)
-	#var hotspot = Vector2(0, 0)
+	var hotspot = Vector2(8, 0)
 	# Apply the custom cursor
-	Input.set_custom_mouse_cursor(new_cursor, Input.CURSOR_ARROW)
+	Input.set_custom_mouse_cursor(new_cursor, Input.CURSOR_ARROW, hotspot)
 	
 	# Create a new tween to handle the animation
 	var tween = create_tween()

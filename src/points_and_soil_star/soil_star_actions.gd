@@ -28,7 +28,6 @@ var is_swapping_elemental_face_up: bool = false
 var is_swapping_planted_elementals: bool = false
 
 # ----------------------------------------------------------------
-var is_panel_status : bool = false   # true when the panel is open
 var is_action_buy_card : bool = false 
 var is_switch_button : bool = false
 
@@ -118,9 +117,7 @@ func plant_extra_button_rule():
 # This function is called whenever the soil star count changes.
 func _on_soil_star_changed(new_count: int):
 	# If the panel is currently open and the star count changes,
-	# [cite_start]re-evaluate which buttons should be enabled. [cite: 539]
-	if is_panel_status:
-		apply_button_rules()
+	apply_button_rules()
 
 # This helper ensures we are always connected to the active player's signal.
 func _connect_to_soil_star_signal():
