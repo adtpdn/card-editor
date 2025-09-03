@@ -1,0 +1,562 @@
+# domination_manager.gd
+extends Node
+
+# --- References ---
+@onready var game = get_node("/root/Game")
+@onready var token_manager = get_node("/root/Game/TokenManager")
+@onready var drag_controller = get_node("/root/Game/Deck/Table/DragController")
+@onready var elementals_manager = get_node("/root/Game/ElementalsManager")
+
+# Enum to make biome mapping clearer
+enum Biome { FOREST, WATER, MOUNTAIN, DESERT }
+
+# This dictionary maps each biome to its corresponding elemental slice pairs.
+# The order is important: the second element is checked first for flipping.
+const BIOME_TO_SLICES = {
+	Biome.FOREST: ["elemental_slice_1", "elemental_slice_2"],
+	Biome.WATER: ["elemental_slice_3", "elemental_slice_4"],
+	Biome.MOUNTAIN: ["elemental_slice_5", "elemental_slice_6"],
+	Biome.DESERT: ["elemental_slice_7", "elemental_slice_8"],
+}
+
+var stars_awarded_this_turn = {}
+# Variable to track the biome affected by the elemental card
+var blighted_domination_biome: int = -1
+# Variable to track the biome that awards a card
+var card_reward_biome: int = -1
+# Variable to track the biome with the "least tokens win" rule
+var least_tokens_win_biome: int = -1
+# Variable to store the Biome enum index of the last elemental flip.
+var last_flipped_biome: int = -1
+
+# for soil star
+var is_soil_star_share = false
+
+# Function to set the affected biome
+func set_blighted_domination_biome(biome_index: int):
+	blighted_domination_biome = biome_index
+	rpc("sync_blighted_domination_biome", biome_index)
+
+@rpc("any_peer", "call_local")
+func sync_blighted_domination_biome(biome_index: int):
+	blighted_domination_biome = biome_index
+
+# Function to set the affected biome for card reward
+func set_card_reward_biome(biome_index: int):
+	card_reward_biome = biome_index
+	print("card reward biome : ", card_reward_biome)
+	rpc("sync_card_reward_biome", biome_index)
+
+@rpc("any_peer", "call_local")
+func sync_card_reward_biome(biome_index: int):
+	card_reward_biome = biome_index
+
+func set_least_tokens_win_biome(biome_index: int):
+	least_tokens_win_biome = biome_index
+	rpc("sync_least_tokens_win_biome", biome_index)
+
+@rpc("any_peer", "call_local")
+func sync_least_tokens_win_biome(biome_index: int):
+	least_tokens_win_biome = biome_index
+
+# This function is called by the server to set and sync the last flipped biome.
+func _set_last_flipped_biome(biome_index: int):
+	if not multiplayer.is_server(): return
+	rpc("sync_last_flipped_biome", biome_index)
+
+@rpc("any_peer", "call_local")
+func sync_last_flipped_biome(biome_index: int):
+	last_flipped_biome = biome_index
+	# Optional: print for debugging
+	if biome_index != -1:
+		print("SYNC: Last flipped biome is now: %s" % Biome.keys()[biome_index])
+
+# --- MODIFICATION START ---
+# Dictionary to hold the notification text for each elemental card
+const ELEMENTAL_NOTIFICATION_TEXT = {
+	"BLUE": {
+		0: "Elemental Effect Activated:\nCannot use Sigil A pattern.",
+		1: "Elemental Effect Activated:\nCannot use Sigil B pattern.",
+		2: "Elemental Effect Activated:\nCannot use Sigil C pattern.",
+		3: "Elemental Effect Activated:\nCannot place token energy on blighted Sigil column.",
+		4: "Elemental Effect Activated:\nCannot place token energy on blighted Sigil column.",
+		5: "Elemental Effect Activated:\nCannot place token energy on blighted Sigil column.",
+		6: "Elemental Effect Activated:\nMana cannot be converted to points but remains in Mana slot.",
+		7: "Elemental Effect Activated:\nConsumes 2 Mana to activate Sigil Magic pattern.",
+		8: "Elemental Effect Activated:\nMana amount depends on blighted tokens in Biome."
+	},
+	"RED": {
+		0: "Elemental Effect Activated:\nRequires at least 1 blight token in a Biome, determined by dominance; if tied, from last player in reverse order.",
+		1: "Elemental Effect Activated:\nRequires at least 2 blight tokens in a Biome, determined by dominance; if tied, from last player in reverse order.",
+		2: "Elemental Effect Activated:\nMaximum 4 tokens in a Biome; excess tokens blighted from dominant player, or if tied, from last player in reverse order.",
+		3: "Elemental Effect Activated:\nMaximum 5 tokens in a Biome; excess tokens blighted from dominant player, or if tied, from last player in reverse order.",
+		4: "Elemental Effect Activated:\nBlighted tokens dominate the Biome.",
+		5: "Elemental Effect Activated:\n1 Point counts as 1 score.",
+		6: "Elemental Effect Activated:\nDominant player in a Biome gains a card instead of a soil star.",
+		7: "Elemental Effect Activated:\nCannot plant tokens in a Biome.",
+		8: "Elemental Effect Activated:\nFewer tokens in a Biome dominate it."
+	}
+}
+# --- MODIFICATION END ---
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# --- Public API - Called from GameStateManager ---
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# This function should be called FIRST at the end of a round.
+# It finds the biome with the most total tokens and triggers a card flip there.
+func check_domination_for_elemental_flips():
+	if not multiplayer.is_server():
+		return
+	print("--- Checking Biome with most tokens for Elemental Flips ---")
+
+	# Step 1: Get the counts of revealed elementals for every biome.
+	var revealed_counts = _get_revealed_elemental_counts()
+	print("Revealed elementals per biome: ", revealed_counts)
+
+	# Step 2: Identify which biomes are still eligible (have less than 2 revealed).
+	var all_biomes = [Biome.FOREST, Biome.WATER, Biome.MOUNTAIN, Biome.DESERT]
+	var eligible_biomes = []
+	for biome in all_biomes:
+		if revealed_counts.get(biome, 0) < 2:
+			eligible_biomes.append(biome)
+
+	print("Eligible biomes for the next flip: ", eligible_biomes)
+
+	# Step 3: If no biomes are eligible, stop.
+	if eligible_biomes.is_empty():
+		print("All biomes have two revealed elementals. No flip will occur.")
+		return
+
+	# Step 4: Now, find the most dominant biome ONLY from the eligible list.
+	var biome_token_counts = _get_biome_token_counts()
+	var winning_biomes = []
+	var max_count = -1 # Use -1 to correctly handle biomes with 0 tokens.
+
+	# CRITICAL CHANGE: Loop only through 'eligible_biomes'.
+	for biome in eligible_biomes:
+		var token_count = biome_token_counts.get(biome, 0)
+		if token_count > max_count:
+			max_count = token_count
+			winning_biomes = [biome]
+		elif token_count == max_count and max_count > 0: # Only tie if there are tokens
+			winning_biomes.append(biome)
+
+	# Step 5: Determine the final winning biome and flip the card.
+	var winning_biome = -1
+	if winning_biomes.is_empty():
+		print("No tokens found in any eligible biomes. No elemental flip.")
+		return
+	elif winning_biomes.size() == 1:
+		winning_biome = winning_biomes[0]
+		var biome_key = Biome.keys()[winning_biome]
+		print("The %s biome has the most tokens. Checking for elemental flip." % biome_key)
+	else:
+		print("Tie for most tokens between eligible biomes: ", winning_biomes)
+		winning_biome = _resolve_domination_tie(winning_biomes)
+
+	# --- Final Tie-Breaker Logic ---
+	if winning_biome == -1:
+		print("Tie could not be resolved by player placement. Using final tie-breaker rules.")
+		
+		# Rule 1: Prioritize the biome that is next in sequence from the last flip.
+		if last_flipped_biome != -1:
+			var next_in_sequence = (last_flipped_biome + 1) % 4 # Clockwise rotation
+			if winning_biomes.has(next_in_sequence):
+				winning_biome = next_in_sequence
+				print("Final Tie-Breaker: Selected biome %s as it is next in sequence." % Biome.keys()[winning_biome])
+		
+		# Rule 2 (Fallback): If the sequential biome wasn't tied, pick the tied biome with the fewest revealed cards.
+		if winning_biome == -1:
+			print("Sequential biome not in tie. Falling back to fewest revealed elementals rule.")
+			var min_revealed = 3
+			var final_winner = -1
+			for biome in winning_biomes:
+				var count = revealed_counts.get(biome, 0)
+				if count < min_revealed:
+					min_revealed = count
+					final_winner = biome
+			
+			winning_biome = final_winner
+			if winning_biome != -1:
+				print("Fallback Tie-Breaker: Selected biome %s, with fewest revealed elementals (%d)." % [Biome.keys()[winning_biome], min_revealed])
+
+	if winning_biome != -1:
+		_flip_elemental_for_biome(winning_biome)
+	else:
+		print("No single biome has the most tokens (tie could not be resolved). No elemental flip.")
+
+# This function should be called SECOND at the end of a round, after flips.
+# It checks for PLAYER domination in each biome and awards stars.
+func check_domination_for_soil_stars():
+	if not multiplayer.is_server():
+		return
+
+	print("--- Checking Biome Domination for Soil Stars ---")
+
+	stars_awarded_this_turn = {}
+	for player_id in game.players:
+		stars_awarded_this_turn[player_id] = 0
+
+	is_soil_star_share = true
+	
+	# Loop through each biome
+	for biome_value in Biome.values():
+		var biome_name = Biome.keys()[biome_value]
+		var winners = []
+
+		winners = _get_all_dominant_players_in_biome(biome_value)
+		if biome_value == least_tokens_win_biome and biome_value == blighted_domination_biome:
+			winners = _get_least_and_blighted_dominant_players_in_biome(biome_value)
+		elif biome_value == least_tokens_win_biome:
+			print("Using 'least tokens win' rule for biome: %s" % biome_name)
+			winners = _get_least_dominant_players_in_biome(biome_value)
+		
+		print("winners : ", winners)
+
+		# MODIFIED --- Check if this biome awards a card instead of a star
+		print("card reward biome : ", card_reward_biome)
+		if biome_value == card_reward_biome:
+			print("Biome %s has card reward active. Awarding cards to winners: %s" % [biome_name, str(winners)])
+			for winner_id in winners:
+				#game.deck.table.server_draw_card(winner_id, false)
+				if multiplayer.is_server():
+					game.deck.table.server_draw_card(winner_id, false)
+				else:
+					game.deck.table.rpc_id(1, "request_server_draw_card", winner_id, false)
+		else:
+			# Original logic for awarding soil stars
+			if winners.size() == 1:
+				var winner_id = winners[0]
+				print("Player %d dominates the %s biome for a soil star." % [winner_id, biome_name])
+				stars_awarded_this_turn[winner_id] += 1
+			else:
+				if biome_value == blighted_domination_biome:
+					print("Domination is TIED in the BLIGHTED %s biome between players: %s. Awarding stars to all." % [biome_name, str(winners)])
+				else:
+					print("Domination is TIED in the %s biome between players: %s. Awarding stars to all." % [biome_name, str(winners)])
+				
+				for winner_id in winners:
+					stars_awarded_this_turn[winner_id] += 1
+
+	# Sync the results with all clients
+	var has_awards = false
+	for star_count in stars_awarded_this_turn.values():
+		if star_count > 0:
+			has_awards = true
+			break
+	
+	is_soil_star_share = false
+	if has_awards:
+		rpc("update_all_stars_and_notify", stars_awarded_this_turn)
+		# Wait on the server to let the notification be seen by players
+		await get_tree().create_timer(3.5).timeout
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# --- Private Helper and Logic Functions ---
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+func _get_flipped_elemental_counts() -> Dictionary:
+	var counts = {}
+	# IMPORTANT: Adjust this path to wherever your elemental card slots are stored.
+	var elemental_slots_node = get_node_or_null("/root/Game/Board/ElementalCardSlots")
+	
+	if not elemental_slots_node:
+		print("ERROR in DominationManager: Elemental card slots node not found!")
+		return counts
+
+	# Loop through each slot to check for a flipped card
+	for slot in elemental_slots_node.get_children():
+		# Assuming the slot has properties 'has_card', 'card', and the card has 'is_flipped'
+		if slot.has_card and is_instance_valid(slot.card) and slot.card.is_flipped:
+			# Assuming the slot itself knows its biome
+			if "card_slot_biome" in slot:
+				var biome_index = slot.card_slot_biome
+				if not counts.has(biome_index):
+					counts[biome_index] = 0
+				counts[biome_index] += 1
+				
+	return counts
+
+# Tie-breaker logic based on last player's placement.
+func _resolve_domination_tie(tied_biomes: Array) -> int:
+	# Get the player turn order for this round.
+	var player_order = game.players.duplicate()
+	player_order.reverse() # Start checking from the last player of the round.
+
+	print("Resolving tie. Player check order: ", player_order)
+	print("Last biome placements: ", game.player_last_biome_placements)
+
+	for player_id in player_order:
+		if game.player_last_biome_placements.has(player_id):
+			var last_biome = game.player_last_biome_placements[player_id]
+			print("Checking player %d, last placed in biome %s" % [player_id, Biome.keys()[last_biome]])
+			# If their last placed biome is one of the tied ones, that biome wins.
+			if tied_biomes.has(last_biome):
+				print("Tie resolved! Player %d's last placement in %s wins." % [player_id, Biome.keys()[last_biome]])
+				return last_biome
+	
+	print("Tie could not be resolved by player placement history.")
+	return -1 # Tie could not be resolved.
+
+func _get_revealed_elemental_counts() -> Dictionary:
+	var counts = {}
+	if not is_instance_valid(drag_controller):
+		printerr("DominationManager Error: DragController node is not ready or valid!")
+		return counts
+
+	# Loop through each child of the drag controller to find the elemental slices.
+	for child in drag_controller.get_children():
+		if child.name.begins_with("elemental_slice_") and child is CardCollection3D:
+			var slot = child
+			# A revealed card is one that is NOT face_down.
+			if not slot.cards.is_empty():
+				var card = slot.cards[0] # Assuming one card per slice
+				if is_instance_valid(card) and card is FaceCard3D and not card.face_down:
+					if "card_slot_biome" in slot:
+						var biome_index = slot.card_slot_biome
+						if not counts.has(biome_index):
+							counts[biome_index] = 0
+						counts[biome_index] += 1
+	return counts
+
+# Finds which biome has the most tokens in total, regardless of player.
+# Returns the Biome enum value if there's a clear winner, otherwise returns -1 for a tie.
+func _get_biome_token_counts() -> Dictionary:
+	var biome_token_counts = {
+		Biome.FOREST: 0,
+		Biome.WATER: 0,
+		Biome.MOUNTAIN: 0,
+		Biome.DESERT: 0
+	}
+
+	# Count all non-energy tokens in each biome
+	for token in game.tokens.get_children():
+		if not token.is_energy and not token.is_blighted:
+			if biome_token_counts.has(token.biome_type):
+				biome_token_counts[token.biome_type] += 1
+	
+	print("Total tokens per biome: ", biome_token_counts)
+	return biome_token_counts
+
+# --- NEW FUNCTION for ElementalRed08 ---
+# Finds the player(s) with the FEWEST tokens in a biome.
+func _get_least_dominant_players_in_biome(biome_type: Biome) -> Array:
+	var player_token_counts = {}
+	for player_id in game.players:
+		player_token_counts[player_id] = 0
+
+	# First, get a list of all players who have at least one token in the biome
+	var players_in_biome = []
+	for token in game.tokens.get_children():
+		if token.biome_type == biome_type and not token.is_blighted and not token.is_energy:
+			if not players_in_biome.has(token.owner_id):
+				players_in_biome.append(token.owner_id)
+			if player_token_counts.has(token.owner_id):
+				player_token_counts[token.owner_id] += 1
+	
+	# If no one has tokens, no one can be the least dominant
+	if players_in_biome.is_empty():
+		return []
+
+	var winners = []
+	# Start with a high number to find the minimum
+	var min_count = INF 
+	for player_id in players_in_biome:
+		if player_token_counts[player_id] < min_count:
+			min_count = player_token_counts[player_id]
+	
+	# Find all players who are tied for the minimum count
+	if min_count != INF:
+		for player_id in players_in_biome:
+			if player_token_counts[player_id] == min_count:
+				winners.append(player_id)
+	
+	return winners
+
+func _get_least_and_blighted_dominant_players_in_biome(biome_type: Biome) -> Array:
+	var player_token_counts = {}
+	for player_id in game.players:
+		player_token_counts[player_id] = 0
+
+	
+	# First, get a list of all players who have at least one token in the biome
+	var players_in_biome = []
+	for token in game.tokens.get_children():
+		if token.biome_type == biome_type and token.is_blighted and not token.is_energy:
+			if not players_in_biome.has(token.owner_id):
+				players_in_biome.append(token.owner_id)
+			if player_token_counts.has(token.owner_id):
+				player_token_counts[token.owner_id] += 1
+	
+	# If no one has tokens, no one can be the least dominant
+	if players_in_biome.is_empty():
+		return []
+
+	print("player in biome : ",players_in_biome)
+	var winners = []
+	# Start with a high number to find the minimum
+	var min_count = INF 
+	for player_id in players_in_biome:
+		if player_token_counts[player_id] < min_count:
+			min_count = player_token_counts[player_id]
+	print('min count : ', min_count)
+	# Find all players who are tied for the minimum count
+	if min_count != INF:
+		for player_id in players_in_biome:
+			if player_token_counts[player_id] == min_count:
+				winners.append(player_id)
+	
+	return winners
+
+# A more general helper that returns an array of ALL players who are tied for domination.
+# (Used for Elemental Red Max 4 and 5)
+func _get_all_dominant_alive_token_in_biome(biome_type: Biome) -> Array:
+	var player_token_counts = {}
+	for player_id in game.players:
+		player_token_counts[player_id] = 0
+
+	for token in game.tokens.get_children():
+		if token.biome_type == biome_type and not token.is_energy and not token.is_blighted:
+			if player_token_counts.has(token.owner_id):
+				player_token_counts[token.owner_id] += 1
+
+	var winners = []
+	var max_count = 0
+	for count in player_token_counts.values():
+		if count > max_count:
+			max_count = count
+	
+	if max_count > 0:
+		for player_id in player_token_counts:
+			if player_token_counts[player_id] == max_count:
+				winners.append(player_id)
+	
+	return winners
+
+# A more general helper that returns an array of ALL players who are tied for domination. (Used for Soil Stars)
+func _get_all_dominant_players_in_biome(biome_type: Biome) -> Array:
+	var player_token_counts = {}
+	for player_id in game.players:
+		player_token_counts[player_id] = 0
+
+	# Check if we should count blighted tokens for this biome
+	var count_blighted = (biome_type == blighted_domination_biome)
+
+	for token in game.tokens.get_children():
+		if token.biome_type == biome_type and not token.is_energy:
+			var should_count = false
+			if count_blighted:
+				if token.is_blighted:
+					should_count = true
+			else:
+				if not token.is_blighted:
+					should_count = true
+			
+			if should_count and player_token_counts.has(token.owner_id):
+				player_token_counts[token.owner_id] += 1
+
+	var winners = []
+	var max_count = 0
+	for count in player_token_counts.values():
+		if count > max_count:
+			max_count = count
+	
+	if max_count > 0:
+		for player_id in player_token_counts:
+			if player_token_counts[player_id] == max_count:
+				winners.append(player_id)
+	
+	return winners
+
+
+# Handles the logic for flipping the correct elemental card for a dominated biome.
+func _flip_elemental_for_biome(biome_type: Biome):
+	if not BIOME_TO_SLICES.has(biome_type):
+		return
+
+	var slice_names = BIOME_TO_SLICES[biome_type]
+	var slice_to_check_first = drag_controller.get_node_or_null(slice_names[1])
+	var slice_to_check_second = drag_controller.get_node_or_null(slice_names[0])
+
+	if _try_flip_card_in_slice(slice_to_check_first):
+		_set_last_flipped_biome(biome_type) # MODIFIED: Record this flip
+		return
+	if _try_flip_card_in_slice(slice_to_check_second):
+		_set_last_flipped_biome(biome_type) # MODIFIED: Record this flip
+		return
+
+# Helper that checks a slice and triggers the RPC if a face-down card is found.
+func _try_flip_card_in_slice(slice_node: CardCollection3D) -> bool:
+	if not is_instance_valid(slice_node) or slice_node.cards.is_empty():
+		return false
+
+	var card = slice_node.cards[-1]
+	if is_instance_valid(card) and card is FaceCard3D and card.face_down:
+		rpc("flip_and_activate_elemental_card", slice_node.get_path())
+		return true
+	return false
+
+# This is a purely local function to show the notification with a timer.
+func _show_local_notification(stars_earned: int):
+	if stars_earned > 0:
+		var text = "You got %d soil star(s)!" % stars_earned
+		game.notification.show_instruction_label(text)
+		await get_tree().create_timer(3.0).timeout
+		game.notification.hide_panel()
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# --- RPC Functions ---
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@rpc("any_peer", "call_local")
+func flip_and_activate_elemental_card(slice_path: NodePath):
+	var slice_node = get_node_or_null(slice_path)
+	
+	if not is_instance_valid(slice_node) or slice_node.cards.is_empty():
+		print("RPC Error: Could not find slice or card at path: %s" % slice_path)
+		return
+
+	var card = slice_node.cards[-1]
+	if is_instance_valid(card) and card is FaceCard3D and card.face_down:
+		print("Flipping card '%s' in slice '%s'" % [card.card_name, slice_node.name])
+		card.face_down = false
+		
+		# --- MODIFICATION START ---
+		# Add a small delay to ensure this notification is shown last
+		await get_tree().create_timer(0.1).timeout
+		
+		# Show notification with the card's rule text
+		var card_type_str = "RED" if card.elemental_type == CardResource.ElementalType.RED else "BLUE"
+		if ELEMENTAL_NOTIFICATION_TEXT.has(card_type_str) and ELEMENTAL_NOTIFICATION_TEXT[card_type_str].has(card.card_id):
+			var notification_text = ELEMENTAL_NOTIFICATION_TEXT[card_type_str][card.card_id]
+			game.notification.show_instruction_label(notification_text)
+			await get_tree().create_timer(3.0).timeout
+			game.notification.hide_panel()
+		# --- MODIFICATION END ---
+		
+		# Excute elemental
+		if slice_node.has_method("execute_elemental_effect"):
+			elementals_manager.execute_elemental_effect(card.card_id, card.elemental_type, card)
+		else:
+			print("ERROR: CardCollection3D script on slice is missing 'execute_elemental_effect' function.")
+
+@rpc("any_peer", "call_local")
+func update_all_stars_and_notify(all_awards: Dictionary):
+	print("RPC received on peer %d: Updating stars with data: %s" % [multiplayer.get_unique_id(), str(all_awards)])
+
+	for player_id in all_awards:
+		var count = all_awards[player_id]
+		if count > 0:
+			var soil_star_node_path = "/root/Game/PlayerUIs/Player_%d_UI/SoilStar" % player_id
+			var soil_star_node = get_node_or_null(soil_star_node_path)
+			if soil_star_node:
+				soil_star_node.increase_soil_star(count)
+			else:
+				print("WARNING: Could not find SoilStar node for player %d. Path: %s" % [player_id, soil_star_node_path])
+
+	var local_player_id = multiplayer.get_unique_id()
+	if all_awards.has(local_player_id):
+		var stars_earned = all_awards[local_player_id]
+		_show_local_notification(stars_earned)
