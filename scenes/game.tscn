@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://src/game.gd" id="1_e1j6l"]
 [ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://src/managers/turn_phase_manager.gd" id="2_pl11u"]
-[ext_resource type="Script" uid="uid://ckodjk0ue4j3n" path="res://src/managers/token_manager.gd" id="3_bhx41"]
+[ext_resource type="Script" path="res://src/managers/token_manager.gd" id="3_bhx41"]
 [ext_resource type="Script" uid="uid://b51yqiry8444l" path="res://src/managers/network_manager.gd" id="4_qnb83"]
 [ext_resource type="Script" uid="uid://crljukaucgphk" path="res://src/managers/game_state_manager.gd" id="5_sww3w"]
 [ext_resource type="Script" uid="uid://dpaobk3mip7va" path="res://src/managers/card_manager.gd" id="6_suyxu"]

@@ -305,7 +305,7 @@ func check_phase_two_completion():
 		completed_phases[Phase.PLANT_BIOME] = true
 		call_deferred("advance_to_next_phase")
 	
-	elif sigil_placed and card_played:
+	if sigil_placed and card_played:
 		print('advance to sigil activation')
 		completed_phases[Phase.PLANT_SIGIL_AND_CARD] = true
 		# Use call_deferred to avoid immediate phase change during signal processing

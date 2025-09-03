@@ -440,6 +440,7 @@ func server_draw_card(player_id: int, is_elemental: bool):
 		elif turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and not turn_phase_manager.sigil_placed:
 			print('SERVER: Player drew card in PLANT_SIGIL_AND_CARD phase.')
 			turn_phase_manager.sigil_placed = true
+			turn_phase_manager.is_draw_card = false
 			turn_phase_manager.check_phase_two_completion()
 			game.token_manager.update_token_ui()
 	
@@ -475,6 +476,7 @@ func client_receive_card(player_id: int, card_data: Dictionary, is_elemental: bo
 			elif turn_phase_manager.current_phase == turn_phase_manager.Phase.PLANT_SIGIL_AND_CARD and not turn_phase_manager.sigil_placed:
 				print('CLIENT: Player drew card in PLANT_SIGIL_AND_CARD phase.')
 				turn_phase_manager.sigil_placed = true
+				turn_phase_manager.is_draw_card = false
 				turn_phase_manager.check_phase_two_completion()
 				game.token_manager.update_token_ui()
 
