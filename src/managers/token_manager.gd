@@ -702,6 +702,18 @@ func request_token_placement(token_index: int, position: Vector3, biome_type: in
 	rpc("highlight_new_token", position)
 
 
+# Add this new RPC to the token_manager.gd script
+
+@rpc("any_peer", "call_local")
+func unblock_placements_by_id(ids_to_unblock: Array, biome_type: int):
+	var placements_node = get_node_or_null("/root/Game/TokenPlacements")
+	if not placements_node: return
+
+	for placement in placements_node.get_children():
+		if placement.accepted_biome == biome_type and placement.place_id in ids_to_unblock:
+			if placement.is_blocked_by_elemental:
+				placement.is_blocked_by_elemental = false
+
 @rpc("any_peer", "call_local")
 func sync_token_placement(player_id: int, token_data: Dictionary, position: Vector3) -> void:
 	print("")
