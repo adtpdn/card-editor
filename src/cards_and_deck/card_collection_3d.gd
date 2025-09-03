@@ -337,7 +337,7 @@ func _on_card_hover(card: Card3D):
 		
 		if highlight_on_hover:
 			card.set_hovered()
-			if card.card_type == CardResource.CardType.ELEMENTAL and  card.face_down:
+			if card.card_type == CardResource.CardType.ELEMENTAL and not card.face_down:
 				card.set_notification_elemental_hover(card)
 
 
