@@ -15,6 +15,7 @@ var red_elemental_indices = []
 var rng = RandomNumberGenerator.new()
 
 @onready var game = get_node("/root/Game/")
+@onready var domination_manager = get_node("/root/Game/DominationManager")
 @onready var hand: CardCollection3D = $DragController/Hand
 @onready var card_manager
 
@@ -391,7 +392,7 @@ func request_server_draw_card(player_id: int, is_elemental: bool):
 func server_draw_card(player_id: int, is_elemental: bool):
 	var soil_star_actions = game.soil_star_actions
 	if game.game_state_manager.current_round > 0:
-		if not game.game_state_manager.is_valid_player_turn(player_id):
+		if not game.game_state_manager.is_valid_player_turn(player_id) and not domination_manager.is_soil_star_share:
 			print("SERVER REJECTED: Player %d tried to draw a card out of turn." % player_id)
 			return
 	
@@ -446,6 +447,12 @@ func server_draw_card(player_id: int, is_elemental: bool):
 
 @rpc("any_peer", "call_local")
 func client_receive_card(player_id: int, card_data: Dictionary, is_elemental: bool):
+	
+	if is_elemental and game.card_manager.is_elemental_hand_full(player_id):
+		return
+	if not is_elemental and game.card_manager.is_action_hand_full(player_id):
+		return
+	
 	# All clients must remove the drawn card from their local deck array to stay in sync.
 	if is_elemental:
 		elementals_ids_arr.erase(card_data["id"])

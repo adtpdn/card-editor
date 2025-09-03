@@ -842,6 +842,10 @@ func sync_face_up_swap(player_id: int, hand_card_original_index: int, board_card
 		else:
 			print("Swap sync warning: could not find card with index ", hand_card_original_index, " in local player's hand.")
 
+	var elementals_manager = get_node("/root/Game/ElementalsManager")
+	# Checking for reset card elemental 
+	elementals_manager.reset_selected_elemental_variable(board_card)
+
 	var table = get_node("/root/Game/Deck/Table")
 	var new_card_instance = table.instantiate_face_card(hand_card_original_index, true)
 	if new_card_instance:
@@ -849,7 +853,6 @@ func sync_face_up_swap(player_id: int, hand_card_original_index: int, board_card
 		new_card_instance.face_down = false # Ensure it's placed face UP
 		slice_collection.append_card(new_card_instance)
 		if multiplayer.is_server():
-			var elementals_manager = get_node("/root/Game/ElementalsManager")
 			if elementals_manager:
 				print("Activating effect for newly swapped face-up elemental.")
 				elementals_manager.execute_elemental_effect(new_card_instance.card_id, new_card_instance.elemental_type, new_card_instance)
@@ -967,7 +970,6 @@ func sync_planted_elemental_swap(card1_path: NodePath, card2_path: NodePath):
 			if not card2.face_down:
 				elementals_manager.execute_elemental_effect(card2.card_id, card2.elemental_type, card2)
 
-
 	# 7. Reset state on all clients
 	if game.soil_star_actions.is_swapping_planted_elementals:
 		game.soil_star_actions.is_swapping_planted_elementals = false
@@ -980,11 +982,6 @@ func sync_planted_elemental_swap(card1_path: NodePath, card2_path: NodePath):
 			if slice_node and not slice_node.cards.is_empty():
 				var card = slice_node.cards[0]
 				card.remove_hovered()
-	
-	#if multiplayer.is_server():
-		#var elementals_manager = get_node("/root/Game/ElementalsManager")
-		#if elementals_manager:
-			#elementals_manager.execute_elemental_blue_sigil_placement()
 
 @rpc("any_peer", "call_local")
 func _remove_status_sigil_placement(card1, card2):

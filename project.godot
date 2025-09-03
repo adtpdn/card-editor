@@ -10,11 +10,15 @@ config_version=5
 
 [application]
 
+<<<<<<< HEAD
+config/name="Card Editor"
+=======
 config/name="Botanimagic"
 config/version="0.0.1"
 run/main_scene="res://scenes/game.tscn"
 config/use_custom_user_dir=true
 config/custom_user_dir_name="Botanimagic"
+>>>>>>> gfx-biomes
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://thumb.png"
 

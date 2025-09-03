@@ -55,7 +55,7 @@ const ELEMENTAL_NOTIFICATION_TEXT = {
 		2: "Maximum 4 tokens in a Biome; excess tokens blighted from dominant player, or if tied, from last player in reverse order.",
 		3: "Maximum 5 tokens in a Biome; excess tokens blighted from dominant player, or if tied, from last player in reverse order.",
 		4: "Blighted tokens dominate the Biome.",
-		5: "1 point counts as ½ point.",
+		5: "1 point counts as 1 score.",
 		6: "Dominant player in a Biome gains a card instead of a soil star.",
 		7: "Cannot plant tokens in a Biome.",
 		8: "Fewer tokens in a Biome dominate it."
@@ -160,3 +160,4 @@ func _on_static_body_3d_input_event(_camera, event, _event_position, _normal, _s
 			card_3d_mouse_down.emit()
 		elif button == 1 and pressed == false:
 			card_3d_mouse_up.emit()
+			

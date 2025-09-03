@@ -29,6 +29,9 @@ var least_tokens_win_biome: int = -1
 # Variable to store the Biome enum index of the last elemental flip.
 var last_flipped_biome: int = -1
 
+# for soil star
+var is_soil_star_share = false
+
 # Function to set the affected biome
 func set_blighted_domination_biome(biome_index: int):
 	blighted_domination_biome = biome_index
@@ -41,6 +44,7 @@ func sync_blighted_domination_biome(biome_index: int):
 # Function to set the affected biome for card reward
 func set_card_reward_biome(biome_index: int):
 	card_reward_biome = biome_index
+	print("card reward biome : ", card_reward_biome)
 	rpc("sync_card_reward_biome", biome_index)
 
 @rpc("any_peer", "call_local")
@@ -87,7 +91,7 @@ const ELEMENTAL_NOTIFICATION_TEXT = {
 		2: "Elemental Effect Activated:\nMaximum 4 tokens in a Biome; excess tokens blighted from dominant player, or if tied, from last player in reverse order.",
 		3: "Elemental Effect Activated:\nMaximum 5 tokens in a Biome; excess tokens blighted from dominant player, or if tied, from last player in reverse order.",
 		4: "Elemental Effect Activated:\nBlighted tokens dominate the Biome.",
-		5: "Elemental Effect Activated:\n1 point counts as ½ point.",
+		5: "Elemental Effect Activated:\n1 Point counts as 1 score.",
 		6: "Elemental Effect Activated:\nDominant player in a Biome gains a card instead of a soil star.",
 		7: "Elemental Effect Activated:\nCannot plant tokens in a Biome.",
 		8: "Elemental Effect Activated:\nFewer tokens in a Biome dominate it."
@@ -194,6 +198,8 @@ func check_domination_for_soil_stars():
 	for player_id in game.players:
 		stars_awarded_this_turn[player_id] = 0
 
+	is_soil_star_share = true
+	
 	# Loop through each biome
 	for biome_value in Biome.values():
 		var biome_name = Biome.keys()[biome_value]
@@ -209,10 +215,15 @@ func check_domination_for_soil_stars():
 		print("winners : ", winners)
 
 		# MODIFIED --- Check if this biome awards a card instead of a star
+		print("card reward biome : ", card_reward_biome)
 		if biome_value == card_reward_biome:
 			print("Biome %s has card reward active. Awarding cards to winners: %s" % [biome_name, str(winners)])
 			for winner_id in winners:
-				game.deck.table.server_draw_card(winner_id, false)
+				#game.deck.table.server_draw_card(winner_id, false)
+				if multiplayer.is_server():
+					game.deck.table.server_draw_card(winner_id, false)
+				else:
+					game.deck.table.rpc_id(1, "request_server_draw_card", winner_id, false)
 		else:
 			# Original logic for awarding soil stars
 			if winners.size() == 1:
@@ -235,6 +246,7 @@ func check_domination_for_soil_stars():
 			has_awards = true
 			break
 	
+	is_soil_star_share = false
 	if has_awards:
 		rpc("update_all_stars_and_notify", stars_awarded_this_turn)
 		# Wait on the server to let the notification be seen by players

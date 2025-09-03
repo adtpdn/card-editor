@@ -1851,6 +1851,15 @@ func reset_hidden_placements():
 			placement.is_blocked_by_elemental = false
 			placement.set_highlight(false) # Resets the highlight state
 
+@rpc("any_peer", "call_local")
+func reset_selected_hidden_placements(biome_index):
+	hidden_placement_ids.clear()
+	# Also ensure all placements are visually unblocked
+	for placement in get_parent().get_node("TokenPlacements").get_children():
+		if placement.is_blocked_by_elemental and placement.accepted_biome == biome_index:
+			placement.is_blocked_by_elemental = false
+			placement.set_highlight(false) # Resets the highlight state
+
 func save_player_token_count(player_id: int):
 	var tokens = get_player_tokens(player_id)
 	player_token_counts[player_id] = tokens.size()

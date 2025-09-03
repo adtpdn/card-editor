@@ -1,5 +1,7 @@
 extends Node
 
+signal elemental_executed
+
 @onready var game = get_node("/root/Game")
 @onready var token_manager = get_node("/root/Game/TokenManager")
 @onready var domination_manager = get_node("/root/Game/DominationManager")
@@ -33,12 +35,48 @@ const ELEMENTAL_NOTIFICATION_TEXT = {
 		2: "Elemental Effect Activated:\nMaximum 4 tokens in a Biome; excess tokens blighted from dominant player, or if tied, from last player in reverse order.",
 		3: "Elemental Effect Activated:\nMaximum 5 tokens in a Biome; excess tokens blighted from dominant player, or if tied, from last player in reverse order.",
 		4: "Elemental Effect Activated:\nBlighted tokens dominate the Biome.",
-		5: "Elemental Effect Activated:\n1 point counts as ½ point.",
+		5: "Elemental Effect Activated:\n1 Point counts as 1 score.",
 		6: "Elemental Effect Activated:\nDominant player in a Biome gains a card instead of a soil star.",
 		7: "Elemental Effect Activated:\nCannot plant tokens in a Biome.",
 		8: "Elemental Effect Activated:\nFewer tokens in a Biome dominate it."
 	}
 }
+
+func reset_selected_elemental_variable(elemental_card : FaceCard3D):
+	print("reset elemental variable")
+	var elemental_id = elemental_card.card_id
+	var biome_elemental = elemental_card.card_on_biome
+	var _type =  elemental_card.elemental_type
+	if _type == CardResource.ElementalType.RED:
+		print('Elemental RED Execute')
+		match elemental_id:
+			4: _elemental_red_05_effect(-1)
+			5: _elemental_red_06_effect(-1)
+			6: _elemental_red_07_effect(-1)
+			7: token_manager.rpc("set_biome_planting_lock", -1, false)
+			8: _elemental_red_09_effect(-1)
+			
+	elif _type == CardResource.ElementalType.BLUE:
+		print("Elemental BLUE Execute")
+		match elemental_id:
+			0: _elemental_blue_01_effect(-1)
+			1: _elemental_blue_02_effect(-1)
+			2: _elemental_blue_03_effect(-1)
+			3: 
+				token_manager.reset_selected_hidden_placements(biome_elemental)
+				_elemental_blue_04_effect(-1)
+			4: 
+				token_manager.reset_selected_hidden_placements(biome_elemental)
+				_elemental_blue_05_effect(-1)
+			5: 
+				token_manager.reset_selected_hidden_placements(biome_elemental)
+				_elemental_blue_06_effect(-1)
+			6: _elemental_blue_07_effect(-1)
+			7: _elemental_blue_08_effect(-1)
+			8: _elemental_blue_09_effect(-1)
+		
+		# Sync all blue elemental states after any blue elemental is played
+		sync_disabled_states.rpc(sigil_a_disabled_biome, sigil_b_disabled_biome, sigil_c_disabled_biome, point_conversion_disabled_biome, increased_sigil_cost_biome)
 
 # This function is called at the start of a new round to re-apply the effects
 # of all currently face-up elemental cards.
@@ -108,6 +146,8 @@ func execute_elemental_effect(_card_id: int, _type:CardResource.ElementalType, c
 		
 		# Sync all blue elemental states after any blue elemental is played
 		sync_disabled_states.rpc(sigil_a_disabled_biome, sigil_b_disabled_biome, sigil_c_disabled_biome, point_conversion_disabled_biome, increased_sigil_cost_biome)
+
+	elemental_executed.emit()
 
 # FOCUS ON BLUE ELEMENTAL WITH IDS [ 3,4,5 ] Sigil placement banned
 func execute_elemental_blue_sigil_placement():
@@ -233,8 +273,8 @@ func _elemental_red_07_effect(biome_index: int):
 
 # ElementalRed08 - Can’t plant token in a biome
 func _elemental_red_08_effect(biome_index: int):
-	if biome_index != -1:
-		token_manager.rpc("set_biome_planting_lock", biome_index, true)
+	#if biome_index != -1:
+	token_manager.rpc("set_biome_planting_lock", biome_index, true)
 
 # ElementalRed09 - Less token in a biome will dominate the biome
 func _elemental_red_09_effect(biome_index):

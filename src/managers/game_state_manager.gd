@@ -355,7 +355,9 @@ func next_turn():
 			print("--- Checking for biome domination ---")
 			await domination_manager.check_domination_for_elemental_flips()
 			
+			
 			if current_round < 8:
+				await elementals_manager.elemental_executed
 				await domination_manager.check_domination_for_soil_stars()
 				await reorder_players_after_round()
 
