@@ -202,6 +202,11 @@ func _elemental_red_01_effect(biome_type):
 		var blight_token_on_biome = _get_blight_token_in_biome(biome_type)
 		if blight_token_on_biome.size() < 1:
 			var dominant_players = domination_manager._get_all_dominant_players_in_biome(biome_type)
+			
+			if dominant_players.is_empty():
+				print("No dominant players in biome. Aborting Red 01 effect.")
+				return
+			
 			var target_player
 			if dominant_players.size() > 1:
 				var last_player = dominant_players.size() - 1
@@ -209,6 +214,11 @@ func _elemental_red_01_effect(biome_type):
 			else:
 				target_player = dominant_players[0]
 			var player_tokens_in_biome = _get_player_tokens_in_biome(target_player, biome_type, false)
+			
+			if player_tokens_in_biome.is_empty():
+				print("Target player has no tokens in biome. Aborting Red 01 effect.")
+				return
+			
 			token_manager.blight_token_and_move(player_tokens_in_biome[0].global_position)
 
 # ElementalRed02 - Blight at least 2 tokens in a biome.
@@ -218,6 +228,11 @@ func _elemental_red_02_effect(biome_type):
 		var blight_token_on_biome = _get_blight_token_in_biome(biome_type)
 		if blight_token_on_biome.size() < 2:
 			var dominant_players = domination_manager._get_all_dominant_players_in_biome(biome_type)
+			
+			if dominant_players.is_empty():
+				print("No dominant players in biome. Aborting Red 02 effect.")
+				return
+			
 			var target_player
 			if dominant_players.size() > 1:
 				var last_player = dominant_players.size() - 1
@@ -225,6 +240,11 @@ func _elemental_red_02_effect(biome_type):
 			else:
 				target_player = dominant_players[0]
 			var player_tokens_in_biome = _get_player_tokens_in_biome(target_player, biome_type, false)
+			
+			if player_tokens_in_biome.is_empty():
+				print("Target player has no tokens in biome. Aborting Red 02 effect.")
+				return
+			
 			token_manager.blight_token_and_move(player_tokens_in_biome[0].global_position)
 
 # ElementalRed03 - Blight tokens in a biome if there are more than 4.
@@ -235,6 +255,11 @@ func _elemental_red_03_effect(biome_type):
 		
 		if all_tokens_in_biome.size() > 4:
 			var dominant_players = domination_manager._get_all_dominant_alive_token_in_biome(biome_type)
+			
+			if dominant_players.is_empty():
+				print("No dominant players in biome. Aborting Red 03 effect.")
+				return
+			
 			var target_player
 			
 			if dominant_players.size() > 1:
@@ -244,6 +269,11 @@ func _elemental_red_03_effect(biome_type):
 				target_player = dominant_players[0]
 			
 			var player_tokens_in_biome = _get_player_tokens_in_biome(target_player, biome_type, false)
+			
+			if player_tokens_in_biome.is_empty():
+				print("Target player has no tokens in biome. Aborting Red 03 effect.")
+				return
+			
 			token_manager.blight_token_and_move(player_tokens_in_biome[0].global_position)
 
 # ElementalRed04 - Maximum 5 tokens in a biome
@@ -254,6 +284,11 @@ func _elemental_red_04_effect(biome_type):
 		
 		if all_tokens_in_biome.size() > 5:
 			var dominant_players = domination_manager._get_all_dominant_alive_token_in_biome(biome_type)
+			
+			if dominant_players.is_empty():
+				print("No dominant players in biome. Aborting Red 04 effect.")
+				return
+			
 			var target_player
 			
 			if dominant_players.size() > 1:
@@ -262,6 +297,11 @@ func _elemental_red_04_effect(biome_type):
 			else:
 				target_player = dominant_players[0]
 			var player_tokens_in_biome = _get_player_tokens_in_biome(target_player, biome_type, false)
+			
+			if player_tokens_in_biome.is_empty():
+				print("Target player has no tokens in biome. Aborting Red 04 effect.")
+				return
+			
 			token_manager.blight_token_and_move(player_tokens_in_biome[0].global_position)
 
 # ElementalRed05 - Blighted tokens will dominate the Biome
