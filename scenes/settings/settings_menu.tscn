@@ -1,0 +1,232 @@
+[gd_scene load_steps=5 format=3 uid="uid://dpa6k0d1vnqks"]
+
+[ext_resource type="Theme" uid="uid://3tbbpd1peyop" path="res://assets/ui/themes/hud_themes.tres" id="1_itqk5"]
+[ext_resource type="Script" uid="uid://duob5rf4prrcm" path="res://src/settings_menu.gd" id="1_pp1gt"]
+[ext_resource type="Texture2D" uid="uid://dby07010c4uti" path="res://assets/ui/scoreboard/score_blurred_bg.png" id="3_0jars"]
+[ext_resource type="FontFile" uid="uid://pf6wixgs5ve6" path="res://assets/fonts/PlayfairDisplaySC-Regular.ttf" id="3_8him4"]
+
+[node name="SettingsMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_itqk5")
+script = ExtResource("1_pp1gt")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+modulate = Color(0, 0, 0, 0.509804)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_0jars")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -168.0
+offset_top = -244.0
+offset_right = 168.0
+offset_bottom = 244.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_itqk5")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitleLabel" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_8him4")
+theme_override_font_sizes/font_size = 34
+text = "Game Settings"
+horizontal_alignment = 1
+
+[node name="MarginContainer1" type="MarginContainer" parent="Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_bottom = 10
+
+[node name="HSeparator" type="HSeparator" parent="Panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="TabContainer" type="TabContainer" parent="Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("1_itqk5")
+current_tab = 0
+
+[node name="Graphics" type="TabBar" parent="Panel/VBoxContainer/TabContainer"]
+layout_mode = 2
+metadata/_tab_index = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/VBoxContainer/TabContainer/Graphics"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="QualityLabel" type="Label" parent="Panel/VBoxContainer/TabContainer/Graphics/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_8him4")
+text = "Graphics Quality"
+
+[node name="QualityOptionButton" type="OptionButton" parent="Panel/VBoxContainer/TabContainer/Graphics/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+selected = 1
+item_count = 3
+popup/item_0/text = "Low"
+popup/item_0/id = 0
+popup/item_1/text = "Medium"
+popup/item_1/id = 1
+popup/item_2/text = "High"
+popup/item_2/id = 2
+
+[node name="AALabel" type="Label" parent="Panel/VBoxContainer/TabContainer/Graphics/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_8him4")
+text = "Anti-Aliasing"
+
+[node name="AAOptionButton" type="OptionButton" parent="Panel/VBoxContainer/TabContainer/Graphics/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+selected = 0
+item_count = 7
+popup/item_0/text = "MSAA"
+popup/item_0/id = 0
+popup/item_1/text = "TAA"
+popup/item_1/id = 1
+popup/item_2/text = "FSR 2"
+popup/item_2/id = 2
+popup/item_3/text = "FXAA"
+popup/item_3/id = 3
+popup/item_4/text = "SMAA 1x"
+popup/item_4/id = 4
+popup/item_5/text = "SSAA"
+popup/item_5/id = 5
+popup/item_6/text = "SSRL"
+popup/item_6/id = 6
+
+[node name="PostFXCheckBox" type="CheckBox" parent="Panel/VBoxContainer/TabContainer/Graphics/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_8him4")
+theme_override_font_sizes/font_size = 23
+text = "Post-Processing FX"
+
+[node name="Display" type="TabBar" parent="Panel/VBoxContainer/TabContainer"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/VBoxContainer/TabContainer/Display"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ResolutionLabel" type="Label" parent="Panel/VBoxContainer/TabContainer/Display/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_8him4")
+text = "Resolution"
+
+[node name="ResolutionOptionButton" type="OptionButton" parent="Panel/VBoxContainer/TabContainer/Display/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+
+[node name="DisplayModeLabel" type="Label" parent="Panel/VBoxContainer/TabContainer/Display/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_8him4")
+text = "Display Mode"
+
+[node name="DisplayModeOptionButton" type="OptionButton" parent="Panel/VBoxContainer/TabContainer/Display/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+selected = 0
+item_count = 3
+popup/item_0/text = "Fullscreen"
+popup/item_0/id = 0
+popup/item_1/text = "Windowed"
+popup/item_1/id = 1
+popup/item_2/text = "Borderless Windowed"
+popup/item_2/id = 2
+
+[node name="Sound" type="TabBar" parent="Panel/VBoxContainer/TabContainer"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/VBoxContainer/TabContainer/Sound"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/TabContainer/Sound/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_8him4")
+text = "BGM"
+
+[node name="BGMHSlider" type="HSlider" parent="Panel/VBoxContainer/TabContainer/Sound/VBoxContainer"]
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+
+[node name="Label2" type="Label" parent="Panel/VBoxContainer/TabContainer/Sound/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_8him4")
+text = "SFX"
+
+[node name="SFXHSlider" type="HSlider" parent="Panel/VBoxContainer/TabContainer/Sound/VBoxContainer"]
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+
+[node name="MarginContainer2" type="MarginContainer" parent="Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_bottom = 10
+
+[node name="BoxContainer" type="BoxContainer" parent="Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="CloseButton" type="Button" parent="Panel/VBoxContainer/BoxContainer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme = ExtResource("1_itqk5")
+text = "CLOSE"

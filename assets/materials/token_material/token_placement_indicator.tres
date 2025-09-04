@@ -1,6 +1,6 @@
 [gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://c8qwuqei6xy6r"]
 
-[ext_resource type="Shader" uid="uid://begigej15n8jj" path="res://scenes/token/circle_effect.gdshader" id="1_r2tb8"]
+[ext_resource type="Shader" uid="uid://bl40h8a3fd8e2" path="res://scenes/token/circle_effect.gdshader" id="1_r2tb8"]
 
 [resource]
 render_priority = 0
