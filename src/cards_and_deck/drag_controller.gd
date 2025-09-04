@@ -171,6 +171,8 @@ func _stop_drag(mouse_position: Vector2):
 	_dragging_card.enable_collision()
 	
 	var card = _dragging_card
+	var owner_id = card.owner_id
+	var card_type = card.card_type
 	var from_collection = _drag_from_collection
 	var to_collection = _hovered_collection
 
@@ -181,6 +183,17 @@ func _stop_drag(mouse_position: Vector2):
 	for collection in _card_collections:
 		collection.disable_drop_zone()
 		collection.hover_disabled = false
+	
+	# NEW: If this is the server, trigger a hand size sync
+	if _hovered_collection.name == "Pile":
+		var game = get_node("/root/Game")
+		if game and game.card_manager and owner_id != -1:
+			if multiplayer.is_server():
+				# Server calls its own function directly
+				game.card_manager.server_modify_hand_count_by_type(owner_id, card_type, -1)
+			else:
+				# Client sends an explicit RPC to the server (ID 1)
+				game.card_manager.rpc_id(1, "server_modify_hand_count_by_type", owner_id, card_type, -1)
 
 
 func _handle_drag_event(_event: InputEventMouseMotion):
