@@ -15,4 +15,5 @@ script = ExtResource("1_7lque")
 layout_mode = 0
 offset_right = 108.0
 offset_bottom = 23.0
+theme_override_font_sizes/font_size = 25
 text = "Player 1 Turn"

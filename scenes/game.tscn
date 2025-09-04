@@ -1238,7 +1238,7 @@ transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, -0.2, -0.1)
 mesh = SubResource("PlaneMesh_xruwk")
 
 [node name="TableSurface" type="MeshInstance3D" parent="Deck/Table"]
-transform = Transform3D(0.9, 0, 0, 0, -4.37114e-08, -1.7, 0, 1, -7.43094e-08, 0, 0, -1)
+transform = Transform3D(1.15505, 0, 0, 0, -4.37114e-08, -2.00089, 0, 1, -8.74615e-08, 0, 0, -1)
 mesh = SubResource("PlaneMesh_tbve4")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_28kt0")
@@ -1392,10 +1392,10 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -376.0
+offset_left = -451.0
 offset_top = 8.0
-offset_right = 70.0
-offset_bottom = 228.0
+offset_right = 89.0
+offset_bottom = 274.0
 grow_horizontal = 0
 scale = Vector2(0.8, 0.8)
 texture = ExtResource("38_458eo")
@@ -1415,8 +1415,8 @@ script = ExtResource("23_458eo")
 layout_mode = 1
 offset_left = 31.0
 offset_top = 59.0
-offset_right = 386.0
-offset_bottom = 233.0
+offset_right = 454.0
+offset_bottom = 285.0
 texture = ExtResource("42_fedci")
 expand_mode = 2
 
@@ -1424,10 +1424,10 @@ expand_mode = 2
 layout_mode = 1
 offset_left = 5.0
 offset_top = 2.0
-offset_right = 308.0
-offset_bottom = 120.0
+offset_right = 365.0
+offset_bottom = 158.0
 mouse_filter = 1
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 23
 text = "Instruction"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -1454,12 +1454,13 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -232.0
-offset_top = -156.0
-offset_right = -62.0
-offset_bottom = 129.0
+offset_left = -397.0
+offset_top = -210.0
+offset_right = -173.0
+offset_bottom = 75.0
 grow_horizontal = 2
 grow_vertical = 2
+scale = Vector2(1.5, 1.5)
 theme_override_constants/separation = 10
 alignment = 1
 
@@ -1549,10 +1550,10 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -200.0
-offset_top = 120.0
-offset_right = -50.0
-offset_bottom = 185.0
+offset_left = -192.0
+offset_top = 143.0
+offset_right = -42.0
+offset_bottom = 208.0
 grow_horizontal = 0
 theme = ExtResource("38_oaba0")
 theme_override_font_sizes/font_size = 32
@@ -1563,10 +1564,10 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -264.0
-offset_top = 120.0
-offset_right = -184.0
-offset_bottom = 200.0
+offset_left = -255.0
+offset_top = 146.0
+offset_right = -175.0
+offset_bottom = 226.0
 grow_horizontal = 0
 scale = Vector2(0.68, 0.68)
 expand_mode = 3
@@ -1584,10 +1585,11 @@ offset_right = 148.0
 offset_bottom = 60.0
 
 [node name="PlayerList" parent="." instance=ExtResource("39_8ool0")]
-offset_left = 40.0
-offset_top = -224.0
-offset_right = 314.0
-offset_bottom = -60.0
+offset_left = 59.0
+offset_top = -280.0
+offset_right = 333.0
+offset_bottom = -116.0
+scale = Vector2(1.5, 1.5)
 
 [node name="PlayerUIs" type="Control" parent="."]
 layout_mode = 3
@@ -1607,15 +1609,9 @@ offset_top = -343.0
 offset_right = -9.0
 offset_bottom = -343.0
 grow_vertical = 0
-scale = Vector2(0.8, 0.8)
 
 [node name="ScoreUI" parent="." instance=ExtResource("38_7025r")]
 visible = false
-anchors_preset = 0
-anchor_right = 0.0
-anchor_bottom = 0.0
-grow_horizontal = 1
-grow_vertical = 1
 mouse_filter = 1
 
 [node name="CursorTrail" parent="." instance=ExtResource("42_pr1ej")]
