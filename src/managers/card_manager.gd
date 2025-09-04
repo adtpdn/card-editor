@@ -745,7 +745,14 @@ func sync_face_down_swap(player_id: int, hand_card_original_index: int, board_ca
 	if not slice_collection or not slice_collection is CardCollection3D:
 		print("Swap sync failed: could not get slice collection from board card.")
 		return
-
+	
+	# Deactivate the old card's effect on the server before removing it.
+	if multiplayer.is_server():
+		var elementals_manager = get_node_or_null("/root/Game/ElementalsManager")
+		if elementals_manager and is_instance_valid(board_card):
+			var biome_index = slice_collection.card_slot_biome
+			elementals_manager.deactivate_elemental_effect(board_card.card_id, board_card.elemental_type, biome_index)
+	
 	# 2. Remove the old card from the board
 	var board_card_index = slice_collection.cards.find(board_card)
 	if board_card_index != -1:
@@ -823,7 +830,14 @@ func sync_face_up_swap(player_id: int, hand_card_original_index: int, board_card
 	if not slice_collection or not slice_collection is CardCollection3D:
 		print("Swap sync failed: could not get slice collection from board card.")
 		return
-
+	
+	# Deactivate the old card's effect on the server before removing it.
+	if multiplayer.is_server():
+		var elementals_manager = get_node_or_null("/root/Game/ElementalsManager")
+		if elementals_manager and is_instance_valid(board_card):
+			var biome_index = slice_collection.card_slot_biome
+			elementals_manager.deactivate_elemental_effect(board_card.card_id, board_card.elemental_type, biome_index)
+	
 	var board_card_index = slice_collection.cards.find(board_card)
 	if board_card_index != -1:
 		var card_to_remove = slice_collection.remove_card(board_card_index)
@@ -867,6 +881,8 @@ func sync_face_up_swap(player_id: int, hand_card_original_index: int, board_card
 # -------------------------------------------------------------------------
 # END: Elemental Face Up Swap Logic
 # -------------------------------------------------------------------------
+
+
 
 # -------------------------------------------------------------------------
 # START: Planted Elemental Swap Logic
