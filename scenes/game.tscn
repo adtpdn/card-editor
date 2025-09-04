@@ -1,6 +1,6 @@
 [gd_scene load_steps=73 format=4 uid="uid://dpmxlw8f4fyvd"]
 
-[ext_resource type="Script" uid="uid://ew1116d3feq0" path="res://src/game.gd" id="1_e1j6l"]
+[ext_resource type="Script" path="res://src/game.gd" id="1_e1j6l"]
 [ext_resource type="Script" uid="uid://dyae6xhfiggk2" path="res://src/managers/turn_phase_manager.gd" id="2_pl11u"]
 [ext_resource type="Script" path="res://src/managers/token_manager.gd" id="3_bhx41"]
 [ext_resource type="Script" uid="uid://b51yqiry8444l" path="res://src/managers/network_manager.gd" id="4_qnb83"]

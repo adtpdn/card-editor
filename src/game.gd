@@ -33,6 +33,8 @@ const CURSOR_TRAIL = preload("res://scenes/cursor_trail.tscn")
 @export var trail_scene: PackedScene
 @export var trail_offset: Vector2 = Vector2(25, 30)
 
+var settings_menu_scene = preload("res://scenes/settings/settings_menu.tscn")
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Core Game State
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -76,6 +78,10 @@ func _ready():
 	
 	set_process_input(true)
 	#print("Game initialized.")
+	
+	var settings_menu_instance = settings_menu_scene.instantiate()
+	add_child(settings_menu_instance)
+	move_child(settings_menu_instance, get_child_count() - 1)
 
 func start_game():
 	#print("Starting game - initializing card system")

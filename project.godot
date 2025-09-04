@@ -19,6 +19,10 @@ config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://thumb.png"
 <<<<<<<HEADconfig/name="Card Editor"
 
+[autoload]
+
+GameSettings="*res://src/game_settings.gd"
+
 [display]
 
 window/size/viewport_width=1920

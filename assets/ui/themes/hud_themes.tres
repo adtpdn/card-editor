@@ -1,7 +1,8 @@
-[gd_resource type="Theme" load_steps=8 format=3 uid="uid://3tbbpd1peyop"]
+[gd_resource type="Theme" load_steps=20 format=3 uid="uid://3tbbpd1peyop"]
 
 [ext_resource type="FontFile" uid="uid://ca868f534a3i4" path="res://assets/fonts/Oswald-Regular.ttf" id="1_6mota"]
 [ext_resource type="Texture2D" uid="uid://bi3oa2d6kltwn" path="res://assets/ui/hud/player_hud_turn_button_base.png" id="1_p77nj"]
+[ext_resource type="FontFile" uid="uid://pf6wixgs5ve6" path="res://assets/fonts/PlayfairDisplaySC-Regular.ttf" id="3_o2xjc"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_p77nj"]
 texture = ExtResource("1_p77nj")
@@ -30,18 +31,59 @@ texture = ExtResource("1_p77nj")
 texture_margin_top = 2.0
 texture_margin_bottom = 14.0
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_o2xjc"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jeqyi"]
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_o2xjc"]
+color = Color(0.658824, 0.466667, 0.2, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tx5p3"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fwbic"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6jy2u"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mcoax"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o2xjc"]
+bg_color = Color(0, 0, 0, 0.823529)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jeqyi"]
+content_margin_top = 10.0
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tx5p3"]
+content_margin_left = 8.0
+content_margin_right = 8.0
+bg_color = Color(0.144063, 0.144063, 0.144063, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fwbic"]
+content_margin_left = 8.0
+content_margin_right = 8.0
+bg_color = Color(0.180392, 0.180392, 0.180392, 1)
+
 [resource]
 default_font = ExtResource("1_6mota")
 default_font_size = 24
 Button/colors/font_color = Color(0.929412, 0.737255, 0.486275, 1)
 Button/colors/font_disabled_color = Color(0, 0, 0, 0.501961)
-Button/constants/outline_size = 0
+Button/font_sizes/font_size = 34
 Button/fonts/font = ExtResource("1_6mota")
 Button/styles/disabled = SubResource("StyleBoxTexture_p77nj")
 Button/styles/focus = SubResource("StyleBoxEmpty_p77nj")
 Button/styles/hover = SubResource("StyleBoxTexture_o2xjc")
 Button/styles/normal = SubResource("StyleBoxTexture_jeqyi")
 Button/styles/pressed = SubResource("StyleBoxTexture_tx5p3")
+CheckBox/styles/normal = SubResource("StyleBoxEmpty_o2xjc")
+CheckBox/styles/pressed = SubResource("StyleBoxEmpty_jeqyi")
+HSeparator/styles/separator = SubResource("StyleBoxLine_o2xjc")
+HSlider/icons/grabber_disabled = null
 Label/colors/font_color = Color(0.929412, 0.737255, 0.486275, 1)
 Label/colors/font_outline_color = Color(0, 0, 0, 1)
 Label/colors/font_shadow_color = Color(0, 0, 0, 0)
@@ -51,3 +93,17 @@ Label/constants/shadow_offset_x = 1
 Label/constants/shadow_offset_y = 1
 Label/constants/shadow_outline_size = 1
 Label/font_sizes/font_size = 24
+OptionButton/font_sizes/font_size = 16
+OptionButton/fonts/font = ExtResource("1_6mota")
+OptionButton/styles/focus = SubResource("StyleBoxEmpty_tx5p3")
+OptionButton/styles/hover = SubResource("StyleBoxEmpty_fwbic")
+OptionButton/styles/normal = SubResource("StyleBoxEmpty_6jy2u")
+OptionButton/styles/pressed = SubResource("StyleBoxEmpty_mcoax")
+Panel/styles/panel = SubResource("StyleBoxFlat_o2xjc")
+TabContainer/colors/font_selected_color = Color(0.929412, 0.737255, 0.486275, 1)
+TabContainer/colors/font_unselected_color = Color(0.7, 0.492917, 0.203, 1)
+TabContainer/font_sizes/font_size = 18
+TabContainer/fonts/font = ExtResource("3_o2xjc")
+TabContainer/styles/panel = SubResource("StyleBoxFlat_jeqyi")
+TabContainer/styles/tab_selected = SubResource("StyleBoxFlat_tx5p3")
+TabContainer/styles/tab_unselected = SubResource("StyleBoxFlat_fwbic")
