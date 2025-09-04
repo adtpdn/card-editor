@@ -137,8 +137,6 @@ func plant_elemental_card(card):
 		var player_id = game.network_manager.multiplayer.get_unique_id()
 		game.network_manager.sync_card_planted(resource_card_id, card_slot_biome, player_id, resource_card_name)
 	
-
-	
 	execute_elemental_effect(card.card_id)
 
 func plant_card(card):

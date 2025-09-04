@@ -119,7 +119,7 @@ func _calculate_biome_points_score(player_id: int) -> int:
 			"mana": point_counter.desert_magic_points
 		}
 	}
-	
+	print("")
 	for biome_type in biome_data_map:
 		# Check if the half-points elemental effect is active for this biome
 		var current_biome_point_score = BIOME_POINT_SCORE # Default score is 2
@@ -136,7 +136,7 @@ func _calculate_biome_points_score(player_id: int) -> int:
 			print("least elemental")
 			dominant_players = domination_manager._get_least_dominant_players_in_biome(biome_type)
 		
-		print("")
+		
 		print("calculate biome points : ", biome_type)
 		print("dominate players : ", dominant_players)
 		# --- NEW TIE-BREAKING LOGIC ---
@@ -151,7 +151,7 @@ func _calculate_biome_points_score(player_id: int) -> int:
 					print('mana score : ', mana_score)
 					total_biome_score += points_score + mana_score
 			
-			2: # Case 2: Exactly two players are tied.
+			2,3,4: # Case 2: Exactly two players are tied.
 				if player_id in dominant_players:
 					var biome_data = biome_data_map[biome_type]
 					
@@ -171,7 +171,7 @@ func _calculate_biome_points_score(player_id: int) -> int:
 			_: # Default Case: More than two players are tied, or no one dominates.
 				# No points are awarded in this case.
 				pass
-				
+	print('total biome score : ', total_biome_score)
 	return total_biome_score
 
 # Calculate score from sigil pattern combinations

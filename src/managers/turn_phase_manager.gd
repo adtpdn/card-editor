@@ -311,9 +311,9 @@ func check_phase_two_completion():
 		# Use call_deferred to avoid immediate phase change during signal processing
 		call_deferred("advance_to_next_phase")
 	
-	else:
+	#else:
 		# Update notification to show progress
-		show_phase_two_progress()
+		#show_phase_two_progress()
 
 # Show progress in phase 2
 func show_phase_two_progress():

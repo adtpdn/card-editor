@@ -250,7 +250,7 @@ func check_domination_for_soil_stars():
 	if has_awards:
 		rpc("update_all_stars_and_notify", stars_awarded_this_turn)
 		# Wait on the server to let the notification be seen by players
-		await get_tree().create_timer(3.5).timeout
+		#await get_tree().create_timer(3.5).timeout
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -533,7 +533,6 @@ func flip_and_activate_elemental_card(slice_path: NodePath):
 			var notification_text = ELEMENTAL_NOTIFICATION_TEXT[card_type_str][card.card_id]
 			game.notification.show_instruction_label(notification_text)
 			await get_tree().create_timer(3.0).timeout
-			game.notification.hide_panel()
 		# --- MODIFICATION END ---
 		
 		# Excute elemental

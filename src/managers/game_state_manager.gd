@@ -293,6 +293,7 @@ func set_current_turn(player_id: int):
 	
 	current_turn_index = player_index
 	
+	turn_phase_manager.unhighlight_marker_mesh()
 	token_manager.update_token_ui()
 	soil_star_actions.apply_button_rules()
 	
@@ -355,10 +356,10 @@ func next_turn():
 			print("--- Checking for biome domination ---")
 			await domination_manager.check_domination_for_elemental_flips()
 			
-			
 			if current_round < 8:
 				await elementals_manager.elemental_executed
 				await domination_manager.check_domination_for_soil_stars()
+				await get_tree().create_timer(2.0).timeout
 				await reorder_players_after_round()
 
 			advance_to_next_round() # Increase the current round

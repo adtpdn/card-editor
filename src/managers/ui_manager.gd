@@ -81,6 +81,9 @@ func update_player_hud():
 			var counts = hand_sizes.get(player_id_for_slot, {"action": 0, "elemental": 0})
 			var action_count = counts.get("action", 0)
 			var elemental_count = counts.get("elemental", 0)
+			print("counts : ", counts)
+			print("action count card : ", action_count)
+			print("elemental count card : ", elemental_count)
 
 			# Update Action card indicators (1 to 3)
 			for card_idx in range(1, 4): # Loops for 1, 2, 3

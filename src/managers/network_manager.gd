@@ -697,12 +697,12 @@ func remote_card_planted(card_id: int, biome_slot: int, player_id: int, card_nam
 		create_and_place_card(card_id, biome_slot, card_name)
 	
 	# Execute the card effect based on resource card_id
-	var card_collection = null
-	match biome_slot:
-		0: card_collection = game.deck.pile
-	
-	if card_collection:
-		card_collection.execute_card_effect(card_id)
+	#var card_collection = null
+	#match biome_slot:
+		#0: card_collection = game.deck.pile
+	#
+	#if card_collection:
+		#card_collection.execute_card_effect(card_id)
 
 func create_and_place_card(card_id: int, biome_slot: int, card_name: String):
 	var game = get_node("/root/Game/")
