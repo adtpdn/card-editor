@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://5hye0n2thpe3" path="res://assets/ui/scoreboard/score_title.png" id="5_13iwi"]
 
 [node name="ScoreUI" type="Control"]
+z_index = 1
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -25,66 +26,50 @@ theme = ExtResource("2_yg0v7")
 
 [node name="BlurredBG" type="TextureRect" parent="."]
 modulate = Color(0, 0, 0, 0.431373)
-layout_mode = 0
+layout_mode = 1
 offset_right = 1920.0
 offset_bottom = 1080.0
 texture = ExtResource("3_13iwi")
+expand_mode = 1
 
 [node name="PanelScore" type="Control" parent="."]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -750.0
-offset_top = -322.0
-offset_right = 750.0
-offset_bottom = 338.0
-grow_horizontal = 2
-grow_vertical = 2
+anchors_preset = 0
+offset_right = 1500.0
+offset_bottom = 660.0
 theme = ExtResource("2_yg0v7")
 
 [node name="ScoreBG" type="TextureRect" parent="PanelScore"]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -750.0
-offset_top = -337.0
-offset_right = 754.0
-offset_bottom = 325.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("4_6d0k0")
+expand_mode = 1
 
 [node name="TextureRect" type="TextureRect" parent="PanelScore"]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -594.0
-offset_top = -450.0
-offset_right = 598.0
-offset_bottom = -365.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 183.0
+offset_top = -107.0
+offset_right = -125.0
+offset_bottom = -682.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("5_13iwi")
+expand_mode = 1
 
 [node name="Information" type="VBoxContainer" parent="PanelScore"]
+visible = false
 layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_left = 80.0
-offset_top = -178.0
-offset_right = 296.0
-offset_bottom = 263.0
-grow_vertical = 2
+offset_left = 93.0
+offset_top = 162.0
+offset_right = 309.0
+offset_bottom = 603.0
 theme = ExtResource("2_yg0v7")
 theme_override_constants/separation = 42
 
@@ -115,18 +100,12 @@ theme_override_font_sizes/font_size = 30
 text = "Total"
 
 [node name="Players" type="HBoxContainer" parent="PanelScore"]
+visible = false
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -303.953
-offset_top = -284.0
-offset_right = 640.047
-offset_bottom = -227.0
-grow_horizontal = 2
-grow_vertical = 2
+offset_left = 435.0
+offset_top = 66.0
+offset_right = 1379.0
+offset_bottom = 123.0
 theme = ExtResource("2_yg0v7")
 theme_override_constants/separation = 160
 
@@ -159,11 +138,12 @@ text = "Player 4"
 horizontal_alignment = 1
 
 [node name="PlayerScore" type="HBoxContainer" parent="PanelScore"]
-layout_mode = 0
-offset_left = 488.0
-offset_top = 157.0
-offset_right = 1392.0
-offset_bottom = 598.0
+visible = false
+layout_mode = 1
+offset_left = 463.0
+offset_top = 169.0
+offset_right = 1367.0
+offset_bottom = 610.0
 theme_override_constants/separation = 260
 
 [node name="Player1" type="VBoxContainer" parent="PanelScore/PlayerScore"]

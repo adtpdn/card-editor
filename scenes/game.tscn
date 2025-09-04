@@ -1610,7 +1610,11 @@ grow_vertical = 0
 scale = Vector2(0.8, 0.8)
 
 [node name="ScoreUI" parent="." instance=ExtResource("38_7025r")]
-visible = false
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+grow_horizontal = 1
+grow_vertical = 1
 mouse_filter = 1
 
 [node name="CursorTrail" parent="." instance=ExtResource("42_pr1ej")]

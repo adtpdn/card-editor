@@ -184,7 +184,7 @@ func _stop_drag(mouse_position: Vector2):
 		collection.disable_drop_zone()
 		collection.hover_disabled = false
 	
-	# NEW: If this is the server, trigger a hand size sync
+	# If this is the server, trigger a hand size sync
 	if _hovered_collection.name == "Pile":
 		var game = get_node("/root/Game")
 		if game and game.card_manager and owner_id != -1:
