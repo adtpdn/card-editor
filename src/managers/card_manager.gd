@@ -783,6 +783,8 @@ func sync_face_down_swap(player_id: int, hand_card_original_index: int, board_ca
 	else:
 		print("Swap sync failed: could not instantiate new card with index ", hand_card_original_index)
 
+	server_modify_hand_count_by_type(player_id, new_card_instance.card_type, -1)
+
 	# 5. Reset the state
 	var game = get_node("/root/Game")
 	if game.soil_star_actions.is_swapping_elemental:
@@ -872,6 +874,8 @@ func sync_face_up_swap(player_id: int, hand_card_original_index: int, board_card
 				elementals_manager.execute_elemental_effect(new_card_instance.card_id, new_card_instance.elemental_type, new_card_instance)
 	else:
 		print("Swap sync failed: could not instantiate new card with index ", hand_card_original_index)
+
+	server_modify_hand_count_by_type(player_id, new_card_instance.card_type, -1)
 
 	var game = get_node("/root/Game")
 	if game.soil_star_actions.is_swapping_elemental_face_up:

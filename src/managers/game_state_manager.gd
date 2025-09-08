@@ -357,6 +357,7 @@ func next_turn():
 			await domination_manager.check_domination_for_elemental_flips()
 			
 			if current_round < 8:
+				print("elemental executed")
 				await elementals_manager.elemental_executed
 				await domination_manager.check_domination_for_soil_stars()
 				await get_tree().create_timer(2.0).timeout
@@ -400,7 +401,8 @@ func next_turn():
 	
 	# END OF THE ROUND 
 	if current_round >= 9:
-		await get_tree().create_timer(4.0).timeout
+		await elementals_manager.elemental_executed
+		game.score_manager.update_and_sync_all_scores()
 		print("END GAME")
 		score_ui.rpc("show_scores")
 		return

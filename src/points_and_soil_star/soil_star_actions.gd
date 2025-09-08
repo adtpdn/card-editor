@@ -13,7 +13,7 @@ extends Control
 @onready var buy_elemental_button = $ElementalButtons/BuyElementalButton
 @onready var swap_elemental_button = $ElementalButtons/SwapElementalButton
 @onready var switch_button = $SwitchButton
-
+@onready var ui_manager = get_node("/root/Game/UIManager")
 
 # ----------------------------------------------------------------
 # Mapping:  button  ->  minimum soil stars required to enable it
@@ -263,6 +263,7 @@ func _on_PlayElementalFaceUpButton_pressed():
 	is_swapping_elemental_face_up = true
 	#game.card_manager.hand_card_for_swap = null # Reset any previously selected card
 	game.notification.show_instruction_label("Select an elemental from your hand.")
+	ui_manager.update_player_hud()
 
 	apply_button_rules()
 
@@ -289,10 +290,12 @@ func _on_BuyCardButton_pressed():
 		game.notification.show_instruction_label("Not enough Soil Stars!")
 		get_tree().create_timer(2.0).timeout.connect(game.notification.hide_panel)
 		return
+	
 	#turn_phase_manager.sigil_placed = false
 	is_action_buy_card = true
 	# This now calls the same logic as clicking the deck
 	game.deck.table._on_action_deck_pressed()
+	ui_manager.update_player_hud()
 
 	# turn_phase_manager.sigil_placed = true
 	# 3. All checks passed, perform the action
@@ -397,6 +400,7 @@ func _on_BuyElementalButton_pressed():
 	var table = get_node("/root/Game/Deck/Table")
 	if is_instance_valid(table):
 		table.draw_local_elemental_card(cost)
+		ui_manager.update_player_hud()
 
 	apply_button_rules()
 

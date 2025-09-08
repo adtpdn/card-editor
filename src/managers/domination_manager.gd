@@ -449,6 +449,7 @@ func _get_all_dominant_players_in_biome(biome_type: Biome) -> Array:
 			var should_count = false
 			if count_blighted:
 				if token.is_blighted:
+					print("blight token")
 					should_count = true
 			else:
 				if not token.is_blighted:
@@ -457,6 +458,7 @@ func _get_all_dominant_players_in_biome(biome_type: Biome) -> Array:
 			if should_count and player_token_counts.has(token.owner_id):
 				player_token_counts[token.owner_id] += 1
 
+	print("player_token_counts : ", player_token_counts)
 	var winners = []
 	var max_count = 0
 	for count in player_token_counts.values():
