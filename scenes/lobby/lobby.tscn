@@ -1,0 +1,89 @@
+[gd_scene load_steps=5 format=3 uid="uid://c5eqwydy0dfoh"]
+
+[ext_resource type="Theme" uid="uid://3tbbpd1peyop" path="res://assets/ui/themes/hud_themes.tres" id="1_jekxk"]
+[ext_resource type="Texture2D" uid="uid://dby07010c4uti" path="res://assets/ui/scoreboard/score_blurred_bg.png" id="2_i6yme"]
+[ext_resource type="Texture2D" uid="uid://dsvo5i03qx5y4" path="res://assets/ui/lobbies/lobby_acc.png" id="3_stkcr"]
+[ext_resource type="PackedScene" uid="uid://c8cnpg8tvx8rd" path="res://scenes/lobby/lobby_box.tscn" id="4_2tt0b"]
+
+[node name="Lobby" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_jekxk")
+
+[node name="BlurredBG" type="TextureRect" parent="."]
+modulate = Color(0, 0, 0, 0.172549)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_i6yme")
+
+[node name="LobbyLabel" type="Label" parent="."]
+layout_mode = 1
+offset_left = 74.0
+offset_top = 40.0
+offset_right = 242.0
+offset_bottom = 160.0
+theme = ExtResource("1_jekxk")
+theme_override_font_sizes/font_size = 60
+text = "LOBBY"
+
+[node name="LobbyLabelBg" type="TextureRect" parent="."]
+layout_mode = 1
+offset_left = 74.0
+offset_top = 121.0
+offset_right = 533.0
+offset_bottom = 212.0
+texture = ExtResource("3_stkcr")
+
+[node name="LobbyContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+offset_left = 197.0
+offset_top = 171.0
+offset_right = 1701.0
+offset_bottom = 878.0
+theme_override_constants/separation = 25
+
+[node name="LobbyBox" parent="LobbyContainer" instance=ExtResource("4_2tt0b")]
+layout_mode = 2
+
+[node name="LobbyBox2" parent="LobbyContainer" instance=ExtResource("4_2tt0b")]
+layout_mode = 2
+
+[node name="LobbyBox3" parent="LobbyContainer" instance=ExtResource("4_2tt0b")]
+layout_mode = 2
+
+[node name="LobbyBox4" parent="LobbyContainer" instance=ExtResource("4_2tt0b")]
+layout_mode = 2
+
+[node name="BelowButtonContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 197.0
+offset_top = -144.0
+offset_right = 1705.0
+offset_bottom = -77.0
+grow_vertical = 0
+
+[node name="BackButton" type="Button" parent="BelowButtonContainer"]
+custom_minimum_size = Vector2(250, 50)
+layout_mode = 2
+text = "Back"
+
+[node name="MarginContainer" type="MarginContainer" parent="BelowButtonContainer"]
+custom_minimum_size = Vector2(1000, 0)
+layout_mode = 2
+
+[node name="HostButton" type="Button" parent="BelowButtonContainer"]
+custom_minimum_size = Vector2(250, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 45
+text = "HOST"
