@@ -22,7 +22,7 @@ texture = ExtResource("1_jwcey")
 expand_mode = 2
 
 [node name="Player1Label" type="Label" parent="Player1"]
-custom_minimum_size = Vector2(90, 0)
+custom_minimum_size = Vector2(142, 0)
 layout_mode = 2
 text = "Player 1"
 
@@ -55,7 +55,7 @@ layout_mode = 2
 texture = ExtResource("1_jwcey")
 
 [node name="Player2Label" type="Label" parent="Player2"]
-custom_minimum_size = Vector2(90, 0)
+custom_minimum_size = Vector2(142, 0)
 layout_mode = 2
 text = "Player 2"
 
@@ -88,7 +88,7 @@ layout_mode = 2
 texture = ExtResource("1_jwcey")
 
 [node name="Player3Label" type="Label" parent="Player3"]
-custom_minimum_size = Vector2(90, 0)
+custom_minimum_size = Vector2(142, 0)
 layout_mode = 2
 text = "Player 3"
 
@@ -121,7 +121,7 @@ layout_mode = 2
 texture = ExtResource("1_jwcey")
 
 [node name="Player4Label" type="Label" parent="Player4"]
-custom_minimum_size = Vector2(90, 0)
+custom_minimum_size = Vector2(142, 0)
 layout_mode = 2
 text = "Player 4"
 
