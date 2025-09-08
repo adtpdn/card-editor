@@ -26,7 +26,7 @@
 [ext_resource type="Script" uid="uid://cnqv71xds5itu" path="res://src/cards_and_deck/deck_pile.gd" id="19_v2yb1"]
 [ext_resource type="PackedScene" uid="uid://ct3mj6rfjmily" path="res://scenes/sigil_mesh.tscn" id="20_05nbr"]
 [ext_resource type="Script" uid="uid://bh3yi5yf57wpw" path="res://src/cards_and_deck/table.gd" id="20_js0lu"]
-[ext_resource type="Script" path="res://src/points_and_soil_star/point_counter.gd" id="21_0sl42"]
+[ext_resource type="Script" uid="uid://inns47cokwch" path="res://src/points_and_soil_star/point_counter.gd" id="21_0sl42"]
 [ext_resource type="Script" uid="uid://bfmtf7hh4lc0h" path="res://src/cards_and_deck/drag_controller.gd" id="21_gxtfn"]
 [ext_resource type="PackedScene" uid="uid://bchy4wmtwdsy" path="res://scenes/pop_up.tscn" id="22_oaba0"]
 [ext_resource type="Script" uid="uid://copi64l3fv7vm" path="res://src/pop_up.gd" id="23_458eo"]
@@ -1461,6 +1461,7 @@ offset_bottom = 75.0
 grow_horizontal = 2
 grow_vertical = 2
 scale = Vector2(1.5, 1.5)
+theme = ExtResource("38_oaba0")
 theme_override_constants/separation = 10
 alignment = 1
 
@@ -1472,7 +1473,9 @@ horizontal_alignment = 1
 
 [node name="Username" type="LineEdit" parent="RightUI/Menu"]
 layout_mode = 2
+theme = ExtResource("38_oaba0")
 placeholder_text = "Username"
+max_length = 10
 
 [node name="HostButton" type="Button" parent="RightUI/Menu"]
 z_index = 2
@@ -1489,6 +1492,7 @@ text = "Join Game"
 [node name="IPInput" type="LineEdit" parent="RightUI/Menu"]
 layout_mode = 2
 size_flags_vertical = 3
+placeholder_text = "IP Adress"
 clear_button_enabled = true
 caret_blink = true
 caret_blink_interval = 0.5
