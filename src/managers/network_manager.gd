@@ -13,8 +13,8 @@ signal server_created
 @onready var ui_manager = $"../UIManager"
 @onready var point_counter = $"../PointCounter"
 @onready var deck = $"../Deck"
-@onready var username = get_parent().get_node("RightUI/Menu/Username")
-@onready var host_button = get_parent().get_node("RightUI/Menu/HostButton")
+@onready var username = get_parent().get_node("Lobby/Username")
+@onready var host_button = get_parent().get_node("Lobby/BelowButtonContainer/HostButton")
 @onready var join_button = get_parent().get_node("RightUI/Menu/JoinButton")
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -60,7 +60,7 @@ const IP_REFRESH_INTERVAL = 5.0  # Refresh IPs every 5 seconds
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 func _ready():
 	# Connect UI buttons
-	var host_button = get_parent().get_node("RightUI/Menu/HostButton")
+	var host_button = get_parent().get_node("Lobby/BelowButtonContainer/HostButton")
 	var join_button = get_parent().get_node("RightUI/Menu/JoinButton")
 	
 	if host_button:
@@ -114,7 +114,6 @@ func initialize():
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 func _on_host_pressed():
-	
 	if username.text.strip_edges().is_empty():
 		print("Username cannot be empty.")
 		return

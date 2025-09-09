@@ -2,8 +2,8 @@
 
 [ext_resource type="Theme" uid="uid://3tbbpd1peyop" path="res://assets/ui/themes/hud_themes.tres" id="1_jekxk"]
 [ext_resource type="Texture2D" uid="uid://dby07010c4uti" path="res://assets/ui/scoreboard/score_blurred_bg.png" id="2_i6yme"]
+[ext_resource type="Script" uid="uid://cf1id5rdopdii" path="res://src/lobby/lobby.gd" id="2_jekxk"]
 [ext_resource type="Texture2D" uid="uid://dsvo5i03qx5y4" path="res://assets/ui/lobbies/lobby_acc.png" id="3_stkcr"]
-[ext_resource type="PackedScene" uid="uid://c8cnpg8tvx8rd" path="res://scenes/lobby/lobby_box.tscn" id="4_2tt0b"]
 
 [node name="Lobby" type="Control"]
 layout_mode = 3
@@ -13,6 +13,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_jekxk")
+script = ExtResource("2_jekxk")
 
 [node name="BlurredBG" type="TextureRect" parent="."]
 modulate = Color(0, 0, 0, 0.172549)
@@ -34,6 +35,15 @@ theme = ExtResource("1_jekxk")
 theme_override_font_sizes/font_size = 60
 text = "LOBBY"
 
+[node name="Username" type="LineEdit" parent="."]
+offset_left = 1514.0
+offset_top = 83.0
+offset_right = 1695.0
+offset_bottom = 127.0
+theme = ExtResource("1_jekxk")
+placeholder_text = "Username"
+max_length = 10
+
 [node name="LobbyLabelBg" type="TextureRect" parent="."]
 layout_mode = 1
 offset_left = 74.0
@@ -42,25 +52,16 @@ offset_right = 533.0
 offset_bottom = 212.0
 texture = ExtResource("3_stkcr")
 
-[node name="LobbyContainer" type="VBoxContainer" parent="."]
-layout_mode = 1
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 2
 offset_left = 197.0
 offset_top = 171.0
-offset_right = 1701.0
-offset_bottom = 878.0
+offset_right = 1818.0
+offset_bottom = 890.0
+
+[node name="LobbyContainer" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
 theme_override_constants/separation = 25
-
-[node name="LobbyBox" parent="LobbyContainer" instance=ExtResource("4_2tt0b")]
-layout_mode = 2
-
-[node name="LobbyBox2" parent="LobbyContainer" instance=ExtResource("4_2tt0b")]
-layout_mode = 2
-
-[node name="LobbyBox3" parent="LobbyContainer" instance=ExtResource("4_2tt0b")]
-layout_mode = 2
-
-[node name="LobbyBox4" parent="LobbyContainer" instance=ExtResource("4_2tt0b")]
-layout_mode = 2
 
 [node name="BelowButtonContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
