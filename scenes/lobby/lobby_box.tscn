@@ -1,11 +1,13 @@
-[gd_scene load_steps=4 format=3 uid="uid://c8cnpg8tvx8rd"]
+[gd_scene load_steps=5 format=3 uid="uid://c8cnpg8tvx8rd"]
 
 [ext_resource type="Theme" uid="uid://3tbbpd1peyop" path="res://assets/ui/themes/hud_themes.tres" id="1_2ui5x"]
 [ext_resource type="Texture2D" uid="uid://cb7hrr4xsq5fm" path="res://assets/ui/lobbies/ui_lobbies_list.png" id="1_nw573"]
 [ext_resource type="Texture2D" uid="uid://b6b6tbtabifkc" path="res://assets/ui/lobbies/ui_lobbies_base_players.png" id="2_2ui5x"]
+[ext_resource type="Script" uid="uid://butuainawkqo0" path="res://src/lobby/lobby_box.gd" id="2_7i2xg"]
 
 [node name="LobbyBox" type="VBoxContainer"]
 theme = ExtResource("1_2ui5x")
+script = ExtResource("2_7i2xg")
 
 [node name="LobbyBoxBg" type="TextureRect" parent="."]
 layout_mode = 2
@@ -46,7 +48,7 @@ text = "1/4"
 custom_minimum_size = Vector2(74, 0)
 layout_mode = 2
 
-[node name="LobbyNameLabel" type="Label" parent="LobbyBoxBg/LobbyBoxContainer"]
+[node name="PlayerNameLabel" type="Label" parent="LobbyBoxBg/LobbyBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 50
 text = "Test 1 Room"

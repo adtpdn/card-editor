@@ -83,6 +83,8 @@ func _ready():
 	add_child(settings_menu_instance)
 	move_child(settings_menu_instance, get_child_count() - 1)
 
+
+
 func start_game():
 	#print("Starting game - initializing card system")
 	if multiplayer.is_server():
@@ -146,6 +148,10 @@ func sync_player_names(names_from_server: Dictionary):
 	self.player_names = names_from_server
 	print("[%d] Player names synced: %s" % [multiplayer.get_unique_id(), str(self.player_names)])
 
+	var lobby_node = get_node_or_null("Lobby")
+	if lobby_node:
+		# This calls the local function in lobby.gd
+		lobby_node.update_lobby_display(self.players, self.player_names)
 	# After syncing the data, update the UI accordingly
 	if ui_manager:
 		ui_manager.update_player_hud()

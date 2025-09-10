@@ -112,6 +112,16 @@ func initialize():
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---  Host & Client Functions  ---
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+func server_update_and_sync_lobby():
+	if not multiplayer.is_server(): return
+	
+	# The data to sync is the server's authoritative player_names dictionary
+	var player_info = game.player_names
+	
+	# Get the lobby node and call the RPC on it, sending the player info
+	var lobby = get_parent().get_node_or_null("Lobby")
+	if lobby:
+		lobby.rpc("update_lobby_display", player_info)
 
 func _on_host_pressed():
 	if username.text.strip_edges().is_empty():
@@ -151,6 +161,9 @@ func _on_host_pressed():
 		
 		# ADD this line to store the host's name
 		game.player_names[host_id] = username.text
+		
+		# Call the new central sync function to update the UI
+		server_update_and_sync_lobby()
 		
 		game.deck.table.setup_decks_for_new_game()
 		
@@ -259,6 +272,7 @@ func attempt_connection(target_ip: String):
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 func _on_peer_connected(new_peer_id):
+
 	# This logic only runs on the server
 	if multiplayer.is_server():
 		await get_tree().create_timer(0.1).timeout # Short delay for stability
@@ -315,9 +329,6 @@ func _on_peer_connected(new_peer_id):
 		#game.rpc_id(new_peer_id, "initialize_client_starting_hand")
 		table.rpc_id(1, "request_server_draw_card", new_peer_id, false)
 		table.server_draw_card(new_peer_id,false)
-		
-
-
 
 func _on_peer_disconnected(peer_id):
 	# This logic only runs on the server
@@ -327,9 +338,12 @@ func _on_peer_disconnected(peer_id):
 		# 1. Remove the player from the server's master list
 		game.players.erase(peer_id)
 		game.initial_player_order.erase(peer_id)
+		game.player_names.erase(peer_id)
 		
 		# 2. Call the single authoritative function to update the UI for all remaining players
 		game_state_manager.rpc("sync_player_list_and_uis", game.players)
+		
+		server_update_and_sync_lobby()
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ---    Network Discovery     ---
@@ -345,11 +359,12 @@ func _on_username_text_changed(new_text: String):
 func server_register_player_name(player_id: int, player_name: String):
 	if not multiplayer.is_server(): return
 
-	print("Registering player %d with name: %s" % [player_id, player_name])
 	game.player_names[player_id] = player_name
 
 	# Broadcast the updated list of names to ALL players
 	game.rpc("sync_player_names", game.player_names)
+	
+	server_update_and_sync_lobby()
 
 func setup_network_discovery():
 	if is_host:

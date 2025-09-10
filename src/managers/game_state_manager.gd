@@ -163,6 +163,10 @@ func sync_player_list_and_uis(authoritative_player_list: Array):
 			# The UI is visible ONLY if its owner ID matches the local player's ID.
 			child_ui.visible = (ui_owner_id == local_player_id)
 	
+	var lobby_node = get_node_or_null("/root/Game/Lobby")
+	if lobby_node:
+		lobby_node.update_lobby_display(game.players, game.player_names)
+	
 	# 4. (Optional but Recommended) Update other UI elements after changes
 	if ui_manager:
 		ui_manager.update_player_hud() # MODIFIED CALL
