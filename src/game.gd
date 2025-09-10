@@ -148,17 +148,12 @@ func sync_player_names(names_from_server: Dictionary):
 	self.player_names = names_from_server
 	print("[%d] Player names synced: %s" % [multiplayer.get_unique_id(), str(self.player_names)])
 
-	var lobby_node = get_node_or_null("Lobby")
-	if lobby_node:
-		# This calls the local function in lobby.gd
-		lobby_node.update_lobby_display(self.players, self.player_names)
 	# After syncing the data, update the UI accordingly
 	if ui_manager:
 		ui_manager.update_player_hud()
 	if player_turn:
 		player_turn.update_turn_display()
 
-## NEW RPC
 ## RPC to ensure all clients have the same permanent color order list.
 @rpc("any_peer", "call_local", "reliable")
 func sync_initial_order(order_from_server: Array):
