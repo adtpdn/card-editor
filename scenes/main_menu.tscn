@@ -1,0 +1,65 @@
+[gd_scene load_steps=5 format=3 uid="uid://cxg2mp1mci8wi"]
+
+[ext_resource type="Theme" uid="uid://3tbbpd1peyop" path="res://assets/ui/themes/hud_themes.tres" id="1_ekxnf"]
+[ext_resource type="Script" uid="uid://cwf2hua3ie2sj" path="res://src/main_menu.gd" id="2_8ln24"]
+[ext_resource type="Texture2D" uid="uid://cxjbpftjlyrc" path="res://assets/ui/logo.png" id="2_bqqt6"]
+[ext_resource type="Texture2D" uid="uid://dby07010c4uti" path="res://assets/ui/scoreboard/score_blurred_bg.png" id="2_wu84c"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_ekxnf")
+script = ExtResource("2_8ln24")
+
+[node name="BlurredBG" type="TextureRect" parent="."]
+modulate = Color(0, 0, 0, 0.172549)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_wu84c")
+
+[node name="Logo" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -505.0
+offset_top = 160.0
+offset_right = 505.0
+offset_bottom = 418.0
+grow_horizontal = 2
+texture = ExtResource("2_bqqt6")
+
+[node name="ButtonsContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -250.0
+offset_top = 470.0
+offset_right = 250.0
+offset_bottom = 930.0
+grow_horizontal = 2
+theme_override_constants/separation = 30
+
+[node name="StartButton" type="Button" parent="ButtonsContainer"]
+custom_minimum_size = Vector2(0, 140)
+layout_mode = 2
+text = "START GAME"
+
+[node name="SettingsButton" type="Button" parent="ButtonsContainer"]
+custom_minimum_size = Vector2(0, 140)
+layout_mode = 2
+text = "SETTINGS"
+
+[node name="ExitButton" type="Button" parent="ButtonsContainer"]
+custom_minimum_size = Vector2(0, 140)
+layout_mode = 2
+text = "EXIT GAME"
