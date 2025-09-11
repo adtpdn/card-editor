@@ -1,67 +1,141 @@
 shader_type canvas_item;
-render_mode blend_premul_alpha;
 
-uniform vec4 shine_color : source_color = vec4(1.0);
-uniform float shine_angle : hint_range(0.0, 180.0, 0.1) = 45.0;
-uniform float shine_speed : hint_range(0.01, 10.0, 0.01) = 0.3;
-uniform float shine_delay : hint_range(0.0, 5.0, 0.1) = 0.0;
-uniform bool shine_reverse = false;
+// The texture to scroll with.
+uniform sampler2D scrollingTexture: hint_default_white;
+// The scroll texture scale.
+uniform vec2 textureScale = vec2(1.0);
+// Angle to scroll towards. In degrees. Starts at the right.
+uniform float angle: hint_range(0.0, 360.0) = 45.0;
+// Speed to scroll at.
+uniform float textureSpeed: hint_range(-10.0, 10.0) = 0.1;
+// Strength of the texture over the color.
+uniform float textureStrength: hint_range(0.0, 1.0) = 0.5;
+// Max distance from texture.
+uniform float maxLineWidth: hint_range(0.0, 100.0) = 10.0;
+// Min distance from texture.
+uniform float minLineWidth: hint_range(0.0, 100.0) = 5.0;
+// How often to recompute the outline.
+uniform float speed: hint_range(0.0, 10.0) = 1.0;
+// How big the outline blotches are.
+uniform float blockSize: hint_range(0.001, 100.0) = 20.0;
+// The outline color. GradientTexture1D is recommended.
+uniform sampler2D color: source_color;
+// The resolution for the gradient. Higher numbers will result in smoother but more expensive passes.
+uniform int gradientResolution: hint_range(1, 30) = 10;
+// Used to compensate for alpha values.
+uniform float tolerance: hint_range(0.0, 0.999) = 0.0;
 
-uniform float Line_Width : hint_range(0.0, 0.2) = 0.09;
-uniform float Line_Smoothness : hint_range(0.001, 0.1) = 0.045;
-uniform float Brightness : hint_range(0.0, 10.0) = 3.0;
-uniform float Distortion : hint_range(1.0, 3.0) = 2;
-uniform float LensStrength : hint_range(0.0, 0.1) = 0.05;
+
+// Compensate UV for outline.
+void vertex() {
+	VERTEX = vec2(VERTEX.x * (1.0 + TEXTURE_PIXEL_SIZE.x * max(maxLineWidth, minLineWidth) * 2.0), VERTEX.y * (1.0 + TEXTURE_PIXEL_SIZE.y * max(maxLineWidth, minLineWidth) * 2.0));
+}
+
+// Checks a fragment for the edge of an uv.
+bool border(vec2 uv) {
+	vec2 uvBorder = abs(uv - vec2(0.5));
+	return max(step(0.5, uvBorder.x), step(0.5, uvBorder.y)) > 0.0;
+}
+
+// Gets alpha of given fragment if not near the edge.
+float get_alpha(sampler2D tex, vec2 uv){
+	float res = 0.0;
+	if (!border(uv)) {
+		res = texture(tex, uv).a;
+	}
+	return res;
+}
+
+// Pseudorandom number
+float hash(vec2 p, float s) {
+	return fract(35.1 * sin(dot(vec3(112.3, 459.2, 753.2), vec3(p, s))));
+}
+
+// Noise function.
+float noise(vec2 p, float s) {
+	vec2 d = vec2(0, 1);
+	vec2 b = floor(p);
+	vec2 f = fract(p);
+	return mix(
+		mix(hash(b + d.xx, s), hash(b + d.yx, s), f.x),
+		mix(hash(b + d.xy, s), hash(b + d.yy, s), f.x), f.y);
+}
+
+// Randomize line width at fragment.
+float get_line_width(vec2 p, float s) {
+	p /= blockSize;
+	float w = 0.0;
+	float intensity = 1.0;
+	for (int i = 0; i < 3; i++) {
+		w = mix(w, noise(p, s), intensity);
+		p /= 2.0;
+		intensity /= 2.0;
+	}
+
+	return mix(maxLineWidth, minLineWidth, w);
+}
+
+// Checks for neighboring pixels.
+float compute_outline(vec2 size, sampler2D tex, vec2 uv) {
+	float res = 0.0;
+	for (float i = -1.0; i < 2.0; i += 2.0) {
+		res += get_alpha(tex, uv + vec2(i * size.x, 0.0));
+		res += get_alpha(tex, uv + vec2(0.0, i * size.y));
+		for (float j = -1.0; j < 2.0; j += 2.0) {
+			res += get_alpha(tex, uv + vec2(i * size.x, j * size.y));
+			res += get_alpha(tex, uv + vec2(i * size.x, j * size.y * 0.5));
+		}
+	}
+	return res;
+}
+
+// Checks for neighboring pixels.
+bool in_range(vec2 size, sampler2D tex, vec2 uv) {
+	for (float i = -1.0; i < 2.0; i += 2.0) {
+		if (get_alpha(tex, uv + vec2(i * size.x, 0.0)) > 0.0) {return true;};
+		if (get_alpha(tex, uv + vec2(0.0, i * size.y)) > 0.0) {return true;};
+		for (float j = -1.0; j < 2.0; j += 2.0) {
+			if (get_alpha(tex, uv + vec2(i * size.x, j * size.y)) > 0.0) {return true;};
+			if (get_alpha(tex, uv + vec2(i * size.x, j * size.y * 0.5)) > 0.0) {return true;};
+		}
+	}
+	return false;
+}
+
+// Get's closes pixel.
+float get_distance(vec2 maxDistance, sampler2D tex, vec2 uv) {
+	for (int i = 1; i < gradientResolution; i++) {
+		vec2 actualDistance = float(i) / float (gradientResolution) * maxDistance;
+		if (in_range(actualDistance, tex, uv)) {
+			return float(i) / float (gradientResolution);
+		}
+	}
+}
 
 void fragment() {
-    vec2 uv = UV;
+	if (max(maxLineWidth, minLineWidth) > 0.0) {
+		// Correct image size to for outline in frame.
+		vec2 uv = UV;
+		uv -= vec2(0.5);
+		vec2 edge = TEXTURE_PIXEL_SIZE * max(maxLineWidth, minLineWidth) * 2.0;
+		uv = uv + uv * edge;
+		uv += vec2(0.5);
 
-    // Dirección y normal
-    float angle_rad = radians(shine_angle);
-    vec2 shine_dir = normalize(vec2(cos(angle_rad), -sin(angle_rad)));
-    vec2 shine_normal = vec2(-shine_dir.y, shine_dir.x);
-
-    // Gradiente radial
-    vec2 center_uv = uv - vec2(0.5);
-    float gradient_to_edge = max(abs(center_uv.x), abs(center_uv.y));
-    gradient_to_edge = 1.0 - gradient_to_edge * Distortion;
-    gradient_to_edge = clamp(gradient_to_edge, 0.0, 1.0);
-
-    // Animación
-    float cycle_duration = (1.0 / shine_speed) + shine_delay;
-    float time_in_cycle = mod(TIME, cycle_duration);
-    float shine_progress = clamp(time_in_cycle * shine_speed, 0.0, 1.0);
-    if (shine_reverse) {
-        shine_progress = 1.0 - shine_progress;
-    }
-
-    float max_offset = 1.5;
-    float offset = mix(-max_offset, max_offset, shine_progress);
-    vec2 shine_origin = vec2(0.5) + shine_normal * offset;
-
-    // Brillo
-    float distance = dot(uv - shine_origin, shine_normal);
-    float smoothness = clamp(Line_Smoothness, 0.001, 1.0);
-    float half_width = Line_Width * 0.5;
-    float shine = smoothstep(-half_width - smoothness, -half_width, distance) -
-                  smoothstep(half_width, half_width + smoothness, distance);
-
-    // Lens flare
-    vec2 lens_offset = shine * LensStrength * shine_normal;
-    vec4 base_color = texture(TEXTURE, uv + lens_offset);
-
-    // Respetar transparencia
-    if (base_color.a <= 0.0) {
-        discard; // opcional: no renderiza nada
-    }
-
-    shine *= base_color.a;
-
-    float final_intensity = shine * gradient_to_edge * Brightness;
-    final_intensity = clamp(final_intensity, 0.0, shine_color.a);
-
-    vec3 final_color = mix(base_color.rgb, shine_color.rgb, final_intensity);
-
-    // Aplicar alpha como máscara final
-    COLOR = vec4(final_color, base_color.a);
+		// Apply outline.
+		vec4 newColor = texture(TEXTURE, uv);
+		if (newColor.a <= tolerance || border(uv)) {
+			// Correct angle to start at right and convert to radians.
+			float radiansAngle = radians(angle + 180.0);
+			// Make a vector out of the angle.
+			vec2 vector = vec2(cos(radiansAngle), sin(radiansAngle));
+			float timeStep = floor(TIME * speed);
+			vec2 size = TEXTURE_PIXEL_SIZE;
+			size *= get_line_width(uv / TEXTURE_PIXEL_SIZE, timeStep);
+			vec4 textureColor = texture(scrollingTexture, fract(UV / textureScale + vector * textureSpeed * TIME));
+			vec4 actualColor = texture(color, vec2(get_distance(edge / 2.0 + 0.01, TEXTURE, uv)));
+			vec4 finalColor = step(1.0 - tolerance, in_range(size, TEXTURE, uv) ? 1.0: 0.0) * mix(actualColor, textureColor, textureStrength);
+			newColor = finalColor;
+		}
+		COLOR = newColor;
+	}
 }

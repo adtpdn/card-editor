@@ -1,9 +1,23 @@
-[gd_scene load_steps=5 format=3 uid="uid://cxg2mp1mci8wi"]
+[gd_scene load_steps=7 format=3 uid="uid://cxg2mp1mci8wi"]
 
 [ext_resource type="Theme" uid="uid://3tbbpd1peyop" path="res://assets/ui/themes/hud_themes.tres" id="1_ekxnf"]
 [ext_resource type="Script" uid="uid://cwf2hua3ie2sj" path="res://src/main_menu.gd" id="2_8ln24"]
 [ext_resource type="Texture2D" uid="uid://cxjbpftjlyrc" path="res://assets/ui/logo.png" id="2_bqqt6"]
 [ext_resource type="Texture2D" uid="uid://dby07010c4uti" path="res://assets/ui/scoreboard/score_blurred_bg.png" id="2_wu84c"]
+[ext_resource type="Shader" uid="uid://bomh81popgn86" path="res://assets/materials/shaders/soil_star.gdshader" id="4_8ln24"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_rtw2f"]
+shader = ExtResource("4_8ln24")
+shader_parameter/textureScale = Vector2(1, 1)
+shader_parameter/angle = 45.0
+shader_parameter/textureSpeed = 0.1
+shader_parameter/textureStrength = 0.5
+shader_parameter/maxLineWidth = 4.828
+shader_parameter/minLineWidth = 0.0
+shader_parameter/speed = 2.947
+shader_parameter/blockSize = 25.263
+shader_parameter/gradientResolution = 10
+shader_parameter/tolerance = 0.085
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -26,14 +40,15 @@ grow_vertical = 2
 texture = ExtResource("2_wu84c")
 
 [node name="Logo" type="TextureRect" parent="."]
+material = SubResource("ShaderMaterial_rtw2f")
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -505.0
-offset_top = 160.0
+offset_top = 163.0
 offset_right = 505.0
-offset_bottom = 418.0
+offset_bottom = 421.0
 grow_horizontal = 2
 texture = ExtResource("2_bqqt6")
 
