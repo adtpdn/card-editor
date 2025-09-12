@@ -166,7 +166,8 @@ func plant_card(card):
 				soil_star_node.decrease_soil_star(cost)
 	else:
 		# This is a normal card play during Phase 2.
-		turn_phase_manager.card_played = true
+		#turn_phase_manager.card_played = true
+		turn_phase_manager.cards_played_this_turn += 1
 
 	# The rest of the function remains the same
 	var resource_card_id = card.card_id
@@ -339,6 +340,7 @@ func _on_card_exit(card: Card3D):
 func _on_card_pressed(card: Card3D):
 	var game = get_node("/root/Game")
 	var card_manager = game.card_manager
+	var game_state_manager = game.game_state_manager
 	
 	# CONSOLIDATED SWAP LOGIC
 	# The first card is selected from the hand, the second from the board.
@@ -411,7 +413,13 @@ func _on_card_pressed(card: Card3D):
 		return
 	
 	# Allow playing a card if it's the right phase OR if using the soil star action
-	var can_play_normally = turn_phase_manager.current_phase == 1 and not turn_phase_manager.card_played
+	# Determine the maximum number of cards that can be played this turn
+	var max_plays = 1
+	if game_state_manager.current_round == 8:
+		max_plays = 2
+	
+	# Allow playing a card if it's the right phase AND we haven't reached the max plays
+	var can_play_normally = turn_phase_manager.current_phase == 1 and turn_phase_manager.cards_played_this_turn < max_plays
 	var can_play_from_soil_star = soil_star_actions.is_playing_from_soil_star_action
 
 	if can_play_normally or can_play_from_soil_star:

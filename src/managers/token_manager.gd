@@ -572,7 +572,7 @@ func _handle_card_effect_action(token: Node3D) -> void:
 		effect_was_processed = false
 
 	if effect_was_processed:
-		turn_phase_manager.card_played = true
+		#turn_phase_manager.card_played = true
 		card_manager.reset_all_effect_modes() # Call the new function
 		unhighlight_outerglow()
 		unhighlight_all_token_placements()
@@ -627,7 +627,7 @@ func _process_swap_energy_selection(token: Node3D) -> void:
 			unhighlight_outerglow()
 			card_manager.first_swap_token = null
 			card_manager.is_swap_energy_mode = false
-			turn_phase_manager.card_played = true
+			#turn_phase_manager.card_played = true
 # -----------------------------------------------------------------------------
 # END PRIVATE HELPER FUNCTIONS (Handle Touch)
 # -----------------------------------------------------------------------------

@@ -43,7 +43,8 @@ var is_draw_card := false
 
 # Sub-phase tracking for PLANT_SIGIL_AND_CARD
 var sigil_placed = false
-var card_played = false
+#var card_played = false
+var cards_played_this_turn := 0
 
 # Track sigil usage per turn
 var sigil_used_this_turn := false
@@ -261,7 +262,8 @@ func reset_phases():
 	current_phase = Phase.NONE
 	is_draw_card = false
 	sigil_placed = false
-	card_played = false
+	#card_played = false
+	cards_played_this_turn = 0
 	
 	sigil_used_this_turn = false
 	sigil_manager.is_sigil_a = false
@@ -305,7 +307,7 @@ func check_phase_two_completion():
 		completed_phases[Phase.PLANT_BIOME] = true
 		call_deferred("advance_to_next_phase")
 	
-	if sigil_placed and card_played:
+	if sigil_placed and cards_played_this_turn >= 1:
 		print('advance to sigil activation')
 		completed_phases[Phase.PLANT_SIGIL_AND_CARD] = true
 		# Use call_deferred to avoid immediate phase change during signal processing
@@ -324,7 +326,7 @@ func show_phase_two_progress():
 	# Create progress text
 	var progress_text = "PROGRESS:\n"
 	progress_text += "• Place token in sigil: " + ("✓" if sigil_placed else "□") + "\n"
-	progress_text += "• Play a card: " + ("✓" if card_played else "□")
+	#progress_text += "• Play a card: " + ("✓" if card_played else "□")
 	
 	# Create a custom popup without buttons
 	var panel = Panel.new()
@@ -611,7 +613,7 @@ func _on_card_placed(card, slot_index, location_name):
 	if current_phase == Phase.PLANT_SIGIL_AND_CARD:
 		print("TurnPhaseManager: Card played in correct phase")
 		# Mark card as played
-		card_played = true
+		#card_played = true
 		
 		# Check if phase is complete
 		check_phase_two_completion()
@@ -678,7 +680,7 @@ func sync_phase_state(phase_data: Dictionary):
 	current_phase = phase_data.current_phase
 	completed_phases = phase_data.completed_phases
 	sigil_placed = phase_data.sigil_placed
-	card_played = phase_data.card_played
+	#card_played = phase_data.card_played
 
 func request_phase_sync():
 	print("TurnPhaseManager: Requesting phase sync")
@@ -688,7 +690,7 @@ func request_phase_sync():
 			"current_phase": current_phase,
 			"completed_phases": completed_phases,
 			"sigil_placed": sigil_placed,
-			"card_played": card_played
+			#"card_played": card_played
 		}
 		rpc("sync_phase_state", phase_data)
 	else:
@@ -707,7 +709,7 @@ func request_phase_data():
 		"current_phase": current_phase,
 		"completed_phases": completed_phases,
 		"sigil_placed": sigil_placed,
-		"card_played": card_played
+		#"card_played": card_played
 	}
 	rpc_id(requesting_peer, "sync_phase_state", phase_data)
 
