@@ -1625,6 +1625,9 @@ current = true
 script = ExtResource("12_fedci")
 hand_node_path = NodePath("../Deck/Table/DragController/Hand")
 
+[node name="CursorTrail2" parent="." instance=ExtResource("42_pr1ej")]
+z_index = 1
+
 [connection signal="mouse_entered" from="Deck/Table/DragController/elemental_slice_1/DropZone" to="Deck/Table/DragController/elemental_slice_1" method="_on_drop_zone_mouse_entered"]
 [connection signal="mouse_exited" from="Deck/Table/DragController/elemental_slice_1/DropZone" to="Deck/Table/DragController/elemental_slice_1" method="_on_drop_zone_mouse_exited"]
 [connection signal="mouse_entered" from="Deck/Table/DragController/elemental_slice_2/DropZone" to="Deck/Table/DragController/elemental_slice_2" method="_on_drop_zone_mouse_entered"]
