@@ -20,26 +20,25 @@ extends Camera3D
 # --- ROTATION ---
 @export_group("Rotation")
 @export var rotation_sensitivity: float = 0.005
-@export var min_pitch_degrees: float = 15.0 # How close to horizontal the camera can get
-@export var max_pitch_degrees: float = 85.0 # How close to top-down the camera can get
 
 # --- HAND POSITIONING ---
 @export_group("Hand Positioning")
 # In the Godot Editor, assign the path to your Hand node here.
 # e.g., ../../Deck/Table/DragController/Hand
 @export var hand_node_path: NodePath
-# Adjust how far the hand appears from the camera.
+# Adjust how far the hand appears from the camera (forward/backward).
 @export var hand_distance_from_camera: float = 4.0
-# Adjust the vertical position of the hand (e.g., 0.98 is 98% from the top).
-@export var hand_bottom_margin_percent: float = 0.9
+# Adjust the vertical position of the hand relative to the camera's center.
+@export var hand_vertical_offset: float = -0.8
+# Adjust the horizontal position of the hand relative to the camera's center.
+@export var hand_horizontal_offset: float = 0.0
 
 var hand_node: Node3D
 var is_rotating = false
-var initial_hand_rotation: Vector3
 
 # --- Camera Defaults ---
-var _default_position := Vector3(0, 8.212, 0)
-var _default_rotation_degrees := Vector3(-90, 0, 0) # -90 is a stable top-down view
+# A tiny offset on the Z-axis prevents gimbal lock when looking straight down.
+var _default_position := Vector3(0, 8.212, 0.001)
 var _default_transform: Transform3D
 
 var _max_zoom_in_position := Vector3(0, 6.181, -0.01)
@@ -58,16 +57,14 @@ func _ready():
 		hand_node = get_node_or_null(hand_node_path)
 		if not hand_node:
 			printerr("ResponsiveCamera: Hand node not found at path: ", hand_node_path)
-		else:
-			# Store the initial rotation of the hand node.
-			initial_hand_rotation = hand_node.global_rotation
 	else:
 		printerr("ResponsiveCamera: Hand Node Path is not set in the inspector.")
 	
 	# Set and store the camera's default starting transform.
-	global_position = _default_position
-	rotation_degrees = _default_rotation_degrees
-	_default_transform = global_transform
+	# We create the transform at the default position and make it look at the origin.
+	# This is more stable than setting position and rotation separately.
+	_default_transform = Transform3D(Basis(), _default_position).looking_at(Vector3.ZERO, Vector3.UP)
+	global_transform = _default_transform
 	
 	# Calculate the zoom-in distance from the position vector's length.
 	_max_zoom_in_distance = _max_zoom_in_position.length()
@@ -100,24 +97,7 @@ func _unhandled_input(event: InputEvent):
 		var yaw_change = -event.relative.x * rotation_sensitivity
 		global_position = global_position.rotated(Vector3.UP, yaw_change)
 		
-		# Vertical rotation (Pitch) rotates the camera's position around its local right vector.
-		var pitch_change = -event.relative.y * rotation_sensitivity
-		var right_vector = global_transform.basis.x
-		global_position = global_position.rotated(right_vector, pitch_change)
-		
-		# Clamp the vertical angle to prevent flipping over.
-		var direction_to_center = (Vector3.ZERO - global_position).normalized()
-		var angle_with_up = rad_to_deg(direction_to_center.angle_to(Vector3.DOWN))
-		
-		var min_angle = min_pitch_degrees
-		var max_angle = max_pitch_degrees
-
-		if angle_with_up < min_angle or angle_with_up > max_angle:
-			# If the angle is out of bounds, revert the last pitch change.
-			global_position = global_position.rotated(right_vector, -pitch_change)
-		
 		# After moving, orient the camera to look at the center of the board.
-		# This replaces the look_at() function by creating a new transform with the correct orientation.
 		global_transform = global_transform.looking_at(Vector3.ZERO, Vector3.UP)
 		
 		# Force the Z-axis rotation (roll) to zero.
@@ -200,19 +180,18 @@ func _update_hand_position():
 	if not is_instance_valid(hand_node):
 		return
 
-	# 1. Get viewport and define the target 2D screen position for the hand (bottom center).
-	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
-	var screen_pos := Vector2(viewport_size.x / 2.0, viewport_size.y * hand_bottom_margin_percent)
+	# 1. Define the hand's position relative to the camera's local space.
+	# The X is for left/right, Y for up/down, and Z for forward/backward from the camera.
+	var local_offset = Vector3(hand_horizontal_offset, hand_vertical_offset, -hand_distance_from_camera)
 
-	# 2. Project a ray from the camera through that screen point into the 3D world.
-	var ray_origin := self.project_ray_origin(screen_pos)
-	var ray_normal := self.project_ray_normal(screen_pos)
-
-	# 3. Calculate the target position in 3D space along the ray.
-	var target_pos := ray_origin + ray_normal * hand_distance_from_camera
-
-	# 4. Apply the new global position to the hand node.
-	hand_node.global_position = target_pos
+	# 2. Calculate the target world position by transforming the local offset
+	#    by the camera's current global transform.
+	var target_position = self.global_transform * local_offset
 	
-	# 5. Reset the hand's global rotation to its initial state to prevent it from moving with the camera.
-	hand_node.global_rotation = initial_hand_rotation
+	# 3. Calculate the target rotation. We want the hand to have the same
+	#    orientation as the camera.
+	var target_rotation_basis = self.global_transform.basis
+
+	# 4. Apply the new transform to the hand node.
+	hand_node.global_position = target_position
+	hand_node.global_transform.basis = target_rotation_basis

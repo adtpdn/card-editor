@@ -1624,6 +1624,8 @@ transform = Transform3D(1, 0, 0, 0, -0.0167195, 0.99986, 0, -0.99986, -0.0167195
 current = true
 script = ExtResource("12_fedci")
 hand_node_path = NodePath("../Deck/Table/DragController/Hand")
+hand_distance_from_camera = 8.0
+hand_vertical_offset = -7.0
 
 [node name="CursorTrail2" parent="." instance=ExtResource("42_pr1ej")]
 z_index = 1
