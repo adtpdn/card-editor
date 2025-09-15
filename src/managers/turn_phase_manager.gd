@@ -73,7 +73,7 @@ signal turn_action_completed(phase)
 
 func _ready():
 	#print("TurnPhaseManager: _ready called")
-	#create_phase_popup()
+	create_phase_popup()
 	
 	# Connect to token button
 	var token_button = game.get_node("RightUI/TokenButton")
@@ -506,7 +506,7 @@ func on_token_button_pressed():
 
 
 func _on_end_phase_button_pressed():
-	#print("TurnPhaseManager: End phase button pressed")
+	print("TurnPhaseManager: End phase button pressed")
 	
 	if game_state_manager.current_round == 0:
 		return
