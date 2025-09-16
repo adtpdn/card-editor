@@ -301,7 +301,10 @@ func plant_extra_card_effect():
 	#token_manager.max_tokens_per_turn += 1
 
 	# Set the plant extra flag
-	is_plant_extra = true
+	if multiplayer.is_server():
+		server_set_plant_extra_state(true)
+	else:
+		rpc_id(1, "server_set_plant_extra_state", true)
 
 	# Enable placing on both sigil and biome locations
 	token_manager.can_plant_on_sigil = true
@@ -317,6 +320,15 @@ func plant_extra_card_effect():
 
 	# Update UI to show token button as active
 	token_manager.update_token_ui()
+
+@rpc("any_peer")
+func server_set_plant_extra_state(new_state: bool):
+	if not multiplayer.is_server():
+		return
+	
+	# The server sets its own flag and then broadcasts the authoritative state to all clients.
+	is_plant_extra = new_state
+	rpc("sync_plant_extra_state", new_state)
 
 # -----------------------------------------------------------------------------
 # HELPER FUNCTIONS ( Networking Card Plant)

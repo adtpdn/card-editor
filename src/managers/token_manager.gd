@@ -685,10 +685,8 @@ func request_token_placement(token_index: int, position: Vector3, biome_type: in
 		# Call the RPC on point_counter to add 2 magic points to the biome.
 		point_counter.rpc_id(1, "request_add_magic_points", token_data.biome)
 
-		# Reset the flag on the server immediately.
-		#card_manager.is_plant_extra = false
-		# Call the new RPC to sync this change to all clients.
-		#card_manager.rpc("sync_plant_extra_state", false)
+		card_manager.is_plant_extra = false
+		card_manager.rpc("sync_plant_extra_state", false)
 
 	# 5. Broadcast the confirmed token placement to all clients.
 	rpc("sync_token_placement", player_id, token_data, position)

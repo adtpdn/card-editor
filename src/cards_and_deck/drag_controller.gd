@@ -160,7 +160,12 @@ func _stop_drag(mouse_position: Vector2):
 			_return_card_to_collection(mouse_position)
 			is_can_plant = false
 	else:
+		var soil_star_action = get_node("/root/Game/SoilStarActions")
 		if not can_insert:
+			_return_card_to_collection(mouse_position)
+		elif _dragging_card.card_type == CardType.ELEMENTAL and not soil_star_action.is_swapping_elemental:
+			_return_card_to_collection(mouse_position)
+		elif _dragging_card.card_type == CardType.ELEMENTAL and not soil_star_action.is_swapping_elemental_face_up:
 			_return_card_to_collection(mouse_position)
 		elif _hovered_collection == null or _hovered_collection == _drag_from_collection:
 			_return_card_to_collection(mouse_position)
