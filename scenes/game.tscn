@@ -97,7 +97,6 @@ shadow_mesh = SubResource("ArrayMesh_fedci")
 
 [sub_resource type="Resource" id="Resource_wwdad"]
 script = ExtResource("25_02fa5")
-pile_y_offset = 0.0
 metadata/_custom_type_script = "uid://dauol4rysxcqw"
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ykyjb"]
@@ -144,7 +143,6 @@ shadow_mesh = SubResource("ArrayMesh_8qswn")
 
 [sub_resource type="Resource" id="Resource_4yprr"]
 script = ExtResource("25_02fa5")
-pile_y_offset = 0.0
 metadata/_custom_type_script = "uid://dauol4rysxcqw"
 
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_1ofy4"]
@@ -161,7 +159,6 @@ orientation = 2
 
 [sub_resource type="Resource" id="Resource_alien"]
 script = ExtResource("26_nepv3")
-direction = 0
 metadata/_custom_type_script = "uid://8v3bpke27xiw"
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_8jhw1"]
