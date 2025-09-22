@@ -871,8 +871,6 @@ func sync_face_up_swap(player_id: int, hand_card_original_index: int, board_card
 			print("Swap sync warning: could not find card with index ", hand_card_original_index, " in local player's hand.")
 
 	var elementals_manager = get_node("/root/Game/ElementalsManager")
-	# Checking for reset card elemental 
-	elementals_manager.reset_selected_elemental_variable(board_card)
 
 	var table = get_node("/root/Game/Deck/Table")
 	var new_card_instance = table.instantiate_face_card(hand_card_original_index, true)

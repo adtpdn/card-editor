@@ -9,11 +9,11 @@ enum BiomeType {FOREST, WATER, MOUNTAIN, DESERT}
 @onready var point_counter = get_node("/root/Game/PointCounter")
 
 
-func _ready():
-	# Connect signals only if the static body exists
-	if static_body_3d:
-		static_body_3d.mouse_entered.connect(_on_static_body_3d_mouse_entered)
-		static_body_3d.mouse_exited.connect(_on_static_body_3d_mouse_exited)
+#func _ready():
+	## Connect signals only if the static body exists
+	#if static_body_3d:
+		#static_body_3d.mouse_entered.connect(_on_static_body_3d_mouse_entered)
+		#static_body_3d.mouse_exited.connect(_on_static_body_3d_mouse_exited)
 
 func _on_static_body_3d_mouse_entered():
 	# Ensure the required nodes are available to prevent errors
